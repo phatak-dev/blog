@@ -1,0 +1,14 @@
+# Site settings
+title: Computegeek
+email: madhukaraphatak@gmail.com
+description: "Thoughts of geekperson"
+baseurl: "/blog"
+url: "http://www.madhukaraphatak.com"
+username : phatak-dev
+twitter : madhukaraphatak
+paginate: 10
+
+
+# Build settings
+markdown: kramdown
+permalink: /:title.html
