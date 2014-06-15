@@ -60,7 +60,8 @@ To call gradient descent , add the following lines to ex2.m
 
 alpha = 0.0014;
 
-[theta,cost]= gradientDescent(X,y,initial_theta,alpha,2000000);
+[theta,cost]= gradientDescent(X,y,
+initial_theta,alpha,2000000);
 
 % Print theta to screen
 

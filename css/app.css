@@ -23,3 +23,19 @@ margin-top: 1%;
 body {
 	font-family: "Open Sans", Arial, sans-serif;
 }
+
+pre {
+  white-space: pre-wrap;
+}
+
+pre, pre > code {
+  /* Make more code fit on small screens */
+  font-size: 14px;
+}
+
+@media only screen and (min-width: 481px) {
+  pre, pre > code {
+    /* Bigger font on bigger screens */
+    font-size: 16px;
+  }
+ }
