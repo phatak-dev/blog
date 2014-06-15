@@ -33,6 +33,12 @@ pre, pre > code {
   font-size: 14px;
 }
 
+img{
+ display: block;
+  max-width: 100%;
+  height: auto;
+}
+
 @media only screen and (min-width: 481px) {
   pre, pre > code {
     /* Bigger font on bigger screens */

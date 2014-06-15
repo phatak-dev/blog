@@ -98,7 +98,9 @@ As we see we can write lexer as follows:
 //TestLexer.g
 
 grammar TestLexer;
-ID  : ('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'0'..'9'|'_'|'.'|'a'..'z'|'A'..'Z')*;
+ID  : ('a'..'z'|'A'..'Z'|'_') 
+('a'..'z'|'A'..'Z'|'0'..'9'|'_'
+|'.'|'a'..'z'|'A'..'Z')*;
 COMMA: ',';
 SEMICOLON:';';
 DATATYPE: 'int' | 'float';

@@ -29,7 +29,8 @@ Add the plug-in to the pom as follows:
   <executions>
    <execution>
     <configuration>
-         <outputDirectory>src/main/java</outputDirectory>
+   <outputDirectory>src/main/java
+   </outputDirectory>
     </configuration>
     <goals>
            <goal>antlr</goal>

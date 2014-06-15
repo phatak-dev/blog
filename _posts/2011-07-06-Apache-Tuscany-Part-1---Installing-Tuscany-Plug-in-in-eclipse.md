@@ -21,7 +21,11 @@ In Eclipse 3.4:
 
 
 ###Step 2: 
- Add the following site [http://www.apache.org/dist/tuscany/java/sca/1.5.1/tuscany-sca-1.5.1-updatesite/](http://www.apache.org/dist/tuscany/java/sca/1.5.1/tuscany-sca-1.5.1-updatesite/)
+ Add the following site 
+
+ [http://www.apache.org/dist/tuscany/
+ java/sca/
+ 1.5.1/tuscany-sca-1.5.1-updatesite/](http://www.apache.org/dist/tuscany/java/sca/1.5.1/tuscany-sca-1.5.1-updatesite/)
 
 Give some time  till eclipse will fetch necessary dependencies
 
