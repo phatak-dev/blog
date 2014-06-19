@@ -1,11 +1,26 @@
 ---           
 layout: post
-title: "Folding RDD in spark"
+title: "Fold in spark"
 categories: spark
 ---
-Fold is a very powerful operation to calculate lot of things in O(n) time.
+Fold is a very powerful operation in spark which allows you to calculate many important values in O(n) time . If you are familiar with Scala collection it will be like using foldLeft operation. Even if you not used fold in Scala, this post will make you comfortable in using fold.
 
-Example : Finding max in a given RDD
+###Syntax
+{% highlight scala %}
+def fold[T](acc:T)((acc,value) => acc)
+{% endhighlight %}
+
+The above is kind of high level view of fold api. It has following three things
+
+1. T is the data type of RDD
+2. acc is accumulator which will return value of the fold operation
+3. A function , which will be called for each element with rdd with previous accumulator.
+
+Since the accumulator is left of the function arguments, it is also called as foldLeft.
+
+Let's see some examples of fold 
+
+###Finding max in a given RDD
 
 Let's first build a RDD
 
@@ -18,7 +33,7 @@ Let's first build a RDD
 Naive way : of doing it will by sorting. 
 
 {% highlight scala %}
-val maxBySort = listRDD.map(value=>(value,None)).sortByKey(false).map(_._1).take(1)(0)
+val maxBySort = listRDD.reduce(_ max _)
  println("max is "+maxBySort)
 {% endhighlight %}
 
