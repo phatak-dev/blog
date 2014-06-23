@@ -1,7 +1,7 @@
 ---           
 layout: post
 title: "Google, it's time - We want Scala for Android"
-categories: spark
+categories: scala
 ---
 Apple made a bold move in this year's WWDC 2014 by announcing a new language,swift,for it's iOS platforms. Finally, apple recognized that Objective C has lived its course and its technology of 90's . Now its time for Android to make a bold move and embrace a modern language for modern post pc devices.
 
