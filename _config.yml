@@ -2,8 +2,8 @@
 title: Madhukar's Blog
 email: madhukaraphatak@gmail.com
 description: "Thoughts of geekperson"
-baseurl: "blog.zinnianewsite.in"
-url: "http://www.madhukaraphatak.com"
+baseurl: "/"
+url: "http://blog.zinnianewsite.in"
 username : phatak-dev
 twitter : madhukaraphatak
 paginate: 10
