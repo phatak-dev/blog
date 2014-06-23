@@ -1,0 +1,757 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Madhukar's Blog</title>
+    <description>Thoughts of geekperson</description>
+    <link>http://www.madhukaraphatak.comblog.zinnianewsite.in/</link>
+    <atom:link href="http://www.madhukaraphatak.comblog.zinnianewsite.in/feed.xml" rel="self" type="application/rss+xml" />
+    
+      <item>
+        <title>Gradient descent for Logistic regression in octave</title>
+        <description>&lt;p&gt;I am a huge fan of machine learning classes on &lt;a href=&quot;http://www.ml-class.org&quot;&gt;coursera&lt;/a&gt;. They do a great job of explaining machine learning techniques with lots of hands on . If you are following the course or watching videos you will find this post useful.       &lt;/p&gt;
+
+&lt;p&gt;In the discussion of Logistic Regression,  exercise two, we use fminunc function rather than standard gradient descent for minimizing for theta. Exercise does not discuss how to use gradient descent for the same. If you use the code of gradient descent of linear  regression exercise you don’t get same values of theta . So you will be left wondering how to use gradient descent for logistic regression.  Even I also got stuck at same place and was able to figure it out after lot of trial and error. To save other’s pain I am sharing following code for the same.&lt;/p&gt;
+
+&lt;p&gt;Create a file called gradientDescent.m and paste the following code&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;octave&quot;&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;[theta,cost] &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;gradientDescent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;X, y, theta, alpha, num_iters&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;%GRADIENTDESCENT Performs gradient descent to learn theta&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;%   theta = GRADIENTDESENT(X, y, theta, alpha, num_iters) updates theta by&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;%   taking num_iters gradient steps with learning rate alpha&lt;/span&gt;
+
+
+
+&lt;span class=&quot;c&quot;&gt;% Initialize some useful values&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;% number of training examples&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;J_history&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;zeros&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;num_iters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;theta_history&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+
+
+&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;iter&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;num_iters&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;h&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;grad&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;#39;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alpha&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;grad&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;               
+
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cost&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;gradient&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;costFunction&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Other than the calculation of h, the other code is identical to the gradient descent of the logisitic regression.&lt;/p&gt;
+
+&lt;p&gt;To call gradient descent , add the following lines to ex2.m&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;octave&quot;&gt;&lt;span class=&quot;c&quot;&gt;%%============= Part 4: Optimizing using Gradient Descent =============&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;alpha&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.0014&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cost&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gradientDescent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;initial_theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alpha&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2000000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% Print theta to screen&lt;/span&gt;
+
+&lt;span class=&quot;nb&quot;&gt;fprintf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;Cost at theta found by gradient Descent: %f\n&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cost&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;nb&quot;&gt;fprintf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;theta: \n&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;nb&quot;&gt;fprintf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39; %f \n&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+
+
+&lt;span class=&quot;c&quot;&gt;% Plot Boundary&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;plotDecisionBoundary&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+
+
+&lt;span class=&quot;c&quot;&gt;% Put some labels&lt;/span&gt;
+
+&lt;span class=&quot;nb&quot;&gt;hold&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;on&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% Labels and Legend&lt;/span&gt;
+
+&lt;span class=&quot;nb&quot;&gt;xlabel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;Exam 1 score&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;nb&quot;&gt;ylabel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;Exam 2 score&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+
+
+&lt;span class=&quot;c&quot;&gt;% Specified in plot order&lt;/span&gt;
+
+&lt;span class=&quot;nb&quot;&gt;legend&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;Admitted&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;Not admitted&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;nb&quot;&gt;hold&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;off&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+
+
+&lt;span class=&quot;nb&quot;&gt;fprintf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;\nProgram paused. Press enter to continue.\n&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;nb&quot;&gt;pause&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now you should have gradient descent working for logistic regression.&lt;/p&gt;
+
+</description>
+        <pubDate>Sat, 01 Feb 2014 14:56:19 +0000</pubDate>
+        <link>http://www.madhukaraphatak.comblog.zinnianewsite.in/gradient-descent-for-logistic-regression-in-octave</link>
+        <guid isPermaLink="true">http://www.madhukaraphatak.comblog.zinnianewsite.in/gradient-descent-for-logistic-regression-in-octave</guid>
+      </item>
+    
+      <item>
+        <title>Secondary Namenode - What it really do?</title>
+        <description>&lt;p&gt;Secondary Namenode is one of the poorly named component in Hadoop. By its name, it gives a sense that its a backup for the Namenode.But in reality its not. Lot of beginners in Hadoop get confused about what exactly SecondaryNamenode does and why its present in HDFS.So in this blog post I try to explain the role of secondary namenode in HDFS.&lt;/p&gt;
+
+&lt;p&gt;By its name, you may assume that it has something to do with Namenode and you are right. So before we dig into Secondary Namenode lets see what exactly Namenode does.&lt;/p&gt;
+
+&lt;h3 id=&quot;namenode&quot;&gt;Namenode&lt;/h3&gt;
+&lt;p&gt;Namenode holds the meta data for the HDFS like Namespace information, block information etc. When in use, all this information is stored in main memory. But these information also stored in disk for persistence storage.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://3.bp.blogspot.com/-KakYu0VtouE/T_Ha_4kExzI/AAAAAAAAA_g/WAyh2AtfK6I/s640/namenode.png&quot; alt=&quot;namenode&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The above image shows how Name Node stores information in disk.&lt;br /&gt;
+Two different files are&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;fsimage - Its the snapshot of the filesystem when namenode started&lt;/li&gt;
+  &lt;li&gt;Edit logs - Its the sequence of changes made to the filesystem after namenode started&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Only in the restart of namenode , edit logs are applied to fsimage to get the latest snapshot of the file system. But namenode restart are rare in production clusters which means edit logs can grow very large for the clusters where namenode runs for a long period of time. The following issues we will encounter in this situation.&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Editlog become very large , which will be challenging to manage it&lt;/li&gt;
+  &lt;li&gt;Namenode restart takes long time because lot of changes has to be merged&lt;/li&gt;
+  &lt;li&gt;In the case of crash, we will lost huge amount of metadata since fsimage is very old&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;So to overcome this issues we need a mechanism which will help us  reduce the edit log size which is manageable and have up to date  fsimage ,so that load on namenode reduces . It’s very similar to Windows Restore point, which will allow us to take snapshot of the OS so that if something goes wrong , we can fallback to the last restore point.&lt;/p&gt;
+
+&lt;p&gt;So now we understood NameNode functionality and challenges to keep the meta data up to date.So what is this all have to with Seconadary Namenode? &lt;/p&gt;
+
+&lt;h3 id=&quot;secondary-namenode&quot;&gt;Secondary Namenode&lt;/h3&gt;
+&lt;p&gt;Secondary Namenode helps to overcome the above issues by taking over responsibility of merging editlogs with fsimage from the namenode.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://3.bp.blogspot.com/-kk2kboIDhLY/T_HbVQZ-jFI/AAAAAAAAA_o/tVEqt_5VH5w/s640/secondarynamenode.png&quot; alt=&quot;secondarynamenode&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The above figure shows the working of Secondary Namenode&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;It gets the edit logs from the namenode in regular intervals and applies to fsimage&lt;/li&gt;
+  &lt;li&gt;Once it has new fsimage, it copies back to namenode&lt;/li&gt;
+  &lt;li&gt;Namenode will use this fsimage for the next restart,which will reduce the startup time&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Secondary Namenode whole purpose is to have a checkpoint in HDFS. Its just a helper node for namenode.That’s why it also known as checkpoint node inside the community. &lt;/p&gt;
+
+&lt;p&gt;So we now understood all Secondary Namenode does puts a checkpoint in filesystem which will help Namenode to function better. Its not the replacement or backup for the Namenode. So from now on make a habit of calling it as a checkpoint node.&lt;/p&gt;
+
+</description>
+        <pubDate>Tue, 31 Dec 2013 15:01:35 +0000</pubDate>
+        <link>http://www.madhukaraphatak.comblog.zinnianewsite.in/secondary-namenode---what-it-really-do</link>
+        <guid isPermaLink="true">http://www.madhukaraphatak.comblog.zinnianewsite.in/secondary-namenode---what-it-really-do</guid>
+      </item>
+    
+      <item>
+        <title>Google top 100 searches in 2013 :  Chennai Express, Jiah Khan from India, makes into the list</title>
+        <description>&lt;p&gt;As new year is around the corner, Google has announced their top 100 searches for 2013. You can discover these searches &lt;a href=&quot;http://www.google.com/trends/topcharts?zg=full&quot;&gt;here&lt;/a&gt;. Only issue with the tool is , you need to click countless times to get all 100 top searches. But who has so much time to waste on new year’s eve. So I have extracted all the top searches for you here.&lt;/p&gt;
+
+&lt;p&gt;From India, Chennai express ranks at 39 and Jiah Khan ranks at 89.&lt;/p&gt;
+
+&lt;h2 id=&quot;top-100-google-searches-of-2013&quot;&gt;Top 100 Google searches of 2013&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Nelson Mandela&lt;/li&gt;
+  &lt;li&gt;Paul Walker&lt;/li&gt;
+  &lt;li&gt;iPhone 5s&lt;/li&gt;
+  &lt;li&gt;Cory Monteith&lt;/li&gt;
+  &lt;li&gt;Harlem Shake&lt;/li&gt;
+  &lt;li&gt;Boston Marathon&lt;/li&gt;
+  &lt;li&gt;Royal Baby&lt;/li&gt;
+  &lt;li&gt;Samsung Galaxy S4&lt;/li&gt;
+  &lt;li&gt;PlayStation 4&lt;/li&gt;
+  &lt;li&gt;North Korea&lt;/li&gt;
+  &lt;li&gt;iOS 7&lt;/li&gt;
+  &lt;li&gt;2014 FIFA World Cup&lt;/li&gt;
+  &lt;li&gt;Government Shutdown&lt;/li&gt;
+  &lt;li&gt;Typhoon&lt;/li&gt;
+  &lt;li&gt;Man of Steel&lt;/li&gt;
+  &lt;li&gt;Iron Man 3&lt;/li&gt;
+  &lt;li&gt;Amanda Bynes&lt;/li&gt;
+  &lt;li&gt;Malala Yousafzai&lt;/li&gt;
+  &lt;li&gt;Xbox One&lt;/li&gt;
+  &lt;li&gt;James Gandolfini&lt;/li&gt;
+  &lt;li&gt;Nexus 5&lt;/li&gt;
+  &lt;li&gt;Oscar Pistorius&lt;/li&gt;
+  &lt;li&gt;Jennifer Lawrence&lt;/li&gt;
+  &lt;li&gt;World War Z&lt;/li&gt;
+  &lt;li&gt;Jodi Arias&lt;/li&gt;
+  &lt;li&gt;Aaron Hernandez&lt;/li&gt;
+  &lt;li&gt;Pacific Rim&lt;/li&gt;
+  &lt;li&gt;Charlie Hunnam&lt;/li&gt;
+  &lt;li&gt;Adrian Peterson&lt;/li&gt;
+  &lt;li&gt;Django Unchained&lt;/li&gt;
+  &lt;li&gt;Lou Reed&lt;/li&gt;
+  &lt;li&gt;Despicable Me 2&lt;/li&gt;
+  &lt;li&gt;Robin Thicke&lt;/li&gt;
+  &lt;li&gt;Atari Breakout&lt;/li&gt;
+  &lt;li&gt;GTA 5 Cheats&lt;/li&gt;
+  &lt;li&gt;Lea Michele&lt;/li&gt;
+  &lt;li&gt;Gravity&lt;/li&gt;
+  &lt;li&gt;Salve Jorge&lt;/li&gt;
+  &lt;li&gt;Chennai Express&lt;/li&gt;
+  &lt;li&gt;Trayvon Martin&lt;/li&gt;
+  &lt;li&gt;Miley Cyrus VMAs&lt;/li&gt;
+  &lt;li&gt;Les Miserables&lt;/li&gt;
+  &lt;li&gt;Hugo Chavez&lt;/li&gt;
+  &lt;li&gt;Kim Kardashian Baby&lt;/li&gt;
+  &lt;li&gt;Paula Deen&lt;/li&gt;
+  &lt;li&gt;Kevin Ware&lt;/li&gt;
+  &lt;li&gt;Mindy McCready&lt;/li&gt;
+  &lt;li&gt;The Conjuring&lt;/li&gt;
+  &lt;li&gt;Red Sox&lt;/li&gt;
+  &lt;li&gt;Windows 8.1&lt;/li&gt;
+  &lt;li&gt;George Zimmerman&lt;/li&gt;
+  &lt;li&gt;Daft Punk&lt;/li&gt;
+  &lt;li&gt;Cube World&lt;/li&gt;
+  &lt;li&gt;Dakota Johnson&lt;/li&gt;
+  &lt;li&gt;HTC One&lt;/li&gt;
+  &lt;li&gt;Lorde&lt;/li&gt;
+  &lt;li&gt;Immobilien Scout&lt;/li&gt;
+  &lt;li&gt;Lance Armstrong&lt;/li&gt;
+  &lt;li&gt;Argo&lt;/li&gt;
+  &lt;li&gt;Amanda Berry&lt;/li&gt;
+  &lt;li&gt;Spring Breakers&lt;/li&gt;
+  &lt;li&gt;Gareth Bale&lt;/li&gt;
+  &lt;li&gt;Elysium&lt;/li&gt;
+  &lt;li&gt;Enem 2013&lt;/li&gt;
+  &lt;li&gt;Syria Conflict&lt;/li&gt;
+  &lt;li&gt;Oblivion&lt;/li&gt;
+  &lt;li&gt;Costa Concordia&lt;/li&gt;
+  &lt;li&gt;iPad Air&lt;/li&gt;
+  &lt;li&gt;Wrecking Ball&lt;/li&gt;
+  &lt;li&gt;Krrish 3&lt;/li&gt;
+  &lt;li&gt;Blurred Lines&lt;/li&gt;
+  &lt;li&gt;Beyonce new album&lt;/li&gt;
+  &lt;li&gt;Minions&lt;/li&gt;
+  &lt;li&gt;Reeva Steenkamp&lt;/li&gt;
+  &lt;li&gt;Under The Dome&lt;/li&gt;
+  &lt;li&gt;Jamie Dornan&lt;/li&gt;
+  &lt;li&gt;Ben Affleck&lt;/li&gt;
+  &lt;li&gt;Lee Thompson Young&lt;/li&gt;
+  &lt;li&gt;Henry Cavill&lt;/li&gt;
+  &lt;li&gt;Bigg Boss 7&lt;/li&gt;
+  &lt;li&gt;New Pope&lt;/li&gt;
+  &lt;li&gt;Sharknado&lt;/li&gt;
+  &lt;li&gt;BBM&lt;/li&gt;
+  &lt;li&gt;Silver Linings Playbook&lt;/li&gt;
+  &lt;li&gt;Oklahoma Tornado&lt;/li&gt;
+  &lt;li&gt;Blackberry 10&lt;/li&gt;
+  &lt;li&gt;Peter Capaldi&lt;/li&gt;
+  &lt;li&gt;After Earth&lt;/li&gt;
+  &lt;li&gt;Jiah Khan&lt;/li&gt;
+  &lt;li&gt;Amor à Vida&lt;/li&gt;
+  &lt;li&gt;Jason Collins&lt;/li&gt;
+  &lt;li&gt;Galaxy Note 3&lt;/li&gt;
+  &lt;li&gt;Vine&lt;/li&gt;
+  &lt;li&gt;Kidd Kraddick&lt;/li&gt;
+  &lt;li&gt;Katherine Webb&lt;/li&gt;
+  &lt;li&gt;Bitcoin&lt;/li&gt;
+  &lt;li&gt;Edward Snowden&lt;/li&gt;
+  &lt;li&gt;Rob Ford&lt;/li&gt;
+  &lt;li&gt;Monsters University&lt;/li&gt;
+  &lt;li&gt;Batkid&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Tue, 31 Dec 2013 14:46:18 +0000</pubDate>
+        <link>http://www.madhukaraphatak.comblog.zinnianewsite.in/google-top-100-searches-in-2013-chennai-express,-jiah-khan-from-India,-makes-into-the-list</link>
+        <guid isPermaLink="true">http://www.madhukaraphatak.comblog.zinnianewsite.in/google-top-100-searches-in-2013-chennai-express,-jiah-khan-from-India,-makes-into-the-list</guid>
+      </item>
+    
+      <item>
+        <title>Say Hello To Android  Part- I Introduction To Android</title>
+        <description>&lt;p&gt;Its an era of mobile, tablets and a very exciting time for developers!! Mobile phones have never been more popular and powerful. Smart Phones have become very stylish, versatile packing hardware features like GPS, accelerometers, etc. are an enticing platform which kindles the developers to create some innovative mobile applications.&lt;/p&gt;
+
+&lt;p&gt;With the existing mobile development built on proprietary operating systems that restrict third-party applications, Android offers an open and the best alternative. Without artificial barriers, Android developers are free to write applications that take full advantage of increasingly powerful mobile hardware. As a result, developer interest in Android devices has made their 2008 release a hugely anticipated mobile technology event.&lt;/p&gt;
+
+&lt;p&gt;The open philosophy of android is most welcomed by majority of the developers as it features very powerful SDK libraries. Experienced mobile developers can now tinker with android and explore the platform, leveraging the unique features to enhance existing products or create more innovative ones.&lt;/p&gt;
+
+&lt;h3 id=&quot;android&quot;&gt;Android&lt;/h3&gt;
+
+&lt;p&gt;Its an open source software stack that includes&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Operating System&lt;/li&gt;
+  &lt;li&gt;Middle ware&lt;/li&gt;
+  &lt;li&gt;Key Applications + set of API Libraries which changes the look, feel and function of the mobile.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In Android, native and third-party applications are written using the same APIs and executed on the same run time. These APIs feature hardware access, location-based services, support for background services, map-based activities, relational databases, inter-device peer-to-peer messaging and 2D and 3D graphics.&lt;/p&gt;
+
+&lt;h3 id=&quot;just-a-flashback-&quot;&gt;Just A Flashback …&lt;/h3&gt;
+
+&lt;p&gt;Historically, the developers had to code in low level C or C++ and had to learn the specific hardware feature upon which they were coding. But, as the hardware features enhanced this became more cumbersome. More recently, Symbian was far successful in giving a room for the developers to better leverage the hardware available. However, it required writing complex C/C++ code and making heavy use of proprietary APIs that are notoriously difficult to use. This difficulty was amplified when developing applications that must work on different hardware implementations and  particularly true when developing for a particular hardware feature like GPS.&lt;/p&gt;
+
+&lt;p&gt;Then came the Java hosted MIDIlets that are executed on the same JVM, abstracting the underlying hardware and letting the developers create apps that run on wide variety of hardware that supports Java run time.&lt;/p&gt;
+
+&lt;p&gt;So our Andy is here… :) Ouch! forgot about Apple’s iPhone, Windows mobiles ?? ;) No offence!
+They provide richer UI, UX and simplified development environment! “BUT” they’re built on proprietary operating systems that often prioritize native applications over those created by third parties and restrict communication among applications and native phone data.&lt;/p&gt;
+
+&lt;p&gt;Third-party and native Android applications are written using the same APIs and are executed on the same run time. Users can remove and replace any native application with a third-party developer alternative; even the dialer and home screens can be replaced…{ Wanna Try ?? :p }&lt;/p&gt;
+
+&lt;p&gt;Google &lt;a href=&quot;http://googleblog.blogspot.com/2007/11/wheres-my-gphone.html&quot;&gt;describes&lt;/a&gt; Android as:&lt;/p&gt;
+
+&lt;p&gt;“The first truly open and comprehensive platform for mobile devices, all of the software to run a mobile phone but without the proprietary obstacles that have hindered mobile innovation.”:)&lt;/p&gt;
+
+&lt;p&gt;The FLASHBACK is incomplete…without the introduction of OHA { Oh Haa ??  ;) }&lt;/p&gt;
+
+&lt;p&gt;OHA: Open Handset Alliance comprises of&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Developers&lt;/li&gt;
+  &lt;li&gt;Hardware Manufacturers&lt;/li&gt;
+  &lt;li&gt;Mobile Carriers&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The tech companies involved prominently are Motorola, HTC, T-Mobile, Qualcomm and their &lt;a href=&quot;http://www.openhandsetalliance.com/oha_faq.html&quot;&gt;words&lt;/a&gt;:&lt;/p&gt;
+
+&lt;p&gt;“A commitment to openness, a shared vision for the future, and concrete plans to make the vision a reality. To accelerate innovation in mobile and offer consumers a richer, less expensive, and better
+mobile experience.”&lt;/p&gt;
+
+&lt;p&gt;Android offers an excellent enterprise platform, has targeted developers making their lives far simple with Google and the OHA betting that the way to deliver
+better mobile software to consumers is by making it easier for developers to write it themselves. This openness and power ensure that anyone with the inclination can bring a vision to life at minimal cost.&lt;/p&gt;
+
+&lt;p&gt;Use Open source softwares, share them and give back something better to the community.. !! :)&lt;/p&gt;
+
+&lt;p&gt;Next post…&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Merits of android&lt;/li&gt;
+  &lt;li&gt;unboxing SDK features, Software stack and lots more ….. :)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Well, &lt;a href=&quot;http://developer.android.com&quot;&gt;http://developer.android.com&lt;/a&gt; is a great reference site!&lt;/p&gt;
+
+&lt;p&gt;Happy Learning! :)&lt;/p&gt;
+
+</description>
+        <pubDate>Fri, 06 Jan 2012 17:44:17 +0000</pubDate>
+        <link>http://www.madhukaraphatak.comblog.zinnianewsite.in/say-hello-to-android-part-I-introduction-to-android</link>
+        <guid isPermaLink="true">http://www.madhukaraphatak.comblog.zinnianewsite.in/say-hello-to-android-part-I-introduction-to-android</guid>
+      </item>
+    
+      <item>
+        <title>Getting Started With ANTLR:Basics</title>
+        <description>&lt;p&gt;Yeah! It’s after a lapse of a month or so that there is a post in this blog! :)&lt;/p&gt;
+
+&lt;p&gt;Well, this post drives you towards the basics of ANTLR. Previously, we had learnt about setting up of ANTLR as an external tool. &lt;/p&gt;
+
+&lt;h3 id=&quot;what-is-antlr&quot;&gt;What is ANTLR?&lt;/h3&gt;
+
+&lt;p&gt;ANother Tool for Language Recognition, is a language tool that provides a framework for constructing recognizers, interpreters, compilers, and translators from grammatical descriptions containing actions.&lt;/p&gt;
+
+&lt;h3 id=&quot;what-can-be-the-target-languages&quot;&gt;What can be the target languages?&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;Ada&lt;/li&gt;
+  &lt;li&gt;Action Script&lt;/li&gt;
+  &lt;li&gt;C&lt;/li&gt;
+  &lt;li&gt;C#; C#2&lt;/li&gt;
+  &lt;li&gt;C#3&lt;/li&gt;
+  &lt;li&gt;D&lt;/li&gt;
+  &lt;li&gt;Emacs ELisp&lt;/li&gt;
+  &lt;li&gt;Objective C&lt;/li&gt;
+  &lt;li&gt;Java&lt;/li&gt;
+  &lt;li&gt;Java Script&lt;/li&gt;
+  &lt;li&gt;Python&lt;/li&gt;
+  &lt;li&gt;Ruby&lt;/li&gt;
+  &lt;li&gt;Perl6&lt;/li&gt;
+  &lt;li&gt;Perl&lt;/li&gt;
+  &lt;li&gt;PHP&lt;/li&gt;
+  &lt;li&gt;Oberon&lt;/li&gt;
+  &lt;li&gt;Scala&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;what-does-antlr-support&quot;&gt;What does ANTLR support?&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Tree construction&lt;/li&gt;
+  &lt;li&gt;Error recovery&lt;/li&gt;
+  &lt;li&gt;Error handling&lt;/li&gt;
+  &lt;li&gt;Tree walking&lt;/li&gt;
+  &lt;li&gt;Translation&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;what-environment-does-it-support&quot;&gt;What environment does it support?&lt;/h3&gt;
+
+&lt;p&gt;ANTLRWorks is the IDE for ANTLR. It is the graphical grammar editor and debugger, written by Jean Bovet using Swing.&lt;/p&gt;
+
+&lt;h3 id=&quot;what-for-antlr-can-be-used&quot;&gt;What for ANTLR can be used?&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&quot;”REAL”” programming languages&lt;/li&gt;
+  &lt;li&gt;domain-specific languages [DSL]&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;who-is-using-antlr&quot;&gt;Who is using ANTLR?&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Programming languages :Boo, Groovy, Mantra, Nemerle, XRuby etc.&lt;/li&gt;
+  &lt;li&gt;Other Tools: HIbernate, Intellij IDEA, Jazillian, JBoss Rules, Keynote(Apple), WebLogic(Oracle) etc.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Where is that you can look for ANTLR?&lt;/p&gt;
+
+&lt;p&gt;You can always follow &lt;a href=&quot;http://www.antlr.org&quot;&gt;here&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;to download ANTLR and ANTLRWorks, which are free and open source&lt;/li&gt;
+  &lt;li&gt;docs,articles,wiki,mailing list,examples…. You can catch everything here!&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;basic-terms&quot;&gt;Basic Terms&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Lexer : converts a stream of characters to a stream of tokens.&lt;/li&gt;
+  &lt;li&gt;Parser : processes of tokens, possibly creating AST&lt;/li&gt;
+  &lt;li&gt;Abstract Syntax Tree(AST): an intermediate tree representation of the parsed input that is simpler to process than the stream of tokens. It can as well be processed multiple times.&lt;/li&gt;
+  &lt;li&gt;Tree Parser: It processes an AST&lt;/li&gt;
+  &lt;li&gt;String Template: a library that supports using templates with placeholders for outputting text&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;general-steps&quot;&gt;General Steps&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Write Grammar in one or more files&lt;/li&gt;
+  &lt;li&gt;Write string templates[optional]&lt;/li&gt;
+  &lt;li&gt;Debug your grammar with ANTLRWorks&lt;/li&gt;
+  &lt;li&gt;Generate classes from grammar&lt;/li&gt;
+  &lt;li&gt;Write an application that uses generated classes&lt;/li&gt;
+  &lt;li&gt;Feed the application text that conforms to the grammar&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;a-bit-further&quot;&gt;A Bit Further..&lt;/h4&gt;
+
+&lt;p&gt;Lets write a simple grammar which consists of&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Lexer&lt;/li&gt;
+  &lt;li&gt;Parser&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;lexer&quot;&gt;Lexer&lt;/h3&gt;
+
+&lt;p&gt;Lets take the example of simple declaration type in C of the form “int a,b;” or “int a;” and same with float.&lt;/p&gt;
+
+&lt;p&gt;As we see we can write lexer as follows:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;octave&quot;&gt;&lt;span class=&quot;o&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TestLexer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;grammar&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TestLexer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;ID&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;z&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;A&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;Z&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;_&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;z&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;A&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;Z&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;0&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;9&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;_&amp;#39;&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;.&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;z&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;A&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;Z&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;COMMA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;,&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;SEMICOLON&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;;&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;DATATYPE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;int&amp;#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;float&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;As we could see, these were the characters that were to be converted to tokens.
+So, now lets write some rules which processes these tokens generated and may it create a parse tree accordingly.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;octave&quot;&gt;&lt;span class=&quot;o&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TestParser&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;grammar&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TestParser&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;options&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;language&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Java&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;decl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DATATYPE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ID&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;,&amp;#39;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ID&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Running ANTLR on the grammar just generates the lexer and parser,TestParser and TestLexer. To actually try the grammar on some input, we
+need a test rig with a main( ) method as follows:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;java&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// Test.java&lt;/span&gt;
+
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.antlr.runtime.*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Test&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// Create an input character stream from standard in&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;ANTLRFileStream&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;input&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ANTLRFileStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;input&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// give path to the file input&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// Create an ExprLexer that feeds from that stream&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;TestLexer&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lexer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TestLexer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;input&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// Create a stream of tokens fed by the lexer&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;CommonTokenStream&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tokens&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CommonTokenStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lexer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// Create a parser that feeds off the token stream&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;TestParser&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;parser&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TestParser&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tokens&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// Begin parsing at rule decl&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;parser&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;decl&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We shall see how to create an AST and walk over the tree in the next blog post..
+Happy learning….! :)&lt;/p&gt;
+
+</description>
+        <pubDate>Sun, 25 Sep 2011 17:20:11 +0000</pubDate>
+        <link>http://www.madhukaraphatak.comblog.zinnianewsite.in/getting-started-with-antlr-basics</link>
+        <guid isPermaLink="true">http://www.madhukaraphatak.comblog.zinnianewsite.in/getting-started-with-antlr-basics</guid>
+      </item>
+    
+      <item>
+        <title>Hadoop workshop : First success story</title>
+        <description>&lt;p&gt;We completed our first hadoop workshop on 20th August with great success . This post summarizes some of the insights and feedback we got from the event.&lt;/p&gt;
+
+&lt;p&gt;People love to learn a new hot technology in market. So many people are interested to learn Hadoop but they just did not have the right place to start. I think our workshop gave them the right platform to kick start in hadoop. We sold all our 17 tickets to the event within few days. So we even sold out next workshop tickets and the third workshop tickets are already selling . Yeah! its on fire.. We are doing small workshops to get the feedback and improve the overall experience.&lt;/p&gt;
+
+&lt;p&gt;Out of 17 , twelve people attended the workshop. Participants thoroughly enjoyed the interactive sessions and expressed that the hands on were great . The hands on went as planned which gave the participants an insight to hadoop and map/reduce .Putting in their own words,the following is what the people expressed….&lt;/p&gt;
+
+&lt;p&gt;“Great work by small company having effective people…Impressed! I want to have the same training once again” -Vijesh&lt;/p&gt;
+
+&lt;p&gt;“Good and Interactive sessions delivered.Nice job by Madhu and company”	-Devang Gandhi
+“Hands-on trainings were good” -Uma Mahewari&lt;/p&gt;
+
+&lt;p&gt;“Content delivery was very good” -Puneetha&lt;/p&gt;
+
+&lt;p&gt;With this kind of positive response we are charged to host more workshops. We sold out few tickets for students which is a student centric workshop on 27th Aug . People already signing up for our third workshop . So if you are interested you can register &lt;a href=&quot;http://hadoopworkshopsept.eventbrite.com/&quot;&gt;here&lt;/a&gt;  asap , since we are sure that we are going to sell out that soon.&lt;/p&gt;
+
+&lt;p&gt;We are also launching advanced trainings particularly for the workshop attendees which gives opportunities them to go deep into Hadoop and start their carrier as a Hadoop developer .If you know hadoop and if you want to know more this will be a great opportunity. &lt;/p&gt;
+
+&lt;p&gt;So overall it was a great experience and it gave the feeling that we are in a right path. 
+If you are interested in Hadoop and its ecosystem meet us at any of the above events. We can assure you that it would be a great experience for you.&lt;/p&gt;
+</description>
+        <pubDate>Tue, 23 Aug 2011 14:12:26 +0000</pubDate>
+        <link>http://www.madhukaraphatak.comblog.zinnianewsite.in/hadoop-workshop-first-success-story</link>
+        <guid isPermaLink="true">http://www.madhukaraphatak.comblog.zinnianewsite.in/hadoop-workshop-first-success-story</guid>
+      </item>
+    
+      <item>
+        <title>Using ANTLR with maven</title>
+        <description>&lt;p&gt;As a part of &lt;a href=&quot;https://github.com/zinniasystems/Nectar&quot;&gt;Nectar&lt;/a&gt;, we are trying to build a custom language using ANTLR. Since our project uses maven during the build time, we have to integrate ANTLR with maven. Though ANTLR provides maven plug-in, its little tricky to use. So, in this post I am explaining the steps to integrate ANTLR with maven using ANTLR3 maven plug in.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-1&quot;&gt;Step 1&lt;/h3&gt;
+
+&lt;p&gt;You have to put all your grammar files , aka .g files in the default directory required by the plugin. Custom placing will not work because of some bug in the plugin. Hence, place the .g file in the following manner:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;src/main/antlr3/required-package/.g &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;So the “required-package” is the package you specified in the .g file.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-2&quot;&gt;Step 2&lt;/h3&gt;
+
+&lt;p&gt;Add the plug-in to the pom as follows:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;plugin&amp;gt;&lt;/span&gt;
+ &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.antlr&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+ &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;antlr3-maven-plugin&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+ &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;3.1.3-1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;executions&amp;gt;&lt;/span&gt;
+   &lt;span class=&quot;nt&quot;&gt;&amp;lt;execution&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;configuration&amp;gt;&lt;/span&gt;
+   &lt;span class=&quot;nt&quot;&gt;&amp;lt;outputDirectory&amp;gt;&lt;/span&gt;src/main/java
+   &lt;span class=&quot;nt&quot;&gt;&amp;lt;/outputDirectory&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/configuration&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;goals&amp;gt;&lt;/span&gt;
+           &lt;span class=&quot;nt&quot;&gt;&amp;lt;goal&amp;gt;&lt;/span&gt;antlr&lt;span class=&quot;nt&quot;&gt;&amp;lt;/goal&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/goals&amp;gt;&lt;/span&gt;
+   &lt;span class=&quot;nt&quot;&gt;&amp;lt;/execution&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;/executions&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/plugin&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We added a configuration which generates the lexer and parser files in the src directory rather than  the default generated source in target.&lt;/p&gt;
+
+&lt;p&gt;For more information about the plug-in, refer &lt;a href=&quot;http://www.antlr.org/antlr3-maven-plugin/index.html&quot;&gt;here&lt;/a&gt; &lt;/p&gt;
+
+&lt;h3 id=&quot;step-3&quot;&gt;Step 3&lt;/h3&gt;
+
+&lt;p&gt;Just run the pom and your .g will be compiled successfully. &lt;/p&gt;
+
+</description>
+        <pubDate>Fri, 05 Aug 2011 14:02:29 +0000</pubDate>
+        <link>http://www.madhukaraphatak.comblog.zinnianewsite.in/using-antlr-with-maven</link>
+        <guid isPermaLink="true">http://www.madhukaraphatak.comblog.zinnianewsite.in/using-antlr-with-maven</guid>
+      </item>
+    
+      <item>
+        <title>One day Hadoop Workshop in Bangalore</title>
+        <description>&lt;p&gt;After releasing &lt;a href=&quot;https://github.com/zinniasystems/nectar&quot;&gt;Nectar&lt;/a&gt;, our open source analytics framework, we got a positive feedback and many of them wanted to know more about how we use hadoop in our company and get started with the hadoop development. So, we thought that a workshop on Hadoop would be great idea.&lt;/p&gt;
+
+&lt;p&gt;Thus, we have arranged a workshop about Hadoop on 20th August ,2011 held at Bangalore. In the workshop, we have scheduled events as how we are using hadoop to build our own analytics products and about Nectar.We are also going to talk about how you can use Hadoop in your organization. We will be having hands on experience for the attendees in the labs to setup the hadoop cluster,running map/reduce jobs etc.For more details about the event , refer this &lt;a href=&quot;http://hadoopworkshop.eventbrite.com/&quot;&gt;page&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;hadoop-and-small-things&quot;&gt;Hadoop and small things&lt;/h3&gt;
+
+&lt;p&gt;As you know Hadoop always wants to play with Big Data . It doesn’t like small files. Initially, we  thought we are going to have workshop for 10 people and the tickets were made free. But within 12 hours, all the tickets were sold out !!!  Now, we have a workshop for 30 people, by adding 20 more paid tickets.On a lighter side, we learnt that we cannot do small things with Hadoop! ;)&lt;/p&gt;
+
+&lt;p&gt;So, if you are interested in Hadoop event and want to know more about it, then do come and join us in the workshop. You can register &lt;a href=&quot;http://hadoopworkshop.eventbrite.com/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+</description>
+        <pubDate>Tue, 02 Aug 2011 11:53:30 +0000</pubDate>
+        <link>http://www.madhukaraphatak.comblog.zinnianewsite.in/one-day-hadoop-workshop-in-bangalore</link>
+        <guid isPermaLink="true">http://www.madhukaraphatak.comblog.zinnianewsite.in/one-day-hadoop-workshop-in-bangalore</guid>
+      </item>
+    
+      <item>
+        <title>ANTLR as an external tool in eclipse on ubuntu</title>
+        <description>&lt;p&gt;This tutorial tells how to setup the ANTLR in your eclipse.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-1&quot;&gt;STEP 1&lt;/h3&gt;
+
+&lt;p&gt;Download the jar file antlrworks-1.4.2.jar from &lt;a href=&quot;http://www.antlr.org/download&quot;&gt;http://www.antlr.org/download&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Further details about ANTLRWorks: The ANTLR GUI Development Environment, follow the &lt;a href=&quot;http://www.antlr.org/works/index.html&quot;&gt;link&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;step-2&quot;&gt;STEP 2&lt;/h3&gt;
+
+&lt;p&gt;Create a java project in eclipse as follows:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;File-&amp;gt;New-&amp;gt;Project&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Click on Next.&lt;/li&gt;
+  &lt;li&gt;Name the project as “TestANTLR”&lt;/li&gt;
+  &lt;li&gt;Press Finish.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h6 id=&quot;add-the-antlrworks-142jar-to-the-project-classpath&quot;&gt;Add the antlrworks-1.4.2.jar to the project classpath.&lt;/h6&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Right click on “TestANTLR” project .&lt;/li&gt;
+  &lt;li&gt;Select &amp;gt; Properties-&amp;gt;Libraries.&lt;/li&gt;
+  &lt;li&gt;Click on “Add External jar”&lt;/li&gt;
+  &lt;li&gt;Select the complete path of the “antlrworks-1.4.2.jar” and press Ok.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;step-3---make-it-as-an-external-tool&quot;&gt;STEP 3 :  Make it as an external tool&lt;/h3&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Run-&amp;gt;External Tools-&amp;gt;Configure&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Click on New.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Name: ANTLR Compiler&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Tool Location: /usr/lib/jvm/java-6-sun-1.6.0.26/bin/java&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Tool Arguments: -classpath complete_path_to_antlrworks-1.4.2.jar org.antlr.Tool ${resource_name}&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Working Directory: ${container_loc}
+Here, org.antlr.Tool is the main class which would take the ${resource_name} for processing.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;${resource_name} and ${container_loc} can be selected with “Browse Variables” option too.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;going-ahead&quot;&gt;Going Ahead&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Creating a grammar file&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Create a grammar file with .g extension. Say, Example.g&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;octave&quot;&gt;&lt;span class=&quot;n&quot;&gt;grammar&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Example&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;hello&amp;#39;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ID&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;;&amp;#39;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;hiii... &amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;$&lt;span class=&quot;n&quot;&gt;ID&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);}&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;ID&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;z&amp;#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;WS&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39; &amp;#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;\n&amp;#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;\r&amp;#39;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;$&lt;span class=&quot;n&quot;&gt;channel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HIDDEN&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;running-the-code&quot;&gt;Running the code&lt;/h4&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;Run-&amp;gt;External Tools-&amp;gt;ANTLR Compiler&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Press F5 or right click on the project and “refresh”
+all you can see is a lexer and parser files generated with the tokens.
+In our example,&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;ExampleLexer.java &lt;/li&gt;
+  &lt;li&gt;ExampleParser.java &lt;/li&gt;
+  &lt;li&gt;Example.tokens&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Create Main.java program in the same project with the following code:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;java&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.antlr.runtime.*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Main&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// create a CharStream that reads from standard input&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;ANTLRInputStream&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;input&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ANTLRInputStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// create a lexer that feeds off of input CharStream&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;ExampleLexer&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lexer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ExampleLexer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;input&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// create a buffer of tokens pulled from the lexer&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;CommonTokenStream&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tokens&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CommonTokenStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lexer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// create a parser that feeds off the tokens buffer&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;ExampleParser&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;parser&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ExampleParser&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tokens&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// begin parsing at rule start&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;parser&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Set the arguments in the Run configurations and click on Apply and Run.&lt;/p&gt;
+
+&lt;p&gt;Now you have the output at console.
+:)&lt;/p&gt;
+</description>
+        <pubDate>Mon, 01 Aug 2011 17:57:28 +0000</pubDate>
+        <link>http://www.madhukaraphatak.comblog.zinnianewsite.in/antlr-as-an-external-tool-in-eclipse-on-ubuntu</link>
+        <guid isPermaLink="true">http://www.madhukaraphatak.comblog.zinnianewsite.in/antlr-as-an-external-tool-in-eclipse-on-ubuntu</guid>
+      </item>
+    
+      <item>
+        <title>Nectar : Developing an open source predictive modeling framework on Hadoop</title>
+        <description>&lt;p&gt;I am very happy to tell you that we have finally released the first version of &lt;a href=&quot;https://github.com/zinniasystems/nectar&quot;&gt;Nectar&lt;/a&gt; ,the first open source predictive modeling framework on Apache Hadoop. Being a part of the development team  Nectar, I want to share some of the insights of the framework and Apache Hadoop in general.&lt;/p&gt;
+
+&lt;h3 id=&quot;apache-hadoop--lamp-of-new-era&quot;&gt;Apache Hadoop : LAMP of new era&lt;/h3&gt;
+&lt;p&gt;Back in 1990’s, LAMP (Linux,Apache,MySql,Perl/PHP) stack  enabled many start ups to build innovative products. Some of them became big companies like Google,Twitter,Facebook etc., which redefined the whole Web. With the practice of open source, these companies have emerged a great way.&lt;/p&gt;
+
+&lt;p&gt;Now, in the scenario of solving Big Data problems, Apache Hadoop, finds the best fit. It gives a powerful stack to build powerful applications. Its vibrant community and Apache licence makes it very attractive for start ups to use as its base .Some of the companies like cloud era,Karma sphere are trying to build the innovative products on Hadoop.&lt;/p&gt;
+
+&lt;h3 id=&quot;nectar--predictive-modeling-meets-apache-hadoop&quot;&gt;Nectar : Predictive Modeling meets Apache Hadoop&lt;/h3&gt;
+&lt;p&gt;Here in &lt;a href=&quot;http://www.zinniasystems.com&quot;&gt;Zinnia Systems&lt;/a&gt; we see Apache Hadoop one of the most powerful stack. But with power, complexity creeps in. Though Hadoop is powerful in nature its complex to use. This is because, it must be thought in terms of Map/Reduce . So we thought, we can develop a framework which helps to abstract the map/reduce and just focus on the application. Thus we developed nectar, which provides the basic modeling algorithm like regression as simple as a java API .&lt;/p&gt;
+
+&lt;p&gt;We have open sourced the framework and we believe, open source is the best model to promote,encourage and envision the innovation. So, if you are interested about Hadoop and want to play with modeling problems, then have a look at our framework.&lt;/p&gt;
+
+&lt;p&gt;All the details about the project is made available in following links.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;a href=&quot;http://zinniasystems.com/zinnia.jsp?lookupPage=blogs/nectar.jsp&quot;&gt;Info Page&lt;/a&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;a href=&quot;https://github.com/zinnia-phatak-dev/Nectar&quot;&gt;Github Page&lt;/a&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;a href=&quot;http://groups.google.com/group/nectar-user-group&quot;&gt;Google Group&lt;/a&gt;&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Please checkout the code and feel free to comment or suggest us.&lt;/p&gt;
+
+</description>
+        <pubDate>Sun, 24 Jul 2011 13:47:13 +0000</pubDate>
+        <link>http://www.madhukaraphatak.comblog.zinnianewsite.in/nectar-developing-an-open-source-predictive-modeling-framework-on-hadoop</link>
+        <guid isPermaLink="true">http://www.madhukaraphatak.comblog.zinnianewsite.in/nectar-developing-an-open-source-predictive-modeling-framework-on-hadoop</guid>
+      </item>
+    
+  </channel>
+</rss>
