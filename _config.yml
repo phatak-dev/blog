@@ -1,8 +1,8 @@
 # Site settings
 title: Madhukar's Blog
 email: madhukaraphatak@gmail.com
-description: "Thoughts of geekperson"
-baseurl: "http://blog.zinnianewsite.in"
+description: "Thoughts on technology, life and everything else."
+baseurl: ""
 url: "http://blog.zinnianewsite.in"
 username : phatak-dev
 twitter : madhukaraphatak
