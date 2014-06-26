@@ -7,6 +7,64 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Glom in spark</title>
+        <description>&lt;p&gt;Today I am going to discuss about a operation called “glom” on spark rdd which allows you to treat a partition as an array rather as single row at time. This allows you speed up some operations with some  increased memory usage.&lt;/p&gt;
+
+&lt;p&gt;Let’s say you want to find out maximum in a given RDD. &lt;/p&gt;
+
+&lt;p&gt;Now you can do it using map and reduce operations as below.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// create rdd&lt;/span&gt;
+ &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dataList&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;50.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;40.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;40.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;70.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;   
+ &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dataRDD&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;makeRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dataList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;  
+ &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;maxValue&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;dataRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reduce&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;max&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Though it works, there will be lot of shuffles between partitions for comparisons.Thats not good, particularly for large data.&lt;/p&gt;
+
+&lt;p&gt;Let’s rephrase our solution like as follows. 
+Rather than comparing all the values, we can   &lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;First find maximum in each partition    &lt;/li&gt;
+  &lt;li&gt;Compare maximum value between partitions to get the final max value&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Now we need a way to compare all values in a given partition. This can be easily done using glom as follows.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;maxValue&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dataRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;glom&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;])&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+ &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reduce&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;max&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;As you can see here, only maximum of each partition are shuffled rather than all the values.&lt;/p&gt;
+
+&lt;h3 id=&quot;using-glom-for-calculating-weighted-matrix&quot;&gt;Using glom for calculating weighted matrix&lt;/h3&gt;
+&lt;p&gt;Glom is highly useful when you want to represent rdd operations as matrix manipulations. In many machine learning algorithms you will be needed to find weighted value of rows , i.e multiplying each row by a given weight vector. Doing this row by row, using map operation will be very costly as you will be not able to use matrix libraries optimization.&lt;/p&gt;
+
+&lt;p&gt;But with glom, you can multiply with whole partition at a time so that your computation will speed up significantly.Code listing for same is below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// Weighted sum using glom&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.jblas.DoubleMatrix&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rowsList&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]](&lt;/span&gt;
+      &lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;50.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;40.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;44.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;
+      &lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;88&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;44.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;44.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;
+      &lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;855&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;55.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;44.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;
+      &lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;855&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;55.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;70.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;1.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.5&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rowRDD&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;makeRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rowsList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rowRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;glom&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;doubleMatrix&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DoubleMatrix&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toArray&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weightMatrix&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DoubleMatrix&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toArray&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:_&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;doubleMatrix&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mmul&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weightMatrix&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;transpose&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
+
+  &lt;span class=&quot;o&quot;&gt;})&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+</description>
+        <pubDate>Fri, 27 Jun 2014 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/glom-in-spark</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/glom-in-spark</guid>
+      </item>
+    
+      <item>
         <title>Converting Java collections to Scala</title>
         <description>&lt;p&gt;Many times when you use Scala, you want to interact with a Java api like JDBC,Hibernate etc. All of those api’s return Java collections. Java collections are not as rich as Scala collections. So you may want to convert them to Scala collections so that you can write idiomatic Scala code.  &lt;/p&gt;
 
@@ -668,127 +726,6 @@ If you are interested in Hadoop and its ecosystem meet us at any of the above ev
         <pubDate>Tue, 02 Aug 2011 11:53:30 +0000</pubDate>
         <link>http://blog.madhukaraphatak.com/one-day-hadoop-workshop-in-bangalore</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/one-day-hadoop-workshop-in-bangalore</guid>
-      </item>
-    
-      <item>
-        <title>ANTLR as an external tool in eclipse on ubuntu</title>
-        <description>&lt;p&gt;This tutorial tells how to setup the ANTLR in your eclipse.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-1&quot;&gt;STEP 1&lt;/h3&gt;
-
-&lt;p&gt;Download the jar file antlrworks-1.4.2.jar from &lt;a href=&quot;http://www.antlr.org/download&quot;&gt;http://www.antlr.org/download&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Further details about ANTLRWorks: The ANTLR GUI Development Environment, follow the &lt;a href=&quot;http://www.antlr.org/works/index.html&quot;&gt;link&lt;/a&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;step-2&quot;&gt;STEP 2&lt;/h3&gt;
-
-&lt;p&gt;Create a java project in eclipse as follows:&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;File-&amp;gt;New-&amp;gt;Project&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Click on Next.&lt;/li&gt;
-  &lt;li&gt;Name the project as “TestANTLR”&lt;/li&gt;
-  &lt;li&gt;Press Finish.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h6 id=&quot;add-the-antlrworks-142jar-to-the-project-classpath&quot;&gt;Add the antlrworks-1.4.2.jar to the project classpath.&lt;/h6&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Right click on “TestANTLR” project .&lt;/li&gt;
-  &lt;li&gt;Select &amp;gt; Properties-&amp;gt;Libraries.&lt;/li&gt;
-  &lt;li&gt;Click on “Add External jar”&lt;/li&gt;
-  &lt;li&gt;Select the complete path of the “antlrworks-1.4.2.jar” and press Ok.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;step-3---make-it-as-an-external-tool&quot;&gt;STEP 3 :  Make it as an external tool&lt;/h3&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;Run-&amp;gt;External Tools-&amp;gt;Configure&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Click on New.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;Name: ANTLR Compiler&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;Tool Location: /usr/lib/jvm/java-6-sun-1.6.0.26/bin/java&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;Tool Arguments: -classpath complete_path_to_antlrworks-1.4.2.jar org.antlr.Tool ${resource_name}&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;Working Directory: ${container_loc}
-Here, org.antlr.Tool is the main class which would take the ${resource_name} for processing.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;${resource_name} and ${container_loc} can be selected with “Browse Variables” option too.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h3 id=&quot;going-ahead&quot;&gt;Going Ahead&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Creating a grammar file&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Create a grammar file with .g extension. Say, Example.g&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;octave&quot;&gt;&lt;span class=&quot;n&quot;&gt;grammar&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Example&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;hello&amp;#39;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ID&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;;&amp;#39;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;hiii... &amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;$&lt;span class=&quot;n&quot;&gt;ID&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);}&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;ID&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;z&amp;#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;WS&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39; &amp;#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;\n&amp;#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;\r&amp;#39;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;$&lt;span class=&quot;n&quot;&gt;channel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HIDDEN&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h4 id=&quot;running-the-code&quot;&gt;Running the code&lt;/h4&gt;
-&lt;blockquote&gt;
-  &lt;p&gt;Run-&amp;gt;External Tools-&amp;gt;ANTLR Compiler&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;Press F5 or right click on the project and “refresh”
-all you can see is a lexer and parser files generated with the tokens.
-In our example,&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;ExampleLexer.java &lt;/li&gt;
-  &lt;li&gt;ExampleParser.java &lt;/li&gt;
-  &lt;li&gt;Example.tokens&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Create Main.java program in the same project with the following code:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;java&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.antlr.runtime.*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Main&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;// create a CharStream that reads from standard input&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;ANTLRInputStream&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;input&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ANTLRInputStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;// create a lexer that feeds off of input CharStream&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;ExampleLexer&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lexer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ExampleLexer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;input&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;// create a buffer of tokens pulled from the lexer&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;CommonTokenStream&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tokens&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CommonTokenStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lexer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;// create a parser that feeds off the tokens buffer&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;ExampleParser&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;parser&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ExampleParser&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tokens&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;// begin parsing at rule start&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;parser&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Set the arguments in the Run configurations and click on Apply and Run.&lt;/p&gt;
-
-&lt;p&gt;Now you have the output at console.
-:)&lt;/p&gt;
-</description>
-        <pubDate>Mon, 01 Aug 2011 17:57:28 +0000</pubDate>
-        <link>http://blog.madhukaraphatak.com/antlr-as-an-external-tool-in-eclipse-on-ubuntu</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/antlr-as-an-external-tool-in-eclipse-on-ubuntu</guid>
       </item>
     
   </channel>
