@@ -1,6 +1,7 @@
 ---           
 layout: post
 title: "Converting Java collections to Scala"
+date : 2014-06-27
 categories: scala java
 ---
 Many times when you use Scala, you want to interact with a Java api like JDBC,Hibernate etc. All of those api's return Java collections. Java collections are not as rich as Scala collections. So you may want to convert them to Scala collections so that you can write idiomatic Scala code.  
@@ -25,7 +26,8 @@ First import
     javaList.add(20.0)
     javaList.add(40.0)
 
-    //with the above import you can use all scala collection api directly on javaList
+    //with the above import you can use all 
+    //scala collection api directly on javaList
     javaList.map(value => value*10)
  
 {% endhighlight %}
@@ -74,8 +76,8 @@ println(scalaMap.map(value =>(value._1,value._2*value._2)))
 You can use "asJava" to convert from Scala to Java 
 
 {% highlight scala %}
-val javaListFromScala = scalaList.asJava
-println(javaListFromScala.getClass.getName)
+val jList = scalaList.asJava
+println(jList.getClass.getName)
 
 {% endhighlight %}
 
