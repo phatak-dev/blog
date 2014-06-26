@@ -11,14 +11,14 @@ iframe.embed {
 
 a .category:hover 
 {
-color:#2DE6CF;
+  color:#2DE6CF;
 }  
 
 .excerpt {
-font-style: italic;
-font-size: medium;
-font-family: serif;
-margin-top: 1%;
+  font-style: italic;
+  font-size: medium;
+  font-family: serif;
+  margin-top: 1%;
 }
 body {
 	font-family: "Open Sans", Arial, sans-serif;
@@ -35,8 +35,8 @@ pre, pre > code {
 
 img{
  display: block;
-  max-width: 100%;
-  height: auto;
+ max-width: 100%;
+ height: auto;
 }
 
 @media only screen and (min-width: 481px) {
@@ -44,4 +44,24 @@ img{
     /* Bigger font on bigger screens */
     font-size: 16px;
   }
- }
+}
+
+.related h2{  
+  font-weight: bold;
+  display: block;
+  font-size: 100%;
+  margin-bottom: 2%;
+}
+.related ul {
+  list-style-type: none;
+}
+.related ul li {
+  line-height: 1.75em;
+}
+.related span {
+  color: #aaa;
+  font-family: Monaco, "Courier New", monospace;
+  font-size: 80%;
+  text-align : left;
+}
+
