@@ -1,6 +1,7 @@
 ---           
 layout: post
 title: "Glom in spark"
+date : 2014-06-27
 categories: spark
 ---
 Today I am going to discuss about a operation called "glom" on spark rdd which allows you to treat a partition as an array rather as single row at time. This allows you speed up some operations with some  increased memory usage.
@@ -9,11 +10,11 @@ Let's say you want to find out maximum in a given RDD.
 
 Now you can do it using map and reduce operations as below.
 
-{% highlight scala %}
-
-val dataList = List(50.0,40.0,40.0,70.0)
-val dataRDD = sc.makeRDD(dataList)  
-val maxValue =  dataRDD.reduce (_ max _)
+{% highlight scala %}   
+ // create rdd
+ val dataList = List(50.0,40.0,40.0,70.0)   
+ val dataRDD = sc.makeRDD(dataList)  
+ val maxValue =  dataRDD.reduce (_ max _)
 
 {% endhighlight %}
 
@@ -54,9 +55,9 @@ But with glom, you can multiply with whole partition at a time so that your comp
   val weights = List(1.0,0.5,3)
   val rowRDD = sc.makeRDD(rowsList)
   val result = rowRDD.glom().map( value =>{
-      val doubleMatrix = new DoubleMatrix(value.map(value => value.toArray))
-      val weightMatrix = new DoubleMatrix(1,weights.length,weights.toArray:_*)
-      doubleMatrix.mmul(weightMatrix.transpose())
+    val doubleMatrix = new DoubleMatrix( value.map(value => value.toArray))
+    val weightMatrix = new DoubleMatrix(1, weights.length,weights.toArray:_*)
+    doubleMatrix.mmul( weightMatrix.transpose())
 
   })
   
