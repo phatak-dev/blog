@@ -1,14 +1,14 @@
 ---           
 layout: post
-title: "Converting Matlab file to spark RDD"
+title: "Converting Matlab file to Spark RDD"
 categories: spark
 ---
-Many of the times, research data available to data science is in matlab format. So if you want to process that data through spark you have to have a way to convert matlab files to spark rdd's. This post I am going to discuss about using open source [JMatIO](http://sourceforge.net/projects/jmatio/) library to convert matlab files to spark rdd's.
+Many of the times, research data available in data science is in matlab format. So if you want to analyze that data through spark you have to have a way to convert matlab files to spark rdd's. This post I am going to discuss about using open source [JMatIO](http://sourceforge.net/projects/jmatio/) library to convert matlab files to spark rdd's.
 
 
 ##JMatIO - Matlab's MAT-file I/O in JAVA
 
-JMatIO is an open source library provided to read matlab files in java. We can use this to read matlab files in spark also. You can download jar from [here](http://sourceforge.net/projects/jmatio/) or if you are using maven , add following dependency 
+[JMatIO](http://sourceforge.net/projects/jmatio/) is an open source library provided to read matlab files in java. We can use this to read matlab files in spark also. You can download jar from [here](http://sourceforge.net/projects/jmatio/) or if you are using maven , you can add the following dependency 
 
 {% highlight xml %}
   <dependency>
@@ -20,13 +20,15 @@ JMatIO is an open source library provided to read matlab files in java. We can u
 {% endhighlight %}
 
 ### Reading a mat file
-We are going to use mnsit mat file for this example. It has following for matrix in it
+We are going to use [mnsit](https://github.com/rasmusbergpalm/DeepLearnToolbox/blob/master/data/mnist_uint8.mat) mat file for this example. It has following four matrix in it
 
 
 1. train_x - train data x features
 2. train_y - train data labels
 3. test_x -  test data x features
 4. test_y -  test data labels
+
+Follow the following steps to read these matrices and store them as RDD.
 
 * Reading mat file using JMatIO
 
@@ -49,10 +51,13 @@ val trainList = toList(train_x,train_y)
 val trainRDD = sparkContext.makeRDD(trainList)
 {% endhighlight %}
 
-* toList method
+* toList method   
+Here we take both X and Y vector and converting to a Spark Labeled point which is used
+in most of the classification algorithms.
 
 {% highlight scala %}
- def toList(xValue:Array[Array[Byte]],yValue:Array[Array[Byte]]):Array[(Double,Vector)] ={
+ def toList(xValue:Array[Array[Byte]],yValue:Array[Array[Byte]]):
+ Array[(Double,Vector)] ={
      xValue.zipWithIndex.map{
        case (row,rowIndex) => {
          val features = row.map(value => value.toDouble)
