@@ -1,34 +1,34 @@
 ---           
 layout: post
-title: "Dog fight - Book Review"
+title: "Dog fight - How Apple and Google Went to War and Started a Revolution"
 date : 2014-07-29
 categories: book
 ---
-Today Smart phone business is a two company fight. Apple and Google controls 99% of phone market share. But it was not always like this. Back in 2007, Nokia was ruling basic phones and blackberry was king of smart phones. Microsoft was selling millions of windows touch phones. In last few years, the things have changed . If you want to know the story how Apple and Google became dominant players in phone business , you should read [Dogfight](http://www.amazon.com/Dogfight-Apple-Google-Started-Revolution-ebook/dp/B00BIV1R98) book. 
+Today Smart phone business is a two horse race. Apple and Google controls 99% of phone market share. But it was not always like this. Back in 2007, Nokia was ruling basic phones and blackberry was king of smart phones. Microsoft was selling millions of windows touch phones. In last few years, the things have changed . If you want to know the story how Apple and Google became dominant players in phone business , you should read [Dogfight](http://www.amazon.com/Dogfight-Apple-Google-Started-Revolution-ebook/dp/B00BIV1R98) book. 
 
-The following are few interesting points from the book.
+This post reviews different aspects of the book.
 
 ##Vision
 
-Steve Jobs turned around Apple using iPod. iPod was a big hit for Apple which propelled them from single digit Mac market to a digital consumer company. But iPod was not a run away success from day one. It took around 2-3 years before it really became the market leader. At same time Steve jobs also realized that mp3 players are in the great risk once the phone can play the music. It will become a great convergent device. So he wanted to disrupt the cell phone market himself in order to protect the great market share of iPod.
+Steve Jobs turned around Apple using iPod. iPod was a big hit for Apple which propelled them from single digit Mac market to a digital consumer company. But iPod was not a run away success from day one. It took around 2-3 years before it really became the market leader. At same time Steve jobs also realized that mp3 players are in the great risk once the phone can play the music. Phone will become a great convergent device. So he wanted to disrupt the cell phone market himself in order to protect the great market share of iPod.
 
-Same time Google wanted to put their search engine directly into the phone. It always feared that
+Same time Google wanted to put their search engine directly into the phone. Google always feared that
 Microsoft will take over search business when they integrate their search, windows live search, directly into the
-windows phone. Windows phone also contributed to major part of the smart phone business at that
-point of time. So in 2005 they bought android and thought they can build their phone which
+windows phone. Windows phone contributed to major part of the smart phone business at that
+point of time. So in 2005 they bought Android and thought they can build their phone which
 has the Google search engine built in. 
 
-*In both cases, iPhone and Android started as defensive products for existing successful products rather than as a new product itself.*
+*In both cases, iPhone and Android, it started as defensive products for existing successful products rather than as a new product itself.*
 
 ##Cultural challenge
 Apple never built a phone before. There were two different teams with in Apple competing 
 to build a phone. One wanted to bring iPod OS to phone and one wanted to bring Mac OSX to the
 phone. So both team had their own version of Apple phone. Steve jobs being a canny leader
-embraced both and was seeing which way will win ultimately. Both teams work hard for few years before deciding on running Mac OSX in phone is much better than turning the iPod into a phone.
+embraced both and was seeing which way will win ultimately. Both teams work hard for few years before deciding on running Mac OSX in phone was much better than turning the iPod into a phone.
 
 
 So in the book you will be able to get scoop into how these two teams competed against 
-each other and their consequences. It had a great impact on individuals 
+each other and it's consequences. It had a great impact on individuals 
 as it involved lot's of dirty politics, team tactics and moreover when the whole thing completed a huge amount of people left because they felt betrayed and burnt.
 
 Google's approach to this was completely different. They never built an OS before or for that matter never built a consumer product before. They were all about web services and running those web services at scale. Even the co-founder Serge Brin had doubts about Android being gelled with Google's culture. Google culture was all about openness. Anyone can look into code , any one can contribute and any one can extend. But when Andy Rubin, co-founder of Android, took over the Android development within Google, he requested for very strict access to code and no one knew what Android was up to,which was kind of different for the whole company.
@@ -43,17 +43,17 @@ They also have to figure out the interactions with different components. All tho
 
 
 ##The unveiling of iPhone
-Steve Jobs was master in unveiling new products. He was always proud of what Apple builds.You can find very few CEO's who are proud of their company products. So when Steve jobs unveiled  phone , he promised the audience that Apple going to reinvent the phone and he did it. Actually it was beyond his own ambitions. It was not big surprise 
+Steve Jobs was master in unveiling new products. He was always proud of what his company builds.You can find very few CEO's who are proud of their company products. So when Steve jobs unveiled  phone , he promised the audience that Apple going to reinvent the phone and he did it. Actually it was beyond his own ambitions. It was not big surprise 
 that Apple is releasing phone, as most of people were expecting it that time. No one expected the phone to be so good. Every one was blew away and so did Android team at Google.
 
-When the iPhone got revealed and Andy Rubin was driving and watching this live video through his car. He just blown away. He knew this was the future. He just picked up the phone and called team right away. *"We have to reinvent the UI. Whatever we were doing to use physical keyboard like blackberry , we have to rethink now"*.
+When the iPhone got revealed, Andy Rubin was driving and watching this live video through his car. He just blown away. He knew that it was the future. He just picked up the phone and called team right away. *"We have to reinvent the UI. Whatever we were doing to use physical keyboard like blackberry , we have to rethink now"*.
 
 ##The dilemma
-Google started to work on Android to put it services on the phone business. Now with iPhone, they got their maps and Youtube,Search on all on iPhone. With iPhone dominating  in market place, Google got their dreams fulfilled and fear of Microsoft was went away. So now the real question was what purpose Android going to serve?. There was a dedicated team from Google, headed by Vic Gundotra, who worked on iPhone applications and they thought android was just a distraction.
+Google started to work on Android to put it services on the phone business. Now with iPhone, they got their maps and Youtube,Search all on iPhone. With iPhone dominating  in market place, Google got their dreams fulfilled and fear of Microsoft went away. So now the real question was what purpose Android going to serve?. There was a dedicated team from Google, headed by Vic Gundotra, who worked on iPhone applications and they thought android was just a distraction.
 
 Steve jobs was hearing rumors about Android and he asked Eric Schmidt. Most of the time Google told it just a side project and nothing compared to iPhone. 
 
-*So within Google there was dilemma about future .. Is it great apps on iOS or build 
+*So within Google there was a dilemma about future .. Is it great apps on iOS or build 
 an OS which is going to rival with iOS?.*
 
 
