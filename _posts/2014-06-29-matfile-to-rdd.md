@@ -1,6 +1,7 @@
 ---           
 layout: post
 title: "Converting Matlab file to Spark RDD"
+date : 2014-06-29
 categories: spark
 ---
 Many of the times, research data available in data science is in matlab format. So if you want to analyze that data through spark you have to have a way to convert matlab files to spark rdd's. This post I am going to discuss about using open source [JMatIO](http://sourceforge.net/projects/jmatio/) library to convert matlab files to spark rdd's.

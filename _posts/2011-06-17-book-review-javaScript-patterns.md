@@ -4,7 +4,7 @@ title: "Book Review: JavaScript Patterns"
 date: 2011-06-17 07:38:02 UTC
 updated: 2011-06-17 07:38:02 UTC
 comments: false
-categories: javascript
+categories: javascript book
 ---
 JavaScript is becoming a universal, ubiquitous language. Though it was initially designed to make web pages dynamic, it has gone beyond that. It invaded server space by efforts like [Node.js](http://nodejs.org/). It’s the language to develop cross platform mobile applications. In fact in HP WebOS operating system, JavaScript is used to build native applications too. So when JavaScript is poised for world domination, it becomes very important to develop quality and complex applications using this language. In that journey of developing applications, [“JavaScript Patterns” by Stoyan Stefanov](http://www.amazon.com/JavaScript-Patterns-Stoyan-Stefanov/dp/0596806752), may help you immensely to create and develop new things or to garnish your thinking.
 
