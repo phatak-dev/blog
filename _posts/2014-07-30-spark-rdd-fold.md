@@ -1,9 +1,10 @@
 ---           
 layout: post
 title: "Fold in spark"
+date : 2014-07-30
 categories: spark
 ---
-Fold is a very powerful operation in spark which allows you to calculate many important values in O(n) time . If you are familiar with Scala collection it will be like using foldLeft operation. Even if you not used fold in Scala, this post will make you comfortable in using fold.
+Fold is a very powerful operation in spark which allows you to calculate many important values in O(n) time. If you are familiar with Scala collection it will be like using fold operation on collection. Even if you not used fold in Scala, this post will make you comfortable in using fold.
 
 ###Syntax
 {% highlight scala %}
@@ -13,10 +14,9 @@ def fold[T](acc:T)((acc,value) => acc)
 The above is kind of high level view of fold api. It has following three things
 
 1. T is the data type of RDD
-2. acc is accumulator which will return value of the fold operation
-3. A function , which will be called for each element with rdd with previous accumulator.
+2. acc is accumulator of type T which will be return value of the fold operation
+3. A function , which will be called for each element in rdd with previous accumulator.
 
-Since the accumulator is left of the function arguments, it is also called as foldLeft.
 
 Let's see some examples of fold 
 
@@ -30,16 +30,16 @@ Let's first build a RDD
  val listRDD = sparkContext.makeRDD(list)
 {% endhighlight %}
 
-Naive way : of doing it will by sorting. 
+Naive way of doing it will by sorting. 
 
 {% highlight scala %}
 val maxBySort = listRDD.reduce(_ max _)
  println("max is "+maxBySort)
 {% endhighlight %}
 
-But this ends up doing lot of shuffling and not neat mapping.
+But this ends up doing lot of shuffling.
 
-Let's rephrase the solution like this. Find maximum value in each partiotion and then reduce it to single value.
+Let's rephrase the solution like this. Find maximum value in each partition and then reduce it to single value.
 
 {% highlight scala %}
 val maxByMap = listRDD.mapPartitions(iterator => {
@@ -65,13 +65,16 @@ Though we are able to get good performance, using var is against pure functional
 println("max is "+maxByScalaFold)
 {% endhighlight %}
 
-It works. But still feels like lot's of code . Let's optimize it.
+It works. But still feels like lot's of code. Let's optimize it.
 {% highlight scala %}
 val maxByRddFold = listRDD.fold(Integer.MIN_VALUE)((acc,element) => acc max element)
 println("max is "+maxByRddFold)
 {% endhighlight %}
 
-Finding both min and max
+###Finding both min and max
+Here we cannot use fold directly. We use mapPartitions api and with each partition we use
+fold operation.
+
 {% highlight scala %}
 val (min,max) = listRDD.mapPartitions(iterator => {
       val (min,max) = iterator.foldLeft((Int.MaxValue,Int.MinValue))((acc,element) => {
@@ -82,7 +85,11 @@ val (min,max) = listRDD.mapPartitions(iterator => {
  println("min and maximum " + min +","+max)
 {% endhighlight %}
 
-Fold by key
+###Fold by key
+In Map/Reduce key plays a role of grouping values. We can use foldByKey operation to aggregate values based on keys.
+
+In this example, employees are grouped by department name. If you want to find the maximum salaries in a given department we can use following code.
+
 {% highlight scala %}
   val deptEmployees = List(
       ("cs",("jack",1000.0)),
