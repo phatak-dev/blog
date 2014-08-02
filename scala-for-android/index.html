@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Google, it's time - We want Scala for Android</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Thoughts on technology, life and everything else.">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/scala-for-android">
+     <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/app.css">    
+</head>
+
+
+    <body>
+
+    <header >
+  <div class="wrap">
+    <a class="site-title" href="/">Madhukar's Blog</a>    
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrap">
+      <div class="post">
+ <header class="post-header">
+  <h1>Google, it's time - We want Scala for Android</h1>
+  <p class="meta">Aug 3, 2014</p>
+  <div class="catagories">
+    
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
+    <a href="/categories/google"><span class="category">google</span></a>
+    
+    <a href="/categories/android"><span class="category">android</span></a>
+    
+  </div>
+</header> 
+
+<article class="post-content">
+  <p>Apple made a bold move in this year’s WWDC 2014 by announcing a new language,Swift,for it’s iOS platforms. Finally, Apple recognized that Objective-C has lived its course and its time for new language. </p>
+
+<p>Now its time for Android to make a move and embrace a modern language for modern post PC devices. Java showing it’s age and we need a new language.</p>
+
+<h2 id="google-and-languages">Google and languages</h2>
+<p>Google has many languages under it’s kit for various kinds of projects. The prominent 
+one are</p>
+
+<ul>
+  <li>Dart   </li>
+  <li>Javascript  </li>
+  <li>Go  </li>
+</ul>
+
+<p>Other than Javascript, other two are niche languages created by Google. Though Go is getting buzz these days, its not yet ready to take over language like Java. As for Javascript and buzz with HTML5 its still doesn’t feel home when you want to build native apps with it. So it’s better Google embrace a open language which is well tested and mature rather than going with their own.</p>
+
+<p>Before we go and look at why Scala language may be good fit , let’s see what Swift is bringing to the table which is missing in both Java and Objective -C.</p>
+
+<h2 id="swift-features">Swift features</h2>
+
+<h3 id="managed-runtime">Managed runtime</h3>
+
+<p>We don’t want to go back C time where we need to manage memory ourselves. 
+ Swift has managed runtime with garbage collection. As phones are getting faster 
+ memory is not an issue anymore. Android had managed runtime from day one so whatever
+ language we choose to replace Java, it should be able to run on Dalvik/ART,
+ the managed runtime of Android.</p>
+
+<h3 id="type-inference">Type inference</h3>
+
+<p>Having a strongly typed language is always plus. But specifying all the types makes
+ code more muddier and hard to code. So we want the best of both worlds, compile
+ time check as in static languages and ability to skip the type specifications when not needed like in Dynamic languages. Type inference is solution to this. Type inference
+ is where compiler says <strong>“Don’t worry buddy, I got your back. You code and I will
+ figure out types for you”</strong>. It works like Magic. Swift is replacing the old C like type declarations with elegant ruby like ones.</p>
+
+<h3 id="lambdas">Lambdas</h3>
+<p>Functional programming is everywhere. With event based user interfaces like on Web
+and mobile having higher order functions is absolutely needed. Whenever I see a inner
+class holding the implementation of on click event handler, it feels so wrong. Swift is bringing lambdas to iOS world and Java 8 to servers. Let’s have them in Android too.</p>
+
+<h3 id="inter-portability-with-existing-applications">Inter portability with existing applications</h3>
+<p>No one is going to rewrite all the pieces of iOS applications with
+swift on day one. There should be an easy way to move from existing code to new code
+where developer should be able to reuse the libraries and tools. Swift allows Objective-C code to co-exist with it in same application which allows for gentle migration.</p>
+
+<h3 id="ability-to-run-on-existing-run-time-to-support-older-versions-of-os">Ability to run on existing run time (To support older versions of OS)</h3>
+<p>Having a new shiny language is cool, but not able to run on older OS version is not cool.
+Particularly with Android, ability to run on old version of OS is super critical.</p>
+
+<p><em>Knowing the things swift bringing to table, the question is can Scala bring these
+things to Android without much effort. The answer is resounding yes!!!</em></p>
+
+<h2 id="what-is-scala">What is Scala?</h2>
+<p><a href="http://www.scala-lang.org/">Scala</a> is a JVM language created by Martin Odersky. 
+He is the person behind Javac and Generics in Java. It’s there from 2004 and getting
+popular for it’s interesting blend of function programming with object oriented programming. Watch <a href="https://www.youtube.com/watch?v=ecekSCX3B4Q">this</a> video to understand
+the philosophy behind the language.</p>
+
+<h2 id="why-scala">Why Scala?</h2>
+<p>The following features of Scala makes language of choice for Android.</p>
+
+<h3 id="scala-works-seamlessly-with-java">Scala works seamlessly with Java</h3>
+<p>This is one of the greatest strength of Scala. No need to rewrite every Java/Android library in Scala , as it seamlessly integrates. Calling Java code from Scala
+is super easy which means we get all great libraries of Java for free. So integrating
+with existing apps is not an issue at all. That’s a big win.</p>
+
+<h3 id="runs-on-jvm--so-will-run-on-dalvikart">Runs on JVM , so will run on Dalvik/ART</h3>
+<p>No need of new runtime as Scala compiles to byte code which means we can convert to
+ Dalvik and ART format directly.</p>
+
+<h3 id="excellent-type-inference">Excellent type inference</h3>
+<p>Scala compiler is great. It does some magical things to get the type’s right without
+you every specifying anything about type. Scala has rich type system which allow you to enjoy all great things of static typing without Java’s verbosity.</p>
+
+<h3 id="great-community-support">Great community support</h3>
+<p>Scala is used by thousands of developers in wild. It has excellent support in terms of
+ IDE both in Eclipse and IDEA. Lot’s of libraries have both Scala and Java API which
+ allows them to inter-operate nicely.</p>
+
+<h3 id="production-ready">Production ready</h3>
+<p>Scala is not a new shiny kid on block like Node.js . It’s there from 10 years and battle
+ tested in lot of applications. Big data applications like Spark, web application
+ framework like Play, Distributed messaging platforms like Akka, are written in Scala
+ and in production for years. So the language is well battle tested and ready for production.</p>
+
+<h3 id="its-already-used-in-android">It’s already used in Android</h3>
+<p>As we speak, Scala is already used as alternative to Java in Android. Few of the project like <a href="https://github.com/pocorall/scaloid">Scaloid</a>, <a href="http://macroid.github.io/">Macroid</a> allow you to code in Scala . But what we need is more
+ deep support for language in Android framework so that coding in Android becomes fun again.</p>
+
+<p>Thought it’s pretty obvious that Scala should be the modern language of Android,given Android team’s <a href="https://www.youtube.com/watch?v=K3meJyiYWFw#t=1566">understanding</a> of Scala, it’s going long time before they adopt it.</p>
+
+
+</article>
+
+
+<div class="related">
+  <h2>Related posts</h2>
+  <ul>
+    
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">27 Jun 2014</span>
+     &raquo; <a href="/converting-java-collections-to-scala">Converting Java collections to Scala</a>    
+   </li>           
+         
+
+   
+   
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">31 Dec 2013</span>
+     &raquo; <a href="/google-top-100-searches-in-2013-chennai-express,-jiah-khan-from-India,-makes-into-the-list">Google top 100 searches in 2013 :  Chennai Express, Jiah Khan from India, makes into the list</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">06 Jan 2012</span>
+     &raquo; <a href="/say-hello-to-android-part-I-introduction-to-android">Say Hello To Android  Part- I Introduction To Android</a>    
+   </li>           
+         
+
+   
+   
+ </ul>
+</div>
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrap">   
+    <div class="footer-col-1 column">
+      <ul>
+        <li>
+          <a href="https://github.com/phatak-dev">
+            <span class="icon github">
+              <svg version="1.1" class="github-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill-rule="evenodd" clip-rule="evenodd" fill="#C2C2C2" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761
+                c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32
+                c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472
+                c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037
+                C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65
+                c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261
+                c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082
+                c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129
+                c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+              </svg>
+            </span>
+            <span class="username">phatak-dev</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://twitter.com/madhukaraphatak">
+            <span class="icon twitter">
+              <svg version="1.1" class="twitter-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill="#C2C2C2" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809
+                c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27
+                c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767
+                c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206
+                C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271
+                c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469
+                c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/>
+              </svg>
+            </span>
+            <span class="username">madhukaraphatak</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer-col-3 column">
+      <p class="text">Thoughts on technology, life and everything else.</p>
+    </div>
+
+    <div style="float:right;">
+      <a href="/feed.xml"><img src="/images/rss.png">
+    </div>
+
+
+
+  </div>
+
+</footer>
+
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52311191-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+    </body>
+</html>

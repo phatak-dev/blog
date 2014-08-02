@@ -7,6 +7,106 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Google, it's time - We want Scala for Android</title>
+        <description>&lt;p&gt;Apple made a bold move in this year’s WWDC 2014 by announcing a new language,Swift,for it’s iOS platforms. Finally, Apple recognized that Objective-C has lived its course and its time for new language. &lt;/p&gt;
+
+&lt;p&gt;Now its time for Android to make a move and embrace a modern language for modern post PC devices. Java showing it’s age and we need a new language.&lt;/p&gt;
+
+&lt;h2 id=&quot;google-and-languages&quot;&gt;Google and languages&lt;/h2&gt;
+&lt;p&gt;Google has many languages under it’s kit for various kinds of projects. The prominent 
+one are&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Dart   &lt;/li&gt;
+  &lt;li&gt;Javascript  &lt;/li&gt;
+  &lt;li&gt;Go  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Other than Javascript, other two are niche languages created by Google. Though Go is getting buzz these days, its not yet ready to take over language like Java. As for Javascript and buzz with HTML5 its still doesn’t feel home when you want to build native apps with it. So it’s better Google embrace a open language which is well tested and mature rather than going with their own.&lt;/p&gt;
+
+&lt;p&gt;Before we go and look at why Scala language may be good fit , let’s see what Swift is bringing to the table which is missing in both Java and Objective -C.&lt;/p&gt;
+
+&lt;h2 id=&quot;swift-features&quot;&gt;Swift features&lt;/h2&gt;
+
+&lt;h3 id=&quot;managed-runtime&quot;&gt;Managed runtime&lt;/h3&gt;
+
+&lt;p&gt;We don’t want to go back C time where we need to manage memory ourselves. 
+ Swift has managed runtime with garbage collection. As phones are getting faster 
+ memory is not an issue anymore. Android had managed runtime from day one so whatever
+ language we choose to replace Java, it should be able to run on Dalvik/ART,
+ the managed runtime of Android.&lt;/p&gt;
+
+&lt;h3 id=&quot;type-inference&quot;&gt;Type inference&lt;/h3&gt;
+
+&lt;p&gt;Having a strongly typed language is always plus. But specifying all the types makes
+ code more muddier and hard to code. So we want the best of both worlds, compile
+ time check as in static languages and ability to skip the type specifications when not needed like in Dynamic languages. Type inference is solution to this. Type inference
+ is where compiler says &lt;strong&gt;“Don’t worry buddy, I got your back. You code and I will
+ figure out types for you”&lt;/strong&gt;. It works like Magic. Swift is replacing the old C like type declarations with elegant ruby like ones.&lt;/p&gt;
+
+&lt;h3 id=&quot;lambdas&quot;&gt;Lambdas&lt;/h3&gt;
+&lt;p&gt;Functional programming is everywhere. With event based user interfaces like on Web
+and mobile having higher order functions is absolutely needed. Whenever I see a inner
+class holding the implementation of on click event handler, it feels so wrong. Swift is bringing lambdas to iOS world and Java 8 to servers. Let’s have them in Android too.&lt;/p&gt;
+
+&lt;h3 id=&quot;inter-portability-with-existing-applications&quot;&gt;Inter portability with existing applications&lt;/h3&gt;
+&lt;p&gt;No one is going to rewrite all the pieces of iOS applications with
+swift on day one. There should be an easy way to move from existing code to new code
+where developer should be able to reuse the libraries and tools. Swift allows Objective-C code to co-exist with it in same application which allows for gentle migration.&lt;/p&gt;
+
+&lt;h3 id=&quot;ability-to-run-on-existing-run-time-to-support-older-versions-of-os&quot;&gt;Ability to run on existing run time (To support older versions of OS)&lt;/h3&gt;
+&lt;p&gt;Having a new shiny language is cool, but not able to run on older OS version is not cool.
+Particularly with Android, ability to run on old version of OS is super critical.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Knowing the things swift bringing to table, the question is can Scala bring these
+things to Android without much effort. The answer is resounding yes!!!&lt;/em&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;what-is-scala&quot;&gt;What is Scala?&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;http://www.scala-lang.org/&quot;&gt;Scala&lt;/a&gt; is a JVM language created by Martin Odersky. 
+He is the person behind Javac and Generics in Java. It’s there from 2004 and getting
+popular for it’s interesting blend of function programming with object oriented programming. Watch &lt;a href=&quot;https://www.youtube.com/watch?v=ecekSCX3B4Q&quot;&gt;this&lt;/a&gt; video to understand
+the philosophy behind the language.&lt;/p&gt;
+
+&lt;h2 id=&quot;why-scala&quot;&gt;Why Scala?&lt;/h2&gt;
+&lt;p&gt;The following features of Scala makes language of choice for Android.&lt;/p&gt;
+
+&lt;h3 id=&quot;scala-works-seamlessly-with-java&quot;&gt;Scala works seamlessly with Java&lt;/h3&gt;
+&lt;p&gt;This is one of the greatest strength of Scala. No need to rewrite every Java/Android library in Scala , as it seamlessly integrates. Calling Java code from Scala
+is super easy which means we get all great libraries of Java for free. So integrating
+with existing apps is not an issue at all. That’s a big win.&lt;/p&gt;
+
+&lt;h3 id=&quot;runs-on-jvm--so-will-run-on-dalvikart&quot;&gt;Runs on JVM , so will run on Dalvik/ART&lt;/h3&gt;
+&lt;p&gt;No need of new runtime as Scala compiles to byte code which means we can convert to
+ Dalvik and ART format directly.&lt;/p&gt;
+
+&lt;h3 id=&quot;excellent-type-inference&quot;&gt;Excellent type inference&lt;/h3&gt;
+&lt;p&gt;Scala compiler is great. It does some magical things to get the type’s right without
+you every specifying anything about type. Scala has rich type system which allow you to enjoy all great things of static typing without Java’s verbosity.&lt;/p&gt;
+
+&lt;h3 id=&quot;great-community-support&quot;&gt;Great community support&lt;/h3&gt;
+&lt;p&gt;Scala is used by thousands of developers in wild. It has excellent support in terms of
+ IDE both in Eclipse and IDEA. Lot’s of libraries have both Scala and Java API which
+ allows them to inter-operate nicely.&lt;/p&gt;
+
+&lt;h3 id=&quot;production-ready&quot;&gt;Production ready&lt;/h3&gt;
+&lt;p&gt;Scala is not a new shiny kid on block like Node.js . It’s there from 10 years and battle
+ tested in lot of applications. Big data applications like Spark, web application
+ framework like Play, Distributed messaging platforms like Akka, are written in Scala
+ and in production for years. So the language is well battle tested and ready for production.&lt;/p&gt;
+
+&lt;h3 id=&quot;its-already-used-in-android&quot;&gt;It’s already used in Android&lt;/h3&gt;
+&lt;p&gt;As we speak, Scala is already used as alternative to Java in Android. Few of the project like &lt;a href=&quot;https://github.com/pocorall/scaloid&quot;&gt;Scaloid&lt;/a&gt;, &lt;a href=&quot;http://macroid.github.io/&quot;&gt;Macroid&lt;/a&gt; allow you to code in Scala . But what we need is more
+ deep support for language in Android framework so that coding in Android becomes fun again.&lt;/p&gt;
+
+&lt;p&gt;Thought it’s pretty obvious that Scala should be the modern language of Android,given Android team’s &lt;a href=&quot;https://www.youtube.com/watch?v=K3meJyiYWFw#t=1566&quot;&gt;understanding&lt;/a&gt; of Scala, it’s going long time before they adopt it.&lt;/p&gt;
+
+</description>
+        <pubDate>Sun, 03 Aug 2014 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/scala-for-android</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/scala-for-android</guid>
+      </item>
+    
+      <item>
         <title>Fold in spark</title>
         <description>&lt;p&gt;Fold is a very powerful operation in spark which allows you to calculate many important values in O(n) time. If you are familiar with Scala collection it will be like using fold operation on collection. Even if you not used fold in Scala, this post will make you comfortable in using fold.&lt;/p&gt;
 
@@ -724,161 +824,6 @@ better mobile software to consumers is by making it easier for developers to wri
         <pubDate>Fri, 06 Jan 2012 17:44:17 +0000</pubDate>
         <link>http://blog.madhukaraphatak.com/say-hello-to-android-part-I-introduction-to-android</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/say-hello-to-android-part-I-introduction-to-android</guid>
-      </item>
-    
-      <item>
-        <title>Getting Started With ANTLR:Basics</title>
-        <description>&lt;p&gt;Yeah! It’s after a lapse of a month or so that there is a post in this blog! :)&lt;/p&gt;
-
-&lt;p&gt;Well, this post drives you towards the basics of ANTLR. Previously, we had learnt about setting up of ANTLR as an external tool. &lt;/p&gt;
-
-&lt;h3 id=&quot;what-is-antlr&quot;&gt;What is ANTLR?&lt;/h3&gt;
-
-&lt;p&gt;ANother Tool for Language Recognition, is a language tool that provides a framework for constructing recognizers, interpreters, compilers, and translators from grammatical descriptions containing actions.&lt;/p&gt;
-
-&lt;h3 id=&quot;what-can-be-the-target-languages&quot;&gt;What can be the target languages?&lt;/h3&gt;
-&lt;ul&gt;
-  &lt;li&gt;Ada&lt;/li&gt;
-  &lt;li&gt;Action Script&lt;/li&gt;
-  &lt;li&gt;C&lt;/li&gt;
-  &lt;li&gt;C#; C#2&lt;/li&gt;
-  &lt;li&gt;C#3&lt;/li&gt;
-  &lt;li&gt;D&lt;/li&gt;
-  &lt;li&gt;Emacs ELisp&lt;/li&gt;
-  &lt;li&gt;Objective C&lt;/li&gt;
-  &lt;li&gt;Java&lt;/li&gt;
-  &lt;li&gt;Java Script&lt;/li&gt;
-  &lt;li&gt;Python&lt;/li&gt;
-  &lt;li&gt;Ruby&lt;/li&gt;
-  &lt;li&gt;Perl6&lt;/li&gt;
-  &lt;li&gt;Perl&lt;/li&gt;
-  &lt;li&gt;PHP&lt;/li&gt;
-  &lt;li&gt;Oberon&lt;/li&gt;
-  &lt;li&gt;Scala&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;what-does-antlr-support&quot;&gt;What does ANTLR support?&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Tree construction&lt;/li&gt;
-  &lt;li&gt;Error recovery&lt;/li&gt;
-  &lt;li&gt;Error handling&lt;/li&gt;
-  &lt;li&gt;Tree walking&lt;/li&gt;
-  &lt;li&gt;Translation&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;what-environment-does-it-support&quot;&gt;What environment does it support?&lt;/h3&gt;
-
-&lt;p&gt;ANTLRWorks is the IDE for ANTLR. It is the graphical grammar editor and debugger, written by Jean Bovet using Swing.&lt;/p&gt;
-
-&lt;h3 id=&quot;what-for-antlr-can-be-used&quot;&gt;What for ANTLR can be used?&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&quot;”REAL”” programming languages&lt;/li&gt;
-  &lt;li&gt;domain-specific languages [DSL]&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;who-is-using-antlr&quot;&gt;Who is using ANTLR?&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Programming languages :Boo, Groovy, Mantra, Nemerle, XRuby etc.&lt;/li&gt;
-  &lt;li&gt;Other Tools: HIbernate, Intellij IDEA, Jazillian, JBoss Rules, Keynote(Apple), WebLogic(Oracle) etc.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Where is that you can look for ANTLR?&lt;/p&gt;
-
-&lt;p&gt;You can always follow &lt;a href=&quot;http://www.antlr.org&quot;&gt;here&lt;/a&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;to download ANTLR and ANTLRWorks, which are free and open source&lt;/li&gt;
-  &lt;li&gt;docs,articles,wiki,mailing list,examples…. You can catch everything here!&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h4 id=&quot;basic-terms&quot;&gt;Basic Terms&lt;/h4&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Lexer : converts a stream of characters to a stream of tokens.&lt;/li&gt;
-  &lt;li&gt;Parser : processes of tokens, possibly creating AST&lt;/li&gt;
-  &lt;li&gt;Abstract Syntax Tree(AST): an intermediate tree representation of the parsed input that is simpler to process than the stream of tokens. It can as well be processed multiple times.&lt;/li&gt;
-  &lt;li&gt;Tree Parser: It processes an AST&lt;/li&gt;
-  &lt;li&gt;String Template: a library that supports using templates with placeholders for outputting text&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h4 id=&quot;general-steps&quot;&gt;General Steps&lt;/h4&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Write Grammar in one or more files&lt;/li&gt;
-  &lt;li&gt;Write string templates[optional]&lt;/li&gt;
-  &lt;li&gt;Debug your grammar with ANTLRWorks&lt;/li&gt;
-  &lt;li&gt;Generate classes from grammar&lt;/li&gt;
-  &lt;li&gt;Write an application that uses generated classes&lt;/li&gt;
-  &lt;li&gt;Feed the application text that conforms to the grammar&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h4 id=&quot;a-bit-further&quot;&gt;A Bit Further..&lt;/h4&gt;
-
-&lt;p&gt;Lets write a simple grammar which consists of&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Lexer&lt;/li&gt;
-  &lt;li&gt;Parser&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;lexer&quot;&gt;Lexer&lt;/h3&gt;
-
-&lt;p&gt;Lets take the example of simple declaration type in C of the form “int a,b;” or “int a;” and same with float.&lt;/p&gt;
-
-&lt;p&gt;As we see we can write lexer as follows:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;octave&quot;&gt;&lt;span class=&quot;o&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TestLexer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;grammar&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TestLexer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;ID&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;z&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;A&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;Z&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;_&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
-&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;z&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;A&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;Z&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;0&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;9&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;_&amp;#39;&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;.&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;z&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;A&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;Z&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;COMMA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;,&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;SEMICOLON&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;;&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;DATATYPE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;int&amp;#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;float&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As we could see, these were the characters that were to be converted to tokens.
-So, now lets write some rules which processes these tokens generated and may it create a parse tree accordingly.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;octave&quot;&gt;&lt;span class=&quot;o&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TestParser&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;grammar&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TestParser&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;options&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;language&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Java&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;decl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DATATYPE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ID&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;,&amp;#39;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ID&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Running ANTLR on the grammar just generates the lexer and parser,TestParser and TestLexer. To actually try the grammar on some input, we
-need a test rig with a main( ) method as follows:&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;java&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// Test.java&lt;/span&gt;
-
-&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.antlr.runtime.*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Test&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;// Create an input character stream from standard in&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;ANTLRFileStream&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;input&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ANTLRFileStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;input&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// give path to the file input&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;// Create an ExprLexer that feeds from that stream&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;TestLexer&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lexer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TestLexer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;input&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;// Create a stream of tokens fed by the lexer&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;CommonTokenStream&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tokens&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CommonTokenStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lexer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;// Create a parser that feeds off the token stream&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;TestParser&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;parser&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TestParser&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tokens&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;// Begin parsing at rule decl&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;parser&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;decl&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;We shall see how to create an AST and walk over the tree in the next blog post..
-Happy learning….! :)&lt;/p&gt;
-
-</description>
-        <pubDate>Sun, 25 Sep 2011 17:20:11 +0000</pubDate>
-        <link>http://blog.madhukaraphatak.com/getting-started-with-antlr-basics</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/getting-started-with-antlr-basics</guid>
       </item>
     
   </channel>
