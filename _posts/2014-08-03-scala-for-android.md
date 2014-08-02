@@ -92,7 +92,7 @@ you every specifying anything about type. Scala has rich type system which allow
  and in production for years. So the language is well battle tested and ready for production.
 
 ###It's already used in Android
- As we speak now, Scala is already used as alternative to Java in Android. Few of the project like [Scaloid](https://github.com/pocorall/scaloid), [Macroid](http://macroid.github.io/) allow you to code in Scala . But what we need is more
+ As we speak, Scala is already used as alternative to Java in Android. Few of the project like [Scaloid](https://github.com/pocorall/scaloid), [Macroid](http://macroid.github.io/) allow you to code in Scala . But what we need is more
  deep support for language in Android framework so that coding in Android becomes fun again.
 
   Thought it's pretty obvious that Scala should be the modern language of Android,given Android team's [understanding](https://www.youtube.com/watch?v=K3meJyiYWFw#t=1566) of Scala, it's going long time before they adopt it.
