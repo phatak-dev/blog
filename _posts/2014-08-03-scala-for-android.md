@@ -6,7 +6,7 @@ categories: scala google android
 ---
 Apple made a bold move in this year's WWDC 2014 by announcing a new language,Swift,for it's iOS platforms. Finally, Apple recognized that Objective-C has lived its course and its time for new language. 
 
-Now its time for Android to make a bold move and embrace a modern language for modern post PC devices. Java showing it's age and we need a new language.
+Now its time for Android to make a move and embrace a modern language for modern post PC devices. Java showing it's age and we need a new language.
 
 ##Google and languages
 Google has many languages under it's kit for various kinds of projects. The prominent 
@@ -50,12 +50,19 @@ swift on day one. There should be an easy way to move from existing code to new 
 where developer should be able to reuse the libraries and tools. Swift allows Objective-C code to co-exist with it in same application which allows for gentle migration.
 
 ###Ability to run on existing run time (To support older versions of OS)
-Having new shiny language is cool, but not able to run on older OS version is not cool.
+Having a new shiny language is cool, but not able to run on older OS version is not cool.
 Particularly with Android, ability to run on old version of OS is super critical.
 
 
 *Knowing the things swift bringing to table, the question is can Scala bring these
 things to Android without much effort. The answer is resounding yes!!!*
+
+##What is Scala?
+[Scala](http://www.scala-lang.org/) is a JVM language created by Martin Odersky. 
+He is the person behind Javac and Generics in Java. It's there from 2004 and getting
+popular for it's interesting blend of function programming with object oriented programming. Watch [this](https://www.youtube.com/watch?v=ecekSCX3B4Q) video to understand
+the philosophy behind the language.
+
 
 ##Why Scala?
 The following features of Scala makes language of choice for Android.
@@ -66,7 +73,7 @@ is super easy which means we get all great libraries of Java for free. So integr
 with existing apps is not an issue at all. That's a big win.
 
 ###Runs on JVM , so will run on Dalvik/ART
- No need of new runtime as Scala compiles to bytecode which means we can convert to
+ No need of new runtime as Scala compiles to byte code which means we can convert to
  Dalvik and ART format directly.
 
 ###Excellent type inference
@@ -80,7 +87,7 @@ you every specifying anything about type. Scala has rich type system which allow
 
 ###Production ready
  Scala is not a new shiny kid on block like Node.js . It's there from 10 years and battle
- tested in lot of applications. Bigdata applications like Spark, web application
+ tested in lot of applications. Big data applications like Spark, web application
  framework like Play, Distributed messaging platforms like Akka, are written in Scala
  and in production for years. So the language is well battle tested and ready for production.
 
