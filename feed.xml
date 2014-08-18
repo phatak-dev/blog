@@ -7,6 +7,46 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Sbt on ubuntu</title>
+        <description>&lt;p&gt;&lt;a href=&quot;http://www.scala-sbt.org/&quot;&gt;Sbt&lt;/a&gt; is the default build tool for Scala. This post talks about steps to install sbt on ubuntu.&lt;/p&gt;
+
+&lt;h2 id=&quot;steps-to-install-sbt-on-ubuntu&quot;&gt;Steps to install Sbt on ubuntu&lt;/h2&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;sh&quot;&gt;&lt;span class=&quot;c&quot;&gt;#Add typesafe repository     &lt;/span&gt;
+wget http://apt.typesafe.com/repo-deb-build-0002.deb &lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;#Install the repository&lt;/span&gt;
+sudo dpkg -i repo-deb-build-0002.deb
+
+&lt;span class=&quot;c&quot;&gt;#Refresh&lt;/span&gt;
+sudo apt-get update
+
+&lt;span class=&quot;c&quot;&gt;#Install sbt&lt;/span&gt;
+sudo apt-get install sbt
+
+&lt;span class=&quot;c&quot;&gt;#check whether sbt is installed&lt;/span&gt;
+sbt&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;add-specific-version-of-sbt&quot;&gt;Add specific version of sbt&lt;/h2&gt;
+
+&lt;p&gt;Some project need specific version of sbt like 0.13.   &lt;/p&gt;
+
+&lt;p&gt;If you get error saying &lt;strong&gt;Detected sbt version 0.12.2 Cannot find sbt launcher 0.12.2 Please download: From typesafe.artifactoryonline.com/typesafe/ivy-releases/… To /home/{username}/.sbt/.lib/0.12.2/sbt-launch.jar&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Run the following commands by replacing &lt;username&gt; with you username.&lt;/username&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;sh&quot;&gt;mkdir -p /home/&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;username&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;/.sbt/.lib/0.12.2/ 
+ wget -O /home/&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;username&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;/.sbt/.lib/0.12.2/sbt-launch.jar 
+ http://typesafe.artifactoryonline.com/typesafe/ivy-releases/
+ org.scala-sbt/sbt-launch/0.12.2/sbt-launch.jar&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+</description>
+        <pubDate>Mon, 18 Aug 2014 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/sbt-on-ubuntu</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/sbt-on-ubuntu</guid>
+      </item>
+    
+      <item>
         <title>Google, it's time - We want Scala for Android</title>
         <description>&lt;p&gt;Apple made a bold move in this year’s WWDC 2014 by announcing a new language,Swift,for it’s iOS platforms. Finally, Apple recognized that Objective-C has lived its course and its time for new language. &lt;/p&gt;
 
@@ -752,78 +792,6 @@ Two different files are&lt;/p&gt;
         <pubDate>Tue, 31 Dec 2013 14:46:18 +0000</pubDate>
         <link>http://blog.madhukaraphatak.com/google-top-100-searches-in-2013-chennai-express,-jiah-khan-from-India,-makes-into-the-list</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/google-top-100-searches-in-2013-chennai-express,-jiah-khan-from-India,-makes-into-the-list</guid>
-      </item>
-    
-      <item>
-        <title>Say Hello To Android  Part- I Introduction To Android</title>
-        <description>&lt;p&gt;Its an era of mobile, tablets and a very exciting time for developers!! Mobile phones have never been more popular and powerful. Smart Phones have become very stylish, versatile packing hardware features like GPS, accelerometers, etc. are an enticing platform which kindles the developers to create some innovative mobile applications.&lt;/p&gt;
-
-&lt;p&gt;With the existing mobile development built on proprietary operating systems that restrict third-party applications, Android offers an open and the best alternative. Without artificial barriers, Android developers are free to write applications that take full advantage of increasingly powerful mobile hardware. As a result, developer interest in Android devices has made their 2008 release a hugely anticipated mobile technology event.&lt;/p&gt;
-
-&lt;p&gt;The open philosophy of android is most welcomed by majority of the developers as it features very powerful SDK libraries. Experienced mobile developers can now tinker with android and explore the platform, leveraging the unique features to enhance existing products or create more innovative ones.&lt;/p&gt;
-
-&lt;h3 id=&quot;android&quot;&gt;Android&lt;/h3&gt;
-
-&lt;p&gt;Its an open source software stack that includes&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Operating System&lt;/li&gt;
-  &lt;li&gt;Middle ware&lt;/li&gt;
-  &lt;li&gt;Key Applications + set of API Libraries which changes the look, feel and function of the mobile.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;In Android, native and third-party applications are written using the same APIs and executed on the same run time. These APIs feature hardware access, location-based services, support for background services, map-based activities, relational databases, inter-device peer-to-peer messaging and 2D and 3D graphics.&lt;/p&gt;
-
-&lt;h3 id=&quot;just-a-flashback-&quot;&gt;Just A Flashback …&lt;/h3&gt;
-
-&lt;p&gt;Historically, the developers had to code in low level C or C++ and had to learn the specific hardware feature upon which they were coding. But, as the hardware features enhanced this became more cumbersome. More recently, Symbian was far successful in giving a room for the developers to better leverage the hardware available. However, it required writing complex C/C++ code and making heavy use of proprietary APIs that are notoriously difficult to use. This difficulty was amplified when developing applications that must work on different hardware implementations and  particularly true when developing for a particular hardware feature like GPS.&lt;/p&gt;
-
-&lt;p&gt;Then came the Java hosted MIDIlets that are executed on the same JVM, abstracting the underlying hardware and letting the developers create apps that run on wide variety of hardware that supports Java run time.&lt;/p&gt;
-
-&lt;p&gt;So our Andy is here… :) Ouch! forgot about Apple’s iPhone, Windows mobiles ?? ;) No offence!
-They provide richer UI, UX and simplified development environment! “BUT” they’re built on proprietary operating systems that often prioritize native applications over those created by third parties and restrict communication among applications and native phone data.&lt;/p&gt;
-
-&lt;p&gt;Third-party and native Android applications are written using the same APIs and are executed on the same run time. Users can remove and replace any native application with a third-party developer alternative; even the dialer and home screens can be replaced…{ Wanna Try ?? :p }&lt;/p&gt;
-
-&lt;p&gt;Google &lt;a href=&quot;http://googleblog.blogspot.com/2007/11/wheres-my-gphone.html&quot;&gt;describes&lt;/a&gt; Android as:&lt;/p&gt;
-
-&lt;p&gt;“The first truly open and comprehensive platform for mobile devices, all of the software to run a mobile phone but without the proprietary obstacles that have hindered mobile innovation.”:)&lt;/p&gt;
-
-&lt;p&gt;The FLASHBACK is incomplete…without the introduction of OHA { Oh Haa ??  ;) }&lt;/p&gt;
-
-&lt;p&gt;OHA: Open Handset Alliance comprises of&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Developers&lt;/li&gt;
-  &lt;li&gt;Hardware Manufacturers&lt;/li&gt;
-  &lt;li&gt;Mobile Carriers&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The tech companies involved prominently are Motorola, HTC, T-Mobile, Qualcomm and their &lt;a href=&quot;http://www.openhandsetalliance.com/oha_faq.html&quot;&gt;words&lt;/a&gt;:&lt;/p&gt;
-
-&lt;p&gt;“A commitment to openness, a shared vision for the future, and concrete plans to make the vision a reality. To accelerate innovation in mobile and offer consumers a richer, less expensive, and better
-mobile experience.”&lt;/p&gt;
-
-&lt;p&gt;Android offers an excellent enterprise platform, has targeted developers making their lives far simple with Google and the OHA betting that the way to deliver
-better mobile software to consumers is by making it easier for developers to write it themselves. This openness and power ensure that anyone with the inclination can bring a vision to life at minimal cost.&lt;/p&gt;
-
-&lt;p&gt;Use Open source softwares, share them and give back something better to the community.. !! :)&lt;/p&gt;
-
-&lt;p&gt;Next post…&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Merits of android&lt;/li&gt;
-  &lt;li&gt;unboxing SDK features, Software stack and lots more ….. :)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Well, &lt;a href=&quot;http://developer.android.com&quot;&gt;http://developer.android.com&lt;/a&gt; is a great reference site!&lt;/p&gt;
-
-&lt;p&gt;Happy Learning! :)&lt;/p&gt;
-
-</description>
-        <pubDate>Fri, 06 Jan 2012 17:44:17 +0000</pubDate>
-        <link>http://blog.madhukaraphatak.com/say-hello-to-android-part-I-introduction-to-android</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/say-hello-to-android-part-I-introduction-to-android</guid>
       </item>
     
   </channel>

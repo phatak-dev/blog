@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Madhukar's Blog</title>
+    <title>Sbt on ubuntu</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/page3/">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/sbt-on-ubuntu">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -27,109 +27,81 @@
 
     <div class="page-content">
       <div class="wrap">
-      <div class="home">
-	
+      <div class="post">
+ <header class="post-header">
+  <h1>Sbt on ubuntu</h1>
+  <p class="meta">Aug 18, 2014</p>
+  <div class="catagories">
+    
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
+  </div>
+</header> 
 
-	<ul class="posts">
-		
-		<li>           
-			<span class="post-date">Jun 22, 2011</span>             
-			<div>
-				<a class="post-link" href="/apache-tuscany-part-2-hello-world-using-eclipse-and-Maven">Apache Tuscany : Part 2 -Hello World using Eclipse and Maven
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Jun 17, 2011</span>             
-			<div>
-				<a class="post-link" href="/web-forms-do-it-right-a-dzone-story">Web forms: Do it right, A DZone Story
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Jun 17, 2011</span>             
-			<div>
-				<a class="post-link" href="/book-review-javaScript-patterns">Book Review: JavaScript Patterns
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Jun 13, 2011</span>             
-			<div>
-				<a class="post-link" href="/art-what-role-do-they-play-in-our-lives">Art … what role do they play in our lives???
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Oct 4, 2010</span>             
-			<div>
-				<a class="post-link" href="/ubuntu-at-work-part3--Maven-ghost">Ubuntu at work part3- Maven ghost
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Aug 28, 2010</span>             
-			<div>
-				<a class="post-link" href="/ubuntu-at-work-part-2-Where-are-the-plugins">Ubuntu at work - Part 2 Where are the plugins
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Aug 21, 2010</span>             
-			<div>
-				<a class="post-link" href="/ubuntu-at-work-part1">Ubuntu at work - Part1
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Apr 13, 2010</span>             
-			<div>
-				<a class="post-link" href="/if-apple-holds-the-future-of-computing-I-dontwant-to-be-a-developer">If Apple holds the future of Computing ,I dont want to be a developer
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Mar 26, 2010</span>             
-			<div>
-				<a class="post-link" href="/array-copy-hack-in-c">Array copy hack in C
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Feb 28, 2010</span>             
-			<div>
-				<a class="post-link" href="/mozilla-firefox--browser-for-human-beings">Mozilla Firefox -”Browser for Human Beings”
-				</a> 
-			</div>                                  
-		</li>        
-		
-	</ul>
+<article class="post-content">
+  <p><a href="http://www.scala-sbt.org/">Sbt</a> is the default build tool for Scala. This post talks about steps to install sbt on ubuntu.</p>
 
+<h2 id="steps-to-install-sbt-on-ubuntu">Steps to install Sbt on ubuntu</h2>
+
+<div class="highlight"><pre><code class="sh"><span class="c">#Add typesafe repository     </span>
+wget http://apt.typesafe.com/repo-deb-build-0002.deb <span class="sb">`</span>
+
+<span class="c">#Install the repository</span>
+sudo dpkg -i repo-deb-build-0002.deb
+
+<span class="c">#Refresh</span>
+sudo apt-get update
+
+<span class="c">#Install sbt</span>
+sudo apt-get install sbt
+
+<span class="c">#check whether sbt is installed</span>
+sbt</code></pre></div>
+
+<h2 id="add-specific-version-of-sbt">Add specific version of sbt</h2>
+
+<p>Some project need specific version of sbt like 0.13.   </p>
+
+<p>If you get error saying <strong>Detected sbt version 0.12.2 Cannot find sbt launcher 0.12.2 Please download: From typesafe.artifactoryonline.com/typesafe/ivy-releases/… To /home/{username}/.sbt/.lib/0.12.2/sbt-launch.jar</strong></p>
+
+<p>Run the following commands by replacing <username> with you username.</username></p>
+
+<div class="highlight"><pre><code class="sh">mkdir -p /home/<span class="o">{</span>username<span class="o">}</span>/.sbt/.lib/0.12.2/ 
+ wget -O /home/<span class="o">{</span>username<span class="o">}</span>/.sbt/.lib/0.12.2/sbt-launch.jar 
+ http://typesafe.artifactoryonline.com/typesafe/ivy-releases/
+ org.scala-sbt/sbt-launch/0.12.2/sbt-launch.jar</code></pre></div>
+
+
+</article>
+
+
+<div class="related">
+  <h2>Related posts</h2>
+  <ul>
+    
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">03 Aug 2014</span>
+     &raquo; <a href="/scala-for-android">Google, it's time - We want Scala for Android</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">27 Jun 2014</span>
+     &raquo; <a href="/converting-java-collections-to-scala">Converting Java collections to Scala</a>    
+   </li>           
+         
+
+   
+   
+ </ul>
 </div>
-
-
-
-<div class="pagination">
-
-	
-	<a href="/page2" class="previous">Previous</a>
-	
-	<span class="page_number ">Page: 3 of 5</span>
-	
-	<a href="/page4" class="next ">Next</a>
-	
-</div>
-
-
       </div>
     </div>
 
