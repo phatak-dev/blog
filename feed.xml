@@ -7,6 +7,22 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Boot custom recovery without flashing</title>
+        <description>&lt;p&gt;In Android custom recoveries like &lt;a href=&quot;https://clockworkmod.com/rommanager&quot;&gt;CWM&lt;/a&gt; allow users to access advanced functionalities like rooting,backup,installing kernels etc. But by flashing custom recovery user will loose the stock recovery and ability to get OTA from manufacture or Google.&lt;/p&gt;
+
+&lt;p&gt;So if you want to use a custom recovery,just to root or take a backup you can do that without flashing it permanently. Use the following command to boot custom recovery&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;fastboot -c &quot;lge.kcal=0|0|0|x&quot; boot &amp;lt;path to recover.img&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So now you don’t need to give up OTA to get custom recoveries.&lt;/p&gt;
+</description>
+        <pubDate>Fri, 26 Sep 2014 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/boot-custom-recovery-</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/boot-custom-recovery-</guid>
+      </item>
+    
+      <item>
         <title>Sbt on ubuntu</title>
         <description>&lt;p&gt;&lt;a href=&quot;http://www.scala-sbt.org/&quot;&gt;Sbt&lt;/a&gt; is the default build tool for Scala. This post talks about steps to install sbt on ubuntu.&lt;/p&gt;
 
@@ -676,122 +692,6 @@ Two different files are&lt;/p&gt;
         <pubDate>Tue, 31 Dec 2013 15:01:35 +0000</pubDate>
         <link>http://blog.madhukaraphatak.com/secondary-namenode---what-it-really-do</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/secondary-namenode---what-it-really-do</guid>
-      </item>
-    
-      <item>
-        <title>Google top 100 searches in 2013 :  Chennai Express, Jiah Khan from India, makes into the list</title>
-        <description>&lt;p&gt;As new year is around the corner, Google has announced their top 100 searches for 2013. You can discover these searches &lt;a href=&quot;http://www.google.com/trends/topcharts?zg=full&quot;&gt;here&lt;/a&gt;. Only issue with the tool is , you need to click countless times to get all 100 top searches. But who has so much time to waste on new year’s eve. So I have extracted all the top searches for you here.&lt;/p&gt;
-
-&lt;p&gt;From India, Chennai express ranks at 39 and Jiah Khan ranks at 89.&lt;/p&gt;
-
-&lt;h2 id=&quot;top-100-google-searches-of-2013&quot;&gt;Top 100 Google searches of 2013&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Nelson Mandela&lt;/li&gt;
-  &lt;li&gt;Paul Walker&lt;/li&gt;
-  &lt;li&gt;iPhone 5s&lt;/li&gt;
-  &lt;li&gt;Cory Monteith&lt;/li&gt;
-  &lt;li&gt;Harlem Shake&lt;/li&gt;
-  &lt;li&gt;Boston Marathon&lt;/li&gt;
-  &lt;li&gt;Royal Baby&lt;/li&gt;
-  &lt;li&gt;Samsung Galaxy S4&lt;/li&gt;
-  &lt;li&gt;PlayStation 4&lt;/li&gt;
-  &lt;li&gt;North Korea&lt;/li&gt;
-  &lt;li&gt;iOS 7&lt;/li&gt;
-  &lt;li&gt;2014 FIFA World Cup&lt;/li&gt;
-  &lt;li&gt;Government Shutdown&lt;/li&gt;
-  &lt;li&gt;Typhoon&lt;/li&gt;
-  &lt;li&gt;Man of Steel&lt;/li&gt;
-  &lt;li&gt;Iron Man 3&lt;/li&gt;
-  &lt;li&gt;Amanda Bynes&lt;/li&gt;
-  &lt;li&gt;Malala Yousafzai&lt;/li&gt;
-  &lt;li&gt;Xbox One&lt;/li&gt;
-  &lt;li&gt;James Gandolfini&lt;/li&gt;
-  &lt;li&gt;Nexus 5&lt;/li&gt;
-  &lt;li&gt;Oscar Pistorius&lt;/li&gt;
-  &lt;li&gt;Jennifer Lawrence&lt;/li&gt;
-  &lt;li&gt;World War Z&lt;/li&gt;
-  &lt;li&gt;Jodi Arias&lt;/li&gt;
-  &lt;li&gt;Aaron Hernandez&lt;/li&gt;
-  &lt;li&gt;Pacific Rim&lt;/li&gt;
-  &lt;li&gt;Charlie Hunnam&lt;/li&gt;
-  &lt;li&gt;Adrian Peterson&lt;/li&gt;
-  &lt;li&gt;Django Unchained&lt;/li&gt;
-  &lt;li&gt;Lou Reed&lt;/li&gt;
-  &lt;li&gt;Despicable Me 2&lt;/li&gt;
-  &lt;li&gt;Robin Thicke&lt;/li&gt;
-  &lt;li&gt;Atari Breakout&lt;/li&gt;
-  &lt;li&gt;GTA 5 Cheats&lt;/li&gt;
-  &lt;li&gt;Lea Michele&lt;/li&gt;
-  &lt;li&gt;Gravity&lt;/li&gt;
-  &lt;li&gt;Salve Jorge&lt;/li&gt;
-  &lt;li&gt;Chennai Express&lt;/li&gt;
-  &lt;li&gt;Trayvon Martin&lt;/li&gt;
-  &lt;li&gt;Miley Cyrus VMAs&lt;/li&gt;
-  &lt;li&gt;Les Miserables&lt;/li&gt;
-  &lt;li&gt;Hugo Chavez&lt;/li&gt;
-  &lt;li&gt;Kim Kardashian Baby&lt;/li&gt;
-  &lt;li&gt;Paula Deen&lt;/li&gt;
-  &lt;li&gt;Kevin Ware&lt;/li&gt;
-  &lt;li&gt;Mindy McCready&lt;/li&gt;
-  &lt;li&gt;The Conjuring&lt;/li&gt;
-  &lt;li&gt;Red Sox&lt;/li&gt;
-  &lt;li&gt;Windows 8.1&lt;/li&gt;
-  &lt;li&gt;George Zimmerman&lt;/li&gt;
-  &lt;li&gt;Daft Punk&lt;/li&gt;
-  &lt;li&gt;Cube World&lt;/li&gt;
-  &lt;li&gt;Dakota Johnson&lt;/li&gt;
-  &lt;li&gt;HTC One&lt;/li&gt;
-  &lt;li&gt;Lorde&lt;/li&gt;
-  &lt;li&gt;Immobilien Scout&lt;/li&gt;
-  &lt;li&gt;Lance Armstrong&lt;/li&gt;
-  &lt;li&gt;Argo&lt;/li&gt;
-  &lt;li&gt;Amanda Berry&lt;/li&gt;
-  &lt;li&gt;Spring Breakers&lt;/li&gt;
-  &lt;li&gt;Gareth Bale&lt;/li&gt;
-  &lt;li&gt;Elysium&lt;/li&gt;
-  &lt;li&gt;Enem 2013&lt;/li&gt;
-  &lt;li&gt;Syria Conflict&lt;/li&gt;
-  &lt;li&gt;Oblivion&lt;/li&gt;
-  &lt;li&gt;Costa Concordia&lt;/li&gt;
-  &lt;li&gt;iPad Air&lt;/li&gt;
-  &lt;li&gt;Wrecking Ball&lt;/li&gt;
-  &lt;li&gt;Krrish 3&lt;/li&gt;
-  &lt;li&gt;Blurred Lines&lt;/li&gt;
-  &lt;li&gt;Beyonce new album&lt;/li&gt;
-  &lt;li&gt;Minions&lt;/li&gt;
-  &lt;li&gt;Reeva Steenkamp&lt;/li&gt;
-  &lt;li&gt;Under The Dome&lt;/li&gt;
-  &lt;li&gt;Jamie Dornan&lt;/li&gt;
-  &lt;li&gt;Ben Affleck&lt;/li&gt;
-  &lt;li&gt;Lee Thompson Young&lt;/li&gt;
-  &lt;li&gt;Henry Cavill&lt;/li&gt;
-  &lt;li&gt;Bigg Boss 7&lt;/li&gt;
-  &lt;li&gt;New Pope&lt;/li&gt;
-  &lt;li&gt;Sharknado&lt;/li&gt;
-  &lt;li&gt;BBM&lt;/li&gt;
-  &lt;li&gt;Silver Linings Playbook&lt;/li&gt;
-  &lt;li&gt;Oklahoma Tornado&lt;/li&gt;
-  &lt;li&gt;Blackberry 10&lt;/li&gt;
-  &lt;li&gt;Peter Capaldi&lt;/li&gt;
-  &lt;li&gt;After Earth&lt;/li&gt;
-  &lt;li&gt;Jiah Khan&lt;/li&gt;
-  &lt;li&gt;Amor à Vida&lt;/li&gt;
-  &lt;li&gt;Jason Collins&lt;/li&gt;
-  &lt;li&gt;Galaxy Note 3&lt;/li&gt;
-  &lt;li&gt;Vine&lt;/li&gt;
-  &lt;li&gt;Kidd Kraddick&lt;/li&gt;
-  &lt;li&gt;Katherine Webb&lt;/li&gt;
-  &lt;li&gt;Bitcoin&lt;/li&gt;
-  &lt;li&gt;Edward Snowden&lt;/li&gt;
-  &lt;li&gt;Rob Ford&lt;/li&gt;
-  &lt;li&gt;Monsters University&lt;/li&gt;
-  &lt;li&gt;Batkid&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-        <pubDate>Tue, 31 Dec 2013 14:46:18 +0000</pubDate>
-        <link>http://blog.madhukaraphatak.com/google-top-100-searches-in-2013-chennai-express,-jiah-khan-from-India,-makes-into-the-list</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/google-top-100-searches-in-2013-chennai-express,-jiah-khan-from-India,-makes-into-the-list</guid>
       </item>
     
   </channel>

@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Madhukar's Blog</title>
+    <title>Boot custom recovery without flashing</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/page5/">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/boot-custom-recovery-">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -27,53 +27,64 @@
 
     <div class="page-content">
       <div class="wrap">
-      <div class="home">
-	
+      <div class="post">
+ <header class="post-header">
+  <h1>Boot custom recovery without flashing</h1>
+  <p class="meta">Sep 26, 2014</p>
+  <div class="catagories">
+    
+    <a href="/categories/android"><span class="category">android</span></a>
+    
+    <a href="/categories/androidone"><span class="category">androidone</span></a>
+    
+  </div>
+</header> 
 
-	<ul class="posts">
-		
-		<li>           
-			<span class="post-date">Nov 26, 2009</span>             
-			<div>
-				<a class="post-link" href="/introduction-to-cloud-computing">Introduction to Cloud computing
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Oct 1, 2009</span>             
-			<div>
-				<a class="post-link" href="/most%20influential-men%20-in-computer-field">10 Most influential men in Computer Field
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Sep 1, 2009</span>             
-			<div>
-				<a class="post-link" href="/hello">Welcome
-				</a> 
-			</div>                                  
-		</li>        
-		
-	</ul>
+<article class="post-content">
+  <p>In Android custom recoveries like <a href="https://clockworkmod.com/rommanager">CWM</a> allow users to access advanced functionalities like rooting,backup,installing kernels etc. But by flashing custom recovery user will loose the stock recovery and ability to get OTA from manufacture or Google.</p>
 
+<p>So if you want to use a custom recovery,just to root or take a backup you can do that without flashing it permanently. Use the following command to boot custom recovery</p>
+
+<pre><code>fastboot -c "lge.kcal=0|0|0|x" boot &lt;path to recover.img&gt;
+</code></pre>
+
+<p>So now you don’t need to give up OTA to get custom recoveries.</p>
+
+</article>
+
+
+<div class="related">
+  <h2>Related posts</h2>
+  <ul>
+    
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">03 Aug 2014</span>
+     &raquo; <a href="/scala-for-android">Google, it's time - We want Scala for Android</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">06 Jan 2012</span>
+     &raquo; <a href="/say-hello-to-android-part-I-introduction-to-android">Say Hello To Android  Part- I Introduction To Android</a>    
+   </li>           
+         
+
+   
+   
+             
+          
+
+   
+   
+ </ul>
 </div>
-
-
-
-<div class="pagination">
-
-	
-	<a href="/page4" class="previous">Previous</a>
-	
-	<span class="page_number ">Page: 5 of 5</span>
-	
-	<span class="next ">Next</span>
-	
-</div>
-
-
       </div>
     </div>
 
