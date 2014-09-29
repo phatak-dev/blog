@@ -1,6 +1,7 @@
 ---           
 layout: post
 title: "Boot custom recovery without flashing"
+date : 2014-09-26
 categories: android androidone
 ---
 In Android custom recoveries like [CWM](https://clockworkmod.com/rommanager) allow users to access advanced functionalities like rooting,backup,installing kernels etc. But by flashing custom recovery user will loose the stock recovery and ability to get OTA from manufacture or Google.
