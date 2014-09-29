@@ -7,6 +7,55 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Evaluating Spark RDD's for side effects</title>
+        <description>&lt;p&gt;Accumulators in Spark are highly useful to do side effect based operations.
+For example, the following code calculates both sum and sum of squares as a side effect.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;c1&quot;&gt;//sc is spark context&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;accumulator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;squaredSum&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;accumulator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;values&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;to&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;100000&lt;/span&gt;   
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;inputRDD&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;makeRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sumRDD&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;inputRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;squaredSum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;
+ &lt;span class=&quot;o&quot;&gt;})&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sum is &amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot; and square sum is &amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;squaredSum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The code looks good, but it will produce zero as the sum. This is because map is a lazy operation. Here we want to evaluate sumRDD just to update accumulators. Normally we use &lt;strong&gt;collect&lt;/strong&gt; or &lt;strong&gt;count&lt;/strong&gt; to trigger the calculation. But collect unnecessarily loads whole split to memory and count does the unnecessary shuffling. &lt;/p&gt;
+
+&lt;p&gt;So we need an operation which just evaluates the RDD for it’s side effect without actually returning any value. &lt;/p&gt;
+
+&lt;h2 id=&quot;evaluating-a-rdd&quot;&gt;Evaluating a RDD&lt;/h2&gt;
+&lt;p&gt;The following function takes an RDD and evaluates it&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;evaluate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;RDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;])&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sparkContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;runJob&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iter&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Iterator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;])&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hasNext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;iter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;next&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;})&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We are using &lt;strong&gt;runJob&lt;/strong&gt; api on context which triggers the evaluation. Api takes a RDD which has to be evaluated and a function which of form&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iterator&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Iterator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;])&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;U&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We pass a function which just goes over the iterator without producing any value. This allows us to update just the needed accumulators.&lt;/p&gt;
+
+&lt;h2 id=&quot;using-evaluate&quot;&gt;Using evaluate&lt;/h2&gt;
+&lt;p&gt;Now we use evaluate function to evaluate our &lt;strong&gt;sumRDD&lt;/strong&gt; and get our accumulator values.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;evaluate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sumRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+ &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sum is &amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot; and squared sum is &amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;squaredSum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now it prints correct values of sum and squared sum.&lt;/p&gt;
+
+</description>
+        <pubDate>Mon, 29 Sep 2014 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/evaluating-spark-rdd-for-side-effects</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/evaluating-spark-rdd-for-side-effects</guid>
+      </item>
+    
+      <item>
         <title>Boot custom recovery without flashing</title>
         <description>&lt;p&gt;In Android custom recoveries like &lt;a href=&quot;https://clockworkmod.com/rommanager&quot;&gt;CWM&lt;/a&gt; allow users to access advanced functionalities like rooting,backup,installing kernels etc. But by flashing custom recovery user will loose the stock recovery and ability to get OTA from manufacture or Google.&lt;/p&gt;
 
@@ -638,60 +687,6 @@ Rather than comparing all the values, we can   &lt;/p&gt;
         <pubDate>Sat, 01 Feb 2014 14:56:19 +0000</pubDate>
         <link>http://blog.madhukaraphatak.com/gradient-descent-for-logistic-regression-in-octave</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/gradient-descent-for-logistic-regression-in-octave</guid>
-      </item>
-    
-      <item>
-        <title>Secondary Namenode - What it really do?</title>
-        <description>&lt;p&gt;Secondary Namenode is one of the poorly named component in Hadoop. By its name, it gives a sense that its a backup for the Namenode.But in reality its not. Lot of beginners in Hadoop get confused about what exactly SecondaryNamenode does and why its present in HDFS.So in this blog post I try to explain the role of secondary namenode in HDFS.&lt;/p&gt;
-
-&lt;p&gt;By its name, you may assume that it has something to do with Namenode and you are right. So before we dig into Secondary Namenode lets see what exactly Namenode does.&lt;/p&gt;
-
-&lt;h3 id=&quot;namenode&quot;&gt;Namenode&lt;/h3&gt;
-&lt;p&gt;Namenode holds the meta data for the HDFS like Namespace information, block information etc. When in use, all this information is stored in main memory. But these information also stored in disk for persistence storage.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;http://3.bp.blogspot.com/-KakYu0VtouE/T_Ha_4kExzI/AAAAAAAAA_g/WAyh2AtfK6I/s640/namenode.png&quot; alt=&quot;namenode&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;The above image shows how Name Node stores information in disk.&lt;br /&gt;
-Two different files are&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;fsimage - Its the snapshot of the filesystem when namenode started&lt;/li&gt;
-  &lt;li&gt;Edit logs - Its the sequence of changes made to the filesystem after namenode started&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Only in the restart of namenode , edit logs are applied to fsimage to get the latest snapshot of the file system. But namenode restart are rare in production clusters which means edit logs can grow very large for the clusters where namenode runs for a long period of time. The following issues we will encounter in this situation.&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;Editlog become very large , which will be challenging to manage it&lt;/li&gt;
-  &lt;li&gt;Namenode restart takes long time because lot of changes has to be merged&lt;/li&gt;
-  &lt;li&gt;In the case of crash, we will lost huge amount of metadata since fsimage is very old&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;So to overcome this issues we need a mechanism which will help us  reduce the edit log size which is manageable and have up to date  fsimage ,so that load on namenode reduces . It’s very similar to Windows Restore point, which will allow us to take snapshot of the OS so that if something goes wrong , we can fallback to the last restore point.&lt;/p&gt;
-
-&lt;p&gt;So now we understood NameNode functionality and challenges to keep the meta data up to date.So what is this all have to with Seconadary Namenode? &lt;/p&gt;
-
-&lt;h3 id=&quot;secondary-namenode&quot;&gt;Secondary Namenode&lt;/h3&gt;
-&lt;p&gt;Secondary Namenode helps to overcome the above issues by taking over responsibility of merging editlogs with fsimage from the namenode.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;http://3.bp.blogspot.com/-kk2kboIDhLY/T_HbVQZ-jFI/AAAAAAAAA_o/tVEqt_5VH5w/s640/secondarynamenode.png&quot; alt=&quot;secondarynamenode&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;The above figure shows the working of Secondary Namenode&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;It gets the edit logs from the namenode in regular intervals and applies to fsimage&lt;/li&gt;
-  &lt;li&gt;Once it has new fsimage, it copies back to namenode&lt;/li&gt;
-  &lt;li&gt;Namenode will use this fsimage for the next restart,which will reduce the startup time&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Secondary Namenode whole purpose is to have a checkpoint in HDFS. Its just a helper node for namenode.That’s why it also known as checkpoint node inside the community. &lt;/p&gt;
-
-&lt;p&gt;So we now understood all Secondary Namenode does puts a checkpoint in filesystem which will help Namenode to function better. Its not the replacement or backup for the Namenode. So from now on make a habit of calling it as a checkpoint node.&lt;/p&gt;
-
-</description>
-        <pubDate>Tue, 31 Dec 2013 15:01:35 +0000</pubDate>
-        <link>http://blog.madhukaraphatak.com/secondary-namenode---what-it-really-do</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/secondary-namenode---what-it-really-do</guid>
       </item>
     
   </channel>
