@@ -7,6 +7,79 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Mesos single node cluster on Ubuntu</title>
+        <description>&lt;p&gt;&lt;a href=&quot;http://mesos.apache.org/&quot;&gt;Apache Mesos&lt;/a&gt; is a distributed scheduling framework which allows us to build a fault tolerant distributed system from scratch. In this post we are going to see step by step instructions to install mesos on a ubuntu system.&lt;/p&gt;
+
+&lt;p&gt;To follow these steps, make sure that you have a 64-bit machine with Ubuntu 12.04 or later.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-1--download-mesos&quot;&gt;Step 1 : Download Mesos&lt;/h3&gt;
+
+&lt;p&gt;Run the following commands to download and extract mesos distribution. Here we are downloading latest stable mesos version 0.20.0.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;wget http://www.apache.org/dist/mesos/0.20.0/mesos-0.20.0.tar.gz      
+tar -zxf mesos-0.20.0.tar.gz&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;After running above commands, we will get a folder named &lt;strong&gt;mesos-0.20.0&lt;/strong&gt; which we refer as &lt;strong&gt;MESOS_INSTALL&lt;/strong&gt; from now on.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-2--install-prerequisites&quot;&gt;Step 2 : Install Prerequisites&lt;/h3&gt;
+
+&lt;p&gt;Mesos is written in C and C++. So to install mesos, we need to install it’s dependencies. So run the following command to install all the needed dependencies.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;sudo apt-get update&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; sudo apt-get install build-essential openjdk-6-jdk python-dev python-boto libcurl4-nss-dev libsasl2-dev&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;step-3--build-mesos&quot;&gt;Step 3 : Build mesos&lt;/h3&gt;
+&lt;p&gt;Mesos is distributed as a source code package, rather than as binary. So we have to build the source code in order to get running binaries. Run the following commands to build the source code. Please replace MESOS_INSTALL in the commands with the path to &lt;em&gt;mesos-0.20.0&lt;/em&gt; directory.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;MESOS_INSTALL &lt;span class=&quot;c&quot;&gt;# Replace MESOS_INSTALL with actual path to mesos-0.20.0&lt;/span&gt;
+ mkdir build     &lt;span class=&quot;c&quot;&gt;#create directory where the compiled code lives&lt;/span&gt;
+ &lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;build
+ ../configure
+ make 
+ make check&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Compiling and running test cases may take while to complete. It took around 1hr on my machine. So be patient.&lt;/p&gt;
+
+&lt;p&gt;Once &lt;em&gt;make check&lt;/em&gt; completes successfully, mesos is successfully installed on your machine.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-4--setting-up-single-node-cluster&quot;&gt;Step 4 : Setting up single node cluster&lt;/h3&gt;
+&lt;p&gt;Mesos cluster can have single master and multiple slaves. In this post, we will discuss how to setup single master and single slave.&lt;/p&gt;
+
+&lt;p&gt;Make sure that you are in &lt;em&gt;mesos-0.20.0/build&lt;/em&gt; folder to run the following commands.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;#start master&lt;/span&gt;
+./bin/mesos-master.sh --ip&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;127.0.0.1 --work_dir&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/tmp/mesos
+&lt;span class=&quot;c&quot;&gt;#start slave&lt;/span&gt;
+./bin/mesos-slave.sh --master&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;127.0.0.1:5050&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You can check if the cluster started or not by pointing your web browser at &lt;a href=&quot;http://127.0.0.1:5050&quot;&gt;127.0.0.1:5050&lt;/a&gt;. If you can see 1 at under “Slaves -&amp;gt; Activated” then you have single node cluster running.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;bin&lt;/em&gt; folder contains all the shell scripts to start master and slave daemons. &lt;em&gt;mesos-master.sh&lt;/em&gt; starts the mesos master with a checkpoint directory supplied at &lt;em&gt;–work-dir&lt;/em&gt;. For this example I have used /tmp directory. But in real use case please use some other directory. &lt;/p&gt;
+
+&lt;p&gt;The script starts the mesos master at localhost:5050. To see all the options for the script, run &lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;./bin/mesos-master.sh --help&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Same way, you can start mesos slave using &lt;em&gt;mesos-slave.sh&lt;/em&gt;. You have to pass master info in order to mesos slave to discover it’s master. To see all the options for the script, run&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;./bin/mesos-slave.sh --help&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;step-5--testing-single-node-cluster&quot;&gt;Step 5 : Testing single node cluster&lt;/h3&gt;
+&lt;p&gt;Now we have single node cluster running. But how we can be sure that it is rightly configured to run tasks?. To test that, mesos provides few tests. We are going to use only the java test cases, as we are interested in Mesos Java API. Mesos also provides C++,Python
+API’s.&lt;/p&gt;
+
+&lt;p&gt;Run the following command to make sure mesos is rightly configured to run Java frameworks.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;./src/examples/java/test-framework 127.0.0.1:5050&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;If the test framework is able to run all the tasks successfully you have the mesos single node cluster working.&lt;/p&gt;
+
+</description>
+        <pubDate>Fri, 24 Oct 2014 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/mesos-single-node-setup-ubuntu</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/mesos-single-node-setup-ubuntu</guid>
+      </item>
+    
+      <item>
         <title>Evaluating Spark RDD's for side effects</title>
         <description>&lt;p&gt;Accumulators in Spark are highly useful to do side effect based operations.
 For example, the following code calculates both sum and sum of squares as a side effect.&lt;/p&gt;
@@ -588,105 +661,6 @@ Rather than comparing all the values, we can   &lt;/p&gt;
         <pubDate>Fri, 27 Jun 2014 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/converting-java-collections-to-scala</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/converting-java-collections-to-scala</guid>
-      </item>
-    
-      <item>
-        <title>Gradient descent for Logistic regression in octave</title>
-        <description>&lt;p&gt;I am a huge fan of machine learning classes on &lt;a href=&quot;http://www.ml-class.org&quot;&gt;coursera&lt;/a&gt;. They do a great job of explaining machine learning techniques with lots of hands on . If you are following the course or watching videos you will find this post useful.       &lt;/p&gt;
-
-&lt;p&gt;In the discussion of Logistic Regression,  exercise two, we use fminunc function rather than standard gradient descent for minimizing for theta. Exercise does not discuss how to use gradient descent for the same. If you use the code of gradient descent of linear  regression exercise you don’t get same values of theta . So you will be left wondering how to use gradient descent for logistic regression.  Even I also got stuck at same place and was able to figure it out after lot of trial and error. To save other’s pain I am sharing following code for the same.&lt;/p&gt;
-
-&lt;p&gt;Create a file called gradientDescent.m and paste the following code&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;octave&quot;&gt;&lt;span class=&quot;k&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;[theta,cost] &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;gradientDescent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;X, y, theta, alpha, num_iters&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;&lt;/span&gt;
-
-&lt;span class=&quot;c&quot;&gt;%GRADIENTDESCENT Performs gradient descent to learn theta&lt;/span&gt;
-
-&lt;span class=&quot;c&quot;&gt;%   theta = GRADIENTDESENT(X, y, theta, alpha, num_iters) updates theta by&lt;/span&gt;
-
-&lt;span class=&quot;c&quot;&gt;%   taking num_iters gradient steps with learning rate alpha&lt;/span&gt;
-
-
-
-&lt;span class=&quot;c&quot;&gt;% Initialize some useful values&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;% number of training examples&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;J_history&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;zeros&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;num_iters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;theta_history&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-
-
-&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;iter&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;num_iters&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;h&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;grad&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;#39;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alpha&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;grad&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;               
-
-&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-
-&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cost&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;gradient&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;costFunction&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Other than the calculation of h, the other code is identical to the gradient descent of the logisitic regression.&lt;/p&gt;
-
-&lt;p&gt;To call gradient descent , add the following lines to ex2.m&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;octave&quot;&gt;&lt;span class=&quot;c&quot;&gt;%%============= Part 4: Optimizing using Gradient Descent =============&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;alpha&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.0014&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cost&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gradientDescent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;initial_theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alpha&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2000000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-&lt;span class=&quot;c&quot;&gt;% Print theta to screen&lt;/span&gt;
-
-&lt;span class=&quot;nb&quot;&gt;fprintf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;Cost at theta found by gradient Descent: %f\n&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cost&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-&lt;span class=&quot;nb&quot;&gt;fprintf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;theta: \n&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-&lt;span class=&quot;nb&quot;&gt;fprintf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39; %f \n&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-
-
-&lt;span class=&quot;c&quot;&gt;% Plot Boundary&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;plotDecisionBoundary&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-
-
-&lt;span class=&quot;c&quot;&gt;% Put some labels&lt;/span&gt;
-
-&lt;span class=&quot;nb&quot;&gt;hold&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;on&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-&lt;span class=&quot;c&quot;&gt;% Labels and Legend&lt;/span&gt;
-
-&lt;span class=&quot;nb&quot;&gt;xlabel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;Exam 1 score&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;nb&quot;&gt;ylabel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;Exam 2 score&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-
-
-&lt;span class=&quot;c&quot;&gt;% Specified in plot order&lt;/span&gt;
-
-&lt;span class=&quot;nb&quot;&gt;legend&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;Admitted&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;Not admitted&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;nb&quot;&gt;hold&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;off&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-
-
-&lt;span class=&quot;nb&quot;&gt;fprintf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;\nProgram paused. Press enter to continue.\n&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-&lt;span class=&quot;nb&quot;&gt;pause&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Now you should have gradient descent working for logistic regression.&lt;/p&gt;
-
-</description>
-        <pubDate>Sat, 01 Feb 2014 14:56:19 +0000</pubDate>
-        <link>http://blog.madhukaraphatak.com/gradient-descent-for-logistic-regression-in-octave</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/gradient-descent-for-logistic-regression-in-octave</guid>
       </item>
     
   </channel>
