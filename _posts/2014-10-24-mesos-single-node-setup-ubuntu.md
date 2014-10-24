@@ -1,6 +1,7 @@
 ---           
 layout: post
 title: "Mesos single node cluster on Ubuntu"
+date : 2014-10-24
 categories: mesos
 ---
 [Apache Mesos](http://mesos.apache.org/) is a distributed scheduling framework which allows us to build a fault tolerant distributed system from scratch. In this post we are going to see step by step instructions to install mesos on a ubuntu system.
