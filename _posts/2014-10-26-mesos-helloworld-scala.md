@@ -172,7 +172,27 @@ com.madhu.mesos.DistributedShell "/bin/echo hello" "/bin/echo how are you"
 {%endhighlight%}       
 
 
-Now you have successfully ran your first example on mesos.
+## Output
+After running the example, you can see the output through mesos web interface. Navigate
+to [localhost:5050](http://localhost:5050)
+
+Here you should be able to see one task finished like below image.
+
+
+![Mesos web ui](/images/mesos_task_run.png)
+
+click on sandbox link. You will be able to see the page as below
+
+![sandbox ui](/images/sandbox_screen.png)
+
+click on stdout link. You will be able to see the output as below
+
+
+![mesos output](/images/mesos_output.png)
+
+If you have ran multiple commands, then you will see multiple tasks.
+
+
 
   
 
