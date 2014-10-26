@@ -206,7 +206,23 @@ com.madhu.mesos.DistributedShell <span class="s2">&quot;/bin/echo hello&quot;</s
 -Djava.library.path<span class="o">=</span><span class="nv">$MESOS_HOME</span>/src/.libs 
 com.madhu.mesos.DistributedShell <span class="s2">&quot;/bin/echo hello&quot;</span> <span class="s2">&quot;/bin/echo how are you&quot;</span></code></pre></div>
 
-<p>Now you have successfully ran your first example on mesos.</p>
+<h2 id="output">Output</h2>
+<p>After running the example, you can see the output through mesos web interface. Navigate
+to <a href="http://localhost:5050">localhost:5050</a></p>
+
+<p>Here you should be able to see one task finished like below image.</p>
+
+<p><img src="/images/mesos_task_run.png" alt="Mesos web ui" /></p>
+
+<p>click on sandbox link. You will be able to see the page as below</p>
+
+<p><img src="/images/sandbox_screen.png" alt="sandbox ui" /></p>
+
+<p>click on stdout link. You will be able to see the output as below</p>
+
+<p><img src="/images/mesos_output.png" alt="mesos output" /></p>
+
+<p>If you have ran multiple commands, then you will see multiple tasks.</p>
 
 
 </article>

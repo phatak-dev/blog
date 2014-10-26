@@ -173,7 +173,23 @@ com.madhu.mesos.DistributedShell &lt;span class=&quot;s2&quot;&gt;&amp;quot;/bin
 -Djava.library.path&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$MESOS_HOME&lt;/span&gt;/src/.libs 
 com.madhu.mesos.DistributedShell &lt;span class=&quot;s2&quot;&gt;&amp;quot;/bin/echo hello&amp;quot;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;/bin/echo how are you&amp;quot;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;Now you have successfully ran your first example on mesos.&lt;/p&gt;
+&lt;h2 id=&quot;output&quot;&gt;Output&lt;/h2&gt;
+&lt;p&gt;After running the example, you can see the output through mesos web interface. Navigate
+to &lt;a href=&quot;http://localhost:5050&quot;&gt;localhost:5050&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Here you should be able to see one task finished like below image.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/mesos_task_run.png&quot; alt=&quot;Mesos web ui&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;click on sandbox link. You will be able to see the page as below&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/sandbox_screen.png&quot; alt=&quot;sandbox ui&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;click on stdout link. You will be able to see the output as below&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/mesos_output.png&quot; alt=&quot;mesos output&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;If you have ran multiple commands, then you will see multiple tasks.&lt;/p&gt;
 
 </description>
         <pubDate>Sun, 26 Oct 2014 00:00:00 +0530</pubDate>
