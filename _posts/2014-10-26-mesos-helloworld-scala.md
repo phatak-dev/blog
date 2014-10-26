@@ -2,7 +2,7 @@
 layout: post
 title: "Mesos Hello world in Scala"
 date : 2014-10-26
-categories: mesos
+categories: mesos scala
 ---
 
 In previous [post](/mesos-single-node-setup-ubuntu), we installed mesos on ubuntu. In this post we are going to look at simple hello world on mesos. Here we are going to code a distributed shell which runs shell commands on any machine on the mesos cluster.
