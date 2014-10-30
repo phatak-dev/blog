@@ -99,7 +99,7 @@ In this example, employees are grouped by department name. If you want to find t
     )
   val employeeRDD = sparkContext.makeRDD(deptEmployees)
 
-  val maxByDept = employeeRDD.foldByKey(("dummy",Double.MaxValue))
+  val maxByDept = employeeRDD.foldByKey(("dummy",Double.MinValue))
   ((acc,element)=> if(acc._2 > element._2) acc else element)
   
   println("maximum salaries in each dept" + maxByDept.collect().toList)
