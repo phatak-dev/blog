@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Mesos single node cluster on Ubuntu</title>
+    <title>Granular resource management in  Mesos</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/mesos-single-node-setup-ubuntu">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/granular-resource-management-mesos">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -29,8 +29,8 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Mesos single node cluster on Ubuntu</h1>
-  <p class="meta">Oct 24, 2014</p>
+  <h1>Granular resource management in  Mesos</h1>
+  <p class="meta">Nov 4, 2014</p>
   <div class="catagories">
     
     <a href="/categories/mesos"><span class="category">mesos</span></a>
@@ -39,70 +39,64 @@
 </header> 
 
 <article class="post-content">
-  <p><a href="http://mesos.apache.org/">Apache Mesos</a> is a distributed scheduling framework which allows us to build a fault tolerant distributed system from scratch. In this post we are going to see step by step instructions to install mesos on a ubuntu system.</p>
+  <p>Mesos allows developers to granularly manage the resources on the cluster. We can specify how much Cpu, memory and disk a given slave can consume. With having these fine granularities helps us to share slave resources across different mesos frameworks.</p>
 
-<p>To follow these steps, make sure that you have a 64-bit machine with Ubuntu 12.04 or later.</p>
+<p>In this post, we are going to run a three node cluster of mesos on a single machine. We are going to divide our quad core, 8GB ram machine to two slaves in which each slave controls 50% of the resources. This kind of setup allows us to run a mesos cluster on single machine for testing and debugging purposes.</p>
 
-<h3 id="step-1--download-mesos">Step 1 : Download Mesos</h3>
+<p>Your machine capabilities may vary. You should adjust resource parameters to according to your machine. </p>
 
-<p>Run the following commands to download and extract mesos distribution. Here we are downloading latest stable mesos version 0.20.0.</p>
+<h2 id="mesos-installation">Mesos installation</h2>
 
-<div class="highlight"><pre><code class="bash">wget http://www.apache.org/dist/mesos/0.20.0/mesos-0.20.0.tar.gz      
-tar -zxf mesos-0.20.0.tar.gz</code></pre></div>
+<p>To follow the instructions in the post, you need to have a working installation of mesos on your machine. If not install mesos using <a href="/mesos-single-node-setup-ubuntu">this</a> post. From now on we assume that $MESOS_HOME points to the mesos installation.</p>
 
-<p>After running above commands, we will get a folder named <strong>mesos-0.20.0</strong> which we refer as <strong>MESOS_INSTALL</strong> from now on.</p>
+<h2 id="three-node-cluster-setup">Three node cluster setup</h2>
 
-<h3 id="step-2--install-prerequisites">Step 2 : Install Prerequisites</h3>
+<p>The following are the step to configure multi node cluster of mesos on single machine.</p>
 
-<p>Mesos is written in C and C++. So to install mesos, we need to install it’s dependencies. So run the following command to install all the needed dependencies.</p>
+<h3 id="step-1--configure-master">Step 1 : Configure master</h3>
+<p>There will be only one master. So create a working dir for master under home and point master working directory to it.</p>
 
-<div class="highlight"><pre><code class="bash">sudo apt-get update<span class="p">;</span> sudo apt-get install build-essential openjdk-6-jdk python-dev python-boto libcurl4-nss-dev libsasl2-dev</code></pre></div>
+<div class="highlight"><pre><code class="bash">//create a working dir under home folder
+ mkdir <span class="nv">$HOME</span>/mesos-master-work 
+ //start mesos with working directory
+ <span class="nv">$MESOS_HOME</span>/bin/mesos-master.sh --work_dir<span class="o">=</span><span class="nv">$HOME</span>/mesos-master-work  --ip<span class="o">=</span>127.0.0.1</code></pre></div>
 
-<h3 id="step-3--build-mesos">Step 3 : Build mesos</h3>
-<p>Mesos is distributed as a source code package, rather than as binary. So we have to build the source code in order to get running binaries. Run the following commands to build the source code. Please replace MESOS_INSTALL in the commands with the path to <em>mesos-0.20.0</em> directory.</p>
+<h3 id="step-2--configure-slaves">Step 2 : Configure Slaves</h3>
+<p>To run multiple mesos slaves on same machine, we have to differentiate them from each other. The mesos slaves are differentiating using     </p>
 
-<div class="highlight"><pre><code class="bash"><span class="nb">cd </span>MESOS_INSTALL <span class="c"># Replace MESOS_INSTALL with actual path to mesos-0.20.0</span>
- mkdir build     <span class="c">#create directory where the compiled code lives</span>
- <span class="nb">cd </span>build
- ../configure
- make 
- make check</code></pre></div>
+<ul>
+  <li>port  </li>
+  <li>hostname    </li>
+  <li>working dir</li>
+</ul>
 
-<p>Compiling and running test cases may take while to complete. It took around 1hr on my machine. So be patient.</p>
+<p>Follow the below instructions to configure and run multiple slaves. </p>
 
-<p>Once <em>make check</em> completes successfully, mesos is successfully installed on your machine.</p>
+<h4 id="create-work-directories-for-slaves">2.1 Create work directories for slaves</h4>
 
-<h3 id="step-4--setting-up-single-node-cluster">Step 4 : Setting up single node cluster</h3>
-<p>Mesos cluster can have single master and multiple slaves. In this post, we will discuss how to setup single master and single slave.</p>
+<div class="highlight"><pre><code class="bash"><span class="c"># create working directories for slaves</span>
+mkdir -p <span class="nv">$HOME</span>/mesos_slave_work/slave1          
+mkdir -p <span class="nv">$HOME</span>/mesos_slave_work/slave2</code></pre></div>
 
-<p>Make sure that you are in <em>mesos-0.20.0/build</em> folder to run the following commands.</p>
+<h4 id="configure-etchosts">2.2 Configure /etc/hosts</h4>
+<p>We specify two slaves with hostname slave1 and slave2. Put the following entries inside /etc/hosts</p>
 
-<div class="highlight"><pre><code class="bash"><span class="c">#start master</span>
-./bin/mesos-master.sh --ip<span class="o">=</span>127.0.0.1 --work_dir<span class="o">=</span>/tmp/mesos
-<span class="c">#start slave</span>
-./bin/mesos-slave.sh --master<span class="o">=</span>127.0.0.1:5050</code></pre></div>
+<div class="highlight"><pre><code class="bash"><span class="c"># append this to end of the file</span>
+127.0.1.2    slave1      
+127.0.1.3    slave2</code></pre></div>
 
-<p>You can check if the cluster started or not by pointing your web browser at <a href="http://127.0.0.1:5050">127.0.0.1:5050</a>. If you can see 1 at under “Slaves -&gt; Activated” then you have single node cluster running.</p>
+<h4 id="start-the-slaves">2.3 Start the slaves</h4>
+<p>Once we have different working directories and host names, we can start slave1 on 5053 port and slave2 on 5054 port. </p>
 
-<p><em>bin</em> folder contains all the shell scripts to start master and slave daemons. <em>mesos-master.sh</em> starts the mesos master with a checkpoint directory supplied at <em>–work-dir</em>. For this example I have used /tmp directory. But in real use case please use some other directory. </p>
+<div class="highlight"><pre><code class="bash"><span class="c"># start the slaves</span>
 
-<p>The script starts the mesos master at localhost:5050. To see all the options for the script, run </p>
+<span class="nv">$MESOS_HOME</span>/bin/mesos-slave.sh --master<span class="o">=</span>localhost:5050 --port<span class="o">=</span>5053 --hostname<span class="o">=</span>slave1  --work_dir<span class="o">=</span><span class="nv">$HOME</span>/mesos_slave_work/slave1 --resources<span class="o">=</span><span class="s2">&quot;cpus(*):2; mem(*):3500&quot;</span>
 
-<div class="highlight"><pre><code class="bash">./bin/mesos-master.sh --help</code></pre></div>
+<span class="nv">$MESOS_HOME</span>/bin/mesos-slave.sh --master<span class="o">=</span>localhost:5050 --port<span class="o">=</span>5054 --hostname<span class="o">=</span>slave2  --work_dir<span class="o">=</span><span class="nv">$HOME</span>/mesos_slave_work/slave2 --resources<span class="o">=</span><span class="s2">&quot;cpus(*):2; mem(*):3500&quot;</span></code></pre></div>
 
-<p>Same way, you can start mesos slave using <em>mesos-slave.sh</em>. You have to pass master info in order to mesos slave to discover it’s master. To see all the options for the script, run</p>
+<p><em>resources</em> flag on the command allows us to specify how much ram and memory has to be dedicated to the slaves. Tune the parameters according your machine resources.</p>
 
-<div class="highlight"><pre><code class="bash">./bin/mesos-slave.sh --help</code></pre></div>
-
-<h3 id="step-5--testing-single-node-cluster">Step 5 : Testing single node cluster</h3>
-<p>Now we have single node cluster running. But how we can be sure that it is rightly configured to run tasks?. To test that, mesos provides few tests. We are going to use only the java test cases, as we are interested in Mesos Java API. Mesos also provides C++,Python
-API’s.</p>
-
-<p>Run the following command to make sure mesos is rightly configured to run Java frameworks.</p>
-
-<div class="highlight"><pre><code class="bash">./src/examples/java/test-framework 127.0.0.1:5050</code></pre></div>
-
-<p>If the test framework is able to run all the tasks successfully you have the mesos single node cluster working.</p>
+<p>Now you have a multi node cluster of mesos on your machine. </p>
 
 
 </article>
@@ -113,12 +107,7 @@ API’s.</p>
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">04 Nov 2014</span>
-     &raquo; <a href="/granular-resource-management-mesos">Granular resource management in  Mesos</a>    
-   </li>           
-         
+          
 
             
     
@@ -129,7 +118,12 @@ API’s.</p>
          
 
             
-          
+    
+    <li>    
+     <span class="post-date">24 Oct 2014</span>
+     &raquo; <a href="/mesos-single-node-setup-ubuntu">Mesos single node cluster on Ubuntu</a>    
+   </li>           
+         
 
    
    

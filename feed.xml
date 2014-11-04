@@ -7,6 +7,73 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Granular resource management in  Mesos</title>
+        <description>&lt;p&gt;Mesos allows developers to granularly manage the resources on the cluster. We can specify how much Cpu, memory and disk a given slave can consume. With having these fine granularities helps us to share slave resources across different mesos frameworks.&lt;/p&gt;
+
+&lt;p&gt;In this post, we are going to run a three node cluster of mesos on a single machine. We are going to divide our quad core, 8GB ram machine to two slaves in which each slave controls 50% of the resources. This kind of setup allows us to run a mesos cluster on single machine for testing and debugging purposes.&lt;/p&gt;
+
+&lt;p&gt;Your machine capabilities may vary. You should adjust resource parameters to according to your machine. &lt;/p&gt;
+
+&lt;h2 id=&quot;mesos-installation&quot;&gt;Mesos installation&lt;/h2&gt;
+
+&lt;p&gt;To follow the instructions in the post, you need to have a working installation of mesos on your machine. If not install mesos using &lt;a href=&quot;/mesos-single-node-setup-ubuntu&quot;&gt;this&lt;/a&gt; post. From now on we assume that $MESOS_HOME points to the mesos installation.&lt;/p&gt;
+
+&lt;h2 id=&quot;three-node-cluster-setup&quot;&gt;Three node cluster setup&lt;/h2&gt;
+
+&lt;p&gt;The following are the step to configure multi node cluster of mesos on single machine.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-1--configure-master&quot;&gt;Step 1 : Configure master&lt;/h3&gt;
+&lt;p&gt;There will be only one master. So create a working dir for master under home and point master working directory to it.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;//create a working dir under home folder
+ mkdir &lt;span class=&quot;nv&quot;&gt;$HOME&lt;/span&gt;/mesos-master-work 
+ //start mesos with working directory
+ &lt;span class=&quot;nv&quot;&gt;$MESOS_HOME&lt;/span&gt;/bin/mesos-master.sh --work_dir&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$HOME&lt;/span&gt;/mesos-master-work  --ip&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;127.0.0.1&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;step-2--configure-slaves&quot;&gt;Step 2 : Configure Slaves&lt;/h3&gt;
+&lt;p&gt;To run multiple mesos slaves on same machine, we have to differentiate them from each other. The mesos slaves are differentiating using     &lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;port  &lt;/li&gt;
+  &lt;li&gt;hostname    &lt;/li&gt;
+  &lt;li&gt;working dir&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Follow the below instructions to configure and run multiple slaves. &lt;/p&gt;
+
+&lt;h4 id=&quot;create-work-directories-for-slaves&quot;&gt;2.1 Create work directories for slaves&lt;/h4&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;# create working directories for slaves&lt;/span&gt;
+mkdir -p &lt;span class=&quot;nv&quot;&gt;$HOME&lt;/span&gt;/mesos_slave_work/slave1          
+mkdir -p &lt;span class=&quot;nv&quot;&gt;$HOME&lt;/span&gt;/mesos_slave_work/slave2&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;configure-etchosts&quot;&gt;2.2 Configure /etc/hosts&lt;/h4&gt;
+&lt;p&gt;We specify two slaves with hostname slave1 and slave2. Put the following entries inside /etc/hosts&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;# append this to end of the file&lt;/span&gt;
+127.0.1.2    slave1      
+127.0.1.3    slave2&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;start-the-slaves&quot;&gt;2.3 Start the slaves&lt;/h4&gt;
+&lt;p&gt;Once we have different working directories and host names, we can start slave1 on 5053 port and slave2 on 5054 port. &lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;# start the slaves&lt;/span&gt;
+
+&lt;span class=&quot;nv&quot;&gt;$MESOS_HOME&lt;/span&gt;/bin/mesos-slave.sh --master&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;localhost:5050 --port&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;5053 --hostname&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;slave1  --work_dir&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$HOME&lt;/span&gt;/mesos_slave_work/slave1 --resources&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;cpus(*):2; mem(*):3500&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;nv&quot;&gt;$MESOS_HOME&lt;/span&gt;/bin/mesos-slave.sh --master&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;localhost:5050 --port&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;5054 --hostname&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;slave2  --work_dir&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$HOME&lt;/span&gt;/mesos_slave_work/slave2 --resources&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;cpus(*):2; mem(*):3500&amp;quot;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;em&gt;resources&lt;/em&gt; flag on the command allows us to specify how much ram and memory has to be dedicated to the slaves. Tune the parameters according your machine resources.&lt;/p&gt;
+
+&lt;p&gt;Now you have a multi node cluster of mesos on your machine. &lt;/p&gt;
+
+</description>
+        <pubDate>Tue, 04 Nov 2014 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/granular-resource-management-mesos</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/granular-resource-management-mesos</guid>
+      </item>
+    
+      <item>
         <title>Mesos Hello world in Scala</title>
         <description>&lt;p&gt;In previous &lt;a href=&quot;/mesos-single-node-setup-ubuntu&quot;&gt;post&lt;/a&gt;, we installed mesos on ubuntu. In this post we are going to look at simple hello world on mesos. Here we are going to code a distributed shell which runs shell commands on any machine on the mesos cluster.&lt;/p&gt;
 
@@ -720,64 +787,6 @@ in most of the classification algorithms.&lt;/li&gt;
         <pubDate>Sun, 29 Jun 2014 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/matfile-to-rdd</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/matfile-to-rdd</guid>
-      </item>
-    
-      <item>
-        <title>Glom in spark</title>
-        <description>&lt;p&gt;Today I am going to discuss about a operation called “glom” on spark rdd which allows you to treat a partition as an array rather as single row at time. This allows you speed up some operations with some  increased memory usage.&lt;/p&gt;
-
-&lt;p&gt;Let’s say you want to find out maximum in a given RDD. &lt;/p&gt;
-
-&lt;p&gt;Now you can do it using map and reduce operations as below.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// create rdd&lt;/span&gt;
- &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dataList&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;50.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;40.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;40.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;70.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;   
- &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dataRDD&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;makeRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dataList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;  
- &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;maxValue&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;dataRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reduce&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;max&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Though it works, there will be lot of shuffles between partitions for comparisons.Thats not good, particularly for large data.&lt;/p&gt;
-
-&lt;p&gt;Let’s rephrase our solution like as follows. 
-Rather than comparing all the values, we can   &lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;First find maximum in each partition    &lt;/li&gt;
-  &lt;li&gt;Compare maximum value between partitions to get the final max value&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Now we need a way to compare all values in a given partition. This can be easily done using glom as follows.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;maxValue&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dataRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;glom&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;])&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
- &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reduce&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;max&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As you can see here, only maximum of each partition are shuffled rather than all the values.&lt;/p&gt;
-
-&lt;h3 id=&quot;using-glom-for-calculating-weighted-matrix&quot;&gt;Using glom for calculating weighted matrix&lt;/h3&gt;
-&lt;p&gt;Glom is highly useful when you want to represent rdd operations as matrix manipulations. In many machine learning algorithms you will be needed to find weighted value of rows , i.e multiplying each row by a given weight vector. Doing this row by row, using map operation will be very costly as you will be not able to use matrix libraries optimization.&lt;/p&gt;
-
-&lt;p&gt;But with glom, you can multiply with whole partition at a time so that your computation will speed up significantly.Code listing for same is below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// Weighted sum using glom&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.jblas.DoubleMatrix&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rowsList&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]](&lt;/span&gt;
-      &lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;50.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;40.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;44.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;
-      &lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;88&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;44.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;44.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;
-      &lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;855&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;55.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;44.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;
-      &lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;855&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;55.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;70.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;1.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.5&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rowRDD&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;makeRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rowsList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rowRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;glom&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;doubleMatrix&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DoubleMatrix&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toArray&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weightMatrix&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DoubleMatrix&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toArray&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:_&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;doubleMatrix&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mmul&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weightMatrix&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;transpose&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
-
-  &lt;span class=&quot;o&quot;&gt;})&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-</description>
-        <pubDate>Fri, 27 Jun 2014 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/glom-in-spark</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/glom-in-spark</guid>
       </item>
     
   </channel>
