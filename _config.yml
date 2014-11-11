@@ -7,7 +7,7 @@ url: "http://blog.madhukaraphatak.com"
 username : phatak-dev
 twitter : madhukaraphatak
 paginate: 10
-
+exclude : [code]
 
 # Build settings
 markdown: kramdown
