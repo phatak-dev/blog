@@ -1,1 +1,1 @@
-Supporting code for blog
+Project containing mesos custom executor in Scala.
