@@ -5,7 +5,7 @@ date : 2014-11-16
 categories: functional-programming cplusplus
 ---
 
-Few days back I attended a [talk](https://geekup.in/2014/olvemaudal) on modern C++ [features](http://www.pvv.org/~omazModernCPP_Bangalore_Nov2014_reduced.pdf) given by [Olve Mudal](https://twitter.com/olvemaudal). I have not coded in C++ after passing out of university. So it was interesting to revisit the language after long time. In the talk, speaker mentioned that modern C++ has good support for functional programming. 
+Few days back I attended a [talk](https://geekup.in/2014/olvemaudal) on modern C++ [features](http://www.pvv.org/~oma/ModernCPP_Bangalore_Nov2014_reduced.pdf) given by [Olve Mudal](https://twitter.com/olvemaudal). I have not coded in C++ after passing out of university. So it was interesting to revisit the language after long time. In the talk, speaker mentioned that modern C++ has good support for functional programming. 
 
 C++ and functional programming!!!. I got fascinated by this and started digging around the C++ specification to find about it. I am really impressed by what I saw. So I wrote this post to show how you can write elegant functional programs with C++ now.
 
