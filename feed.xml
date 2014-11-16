@@ -7,6 +7,140 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Functional programming in C++</title>
+        <description>&lt;p&gt;Few days back I attended a &lt;a href=&quot;https://geekup.in/2014/olvemaudal&quot;&gt;talk&lt;/a&gt; on modern C++ &lt;a href=&quot;http://www.pvv.org/~omazModernCPP_Bangalore_Nov2014_reduced.pdf&quot;&gt;features&lt;/a&gt; given by &lt;a href=&quot;https://twitter.com/olvemaudal&quot;&gt;Olve Mudal&lt;/a&gt;. I have not coded in C++ after passing out of university. So it was interesting to revisit the language after long time. In the talk, speaker mentioned that modern C++ has good support for functional programming. &lt;/p&gt;
+
+&lt;p&gt;C++ and functional programming!!!. I got fascinated by this and started digging around the C++ specification to find about it. I am really impressed by what I saw. So I wrote this post to show how you can write elegant functional programs with C++ now.&lt;/p&gt;
+
+&lt;h2 id=&quot;compiler-requirements&quot;&gt;Compiler requirements&lt;/h2&gt;
+&lt;p&gt;Functional features of the language are introduced in C++11 standard. So if you want to compile and run the code, you need a c++ compiler which supports the above standard. If you are using g++, you need version 4.9 and above. Follow &lt;a href=&quot;http://askubuntu.com/questions/428198/getting-installing-gcc-g-4-9-on-ubuntu&quot;&gt;these&lt;/a&gt; steps to install g++ 4.9 on Ubuntu. If you are using any other compiler or OS use google to find out suitable versions.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;tl;dr You can access complete example code with running instructions &lt;a href=&quot;https://gist.github.com/phatak-dev/766eccf8c72484ad623b&quot;&gt;here&lt;/a&gt;.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;new-language-constructs&quot;&gt;New language constructs&lt;/h2&gt;
+&lt;p&gt;The following are the new language constructs used by example code.&lt;/p&gt;
+
+&lt;h3 id=&quot;auto-keyword&quot;&gt;auto keyword&lt;/h3&gt;
+&lt;p&gt;In C++11 standard, meaning of &lt;em&gt;auto&lt;/em&gt; keyword is changed. Now auto is used for doing type inference. Whenever you declare a variable as auto, compiler tries to infer the type by looking at it’s value. &lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;c--&quot;&gt;&lt;span class=&quot;k&quot;&gt;auto&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In the above code, &lt;em&gt;i&lt;/em&gt; will be type inferred as an integer. &lt;/p&gt;
+
+&lt;p&gt;Using type inference, we can skip specifying types which makes code more clean.&lt;/p&gt;
+
+&lt;h3 id=&quot;functional-data-types-aka-lambdas&quot;&gt;Functional data types AKA lambdas&lt;/h3&gt;
+&lt;p&gt;In functional programming, functions are treated as objects. But in C++, functions are not treated as an object. To remedy that,function objects or lambdas are just a class with operate method.&lt;/p&gt;
+
+&lt;p&gt;As it’s tedious to create a class for each function, C++ provides a shortcut syntax to create function objects.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;c--&quot;&gt;&lt;span class=&quot;k&quot;&gt;auto&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[](&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;){&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;message&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;endl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;};&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Above code is creating a function object,println, which takes a single parameter and returns nothing. The &lt;em&gt;[]&lt;/em&gt; brackets are used to specify the environment aka closure for the function. We will see more about closure in later part of the post.&lt;/p&gt;
+
+&lt;p&gt;As you can see, we use auto here so that we don’t have to care about how these function objects are encoded inside the C++ types.&lt;/p&gt;
+
+&lt;h2 id=&quot;functional-combinators-on-c-vector&quot;&gt;Functional combinators on C++ vector&lt;/h2&gt;
+&lt;p&gt;We are going to see how we can do functional programming by looking at how we can apply different combinators like map,filter etc on C++ vector. Though we have used vector in this example, it should work for any other collection.&lt;/p&gt;
+
+&lt;p&gt;Modern C++ ships with a powerful library called as &lt;strong&gt;algorithm&lt;/strong&gt;. This supports lot of nice operators like for_each,transform on collection. You can import the library by adding &lt;em&gt;#include &amp;lt;algorithm&amp;gt;&lt;/em&gt; in your code. Most of our examples use algorithm methods.&lt;/p&gt;
+
+&lt;p&gt;Let’s look at the example of combinator’s one by one.&lt;/p&gt;
+
+&lt;h3 id=&quot;foreach-combinator&quot;&gt;for_each combinator&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;c--&quot;&gt;&lt;span class=&quot;k&quot;&gt;template&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;typename&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Collection&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;typename&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;for_each&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Collection&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unop&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;op&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;){&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;for_each&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;begin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;op&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We are directly using for_each method of algorithm. First two parameters are starting and ending of the collection. Then the third parameter we pass a unary function object which operates on each element.&lt;/p&gt;
+
+&lt;p&gt;The following code uses it to print elements of a vector.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;c--&quot;&gt;&lt;span class=&quot;k&quot;&gt;auto&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lambda_echo&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[](&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;endl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;  
+ &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;24&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;37&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;42&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;23&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;45&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;37&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+ &lt;span class=&quot;n&quot;&gt;for_each&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lambda_echo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In the above code,we have a echo lambda, which prints element passed to it. &lt;/p&gt;
+
+&lt;h3 id=&quot;map-combinator&quot;&gt;map combinator&lt;/h3&gt;
+&lt;p&gt;In algorithm, there is a transform function which allows us to implement map functionality.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;c--&quot;&gt;&lt;span class=&quot;k&quot;&gt;template&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;typename&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Collection&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;typename&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;Collection&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Collection&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;unop&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;op&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;transform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;begin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;begin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;op&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The following code calls the map function to add one to each element.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;c--&quot;&gt;&lt;span class=&quot;k&quot;&gt;auto&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;addOne&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[](&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;};&lt;/span&gt;
+ &lt;span class=&quot;k&quot;&gt;auto&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;returnCol&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;addOne&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+ &lt;span class=&quot;n&quot;&gt;for_each&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;returnCol&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lambda_echo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In same way you can &lt;a href=&quot;https://gist.github.com/phatak-dev/766eccf8c72484ad623b&quot;&gt;implement&lt;/a&gt; zip,exists combinators.&lt;/p&gt;
+
+&lt;h3 id=&quot;filter-combinator&quot;&gt;Filter combinator&lt;/h3&gt;
+
+&lt;p&gt;All above combinators including zip and exists, do not change the size of the collection. But if you want to implement filter, you have to change the size.&lt;/p&gt;
+
+&lt;p&gt;No method in &lt;em&gt;algorithm&lt;/em&gt; allows you to change the size of the collection. So we need to implement filter in following two steps&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Determine the indexes inside the collection which do not satisfy predicates.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Remove those indexes from the vector.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Before implementing filter, we will implement &lt;strong&gt;filterNot&lt;/strong&gt;. &lt;em&gt;filterNot&lt;/em&gt; combinator removes all the elements which satisfies the predicate.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;c--&quot;&gt;&lt;span class=&quot;k&quot;&gt;template&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;typename&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Collection&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;typename&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Predicate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;Collection&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;filterNot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Collection&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Predicate&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;predicate&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;   
+    &lt;span class=&quot;k&quot;&gt;auto&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;returnIterator&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;remove_if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;begin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;predicate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;erase&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;returnIterator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;    
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We have used &lt;em&gt;erase&lt;/em&gt; function on vector to remove the elements that determined by &lt;em&gt;remove_if&lt;/em&gt; function.&lt;/p&gt;
+
+&lt;p&gt;Now we can implement filter in terms of &lt;em&gt;filterNot&lt;/em&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;c--&quot;&gt;&lt;span class=&quot;k&quot;&gt;template&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;typename&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Collection&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;typename&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Predicate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;Collection&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;filter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Collection&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Predicate&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;predicate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+ &lt;span class=&quot;c1&quot;&gt;//capture the predicate in order to be used inside function&lt;/span&gt;
+ &lt;span class=&quot;k&quot;&gt;auto&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fnCol&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;filterNot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;predicate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;typename&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Collection&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value_type&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;predicate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);});&lt;/span&gt;
+ &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fnCol&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; 
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;If you observe code carefully, you can see that we have captured that &lt;em&gt;predicate&lt;/em&gt; in our lambda so that we can use it inside. If you don’t capture it, compiler will give an error.&lt;/p&gt;
+
+&lt;p&gt;Also as we don’t know the type expected by predicate, we can use &lt;em&gt;Collection::value_type&lt;/em&gt; to say whatever the type of the collection elements it will be taken by the predicate. This makes our code highly generic.&lt;/p&gt;
+
+&lt;p&gt;Finally we can filter as follows&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;c--&quot;&gt;&lt;span class=&quot;k&quot;&gt;auto&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;filteredCol&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;filter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,[](&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;){&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;30&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;});&lt;/span&gt;
+ &lt;span class=&quot;n&quot;&gt;for_each&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;filteredCol&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lambda_echo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;memory-management&quot;&gt;Memory management&lt;/h2&gt;
+&lt;p&gt;As you may know, in C++ you have to manually manage the memory. In the above examples we have used pass by value style over pass by reference. This makes code easy to read and understand, but makes lot of copies of collection. With modern C++ you can use value semantics with move semantics to get same performance as pass by reference. Read more about it &lt;a href=&quot;http://stackoverflow.com/questions/3106110/what-are-move-semantics&quot;&gt;here&lt;/a&gt;. Also you can use &lt;a href=&quot;http://msdn.microsoft.com/en-us/library/hh279674.aspx&quot;&gt;smart pointers&lt;/a&gt; to do automatic garbage collection.&lt;/p&gt;
+
+&lt;h2 id=&quot;compiling-and-running&quot;&gt;Compiling and Running&lt;/h2&gt;
+&lt;p&gt;Clone the code from &lt;a href=&quot;https://gist.github.com/phatak-dev/766eccf8c72484ad623b&quot;&gt;here&lt;/a&gt;. Refer to &lt;em&gt;README.md&lt;/em&gt; for compiling and running instructions.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;C++ has changed dramatically over the last decade. It’s no more &lt;em&gt;C with Classes&lt;/em&gt;. If you not looked at C++ recently, it will be the right time to have another look.&lt;/p&gt;
+
+</description>
+        <pubDate>Sun, 16 Nov 2014 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/functional-programming-in-c++</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/functional-programming-in-c++</guid>
+      </item>
+    
+      <item>
         <title>Custom mesos executor in Scala</title>
         <description>&lt;p&gt;In previous &lt;a href=&quot;/mesos-helloworld-scala&quot;&gt;post&lt;/a&gt;, we discussed about how to write a simple mesos scheduler in Scala. In this post, we are going to see how to extend the scheduler to
 run general scala code.&lt;/p&gt;
@@ -781,78 +915,6 @@ fold operation.&lt;/p&gt;
         <pubDate>Wed, 30 Jul 2014 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/spark-rdd-fold</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-rdd-fold</guid>
-      </item>
-    
-      <item>
-        <title>Dog fight - How Apple and Google Went to War and Started a Revolution</title>
-        <description>&lt;p&gt;Today Smart phone business is a two horse race. Apple and Google controls 99% of phone market share. But it was not always like this. Back in 2007, Nokia was ruling basic phones and blackberry was king of smart phones. Microsoft was selling millions of windows touch phones. In last few years, the things have changed . If you want to know the story how Apple and Google became dominant players in phone business , you should read &lt;a href=&quot;http://www.amazon.com/Dogfight-Apple-Google-Started-Revolution-ebook/dp/B00BIV1R98&quot;&gt;Dogfight&lt;/a&gt; book. &lt;/p&gt;
-
-&lt;p&gt;This post reviews different aspects of the book.&lt;/p&gt;
-
-&lt;h2 id=&quot;vision&quot;&gt;Vision&lt;/h2&gt;
-
-&lt;p&gt;Steve Jobs turned around Apple using iPod. iPod was a big hit for Apple which propelled them from single digit Mac market to a digital consumer company. But iPod was not a run away success from day one. It took around 2-3 years before it really became the market leader. At same time Steve jobs also realized that mp3 players are in the great risk once the phone can play the music. Phone will become a great convergent device. So he wanted to disrupt the cell phone market himself in order to protect the great market share of iPod.&lt;/p&gt;
-
-&lt;p&gt;Same time Google wanted to put their search engine directly into the phone. Google always feared that
-Microsoft will take over search business when they integrate their search, windows live search, directly into the
-windows phone. Windows phone contributed to major part of the smart phone business at that
-point of time. So in 2005 they bought Android and thought they can build their phone which
-has the Google search engine built in. &lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;In both cases, iPhone and Android, it started as defensive products for existing successful products rather than as a new product itself.&lt;/em&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;cultural-challenge&quot;&gt;Cultural challenge&lt;/h2&gt;
-&lt;p&gt;Apple never built a phone before. There were two different teams with in Apple competing 
-to build a phone. One wanted to bring iPod OS to phone and one wanted to bring Mac OSX to the
-phone. So both team had their own version of Apple phone. Steve jobs being a canny leader
-embraced both and was seeing which way will win ultimately. Both teams work hard for few years before deciding on running Mac OSX in phone was much better than turning the iPod into a phone.&lt;/p&gt;
-
-&lt;p&gt;So in the book you will be able to get scoop into how these two teams competed against 
-each other and it’s consequences. It had a great impact on individuals 
-as it involved lot’s of dirty politics, team tactics and moreover when the whole thing completed a huge amount of people left because they felt betrayed and burnt.&lt;/p&gt;
-
-&lt;p&gt;Google’s approach to this was completely different. They never built an OS before or for that matter never built a consumer product before. They were all about web services and running those web services at scale. Even the co-founder Serge Brin had doubts about Android being gelled with Google’s culture. Google culture was all about openness. Anyone can look into code , any one can contribute and any one can extend. But when Andy Rubin, co-founder of Android, took over the Android development within Google, he requested for very strict access to code and no one knew what Android was up to,which was kind of different for the whole company.&lt;/p&gt;
-
-&lt;h2 id=&quot;technical-challenges&quot;&gt;Technical challenges&lt;/h2&gt;
-&lt;p&gt;Apple never built a phone before which means they have to learn all about phones and
-interaction of phone with rest of the world. Being a secretive company, Apple din’t collaborate with other cellphone companies. They had high bar to achieve. The book gives the details. As an example, One point of time Steve jobs asked one of engineer to build whole phone casing with aluminum . For long time engineers tried convincing Jobs that
-they should not use aluminum as it blocks the radio signals. But over time, Jobs got what he wanted and engineers able to make a break through to make aluminum work with phones.&lt;/p&gt;
-
-&lt;p&gt;Google at same time was thinking about doing the phone business and Andy Rubin had exact experience of doing that. He already done that before with company he founded called Danger, which he later sold it to Microsoft. Still they had their own challenges with UI.
-They also have to figure out the interactions with different components. All those kind of things took them long time to figure out.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-unveiling-of-iphone&quot;&gt;The unveiling of iPhone&lt;/h2&gt;
-&lt;p&gt;Steve Jobs was master in unveiling new products. He was always proud of what his company builds.You can find very few CEO’s who are proud of their company products. So when Steve jobs unveiled  phone , he promised the audience that Apple going to reinvent the phone and he did it. Actually it was beyond his own ambitions. It was not big surprise 
-that Apple is releasing phone, as most of people were expecting it that time. No one expected the phone to be so good. Every one was blew away and so did Android team at Google.&lt;/p&gt;
-
-&lt;p&gt;When the iPhone got revealed, Andy Rubin was driving and watching this live video through his car. He just blown away. He knew that it was the future. He just picked up the phone and called team right away. &lt;em&gt;“We have to reinvent the UI. Whatever we were doing to use physical keyboard like blackberry , we have to rethink now”&lt;/em&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-dilemma&quot;&gt;The dilemma&lt;/h2&gt;
-&lt;p&gt;Google started to work on Android to put it services on the phone business. Now with iPhone, they got their maps and Youtube,Search all on iPhone. With iPhone dominating  in market place, Google got their dreams fulfilled and fear of Microsoft went away. So now the real question was what purpose Android going to serve?. There was a dedicated team from Google, headed by Vic Gundotra, who worked on iPhone applications and they thought android was just a distraction.&lt;/p&gt;
-
-&lt;p&gt;Steve jobs was hearing rumors about Android and he asked Eric Schmidt. Most of the time Google told it just a side project and nothing compared to iPhone. &lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;So within Google there was a dilemma about future .. Is it great apps on iOS or build 
-an OS which is going to rival with iOS?.&lt;/em&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;right-timeright-thing&quot;&gt;Right time,Right thing&lt;/h2&gt;
-&lt;p&gt;Android was right time,right thing. It was till all other carries in US realized that
-they want a competitive product to iPhone,as iPhone was exclusive to AT&amp;amp;T. iPhone was huge
-and AT&amp;amp;T was making lot of money. Everyone wanted an alternative and only Android was viable one. The reason being it was touch ready, it was already built and backed by big company like Google. Suddenly there were people like HTC,Verizon wanted to build phone using Android. Google also realized Android going to be much more bigger than they imagined.&lt;/p&gt;
-
-&lt;h2 id=&quot;rivalry&quot;&gt;Rivalry&lt;/h2&gt;
-&lt;p&gt;Steve jobs already went through a platform war with Microsoft. He din’t want to redo the same with any other company in phone business. He thought iOS software was 5 years ahead of any other mobile software out there. He thought if ever there was going to be competitor, its going to
-be Microsoft. Over the time, MS was becoming less relevant in consumer space, as they were concentrating more on enterprise. But the real competition came from somewhere else. It was similar kind of company called Google, where they put all their effort into Android.
-When the Verizon Droid got released, he got pissed off. He felt betrayed and called Android is just a rip off of iPhone.&lt;/p&gt;
-
-&lt;p&gt;So the book gives intimate view of things that happed in last 5-6 years where both Google and Apple in different ways created Gigantic smart phone market. They collaborated with each other for search,maps,Youtube and but they started competing in OS.Google was lucky to be in right place at right time. &lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;This book goes beyond the details that you may read on Internet. So if you are interested to know the history of Smart phone this book is a must read. It’s repetition of computer war between Microsoft and Apple. When platform war happens, it’s one takes it all situation. Book is highly authentic as sources come from reputed blogs and court testimonies. So go and grab a copy of your’s.&lt;/em&gt;&lt;/p&gt;
-
-</description>
-        <pubDate>Tue, 29 Jul 2014 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/dogfight-book-review</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/dogfight-book-review</guid>
       </item>
     
   </channel>
