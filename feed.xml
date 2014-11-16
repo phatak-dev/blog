@@ -8,7 +8,7 @@
     
       <item>
         <title>Functional programming in C++</title>
-        <description>&lt;p&gt;Few days back I attended a &lt;a href=&quot;https://geekup.in/2014/olvemaudal&quot;&gt;talk&lt;/a&gt; on modern C++ &lt;a href=&quot;http://www.pvv.org/~omazModernCPP_Bangalore_Nov2014_reduced.pdf&quot;&gt;features&lt;/a&gt; given by &lt;a href=&quot;https://twitter.com/olvemaudal&quot;&gt;Olve Mudal&lt;/a&gt;. I have not coded in C++ after passing out of university. So it was interesting to revisit the language after long time. In the talk, speaker mentioned that modern C++ has good support for functional programming. &lt;/p&gt;
+        <description>&lt;p&gt;Few days back I attended a &lt;a href=&quot;https://geekup.in/2014/olvemaudal&quot;&gt;talk&lt;/a&gt; on modern C++ &lt;a href=&quot;http://www.pvv.org/~oma/ModernCPP_Bangalore_Nov2014_reduced.pdf&quot;&gt;features&lt;/a&gt; given by &lt;a href=&quot;https://twitter.com/olvemaudal&quot;&gt;Olve Mudal&lt;/a&gt;. I have not coded in C++ after passing out of university. So it was interesting to revisit the language after long time. In the talk, speaker mentioned that modern C++ has good support for functional programming. &lt;/p&gt;
 
 &lt;p&gt;C++ and functional programming!!!. I got fascinated by this and started digging around the C++ specification to find about it. I am really impressed by what I saw. So I wrote this post to show how you can write elegant functional programs with C++ now.&lt;/p&gt;
 
