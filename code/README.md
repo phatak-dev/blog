@@ -1,1 +1,1 @@
-This folder contains source code referred in blog posts.
+This folder contains source code referred in blog posts. All code examples are licensed under Apache license.
