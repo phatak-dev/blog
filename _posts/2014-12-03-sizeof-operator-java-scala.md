@@ -61,12 +61,12 @@ You can add the library through sbt or maven.
 
  * Sbt
    {% highlight scala %}
-   libraryDependencies += "com.madhu" %% "java-sizeof" % "0.1"
+   libraryDependencies += "com.madhukaraphatak" %% "java-sizeof" % "0.1"
    {% endhighlight %}
  * Maven
  {% highlight xml %}
  <dependency>
- <groupId>com.madhu</groupId>
+ <groupId>com.madhukaraphatak</groupId>
  <artifactId>java-sizeof_2.11</artifactId>
  <version>0.1</version>
  </dependency>
