@@ -5,10 +5,12 @@ date : 2014-12-03
 categories: scala spark 
 ---
 
-As I was going through Apache spark source code, I stumbled upon one interesting tool. Spark has a utility, called [SizeEstimator](https://github.com/apache/spark/blob/master/core/src/main/scala/org/apache/spark/util/SizeEstimator.scala), which estimates the size of objects in Java heap. This is very interesting idea and I started to explore use case of tool like this.
+As I was going through Apache spark source code, I stumbled upon on one interesting tool. Spark has a utility, called [SizeEstimator](https://github.com/apache/spark/blob/master/core/src/main/scala/org/apache/spark/util/SizeEstimator.scala), which estimates the size of objects in Java heap. This is like sizeof operator for Java. I got fascinated and started to explore. This posts talks about the utility and its use cases.
+
+tl;dr Access complete code with documentation on [github](https://github.com/phatak-dev/java-sizeof).
 
 ## sizeof operator in C/C++
-In C/C++ size of operator is used to determine size of given data structure. This is important, as size of data structures in these languages are platform dependent. For example 
+In C/C++ sizeof operator is used to determine size of a given data structure. This is important, as size of data structures in these languages are platform dependent. For example 
 
 {% highlight c++%}
  std::cout << sizeof(int) ;
@@ -43,17 +45,15 @@ As I told in the beginning, this idea of sizeof operator came from Spark source 
 You can find more use cases in [this](http://www.javaworld.com/article/2077408/core-java/sizeof-for-java.html) article.
 
 ## Memory bounded caches in Spark
-We use caches in almost every application. Normally most of the in-memory caches are driven by time. As keys get less and less accessed they get evicted to accommodated newer keys. But in few use cases, like in Spark, we need different approach for eviction.
+We use caches in almost every application. Normally most of the in-memory caches are bounded by number of items. You can specify how many keys it should keep. Once you cross the limit, you can use LRU to do the eviction. This works well when you are storing homogeneous values and all the pairs have relatively same size. Also it assumes that all machines where cache is running has same RAM size.
 
-Spark uses caching to cache big data on RAM in cluster of computers. Caching the data on RAM allows for speedier processing which is important when we do processing on TB's of data. Though this looks like a good idea, it comes with issue that cache may take over the complete RAM of the node which makes node useless for any kind of processing.
-
-So spark divides the main memory of a node to two parts. One for caching the data and one for running the computations on the data. Using the SizeEstimator tool they can precisely control usage of RAM.
+But in case of spark, the cluster may have varying RAM sizes. Also it may cache heterogeneous values. So having number of items as the bound is not optimal. So Spark uses the size of the cache as the bound value. So using sizeof operator they can optimally use the RAM on the cluster.
 
 You can look at one of the implementation of memory bounded caches [here](https://github.com/phatak-dev/java-sizeof/blob/master/examples/src/main/scala/com/madhukaraphatak/sizeof/examples/BoundedMemoryCache.scala).
 
 ## java-sizeof library
 
-I extracted the code from the spark, simplified little and published as a independent [library](https://github.com/phatak-dev/java-sizeof). So if you want to analyze size of your objects in your Java/Scala projects, you can use this library. This library is well tested inside the spark. 
+I extracted the code from the spark, simplified little and published as a independent [library](https://github.com/phatak-dev/java-sizeof). So if you want to calculate size of your objects in your Java/Scala projects, you can use this library. This library is well tested inside the spark. 
 
 ## Adding dependency
 
@@ -74,7 +74,7 @@ You can add the library through sbt or maven.
 
 ## Using
 
-The following code how you can estimate size of the object.
+The following code shows the api usage.
 
 {% highlight java %}
 SizeEstimator.estimate('a');
