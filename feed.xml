@@ -7,6 +7,94 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>sizeof operator for Java&amp;#47;Scala</title>
+        <description>&lt;p&gt;As I was going through Apache spark source code, I stumbled upon on one interesting tool. Spark has a utility, called &lt;a href=&quot;https://github.com/apache/spark/blob/master/core/src/main/scala/org/apache/spark/util/SizeEstimator.scala&quot;&gt;SizeEstimator&lt;/a&gt;, which estimates the size of objects in Java heap. This is like sizeof operator for Java. I got fascinated and started to explore. This posts talks about the utility and its use cases.&lt;/p&gt;
+
+&lt;p&gt;tl;dr Access complete code with documentation on &lt;a href=&quot;https://github.com/phatak-dev/java-sizeof&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;sizeof-operator-in-cc&quot;&gt;sizeof operator in C/C++&lt;/h2&gt;
+&lt;p&gt;In C/C++ sizeof operator is used to determine size of a given data structure. This is important, as size of data structures in these languages are platform dependent. For example &lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;c--&quot;&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;the above c++ code will print 2 if it’s 16 bit machine and 4 if it’s 32 bit machine.&lt;/p&gt;
+
+&lt;p&gt;Also these languages does manual memory management. Developer uses sizeof operator to specify how much memory needs to be allocated. &lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;c--&quot;&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;intArray&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;calloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above code create an array of integers which hold 10 elements. Again as you can see here we used sizeof operator specify exact amount memory we wanted to allocate.&lt;/p&gt;
+
+&lt;p&gt;So from above examples, it’s apparent that sizeof operator is a tool which helps you to know the size of the variable at runtime.&lt;/p&gt;
+
+&lt;h2 id=&quot;sizeof-operator-for-java&quot;&gt;sizeof operator for Java&lt;/h2&gt;
+&lt;p&gt;Java do not have any sizeof operator in the language. The following are two reasons for that&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The size of data structure is same on all platforms&lt;/li&gt;
+  &lt;li&gt;Java virtual machine with garbage collection will do the memory management for you. &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;So as a developer, you do not need to worry about the memory management in java. So creators of Java felt there is no use of sizeof operator.&lt;/p&gt;
+
+&lt;p&gt;But there are few use cases where we may need a way to measure size of objects at runtime. &lt;/p&gt;
+
+&lt;h2 id=&quot;use-case-for-sizeof-operator&quot;&gt;Use case for sizeof operator&lt;/h2&gt;
+&lt;p&gt;As I told in the beginning, this idea of sizeof operator came from Spark source code. So I started digging why they need this. As it turns out SizeEstimator in Spark is used for building memory bounded caches. The idea is that you want to specify amount of heap memory the cache can use so when it runs out of memory it can use LRU method to accommodate newer keys. &lt;/p&gt;
+
+&lt;p&gt;You can find more use cases in &lt;a href=&quot;http://www.javaworld.com/article/2077408/core-java/sizeof-for-java.html&quot;&gt;this&lt;/a&gt; article.&lt;/p&gt;
+
+&lt;h2 id=&quot;memory-bounded-caches-in-spark&quot;&gt;Memory bounded caches in Spark&lt;/h2&gt;
+&lt;p&gt;We use caches in almost every application. Normally most of the in-memory caches are bounded by number of items. You can specify how many keys it should keep. Once you cross the limit, you can use LRU to do the eviction. This works well when you are storing homogeneous values and all the pairs have relatively same size. Also it assumes that all machines where cache is running has same RAM size.&lt;/p&gt;
+
+&lt;p&gt;But in case of spark, the cluster may have varying RAM sizes. Also it may cache heterogeneous values. So having number of items as the bound is not optimal. So Spark uses the size of the cache as the bound value. So using sizeof operator they can optimally use the RAM on the cluster.&lt;/p&gt;
+
+&lt;p&gt;You can look at one of the implementation of memory bounded caches &lt;a href=&quot;https://github.com/phatak-dev/java-sizeof/blob/master/examples/src/main/scala/com/madhukaraphatak/sizeof/examples/BoundedMemoryCache.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;java-sizeof-library&quot;&gt;java-sizeof library&lt;/h2&gt;
+
+&lt;p&gt;I extracted the code from the spark, simplified little and published as a independent &lt;a href=&quot;https://github.com/phatak-dev/java-sizeof&quot;&gt;library&lt;/a&gt;. So if you want to calculate size of your objects in your Java/Scala projects, you can use this library. This library is well tested inside the spark. &lt;/p&gt;
+
+&lt;h2 id=&quot;adding-dependency&quot;&gt;Adding dependency&lt;/h2&gt;
+
+&lt;p&gt;You can add the library through sbt or maven.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Sbt&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;libraryDependencies&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;com.madhu&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%%&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;java-sizeof&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;0.1&amp;quot;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Maven&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+ &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;com.madhu&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+ &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;java-sizeof_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+ &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;0.1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+ &lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;using&quot;&gt;Using&lt;/h2&gt;
+
+&lt;p&gt;The following code shows the api usage.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;java&quot;&gt;&lt;span class=&quot;n&quot;&gt;SizeEstimator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;estimate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;sc&quot;&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+   
+&lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;values&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;();&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;30&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;SizeEstimator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;estimate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You can find more examples &lt;a href=&quot;https://github.com/phatak-dev/java-sizeof/tree/master/examples&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+</description>
+        <pubDate>Wed, 03 Dec 2014 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/sizeof-operator-java-scala</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/sizeof-operator-java-scala</guid>
+      </item>
+    
+      <item>
         <title>Kryo disk serialization in Spark</title>
         <description>&lt;p&gt;In apache spark, it’s &lt;a href=&quot;http://spark.apache.org/docs/latest/tuning.html#data-serialization&quot;&gt;advised&lt;/a&gt; to use the kryo serialization over java serialization for big data applications. Kryo has less memory footprint compared to java serialization which becomes very important when you are shuffling and caching large amount of data.&lt;/p&gt;
 
@@ -828,106 +916,6 @@ sbt&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
         <pubDate>Mon, 18 Aug 2014 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/sbt-on-ubuntu</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/sbt-on-ubuntu</guid>
-      </item>
-    
-      <item>
-        <title>Google, it's time - We want Scala for Android</title>
-        <description>&lt;p&gt;Apple made a bold move in this year’s WWDC 2014 by announcing a new language,Swift,for it’s iOS platforms. Finally, Apple recognized that Objective-C has lived its course and its time for new language. &lt;/p&gt;
-
-&lt;p&gt;Now its time for Android to make a move and embrace a modern language for modern post PC devices. Java showing it’s age and we need a new language.&lt;/p&gt;
-
-&lt;h2 id=&quot;google-and-languages&quot;&gt;Google and languages&lt;/h2&gt;
-&lt;p&gt;Google has many languages under it’s kit for various kinds of projects. The prominent 
-one are&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Dart   &lt;/li&gt;
-  &lt;li&gt;Javascript  &lt;/li&gt;
-  &lt;li&gt;Go  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Other than Javascript, other two are niche languages created by Google. Though Go is getting buzz these days, its not yet ready to take over language like Java. As for Javascript and buzz with HTML5 its still doesn’t feel home when you want to build native apps with it. So it’s better Google embrace a open language which is well tested and mature rather than going with their own.&lt;/p&gt;
-
-&lt;p&gt;Before we go and look at why Scala language may be good fit , let’s see what Swift is bringing to the table which is missing in both Java and Objective -C.&lt;/p&gt;
-
-&lt;h2 id=&quot;swift-features&quot;&gt;Swift features&lt;/h2&gt;
-
-&lt;h3 id=&quot;managed-runtime&quot;&gt;Managed runtime&lt;/h3&gt;
-
-&lt;p&gt;We don’t want to go back C time where we need to manage memory ourselves. 
- Swift has managed runtime with garbage collection. As phones are getting faster 
- memory is not an issue anymore. Android had managed runtime from day one so whatever
- language we choose to replace Java, it should be able to run on Dalvik/ART,
- the managed runtime of Android.&lt;/p&gt;
-
-&lt;h3 id=&quot;type-inference&quot;&gt;Type inference&lt;/h3&gt;
-
-&lt;p&gt;Having a strongly typed language is always plus. But specifying all the types makes
- code more muddier and hard to code. So we want the best of both worlds, compile
- time check as in static languages and ability to skip the type specifications when not needed like in Dynamic languages. Type inference is solution to this. Type inference
- is where compiler says &lt;strong&gt;“Don’t worry buddy, I got your back. You code and I will
- figure out types for you”&lt;/strong&gt;. It works like Magic. Swift is replacing the old C like type declarations with elegant ruby like ones.&lt;/p&gt;
-
-&lt;h3 id=&quot;lambdas&quot;&gt;Lambdas&lt;/h3&gt;
-&lt;p&gt;Functional programming is everywhere. With event based user interfaces like on Web
-and mobile having higher order functions is absolutely needed. Whenever I see a inner
-class holding the implementation of on click event handler, it feels so wrong. Swift is bringing lambdas to iOS world and Java 8 to servers. Let’s have them in Android too.&lt;/p&gt;
-
-&lt;h3 id=&quot;inter-portability-with-existing-applications&quot;&gt;Inter portability with existing applications&lt;/h3&gt;
-&lt;p&gt;No one is going to rewrite all the pieces of iOS applications with
-swift on day one. There should be an easy way to move from existing code to new code
-where developer should be able to reuse the libraries and tools. Swift allows Objective-C code to co-exist with it in same application which allows for gentle migration.&lt;/p&gt;
-
-&lt;h3 id=&quot;ability-to-run-on-existing-run-time-to-support-older-versions-of-os&quot;&gt;Ability to run on existing run time (To support older versions of OS)&lt;/h3&gt;
-&lt;p&gt;Having a new shiny language is cool, but not able to run on older OS version is not cool.
-Particularly with Android, ability to run on old version of OS is super critical.&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;Knowing the things swift bringing to table, the question is can Scala bring these
-things to Android without much effort. The answer is resounding yes!!!&lt;/em&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;what-is-scala&quot;&gt;What is Scala?&lt;/h2&gt;
-&lt;p&gt;&lt;a href=&quot;http://www.scala-lang.org/&quot;&gt;Scala&lt;/a&gt; is a JVM language created by Martin Odersky. 
-He is the person behind Javac and Generics in Java. It’s there from 2004 and getting
-popular for it’s interesting blend of function programming with object oriented programming. Watch &lt;a href=&quot;https://www.youtube.com/watch?v=ecekSCX3B4Q&quot;&gt;this&lt;/a&gt; video to understand
-the philosophy behind the language.&lt;/p&gt;
-
-&lt;h2 id=&quot;why-scala&quot;&gt;Why Scala?&lt;/h2&gt;
-&lt;p&gt;The following features of Scala makes language of choice for Android.&lt;/p&gt;
-
-&lt;h3 id=&quot;scala-works-seamlessly-with-java&quot;&gt;Scala works seamlessly with Java&lt;/h3&gt;
-&lt;p&gt;This is one of the greatest strength of Scala. No need to rewrite every Java/Android library in Scala , as it seamlessly integrates. Calling Java code from Scala
-is super easy which means we get all great libraries of Java for free. So integrating
-with existing apps is not an issue at all. That’s a big win.&lt;/p&gt;
-
-&lt;h3 id=&quot;runs-on-jvm--so-will-run-on-dalvikart&quot;&gt;Runs on JVM , so will run on Dalvik/ART&lt;/h3&gt;
-&lt;p&gt;No need of new runtime as Scala compiles to byte code which means we can convert to
- Dalvik and ART format directly.&lt;/p&gt;
-
-&lt;h3 id=&quot;excellent-type-inference&quot;&gt;Excellent type inference&lt;/h3&gt;
-&lt;p&gt;Scala compiler is great. It does some magical things to get the type’s right without
-you every specifying anything about type. Scala has rich type system which allow you to enjoy all great things of static typing without Java’s verbosity.&lt;/p&gt;
-
-&lt;h3 id=&quot;great-community-support&quot;&gt;Great community support&lt;/h3&gt;
-&lt;p&gt;Scala is used by thousands of developers in wild. It has excellent support in terms of
- IDE both in Eclipse and IDEA. Lot’s of libraries have both Scala and Java API which
- allows them to inter-operate nicely.&lt;/p&gt;
-
-&lt;h3 id=&quot;production-ready&quot;&gt;Production ready&lt;/h3&gt;
-&lt;p&gt;Scala is not a new shiny kid on block like Node.js . It’s there from 10 years and battle
- tested in lot of applications. Big data applications like Spark, web application
- framework like Play, Distributed messaging platforms like Akka, are written in Scala
- and in production for years. So the language is well battle tested and ready for production.&lt;/p&gt;
-
-&lt;h3 id=&quot;its-already-used-in-android&quot;&gt;It’s already used in Android&lt;/h3&gt;
-&lt;p&gt;As we speak, Scala is already used as alternative to Java in Android. Few of the project like &lt;a href=&quot;https://github.com/pocorall/scaloid&quot;&gt;Scaloid&lt;/a&gt;, &lt;a href=&quot;http://macroid.github.io/&quot;&gt;Macroid&lt;/a&gt; allow you to code in Scala . But what we need is more
- deep support for language in Android framework so that coding in Android becomes fun again.&lt;/p&gt;
-
-&lt;p&gt;Thought it’s pretty obvious that Scala should be the modern language of Android,given Android team’s &lt;a href=&quot;https://www.youtube.com/watch?v=K3meJyiYWFw#t=1566&quot;&gt;understanding&lt;/a&gt; of Scala, it’s going long time before they adopt it.&lt;/p&gt;
-
-</description>
-        <pubDate>Sun, 03 Aug 2014 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/scala-for-android</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/scala-for-android</guid>
       </item>
     
   </channel>
