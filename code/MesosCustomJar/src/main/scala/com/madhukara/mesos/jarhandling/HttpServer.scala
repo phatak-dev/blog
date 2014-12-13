@@ -48,19 +48,18 @@ class HttpServer(resourceBase: File) {
     else {
       server.stop()
       server = null
-      port = - 1
+      port = -1
     }
 
   }
 
-  def uri:String = {
-    if(server==null) {
+  def uri: String = {
+    if (server == null) {
       throw new RuntimeException("server not started")
     }
     else {
-      return "http://"+ getLocalIpAddress+":"+port
+      return "http://" + getLocalIpAddress + ":" + port
     }
-
 
 
   }
