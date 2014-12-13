@@ -1,10 +1,10 @@
-package com.madhukara.mesos.customjars
+package com.madhukaraphatak.mesos.customjars
 
 import java.io.{File, FileInputStream, FileOutputStream}
 import java.util.{Collections, UUID}
 
 import com.google.protobuf.ByteString
-import com.madhukara.mesos.jarhandling.HttpServer
+import com.madhukaraphatak.mesos.jarhandling.HttpServer
 import org.apache.mesos.Protos._
 import org.apache.mesos.{Scheduler, SchedulerDriver}
 

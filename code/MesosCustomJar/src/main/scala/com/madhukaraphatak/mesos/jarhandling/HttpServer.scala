@@ -1,4 +1,4 @@
-package com.madhukara.mesos.jarhandling
+package com.madhukaraphatak.mesos.jarhandling
 
 import java.io.File
 import org.eclipse.jetty.server.Server

@@ -1,4 +1,4 @@
-package com.madhukara.mesos.customjars
+package com.madhukaraphatak.mesos.customjars
 
 import java.io._
 import java.util.UUID

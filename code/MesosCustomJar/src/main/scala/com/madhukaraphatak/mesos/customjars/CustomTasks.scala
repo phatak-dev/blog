@@ -1,4 +1,4 @@
-package com.madhukara.mesos.customjars
+package com.madhukaraphatak.mesos.customjars
 
 import org.apache.mesos.MesosSchedulerDriver
 import org.apache.mesos.Protos.FrameworkInfo

@@ -1,4 +1,4 @@
-package com.madhukara.mesos.customjars
+package com.madhukaraphatak.mesos.customjars
 
 /**
  * Created by madhu on 1/10/14.
