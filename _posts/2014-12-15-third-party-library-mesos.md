@@ -1,11 +1,11 @@
 ---           
 layout: post
-title: "Distributing third party jars in Mesos"
-date : 2014-12-13
+title: "Distributing third party libraries in Mesos"
+date : 2014-12-15
 categories: mesos scala
 ---
 
-Every distributed application needs an effective way of distributing third party jars. Hadoop uses DistributedCache and Spark uses similar approaches. When you are building your own distributed system, you also have to build a effective mechanism to do the distribution. 
+Every distributed application needs an effective way of distributing third party libraries. Hadoop uses DistributedCache and Spark uses similar approaches. When you are building your own distributed system, you also have to build a effective mechanism to do the distribution. 
 
 This post talks about how to implement this on mesos. This implementation is inspired by Spark implementation. 
 
