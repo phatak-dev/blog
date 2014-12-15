@@ -7,8 +7,8 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
-        <title>Distributing third party jars in Mesos</title>
-        <description>&lt;p&gt;Every distributed application needs an effective way of distributing third party jars. Hadoop uses DistributedCache and Spark uses similar approaches. When you are building your own distributed system, you also have to build a effective mechanism to do the distribution. &lt;/p&gt;
+        <title>Distributing third party libraries in Mesos</title>
+        <description>&lt;p&gt;Every distributed application needs an effective way of distributing third party libraries. Hadoop uses DistributedCache and Spark uses similar approaches. When you are building your own distributed system, you also have to build a effective mechanism to do the distribution. &lt;/p&gt;
 
 &lt;p&gt;This post talks about how to implement this on mesos. This implementation is inspired by Spark implementation. &lt;/p&gt;
 
@@ -205,9 +205,9 @@
 &lt;p&gt;If everything goes right you should be able to see “successfully loaded” message in the logs.&lt;/p&gt;
 
 </description>
-        <pubDate>Sat, 13 Dec 2014 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/library-jar-mesos</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/library-jar-mesos</guid>
+        <pubDate>Mon, 15 Dec 2014 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/third-party-library-mesos</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/third-party-library-mesos</guid>
       </item>
     
       <item>
