@@ -16,7 +16,8 @@ object CustomTasks {
     new FunctionTask[Unit](
       () => {
         try {
-          Thread.currentThread.getContextClassLoader.loadClass("com.mysql.jdbc.Driver")
+          val classLoader = Thread.currentThread.getContextClassLoader
+          classLoader.loadClass("com.mysql.jdbc.Driver")
           println("successfully loaded")
         }
         catch {
@@ -25,8 +26,7 @@ object CustomTasks {
             throw e
           }
         }
-      }
-    )
+      })
   }
 
 

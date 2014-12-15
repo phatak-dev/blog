@@ -5,32 +5,30 @@ date : 2014-12-13
 categories: mesos scala
 ---
 
-Every distributed application needs an effective way of distributing third party jars. Hadoop uses DistributedCache and Spark uses similar approaches to do same. When you are building your own distributed system, you also have to build a mechanism which allows you to dynamically distribute third part libraries.
+Every distributed application needs an effective way of distributing third party jars. Hadoop uses DistributedCache and Spark uses similar approaches. When you are building your own distributed system, you also have to build a effective mechanism to do the distribution. 
 
-This post talks how to implement this distribution on mesos. This implementation is inspired by Apache Spark implementation. 
+This post talks about how to implement this on mesos. This implementation is inspired by Spark implementation. 
 
-This post extends code discussed in this [post](). If you are new to mesos please go through that post before continuing.
+This post extends code discussed in this [post](/custom-mesos-executor-scala/).So if you are new to mesos please go through that post before continuing.
 
-tl;dr Access the complete code here.
+tl;dr Access the complete code on [github](https://github.com/phatak-dev/blog/tree/master/code/MesosThirdPartyJars)
 
 ### Third Party libraries in distributed Applications
 
 Almost every piece of code we write today uses one or more third party library. In distributed systems third party libraries become tricky to handle.As we don't have control over instantiation of our tasks, the underlying system should allow us to express the dependencies so that it can add those to the classpath when our task is run.
 
-There are many ways to handle this problem. The following are the following options
+There are many ways to handle this problem. The following are the few following options.
 
-## Creating an uber jar
-We can create a big jar which contains our code and all the dependencies. Build tools like maven,ant makes this very easy to do. Though it's an attractive solution it has its own quirks
-
-The following are few of the con's of creating a uber jar
+## Using an uber jar
+We can create a big jar which contains our code and all of it's dependencies. Build tools like maven,ant makes this very easy to do. Though it's an attractive solution it has its own quirks.
 
 * ####Jar Size 
 
-We will be updating our code faster than changing dependencies. So every time when we make a change we have distribute a big uber jar rather than distributed only changed our code. This effects the startup time and lot's of network bandwidth.
+We will be updating our code faster than changing dependencies. So every time when we make a change we have to distribute a big jar rather than distributing only changed code. This effects the startup time and also eats up lot's of network bandwidth.
 
-* #### Version
+* #### Versioning
 
-If we mix user code with dependencies upgrading third libraries become challenging. Whenever we upgrade any dependence we have to recompile all code and re distribute again. This is not feasible to big code bases.
+If we mix user code with dependencies, upgrading third libraries become challenging. Whenever we upgrade any dependence we have to recompile all code and re distribute again. This is not feasible in big code bases.
 
 So it's not wise to mix user code with libraries. We will be needing an independent way of distributing jars.
 
@@ -38,20 +36,19 @@ So it's not wise to mix user code with libraries. We will be needing an independ
 
 ## Using Distributed file system
 
-One of the alternative to uber jar is using a distributed file system for distributing libraries. Normally any distributed applications run on distributed file system like HDFS. Though it's a good approach for most of applications it does comes with dependency that a distributed file system has to be available. Also the individual library jar size is small which performs poorly in file system like HDFS.
+One of the alternative to uber jar is using a distributed file system for distributing libraries. Normally any distributed applications run on distributed file system like HDFS. Though it's a good approach for most of applications,it does comes with dependency that a distributed file system has to be available. Also the individual library jar size is small,which performs poorly in big data file systems.
 
 
 
 ## Localized distribution over HTTP
 
-This is the approach we are going to follow in this post. We are going to host our dependencies in a HTTP server and ask the slaves to pull the jars from server. We create this HTTP server on demand and configure tasks to read and configure using them.
+This is the approach we are going to follow in this post. We are going to host our dependencies in a web server and ask the slaves to pull the jars from server. We create this web server on demand and configure tasks to read and configure using them.
 
-The following are the steps to distribute the third party libraries.
+The following steps shows how to implement this distribution on Mesos and Scala.
 
+### Step 1 : Web server at master side
 
-### HTTP server at master side
-
- We run a server at master when we start executing task. The following code shows a http server created using jetty server.
+We run a web server at master when we start executing task. The following code shows a http server created using jetty server.
 
  {% highlight scala %}
   class HttpServer(resourceBase: File) {
@@ -86,14 +83,11 @@ The following are the steps to distribute the third party libraries.
   }   
  {% endhighlight   %}
 
- We call a start method to start which serves files from *resourceBase* folder.
+ We call start method to start the server, which serves files from *resourceBase* folder.
 
+### Step 2 : Integrate server with Scheduler
 
-### Integrating server with Scheduler
-
-
- The above server has to be started dynamically whenever we require to distribute the jars.
-
+ The above server has to be started dynamically whenever we require to distribute the jars. In Mesos scheduler is responsible for spinning up the task, so we start it before the first task at scheduler side.
 
 {% highlight scala %}
 
@@ -126,15 +120,16 @@ We override registered method,so that whenever scheduler comes up we start the s
   }
 {% endhighlight   %}
 
-*createServer* copies specified jar from it's path a temporary location. Also it populates *jarUris* string which contains all the jar URI's in a comma separated manner.
+*createServer* copies specified jar from it's path to a temporary location. Also it populates *jarUris* string which contains all the jar URI's in a comma separated manner.
 
-### Passing jarUris to executor
+### Step 3 : Pass jarUris to executor
 
-We have to pass this uri's to the executor so that it can download the jars and add them to class path before it starts running tasks. We pass it as the command line argument to the executor script as follows.
+We have to pass this uri's to the executor,so that it can download the jars and add them to class path before it starts running tasks. We pass it as the command line argument to the executor script as follows.
 
 {% highlight scala %}
  def getExecutorInfo(d: SchedulerDriver): ExecutorInfo = {
-    val scriptPath = System.getProperty("executor_script_path","~/run-executor.sh")
+    val scriptPath = System.getProperty("executor_script_path",
+    "~/run-executor.sh")
     ExecutorInfo.newBuilder().
       setCommand(CommandInfo.newBuilder().setValue("" +
       "/bin/sh "+scriptPath+ s" $jarUris"))
@@ -143,7 +138,7 @@ We have to pass this uri's to the executor so that it can download the jars and 
   }
 {% endhighlight   %}
 
-### Accessing jars in Executor
+### Step 4 : Access jars in Executor
 
 In the executor side, we download this jars from specified jar uris. The following code shows that.
 
@@ -163,7 +158,8 @@ In the executor side, we download this jars from specified jar uris. The followi
 
           //use the URL classloader to add it to the classpath
           if (localfiles.size > 0) {
-            val urls = localfiles.map(file => new File(file).toURI.toURL).toArray
+            val urls = localfiles.map(file => new 
+            	File(file).toURI.toURL).toArray
             loader = new URLClassLoader(urls, loader)
           }
         }
@@ -171,20 +167,20 @@ In the executor side, we download this jars from specified jar uris. The followi
       }
 {% endhighlight   %}
 
-Once it downloads the jars, it adds to the classpath using URLClassLoader. We set this classloader on the thread which executes the task.
+Once it downloads the jars, it adds to the class path using URLClassLoader. We set this classloader on the thread which executes the task.
 
-### Mysql task
+### Example : Mysql task
 
-The following is one of example which dynamically loads the mysql driver which passed as library jar.
+The following is one of example which dynamically loads the mysql driver which is passed as library jar.
 
 
 {% highlight scala %}
-
-def mysqlTask() = {
+ def mysqlTask() = {
     new FunctionTask[Unit](
       () => {
         try {
-          Thread.currentThread.getContextClassLoader.loadClass("com.mysql.jdbc.Driver")
+          val classLoader = Thread.currentThread.getContextClassLoader
+          classLoader.loadClass("com.mysql.jdbc.Driver")
           println("successfully loaded")
         }
         catch {
@@ -193,24 +189,24 @@ def mysqlTask() = {
             throw e
           }
         }
-      }
-    )
- }
-
+      })
+  }
 {% endhighlight   %}
 
 ### Running
 
-* Step 1 : Download code from []()
-* Step 2 : Build the code using *mvn clean install*
+* Step 1 : Download code from [github](https://github.com/phatak-dev/blog/tree/master/code/MesosThirdPartyJars)
+* Step 2 : Build the code using maven
 * Step 3 : Update run-executor.sh file in src/main/resources to point to the right directory.
 
 * Step 4 : Run *CustomTasks* main method with mesos master url , path to the run-executor.sh shell script and path to the mysql jar file. 
 
-More detail steps for running you can find [here]().
+More detail steps for running you can find [here](/mesos-helloworld-scala/#running/).
 
 ### Output
 
 The output should be available in mesos logs as specified [here](/mesos-helloworld-scala#output).
 
 If everything goes right you should be able to see "successfully loaded" message in the logs.
+
+
