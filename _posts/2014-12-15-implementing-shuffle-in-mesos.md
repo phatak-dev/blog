@@ -1,7 +1,7 @@
 ---           
 layout: post
 title: "Implementing shuffle in Mesos"
-date : 2014-12-13
+date : 2014-12-15
 categories: mesos scala
 ---
 
