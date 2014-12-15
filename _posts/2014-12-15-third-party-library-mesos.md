@@ -85,6 +85,8 @@ We run a web server at master when we start executing task. The following code s
 
  We call start method to start the server, which serves files from *resourceBase* folder.
 
+ Access complete code [here](https://github.com/phatak-dev/blog/blob/master/code/MesosThirdPartyJars/src/main/scala/com/madhukaraphatak/mesos/jarhandling/HttpServer.scala).
+
 ### Step 2 : Integrate server with Scheduler
 
  The above server has to be started dynamically whenever we require to distribute the jars. In Mesos scheduler is responsible for spinning up the task, so we start it before the first task at scheduler side.
@@ -122,6 +124,8 @@ We override registered method,so that whenever scheduler comes up we start the s
 
 *createServer* copies specified jar from it's path to a temporary location. Also it populates *jarUris* string which contains all the jar URI's in a comma separated manner.
 
+Access complete code [here](https://github.com/phatak-dev/blog/blob/master/code/MesosThirdPartyJars/src/main/scala/com/madhukaraphatak/mesos/customjars/TaskScheduler.scala).
+
 ### Step 3 : Pass jarUris to executor
 
 We have to pass this uri's to the executor,so that it can download the jars and add them to class path before it starts running tasks. We pass it as the command line argument to the executor script as follows.
@@ -137,6 +141,9 @@ We have to pass this uri's to the executor,so that it can download the jars and 
       .build()
   }
 {% endhighlight   %}
+
+Access complete code [here](https://github.com/phatak-dev/blog/blob/master/code/MesosThirdPartyJars/src/main/scala/com/madhukaraphatak/mesos/customjars/TaskScheduler.scala).
+
 
 ### Step 4 : Access jars in Executor
 
@@ -169,6 +176,8 @@ In the executor side, we download this jars from specified jar uris. The followi
 
 Once it downloads the jars, it adds to the class path using URLClassLoader. We set this classloader on the thread which executes the task.
 
+Access complete code [here](https://github.com/phatak-dev/blog/blob/master/code/MesosThirdPartyJars/src/main/scala/com/madhukaraphatak/mesos/customjars/TaskExecutor.scala).
+
 ### Example : Mysql task
 
 The following is one of example which dynamically loads the mysql driver which is passed as library jar.
@@ -192,6 +201,8 @@ The following is one of example which dynamically loads the mysql driver which i
       })
   }
 {% endhighlight   %}
+
+Access complete code [here](https://github.com/phatak-dev/blog/blob/master/code/MesosThirdPartyJars/src/main/scala/com/madhukaraphatak/mesos/customjars/CustomTasks.scala).
 
 ### Running
 
