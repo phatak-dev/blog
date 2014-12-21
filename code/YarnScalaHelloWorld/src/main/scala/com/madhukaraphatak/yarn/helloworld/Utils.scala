@@ -15,6 +15,7 @@ import scala.collection.JavaConverters._
  */
 object Utils {
 
+  // add details of the local resource*
   def setUpLocalResource(resourcePath: Path, resource: LocalResource)(implicit conf:Configuration) = {
     val jarStat = FileSystem.get(conf).getFileStatus(resourcePath)
     resource.setResource(ConverterUtils.getYarnUrlFromPath(resourcePath))
@@ -24,9 +25,9 @@ object Utils {
     resource.setVisibility(LocalResourceVisibility.PUBLIC)
   }
 
+  //add the yarn jars to classpath
   def setUpEnv(env: collection.mutable.Map[String, String])(implicit conf:YarnConfiguration) = {
-    val classPath = YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH
-
+    val classPath =  conf.getStrings(YarnConfiguration.YARN_APPLICATION_CLASSPATH,YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH:_*)
     for (c <- classPath){
       Apps.addToEnvironment(env.asJava, Environment.CLASSPATH.name(),
         c.trim())
