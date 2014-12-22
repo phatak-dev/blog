@@ -1,7 +1,7 @@
 ---           
 layout: post
-title: "Apache YARN Hello world in Scala"
-date : 2014-12-21
+title: "Running scala programs on YARN"
+date : 2014-12-22
 categories: yarn scala hadoop
 ---
 
@@ -17,9 +17,9 @@ Yarn is written in Java. So the API it exposes is primarily in java. There is no
 tl;dr Access the complete code on [github](https://github.com/phatak-dev/blog/tree/master/code/YarnScalaHelloWorld).
 
 
-The following are the steps to write a YARN application which runs scala helloworld program on hadoop cluster.
+The following are the steps to write a yarn application which runs scala helloworld program on hadoop cluster.
 
-## Step 1 : Add Yarn dependencies 
+## Step 1 : Add yarn dependencies 
 
 {% highlight xml %}
 
@@ -36,17 +36,17 @@ The following are the steps to write a YARN application which runs scala hellowo
 
 {% endhighlight %}
 
-I am adding version 2.2.0 as I have that version installed on my system. If you have different version of hadoop installed please change accordingly.
+I am adding version 2.2.0 as I have that version installed on my system. If you have different version of hadoop installed, please change accordingly.
 
 *hadoop-yarn-client* dependency contains all protocols to talk to resource manager and node manager . We need *hadoop-common* to do hdfs operations.
 
 ## Step 2 : Yarn Client
 
-For every Yarn application, there will be a client which will launch application specific master.
+For every yarn application, there will be a client which will launch application specific master.
 
 So let's start implementing one
 
-### Step 2.1 : Start YARN client
+### Step 2.1 : Start yarn client
 
 First we have to start a YarnClient, which will talk to Resource manager on our behalf.
 
@@ -79,9 +79,9 @@ client.start()
 
 Launching an application master is just running a command from shell. Yarn will not know anything about application or it's environment. So you have to specify the complete command how to launch the application master.
 
-Please note that we call  *asJava* to convert scala list to java. The reason being all Yarn API take Java collections.
+Please note that we call  *asJava* to convert scala list to java. The reason being all yarn API take Java collections.
 
-Now you may be wondering, how YARN will get the code which contains this main class to launch. That's the next step
+Now you may be wondering, how yarn will get the code which contains this main class to launch. That's the next step
 
 ### Step 2.3 : Add the application jar to local resource
 
@@ -92,11 +92,11 @@ Now you may be wondering, how YARN will get the code which contains this main cl
 
 {% endhighlight %}
 
-Here we instruct the YARN to make the specific jar available in classpath when we launch the application master. These jars has to be there in HDFS not on your local system. How to copy and specify the path we will see in running section.
+Here we instruct the yarn to make the specific jar available in class path when we launch the application master. These jars has to be there in HDFS not on your local system. How to copy and specify the path we will see in running section.
 
-### Step 2.4: Add hadoop and yarn jars to classpath
+### Step 2.4: Add hadoop and yarn jars to class path
 
-As our code depends on hadoop and yarn api, we have to add them to classpath. The following code does that.
+As our code depends on hadoop and yarn api, we have to add them to class path. The following code does that.
 
 {% highlight scala %}
 
@@ -117,7 +117,7 @@ def setUpEnv(env: collection.mutable.Map[String, String])
 
 {% endhighlight %}
 
-We fill up our env map using the jar name from *YARN classpath* 
+We fill up our env map using the jar name from *yarn classpath* 
 
 {% highlight scala %}
   amContainer.setEnvironment(env.asJava)
@@ -127,7 +127,7 @@ Once we have map, set the map as environment for application master.
 
 ### Step 2.5: Specifying resource requirement for Application master
 
-Everything in YARN runs on a container which consumes part of resources on cluster. So before launching any container you have to specify how much resource it needs. 
+Everything in yarn runs on a container which consumes part of resources on cluster. So before launching any container you have to specify how much resource it needs. 
 
 {% highlight scala %}
  
@@ -137,7 +137,7 @@ Everything in YARN runs on a container which consumes part of resources on clust
 
 {% endhighlight %}
 
-Here we are telling to YARN that we need 300 mb of memory and one cpu to run our application master.
+Here we are telling to yarn that we need 300 mb of memory and one cpu to run our application master.
 
 
 ### Step 2.5: Setup the context and submit the application
@@ -159,12 +159,12 @@ client.submitApplication(appContext)
 
 {% endhighlight %}
 
-Find complete code listing here.
+Access complete code [here](https://github.com/phatak-dev/blog/blob/master/code/YarnScalaHelloWorld/src/main/scala/com/madhukaraphatak/yarn/helloworld/Client.scala).
 
 
 ## Step 3 : Application master
 
-Application Master is a simple java program which runs in YARN container. Application master is responsible for talking to RM and NM to request for containers to run the tasks. Here our task is to run our hello world program.
+Application Master is a simple java program which runs in yarn container. Application master is responsible for talking to RM and NM to request for containers to run the tasks. Here our task is to run our hello world program.
 
 ### Step 3.1 : Start RM and NM client
 
@@ -199,9 +199,9 @@ for ( i <- 1 to n) {
 {% endhighlight %}
 
 
-### Step 3.3 : Waiting for Container allocation
+### Step 3.3 : Wait for container allocation
 
-Whenever you request for containers in Yarn, they will be not allocated immediately. If there is high traffic on cluster, your application has to wait till the resources are free.
+Whenever you request for containers in yarn, they will be not allocated immediately. If there is high traffic on cluster, your application has to wait till the resources are free.
 
 ### Step 3.4 : Launch Hellworld on allocated container
 
@@ -243,6 +243,7 @@ nmClient.startContainer(container, ctx)
 }
 {% endhighlight %}
 
+Access complete code [here](https://github.com/phatak-dev/blog/blob/master/code/YarnScalaHelloWorld/src/main/scala/com/madhukaraphatak/yarn/helloworld/ApplicationMaster.scala).
 
 ## Step 4 : Hello world program
 
@@ -259,23 +260,36 @@ object HelloWorld {
 
 ## Step 5 : Build
 
-Download code from [here]() and run *mvn clean install*
+Download code from [here](https://github.com/phatak-dev/blog/tree/master/code/YarnScalaHelloWorld) and run *mvn clean install*
 
 ## Step 6 : Running
 
-* Create jars folder
- {% highlight sh %}
- hdfs dfs -mkdir /jars
- {% endhighlight%} 
+Follow the following steps to run the example.
 
-* Put the jar file in /jars
- {% highlight sh %}
+### Step 6.1 : Create jars folder in HDFS
+
+This folder will hold the jar built in the build step. As we discussed earlier,
+the jar containing application master has to be in HDFS in order to add as a local resource.
+
+{% highlight sh %}
+hdfs dfs -mkdir /jars
+{% endhighlight%} 
+
+### Step 6.2 : Put the jar file in /jars
+
+Copy the jar from your local file system to HDFS.
+
+{% highlight sh %}
  hdfs dfs -put <jar-path> /jars
- {% endhighlight%} 
+{% endhighlight%} 
 
-* Run the code
- {% highlight sh %}
+### Step 6.3 : Run the code
+
+Replace *jar-path* with absolute path to jar on you system. Also put appropriate values for namenode-host and namenode-port. The last parameter specifies number of containers.
+
+{% highlight sh %}
  hadoop jar <jar-path>  com.madhukaraphatak.yarn.helloworld.Client hdfs://<namenode-host:namenode-port>/jars/yarn-helloworld-scala-1.0-SNAPSHOT.jar 1
- {% endhighlight%} 
+{% endhighlight%} 
 
-If everything runs fine, you should see hello world in logs available in *HADOOP_HOME/logs/userlogs/<application-id>/*.
+If everything runs fine, you should see hello world in logs, available at
+$HADOOP_HOME/logs/userlogs.
