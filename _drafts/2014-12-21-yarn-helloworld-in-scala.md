@@ -278,4 +278,4 @@ Download code from [here]() and run *mvn clean install*
  hadoop jar <jar-path>  com.madhukaraphatak.yarn.helloworld.Client hdfs://<namenode-host:namenode-port>/jars/yarn-helloworld-scala-1.0-SNAPSHOT.jar 1
  {% endhighlight%} 
 
-If everything runs fine, you should see hello world in logs available in *$HADOOP_HOME/logs/userlogs/<application-id>/*.
+If everything runs fine, you should see hello world in logs available in *HADOOP_HOME/logs/userlogs/<application-id>/*.
