@@ -6,7 +6,7 @@ categories: spark
 custom_css : long_heading
 ---
 
-Apache Spark is one of the most interesting frameworks in big data in recent years. Spark had it's humble beginning as a research project at UC Berkeley. Recently O'Reilly Ben Lorica [interviewed](https://soundcloud.com/oreilly-radar/apache-sparks-journey-from-academia-to-industry) Ion Stoica, UC Berkeley professor and databricks CEO, about the rise of apache spark and Apache mesos. 
+Apache Spark is one of the most interesting frameworks in big data in recent years. Spark had it's humble beginning as a research project at UC Berkeley. Recently O'Reilly Ben Lorica [interviewed](https://soundcloud.com/oreilly-radar/apache-sparks-journey-from-academia-to-industry) Ion Stoica, UC Berkeley professor and databricks CEO, about history of apache spark.
 
 This post captures some of the interesting questions from the interview.
 
