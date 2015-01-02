@@ -7,6 +7,64 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>History of Apache Spark : Journey from Academia to Industry</title>
+        <description>&lt;p&gt;Apache Spark is one of the most interesting frameworks in big data in recent years. Spark had it’s humble beginning as a research project at UC Berkeley. Recently O’Reilly Ben Lorica &lt;a href=&quot;https://soundcloud.com/oreilly-radar/apache-sparks-journey-from-academia-to-industry&quot;&gt;interviewed&lt;/a&gt; Ion Stoica, UC Berkeley professor and databricks CEO, about history of apache spark.&lt;/p&gt;
+
+&lt;p&gt;This post captures some of the interesting questions from the interview.&lt;/p&gt;
+
+&lt;h3 id=&quot;q--how-apache-spark-started&quot;&gt;Q : How Apache Spark started?&lt;/h3&gt;
+
+&lt;p&gt;The story started back in 2009 with mesos. It was a class project in UC Berkley. Idea was to build a cluster management framework, which can support different kind of cluster computing systems.Once mesos was built, then we thought what we can build on top of mesos. That’s how spark was born. &lt;/p&gt;
+
+&lt;p&gt;We wanted to show how easy it was to build a framework from scratch in mesos. We also wanted to be different from existing cluster computing systems. At that time, Hadoop targeted batch processing, so we targeted interactive iterative computations like machine learning.&lt;/p&gt;
+
+&lt;p&gt;The requirement for machine learning came from the head of department at that time. They were trying to scale machine learning on top of Hadoop. Hadoop was slow for ML as it needed to exchange data between iterations through HDFS. The requirement for interactive querying came from the company, Conviva, which I founded that time. As part of video analytical tool built by company, we supported adhoc querying. We were using Mysql at that time, but we knew it’s not good enough. Also there are many companies came out of UC,like Yahoo,Facebook were facing similar challenges. So we knew there was need for framework focused on interactive and iterative processing.&lt;/p&gt;
+
+&lt;h3 id=&quot;q--one-of-the-strength-of-spark-is-its-nice-integration-with-hadoop-ecosystem-is-it-was-a-conscious-choice-right-from-the-beginning&quot;&gt;Q : One of the strength of Spark is, it’s nice integration with Hadoop ecosystem. Is it was a conscious choice right from the beginning?&lt;/h3&gt;
+
+&lt;p&gt;Yes. It was a conscious decision. We never planned for storage layer for Spark,at least at that point of time. So our targeted user base was the one who already had their data in HDFS. &lt;/p&gt;
+
+&lt;h3 id=&quot;q--another-thing-that-made-spark-popular-is-how-its-ties-together-different-kind-of-workloads-in-data-science-pipeline-having-common-execution-engine-for-machine-learning-real-time-etc-was-design-decision-from-the-beginning&quot;&gt;Q : Another thing that made Spark popular, is how it’s ties together different kind of workloads in data science pipeline. Having common execution engine for machine learning, real time etc was design decision from the beginning?&lt;/h3&gt;
+
+&lt;p&gt;That’s an excellent question. May be it was in between. It was pretty obvious at that time we wanted more unification. At conviva, we had two stack. One for real time and one for historical data. Real time system was home grown one and we used hadoop for historical data. It’s hard to integrate between two different stacks. Also, two different stacks comes with higher maintenance costs. &lt;/p&gt;
+
+&lt;p&gt;One of the challenges was having same metrics in both stacks. For example, one of the metric was how many people watched video at given point of time. This metrics is useful both in real time and historical time. But the problem was,each stack had its own data, algorithm and code base to calculate these metrics. So maintaining these metrics consistently was extremely hard.&lt;/p&gt;
+
+&lt;p&gt;Even hadoop batch jobs were like real time systems with a delay of 20-30 mins. So Spark, with aggressive in memory usage, we were able to run same batch processing systems in under a min. Then we started to think, if we can run one job so fast, it will be nice to have multiple jobs running in a sequence to solve particular pipeline under very small time interval. That’s how having a common execution engine for different computation was born.&lt;/p&gt;
+
+&lt;h3 id=&quot;q--normally-research-projects-get-abandoned-after-paper-is-published-but-berkley-has-a-track-record-with-projects-like-postgres-bsd-and-now-with-spark-to-make-industry-to-adopt-these-projects-so-what-is-your-role-in-this&quot;&gt;Q : Normally research projects get abandoned after paper is published. But Berkley has a track record with projects like Postgres, BSD and now with Spark to make industry to adopt these projects. So what is your role in this?&lt;/h3&gt;
+
+&lt;p&gt;There are many components. And if you look back, you can always revise history. Especially if you had success. First of all, we had a fantastic group of students. Matei, the creator of Spark and others who did Mesos. And then another great group of different students who contributed and built different modules on top of Spark, and made what Spark it is today, which is really a platform. So, that’s one: the students&lt;/p&gt;
+
+&lt;p&gt;The other one was a great collaboration with the industry. We are seeing first hand what the problems are, challenges, so you’re pretty anchored in reality.&lt;/p&gt;
+
+&lt;p&gt;The third thing is, we are early. In some sense, we started very early to look at big data, we started as early 2006, 2007 starting to look at big data problems. We had a little bit of a first-mover advantage, at least in the academic space. So, all this together, plus the fact that the first releases of these tools, in particular Spark, was like 2000 lines of code,very small,so tractable.&lt;/p&gt;
+
+&lt;h3 id=&quot;q--one-of-the-interesting-part-of-community-activities-was-the-hosting-meetups-for-discussing-spark-this-is-unlike-any-academic-projects-as-there-are-not-many-incentives-for-students-or-university&quot;&gt;Q : One of the interesting part of community activities was the hosting meetups for discussing Spark. This is unlike any academic projects, as there are not many incentives for students or university.&lt;/h3&gt;
+
+&lt;p&gt;It was all about aligning different incentives. At one hand, students get to meet people who use their software which is great but other hand, these students are here to get a Phd. It is this belief that, building systems and making people using it, allow you to understand new problems first hand. You can solve them. You will be among the first one to do research on them. So it results in greater research. So this complimentary nature of these activities keep students engaged for years to come.&lt;/p&gt;
+
+&lt;h3 id=&quot;q-in-last-year-there-are-many-things-happened-spark-became-apache-project-you-guys-started-data-bricks-spark-summits-attracting-more-and-more-people-it-seems-like-spark-becoming-main-stream-so-whats-the-thinking-behind-becoming-apache-project-and-starting-a-company&quot;&gt;Q: In Last year, there are many things happened. Spark became Apache project. You guys started Data bricks. Spark summits attracting more and more people. It seems like spark becoming main stream. So what’s the thinking behind becoming Apache project and starting a company?&lt;/h3&gt;
+
+&lt;p&gt;Once again, excellent question. Right from beginning community was interested in contributing to spark. This interest grew and grew over the years. So being an apache project, made spark more consumable for enterprise customers. Also having a entity behind the project, gives more confidence to enterprise to adopt technologies. &lt;/p&gt;
+
+&lt;p&gt;As of now, main focus of the company is to increase adoption of spark. We want to put spark in hands of as many people as possible. Also we want people to have great experience on their platform. So instead of having our own distribution of spark, we have partnered  with other hadoop distributors like Cloudera, Hortonworks and big data system distributors like datastax to help them to distribute spark in order to satisfy their customers. &lt;/p&gt;
+
+&lt;h3 id=&quot;q--one-of-the-unique-value-of-spark-is-of-having-apis-in-python-java-other-than-native-scala-whats-the-thinking-behind-this&quot;&gt;Q : One of the unique value of Spark is of having API’s in python, Java other than native Scala. What’s the thinking behind this?&lt;/h3&gt;
+
+&lt;p&gt;That’s excellent observation. In last year there are many interesting new applications are build on top of spark. The reason behind that, from the beginning we have focused a lot to make building new application very easy. Spark has a very rich API with more than 80 operators. Also we added more languages binding over time. Also with excellent libraries, it makes spark a great platform for developers to build their applications.&lt;/p&gt;
+
+&lt;h3 id=&quot;q--now-if-you-look-back-to-2009-there-was-no-way-you-predicted-its-going-to-so-big&quot;&gt;Q : Now if you look back to 2009, there was no way you predicted it’s going to so big?&lt;/h3&gt;
+
+&lt;p&gt;Absolutely not. We wanted to have some good, interesting research projects; we wanted to make it as real as possible, but in no way could we have anticipated the adoption and the enthusiasm of people and of the community around what we have built.&lt;/p&gt;
+
+</description>
+        <pubDate>Fri, 02 Jan 2015 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/history-of-spark</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/history-of-spark</guid>
+      </item>
+    
+      <item>
         <title>Running scala programs on YARN</title>
         <description>&lt;p&gt;Apache YARN is  &lt;em&gt;Yet Another Resource Negotiator&lt;/em&gt; for distributed systems. It’s a distributed system resource scheduler similar to mesos. Yarn was created as effort to diversify the hadoop for different use cases. Yarn is available in all hadoop 2.x releases.&lt;/p&gt;
 
@@ -1411,79 +1469,6 @@ to &lt;a href=&quot;http://localhost:5050&quot;&gt;localhost:5050&lt;/a&gt;&lt;/
         <pubDate>Sun, 26 Oct 2014 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/mesos-helloworld-scala</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/mesos-helloworld-scala</guid>
-      </item>
-    
-      <item>
-        <title>Mesos single node cluster on Ubuntu</title>
-        <description>&lt;p&gt;&lt;a href=&quot;http://mesos.apache.org/&quot;&gt;Apache Mesos&lt;/a&gt; is a distributed scheduling framework which allows us to build a fault tolerant distributed system from scratch. In this post we are going to see step by step instructions to install mesos on a ubuntu system.&lt;/p&gt;
-
-&lt;p&gt;To follow these steps, make sure that you have a 64-bit machine with Ubuntu 12.04 or later.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-1--download-mesos&quot;&gt;Step 1 : Download Mesos&lt;/h3&gt;
-
-&lt;p&gt;Run the following commands to download and extract mesos distribution. Here we are downloading latest stable mesos version 0.20.0.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;wget http://www.apache.org/dist/mesos/0.20.0/mesos-0.20.0.tar.gz      
-tar -zxf mesos-0.20.0.tar.gz&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;After running above commands, we will get a folder named &lt;strong&gt;mesos-0.20.0&lt;/strong&gt; which we refer as &lt;strong&gt;MESOS_INSTALL&lt;/strong&gt; from now on.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-2--install-prerequisites&quot;&gt;Step 2 : Install Prerequisites&lt;/h3&gt;
-
-&lt;p&gt;Mesos is written in C and C++. So to install mesos, we need to install it’s dependencies. So run the following command to install all the needed dependencies.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;sudo apt-get update&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; sudo apt-get install build-essential openjdk-6-jdk python-dev python-boto libcurl4-nss-dev libsasl2-dev&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;step-3--build-mesos&quot;&gt;Step 3 : Build mesos&lt;/h3&gt;
-&lt;p&gt;Mesos is distributed as a source code package, rather than as binary. So we have to build the source code in order to get running binaries. Run the following commands to build the source code. Please replace MESOS_INSTALL in the commands with the path to &lt;em&gt;mesos-0.20.0&lt;/em&gt; directory.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;MESOS_INSTALL &lt;span class=&quot;c&quot;&gt;# Replace MESOS_INSTALL with actual path to mesos-0.20.0&lt;/span&gt;
- mkdir build     &lt;span class=&quot;c&quot;&gt;#create directory where the compiled code lives&lt;/span&gt;
- &lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;build
- ../configure
- make 
- make check&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Compiling and running test cases may take while to complete. It took around 1hr on my machine. So be patient.&lt;/p&gt;
-
-&lt;p&gt;Once &lt;em&gt;make check&lt;/em&gt; completes successfully, mesos is successfully installed on your machine.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-4--setting-up-single-node-cluster&quot;&gt;Step 4 : Setting up single node cluster&lt;/h3&gt;
-&lt;p&gt;Mesos cluster can have single master and multiple slaves. In this post, we will discuss how to setup single master and single slave.&lt;/p&gt;
-
-&lt;p&gt;Make sure that you are in &lt;em&gt;mesos-0.20.0/build&lt;/em&gt; folder to run the following commands.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;#start master&lt;/span&gt;
-./bin/mesos-master.sh --ip&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;127.0.0.1 --work_dir&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/tmp/mesos
-&lt;span class=&quot;c&quot;&gt;#start slave&lt;/span&gt;
-./bin/mesos-slave.sh --master&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;127.0.0.1:5050&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You can check if the cluster started or not by pointing your web browser at &lt;a href=&quot;http://127.0.0.1:5050&quot;&gt;127.0.0.1:5050&lt;/a&gt;. If you can see 1 at under “Slaves -&amp;gt; Activated” then you have single node cluster running.&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;bin&lt;/em&gt; folder contains all the shell scripts to start master and slave daemons. &lt;em&gt;mesos-master.sh&lt;/em&gt; starts the mesos master with a checkpoint directory supplied at &lt;em&gt;–work-dir&lt;/em&gt;. For this example I have used /tmp directory. But in real use case please use some other directory. &lt;/p&gt;
-
-&lt;p&gt;The script starts the mesos master at localhost:5050. To see all the options for the script, run &lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;./bin/mesos-master.sh --help&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Same way, you can start mesos slave using &lt;em&gt;mesos-slave.sh&lt;/em&gt;. You have to pass master info in order to mesos slave to discover it’s master. To see all the options for the script, run&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;./bin/mesos-slave.sh --help&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;step-5--testing-single-node-cluster&quot;&gt;Step 5 : Testing single node cluster&lt;/h3&gt;
-&lt;p&gt;Now we have single node cluster running. But how we can be sure that it is rightly configured to run tasks?. To test that, mesos provides few tests. We are going to use only the java test cases, as we are interested in Mesos Java API. Mesos also provides C++,Python
-API’s.&lt;/p&gt;
-
-&lt;p&gt;Run the following command to make sure mesos is rightly configured to run Java frameworks.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;./src/examples/java/test-framework 127.0.0.1:5050&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;If the test framework is able to run all the tasks successfully you have the mesos single node cluster working.&lt;/p&gt;
-
-</description>
-        <pubDate>Fri, 24 Oct 2014 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/mesos-single-node-setup-ubuntu</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/mesos-single-node-setup-ubuntu</guid>
       </item>
     
   </channel>

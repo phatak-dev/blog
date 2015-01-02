@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>History of Apache Spark : Journey from Academia to Industry</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Thoughts on technology, life and everything else.">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/history-of-spark">
+     <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/app.css">
+   
+   
+   <link rel="stylesheet" href="/css/long_heading.css" type="text/css" >
+   
+       
+</head>
+
+
+    <body>
+
+    <header >
+  <div class="wrap">
+    <a class="site-title" href="/">Madhukar's Blog</a>    
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrap">
+      <div class="post">
+ <header class="post-header">
+  <h1>History of Apache Spark : Journey from Academia to Industry</h1>
+  <p class="meta">Jan 2, 2015</p>
+  <div class="catagories">
+    
+    <a href="/categories/spark"><span class="category">spark</span></a>
+    
+  </div>
+</header> 
+
+<article class="post-content">
+  <p>Apache Spark is one of the most interesting frameworks in big data in recent years. Spark had it’s humble beginning as a research project at UC Berkeley. Recently O’Reilly Ben Lorica <a href="https://soundcloud.com/oreilly-radar/apache-sparks-journey-from-academia-to-industry">interviewed</a> Ion Stoica, UC Berkeley professor and databricks CEO, about history of apache spark.</p>
+
+<p>This post captures some of the interesting questions from the interview.</p>
+
+<h3 id="q--how-apache-spark-started">Q : How Apache Spark started?</h3>
+
+<p>The story started back in 2009 with mesos. It was a class project in UC Berkley. Idea was to build a cluster management framework, which can support different kind of cluster computing systems.Once mesos was built, then we thought what we can build on top of mesos. That’s how spark was born. </p>
+
+<p>We wanted to show how easy it was to build a framework from scratch in mesos. We also wanted to be different from existing cluster computing systems. At that time, Hadoop targeted batch processing, so we targeted interactive iterative computations like machine learning.</p>
+
+<p>The requirement for machine learning came from the head of department at that time. They were trying to scale machine learning on top of Hadoop. Hadoop was slow for ML as it needed to exchange data between iterations through HDFS. The requirement for interactive querying came from the company, Conviva, which I founded that time. As part of video analytical tool built by company, we supported adhoc querying. We were using Mysql at that time, but we knew it’s not good enough. Also there are many companies came out of UC,like Yahoo,Facebook were facing similar challenges. So we knew there was need for framework focused on interactive and iterative processing.</p>
+
+<h3 id="q--one-of-the-strength-of-spark-is-its-nice-integration-with-hadoop-ecosystem-is-it-was-a-conscious-choice-right-from-the-beginning">Q : One of the strength of Spark is, it’s nice integration with Hadoop ecosystem. Is it was a conscious choice right from the beginning?</h3>
+
+<p>Yes. It was a conscious decision. We never planned for storage layer for Spark,at least at that point of time. So our targeted user base was the one who already had their data in HDFS. </p>
+
+<h3 id="q--another-thing-that-made-spark-popular-is-how-its-ties-together-different-kind-of-workloads-in-data-science-pipeline-having-common-execution-engine-for-machine-learning-real-time-etc-was-design-decision-from-the-beginning">Q : Another thing that made Spark popular, is how it’s ties together different kind of workloads in data science pipeline. Having common execution engine for machine learning, real time etc was design decision from the beginning?</h3>
+
+<p>That’s an excellent question. May be it was in between. It was pretty obvious at that time we wanted more unification. At conviva, we had two stack. One for real time and one for historical data. Real time system was home grown one and we used hadoop for historical data. It’s hard to integrate between two different stacks. Also, two different stacks comes with higher maintenance costs. </p>
+
+<p>One of the challenges was having same metrics in both stacks. For example, one of the metric was how many people watched video at given point of time. This metrics is useful both in real time and historical time. But the problem was,each stack had its own data, algorithm and code base to calculate these metrics. So maintaining these metrics consistently was extremely hard.</p>
+
+<p>Even hadoop batch jobs were like real time systems with a delay of 20-30 mins. So Spark, with aggressive in memory usage, we were able to run same batch processing systems in under a min. Then we started to think, if we can run one job so fast, it will be nice to have multiple jobs running in a sequence to solve particular pipeline under very small time interval. That’s how having a common execution engine for different computation was born.</p>
+
+<h3 id="q--normally-research-projects-get-abandoned-after-paper-is-published-but-berkley-has-a-track-record-with-projects-like-postgres-bsd-and-now-with-spark-to-make-industry-to-adopt-these-projects-so-what-is-your-role-in-this">Q : Normally research projects get abandoned after paper is published. But Berkley has a track record with projects like Postgres, BSD and now with Spark to make industry to adopt these projects. So what is your role in this?</h3>
+
+<p>There are many components. And if you look back, you can always revise history. Especially if you had success. First of all, we had a fantastic group of students. Matei, the creator of Spark and others who did Mesos. And then another great group of different students who contributed and built different modules on top of Spark, and made what Spark it is today, which is really a platform. So, that’s one: the students</p>
+
+<p>The other one was a great collaboration with the industry. We are seeing first hand what the problems are, challenges, so you’re pretty anchored in reality.</p>
+
+<p>The third thing is, we are early. In some sense, we started very early to look at big data, we started as early 2006, 2007 starting to look at big data problems. We had a little bit of a first-mover advantage, at least in the academic space. So, all this together, plus the fact that the first releases of these tools, in particular Spark, was like 2000 lines of code,very small,so tractable.</p>
+
+<h3 id="q--one-of-the-interesting-part-of-community-activities-was-the-hosting-meetups-for-discussing-spark-this-is-unlike-any-academic-projects-as-there-are-not-many-incentives-for-students-or-university">Q : One of the interesting part of community activities was the hosting meetups for discussing Spark. This is unlike any academic projects, as there are not many incentives for students or university.</h3>
+
+<p>It was all about aligning different incentives. At one hand, students get to meet people who use their software which is great but other hand, these students are here to get a Phd. It is this belief that, building systems and making people using it, allow you to understand new problems first hand. You can solve them. You will be among the first one to do research on them. So it results in greater research. So this complimentary nature of these activities keep students engaged for years to come.</p>
+
+<h3 id="q-in-last-year-there-are-many-things-happened-spark-became-apache-project-you-guys-started-data-bricks-spark-summits-attracting-more-and-more-people-it-seems-like-spark-becoming-main-stream-so-whats-the-thinking-behind-becoming-apache-project-and-starting-a-company">Q: In Last year, there are many things happened. Spark became Apache project. You guys started Data bricks. Spark summits attracting more and more people. It seems like spark becoming main stream. So what’s the thinking behind becoming Apache project and starting a company?</h3>
+
+<p>Once again, excellent question. Right from beginning community was interested in contributing to spark. This interest grew and grew over the years. So being an apache project, made spark more consumable for enterprise customers. Also having a entity behind the project, gives more confidence to enterprise to adopt technologies. </p>
+
+<p>As of now, main focus of the company is to increase adoption of spark. We want to put spark in hands of as many people as possible. Also we want people to have great experience on their platform. So instead of having our own distribution of spark, we have partnered  with other hadoop distributors like Cloudera, Hortonworks and big data system distributors like datastax to help them to distribute spark in order to satisfy their customers. </p>
+
+<h3 id="q--one-of-the-unique-value-of-spark-is-of-having-apis-in-python-java-other-than-native-scala-whats-the-thinking-behind-this">Q : One of the unique value of Spark is of having API’s in python, Java other than native Scala. What’s the thinking behind this?</h3>
+
+<p>That’s excellent observation. In last year there are many interesting new applications are build on top of spark. The reason behind that, from the beginning we have focused a lot to make building new application very easy. Spark has a very rich API with more than 80 operators. Also we added more languages binding over time. Also with excellent libraries, it makes spark a great platform for developers to build their applications.</p>
+
+<h3 id="q--now-if-you-look-back-to-2009-there-was-no-way-you-predicted-its-going-to-so-big">Q : Now if you look back to 2009, there was no way you predicted it’s going to so big?</h3>
+
+<p>Absolutely not. We wanted to have some good, interesting research projects; we wanted to make it as real as possible, but in no way could we have anticipated the adoption and the enthusiasm of people and of the community around what we have built.</p>
+
+
+</article>
+
+
+<div class="related">
+  <h2>Related posts</h2>
+  <ul>
+    
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">03 Dec 2014</span>
+     &raquo; <a href="/sizeof-operator-java-scala">sizeof operator for Java&#47;Scala</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">18 Nov 2014</span>
+     &raquo; <a href="/kryo-disk-serialization-in-spark">Kryo disk serialization in Spark</a>    
+   </li>           
+         
+
+   
+   
+ </ul>
+
+
+ 
+     
+    <div id="disqus_thread" style="padding-top:4%;"></div>
+     <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'personalblogmadhukar'; // required: replace example with your forum shortname
+        var disqus_developer = 1;
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+   
+</div>
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrap">   
+    <div class="footer-col-1 column">
+      <ul>
+        <li>
+          <a href="https://github.com/phatak-dev">
+            <span class="icon github">
+              <svg version="1.1" class="github-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill-rule="evenodd" clip-rule="evenodd" fill="#C2C2C2" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761
+                c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32
+                c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472
+                c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037
+                C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65
+                c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261
+                c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082
+                c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129
+                c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+              </svg>
+            </span>
+            <span class="username">phatak-dev</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://twitter.com/madhukaraphatak">
+            <span class="icon twitter">
+              <svg version="1.1" class="twitter-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill="#C2C2C2" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809
+                c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27
+                c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767
+                c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206
+                C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271
+                c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469
+                c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/>
+              </svg>
+            </span>
+            <span class="username">madhukaraphatak</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer-col-3 column">
+      <p class="text">Thoughts on technology, life and everything else.</p>
+    </div>
+
+    <div style="float:right;">
+      <a href="/feed.xml"><img src="/images/rss.png">
+    </div>
+
+
+
+  </div>
+
+</footer>
+
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52311191-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+    </body>
+</html>
