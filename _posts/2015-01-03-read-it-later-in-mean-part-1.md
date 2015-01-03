@@ -1,39 +1,44 @@
 ---           
 layout: post
 title: "Building Read it later service on MEAN stack - Part 1"
-date : 23-12-2014
+date : 2015-01-03
 categories: javascript mean mean-series
 ---
 
-Recently I gave a talk on how to build RESTful services on MEAN stack. In the talk, I went through a step by step tutorial to build a Read it later service on top of the MEAN stack. These series post will be excerpt from the talk.
 
-This is first post in the series, where will be discussing about what is MEAN stack and what is it good for.
+Recently I gave a [talk](http://www.meetup.com/JSChannel-Bengaluru/events/183847322/) on how to build RESTful services on MEAN stack. In the talk, I went through a step by step tutorial to build read it later service on top of the MEAN stack. These series of posts will cover the topics covered in the talk. 
 
-tl;tr If you are just interested in code and slides, you can grab it from [slideshare]((http://www.slideshare.net/madhukaraphatak/mean-41838061))and [github](https://github.com/phatak-dev/mean-readitlater).
+This is the first post in the series, where I will be discussing about what is MEAN stack and what is it good for.
 
-## What is a stack?
+tl;dr You can grab slides from [slideshare](http://www.slideshare.net/madhukaraphatak/mean-41838061) and code from [github](https://github.com/phatak-dev/mean-readitlater).
 
-Software stack is a set of tools working together to solve specific problem. Typically these tools are created in independent manner and also can be used separately. But when these tools are used together they give better results.One of the example is LAMP stack, which contains Linux, Apache web server, Mysql and PHP. As you can all these technologies are created independently and can be used separately. But if you put them together, you get a powerful set to create great websites.
+## What is a software stack?
+
+Software stack is a set of tools working together to solve a specific problem. Typically these tools are created and can be used independently. But when these tools are put together as a stack,they give better results.
+
+One of the example of software stack is LAMP stack.It contains Linux, Apache web server, Mysql and PHP. As you can see all these technologies are created independently and can be used separately. But if you put them together, as LAMP stack, you get a powerful set to create great websites.
 
 
 ## What is MEAN stack?
 
-MEAN stands for Mongodb, Express, Angular and Node. It's a software stack to build web applications. All the technologies in the stack talk same language i.e is Java script.
+MEAN stands for Mongodb, Express, Angular and Node. It's a JavaScript based software stack to build web applications. 
 
 ## Why MEAN stack?
 
-You may have heard about LAMP stack before. LAMP stack was build for building powerful websites. It was in 1990's. But time has changed now. We are building more and more web applications rather than building websites. So we need a better stack which can support the building web applications rapidly. MEAN stack helps you to build the application rapidly compare to LAMP stack.
+You may have heard about LAMP stack before. LAMP stack was created for building powerful websites. But itt was 1990's. Times have changed. Now we are building more and more web applications rather than building websites. So we need a better stack which can support the building web applications rapidly. MEAN stack helps you to build the web applications rapidly compare to LAMP stack.
 
 
 
 ## MEAN vs LAMP
 
- LAMP              MEAN
+| LAMP     |  MEAN |
+|------------- |-------------|
+|Linux          |   V8
+|Apache         |  Node.js
+|Mysql          |  Mongodb
+|Php            |  Express
 
- Linux             V8
- Apache            Node.js
- Mysql             Mongodb
- Php               Express
+
 
  The above table shows the difference between LAMP and MEAN. I am cheating little bit here. V8, the javascript runtime of Chrome, is not a operating system. It's a virtual machine which is available on all the operating system. With trend of virtual machines like JVM,CLR the dependence on operating system is fading.
 
