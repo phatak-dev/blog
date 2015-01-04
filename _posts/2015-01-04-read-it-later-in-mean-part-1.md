@@ -6,7 +6,10 @@ categories: javascript mean-series
 ---
 
 
-Recently I gave a [talk](http://www.meetup.com/JSChannel-Bengaluru/events/183847322/) on how to build RESTful services on MEAN stack. In the talk, I went through a step by step tutorial to build read it later service on top of the MEAN stack. In coming series of posts, I will be capturing interesting points from the talk.
+Recently I gave a [talk](http://www.meetup.com/JSChannel-Bengaluru/events/183847322/) on how to build RESTful services on MEAN stack. As part of the talk, I went through a step by step tutorial to build read it later service on top of the MEAN stack. 
+
+With interest shown by audience, I thought it is good to document the tutorial so that it will be available for any one who dint attend the talk. So in next series of posts, I will be discussing what is MEAN stack and how you can build a read it later service from scratch on MEAN stack.
+
 
 This is the first post in multi-post series , where I will be discussing about what is MEAN stack and what is it good for.
 
