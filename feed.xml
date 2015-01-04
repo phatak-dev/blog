@@ -7,6 +7,134 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Building Read it later service on MEAN stack - Part 1</title>
+        <description>&lt;p&gt;Recently I gave a &lt;a href=&quot;http://www.meetup.com/JSChannel-Bengaluru/events/183847322/&quot;&gt;talk&lt;/a&gt; on how to build RESTful services on MEAN stack. As part of the talk, I went through a step by step tutorial to build read it later service on top of the MEAN stack. &lt;/p&gt;
+
+&lt;p&gt;With interest shown by audience, I thought it is good to document the tutorial so that it will be available for any one who dint attend the talk. So in next series of posts, I will be discussing what is MEAN stack and how you can build a read it later service from scratch on MEAN stack.&lt;/p&gt;
+
+&lt;p&gt;This is the first post in multi-post series , where I will be discussing about what is MEAN stack and what is it good for.&lt;/p&gt;
+
+&lt;p&gt;tl;dr You can grab slides from &lt;a href=&quot;http://www.slideshare.net/madhukaraphatak/mean-41838061&quot;&gt;slideshare&lt;/a&gt; and code from &lt;a href=&quot;https://github.com/phatak-dev/mean-readitlater&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-is-a-software-stack&quot;&gt;What is a software stack?&lt;/h2&gt;
+
+&lt;p&gt;Software stack is set of tools working together to solve a specific problem. Typically these tools are created and can be used independently. But when these tools are put together as a stack,they give better results.&lt;/p&gt;
+
+&lt;p&gt;One of the example of software stack is LAMP stack.It contains Linux, Apache web server, Mysql and PHP. As you can see, all of these technologies are created independently and can be used separately. But if you put them together as LAMP stack, you get a powerful toolbox to create great websites.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-is-mean-stack&quot;&gt;What is MEAN stack?&lt;/h2&gt;
+
+&lt;p&gt;MEAN stands for Mongodb, Express, Angular and Node. It’s a JavaScript based software stack to build web applications. &lt;/p&gt;
+
+&lt;h2 id=&quot;why-mean-stack&quot;&gt;Why MEAN stack?&lt;/h2&gt;
+
+&lt;p&gt;You may have heard about LAMP stack before. LAMP stack was created for building powerful websites. But it was 1990’s. Times have changed. Now we are building more and more web applications rather than building websites. So we need a better stack which can support rapid development of web applications. MEAN stack helps you to build the web applications rapidly compare to LAMP stack.&lt;/p&gt;
+
+&lt;h2 id=&quot;mean-vs-lamp&quot;&gt;MEAN vs LAMP&lt;/h2&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;LAMP&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;MEAN&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Linux&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;V8&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Apache&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Node.js&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Mysql&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Mongodb&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Php&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;Express&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;The above table shows the difference between LAMP and MEAN. I am cheating little bit here. V8, the JavaScript runtime of Chrome, is not a operating system. It’s a virtual machine which is available on all the operating system. But with trend of virtual machines like JVM,CLR the dependence on operating system is fading. So MEAN stack can run any platform.&lt;/p&gt;
+
+&lt;p&gt;We use mongodb in place of Mysql for storage. We use express in place of Php for MVC. Node.js will replace apache for web server.&lt;/p&gt;
+
+&lt;p&gt;You may be wondering where is angular. There is no equivalent in LAMP for angular. So it is not shown in the table.&lt;/p&gt;
+
+&lt;h2 id=&quot;why-to-move-from-lamp-to-mean&quot;&gt;Why to move from LAMP to MEAN&lt;/h2&gt;
+
+&lt;p&gt;LAMP was created to build websites. It’s not suitable for building web applications, where we will be predominately building REST based API’s. There is a lot of overheads to create the REST services on LAMP. But with MEAN you can build those with very less effort.&lt;/p&gt;
+
+&lt;p&gt;In next section, we are going to look at how it looks to create REST web applications in LAMP vs REST on MEAN stack. &lt;/p&gt;
+
+&lt;h2 id=&quot;rest-in-lamp&quot;&gt;REST in LAMP&lt;/h2&gt;
+
+&lt;p&gt;The following picture shows what it takes to build a REST service in LAMP&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/rest_lamp.png&quot; alt=&quot;REST in LAMP&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The following are the over heads&lt;/p&gt;
+
+&lt;h3 id=&quot;adding-a-new-field&quot;&gt;Adding a new field&lt;/h3&gt;
+
+&lt;p&gt;If you want to add a new field, you have to change in lot of places. First you have to change in client side json, then in the server side Java model, then in ORM mapping and finally in the database table. These kind of over head adds strain on rapid development.&lt;/p&gt;
+
+&lt;h3 id=&quot;mapping-nested-json-to-rdbms&quot;&gt;Mapping nested json to RDBMS&lt;/h3&gt;
+
+&lt;p&gt;Typically json has great support for nested structures. But expressing the nested structures in RDBMS is hard.&lt;/p&gt;
+
+&lt;h3 id=&quot;lost-in-translation&quot;&gt;Lost in translation&lt;/h3&gt;
+
+&lt;p&gt;It’s very easy to forget update model in one of the places mentioned above and loose the data.&lt;/p&gt;
+
+&lt;h2 id=&quot;rest-in-mean&quot;&gt;REST in MEAN&lt;/h2&gt;
+
+&lt;p&gt;Now let’s see how a REST application looks in MEAN stack&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/rest_mean.png&quot; alt=&quot;REST in LAMP&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;As you can see in the above picture, there is almost no translation. It’s easy to add new field in one place and have it update in all places simultaneously.Yes even database can store data json with Mongodb!!.&lt;/p&gt;
+
+&lt;h2 id=&quot;json-is-the-secret-sauce-of-mean-stack&quot;&gt;JSON is the secret sauce of MEAN stack&lt;/h2&gt;
+
+&lt;p&gt;JSON stands for JavaScript Object Notation. It’s a data format like XML. It’s the JSON which makes MEAN work like magic. All components in MEAN talk JSON natively. This means there is no time wasted translating from one language to another language.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-mean-is-good-for&quot;&gt;What MEAN is good for?&lt;/h2&gt;
+
+&lt;p&gt;Now you understand, building REST applications are much easier in MEAN stack. Now you may be wondering what else REST can do?. The following are few places you can use MEAN&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;CRUD web applications&lt;/li&gt;
+  &lt;li&gt;REST API servers&lt;/li&gt;
+  &lt;li&gt;Single page apps&lt;/li&gt;
+  &lt;li&gt;Static content servers&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Anything I/O bound is good for MEAN&lt;/p&gt;
+
+&lt;h2 id=&quot;what-mean-is-not-good-for&quot;&gt;What MEAN is not good for?&lt;/h2&gt;
+
+&lt;p&gt;MEAN is not good for all the applications. The following are few of the examples&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Computation intensive applications&lt;/li&gt;
+  &lt;li&gt;Number crunching systems&lt;/li&gt;
+  &lt;li&gt;Transactional systems.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In the next post, we will be discussing more about individual pieces of MEAN stack.&lt;/p&gt;
+
+</description>
+        <pubDate>Sun, 04 Jan 2015 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/read-it-later-in-mean-part-1</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/read-it-later-in-mean-part-1</guid>
+      </item>
+    
+      <item>
         <title>In Pursuit of the Unknown : 17 equations that changed the world - book review</title>
         <description>&lt;p&gt;Can a book about mathematical equations be a interesting read? Yes it can be. The &lt;em&gt;In Pursuit of Unknown&lt;/em&gt; takes us to the world of maths in a very interesting story telling way, which is never done before. This book is about 17 most important mathematical equations that changed world.&lt;/p&gt;
 
@@ -1281,73 +1409,6 @@ java -cp &amp;lt;project-path&amp;gt;/target/mesoscustomexecutor-1.0-SNAPSHOT.ja
         <pubDate>Tue, 11 Nov 2014 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/custom-mesos-executor-scala</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/custom-mesos-executor-scala</guid>
-      </item>
-    
-      <item>
-        <title>Granular resource management in  Mesos</title>
-        <description>&lt;p&gt;Mesos allows developers to granularly manage the resources on the cluster. We can specify how much Cpu, memory and disk a given slave can consume. With having these fine granularities helps us to share slave resources across different mesos frameworks.&lt;/p&gt;
-
-&lt;p&gt;In this post, we are going to run a three node cluster of mesos on a single machine. We are going to divide our quad core, 8GB ram machine to two slaves in which each slave controls 50% of the resources. This kind of setup allows us to run a mesos cluster on single machine for testing and debugging purposes.&lt;/p&gt;
-
-&lt;p&gt;Your machine capabilities may vary. You should adjust resource parameters to according to your machine. &lt;/p&gt;
-
-&lt;h2 id=&quot;mesos-installation&quot;&gt;Mesos installation&lt;/h2&gt;
-
-&lt;p&gt;To follow the instructions in the post, you need to have a working installation of mesos on your machine. If not install mesos using &lt;a href=&quot;/mesos-single-node-setup-ubuntu&quot;&gt;this&lt;/a&gt; post. From now on we assume that $MESOS_HOME points to the mesos installation.&lt;/p&gt;
-
-&lt;h2 id=&quot;three-node-cluster-setup&quot;&gt;Three node cluster setup&lt;/h2&gt;
-
-&lt;p&gt;The following are the step to configure multi node cluster of mesos on single machine.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-1--configure-master&quot;&gt;Step 1 : Configure master&lt;/h3&gt;
-&lt;p&gt;There will be only one master. So create a working dir for master under home and point master working directory to it.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;//create a working dir under home folder
- mkdir &lt;span class=&quot;nv&quot;&gt;$HOME&lt;/span&gt;/mesos-master-work 
- //start mesos with working directory
- &lt;span class=&quot;nv&quot;&gt;$MESOS_HOME&lt;/span&gt;/bin/mesos-master.sh --work_dir&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$HOME&lt;/span&gt;/mesos-master-work  --ip&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;127.0.0.1&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;step-2--configure-slaves&quot;&gt;Step 2 : Configure Slaves&lt;/h3&gt;
-&lt;p&gt;To run multiple mesos slaves on same machine, we have to differentiate them from each other. The mesos slaves are differentiating using     &lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;port  &lt;/li&gt;
-  &lt;li&gt;hostname    &lt;/li&gt;
-  &lt;li&gt;working dir&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Follow the below instructions to configure and run multiple slaves. &lt;/p&gt;
-
-&lt;h4 id=&quot;create-work-directories-for-slaves&quot;&gt;2.1 Create work directories for slaves&lt;/h4&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;# create working directories for slaves&lt;/span&gt;
-mkdir -p &lt;span class=&quot;nv&quot;&gt;$HOME&lt;/span&gt;/mesos_slave_work/slave1          
-mkdir -p &lt;span class=&quot;nv&quot;&gt;$HOME&lt;/span&gt;/mesos_slave_work/slave2&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h4 id=&quot;configure-etchosts&quot;&gt;2.2 Configure /etc/hosts&lt;/h4&gt;
-&lt;p&gt;We specify two slaves with hostname slave1 and slave2. Put the following entries inside /etc/hosts&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;# append this to end of the file&lt;/span&gt;
-127.0.1.2    slave1      
-127.0.1.3    slave2&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h4 id=&quot;start-the-slaves&quot;&gt;2.3 Start the slaves&lt;/h4&gt;
-&lt;p&gt;Once we have different working directories and host names, we can start slave1 on 5053 port and slave2 on 5054 port. &lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;# start the slaves&lt;/span&gt;
-
-&lt;span class=&quot;nv&quot;&gt;$MESOS_HOME&lt;/span&gt;/bin/mesos-slave.sh --master&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;localhost:5050 --port&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;5053 --hostname&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;slave1  --work_dir&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$HOME&lt;/span&gt;/mesos_slave_work/slave1 --resources&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;cpus(*):2; mem(*):3500&amp;quot;&lt;/span&gt;
-
-&lt;span class=&quot;nv&quot;&gt;$MESOS_HOME&lt;/span&gt;/bin/mesos-slave.sh --master&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;localhost:5050 --port&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;5054 --hostname&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;slave2  --work_dir&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$HOME&lt;/span&gt;/mesos_slave_work/slave2 --resources&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;cpus(*):2; mem(*):3500&amp;quot;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;em&gt;resources&lt;/em&gt; flag on the command allows us to specify how much ram and memory has to be dedicated to the slaves. Tune the parameters according your machine resources.&lt;/p&gt;
-
-&lt;p&gt;Now you have a multi node cluster of mesos on your machine. &lt;/p&gt;
-
-</description>
-        <pubDate>Tue, 04 Nov 2014 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/granular-resource-management-mesos</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/granular-resource-management-mesos</guid>
       </item>
     
   </channel>

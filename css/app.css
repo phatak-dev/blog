@@ -65,3 +65,13 @@ img{
   text-align : left;
 }
 
+.post-content table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.post-content table th,td {
+ padding: 6px 13px;
+ border: 1px solid #ddd;
+}
+
