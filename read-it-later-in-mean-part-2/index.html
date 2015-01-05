@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Book Review: JavaScript Patterns</title>
+    <title>Building Read it later service on MEAN stack - Part 2</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/book-review-javaScript-patterns">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/read-it-later-in-mean-part-2">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -30,47 +30,92 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Book Review: JavaScript Patterns</h1>
-  <p class="meta">Jun 17, 2011</p>
+  <h1>Building Read it later service on MEAN stack - Part 2</h1>
+  <p class="meta">Jan 5, 2015</p>
   <div class="catagories">
     
     <a href="/categories/javascript"><span class="category">javascript</span></a>
     
-    <a href="/categories/book"><span class="category">book</span></a>
+    <a href="/categories/mean-series"><span class="category">mean-series</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>JavaScript is becoming a universal, ubiquitous language. Though it was initially designed to make web pages dynamic, it has gone beyond that. It invaded server space by efforts like <a href="http://nodejs.org/">Node.js</a>. It’s the language to develop cross platform mobile applications. In fact in HP WebOS operating system, JavaScript is used to build native applications too. So when JavaScript is poised for world domination, it becomes very important to develop quality and complex applications using this language. In that journey of developing applications, <a href="http://www.amazon.com/JavaScript-Patterns-Stoyan-Stefanov/dp/0596806752">“JavaScript Patterns” by Stoyan Stefanov</a>, may help you immensely to create and develop new things or to garnish your thinking.</p>
+  <p>This is second post in the <a href="/categories/mean-series/">mean-series</a>. In this post, we are going to discuss briefly about each of the components in MEAN stack. We are also going to go through the installation of each of these components.</p>
 
-<p>Why is that you have to read yet another JavaScript book?” Even though we have “JavaScript: The good parts”,which is a concise reference to good practices and also there are number of books for design patterns in store. So where does this book fit in your shelf? </p>
+<h2 id="components-of-mean-stack">Components of MEAN stack</h2>
 
-<p>The following are few highlights which may set it apart from the rest.</p>
+<p>MEAN is made of Mongodb, Express, Angualar and Node.js</p>
 
-<h3 id="talks-about-javascript-independent-of-browser">1.Talks about JavaScript independent of Browser</h3>
+<h3 id="nodejs">Node.js</h3>
 
-<p>The first few chapters of this book discusses about JavaScript without even mentioning about the browsers. Wait!!….. “JavaScript without a browser!!!??? “ Yes!!!! JavaScript, is no more a browser only language!! It can be run on other platforms like V8, WebOS and upcoming windows 8. So the book looks at the language without the messy DOM, so that you can appreciate the intuitiveness of the language.</p>
+<p><a href="http://nodejs.org/">Node.js</a> is a JavaScript runtime written on V8, javascript virtual machine for Google chrome. Node.js is written in C/C++ not in JavaScript itself. Using node.js, you can build server side applications in JavaScript. </p>
 
-<h3 id="patterns-patterns-patterns">2. Patterns, Patterns, Patterns</h3>
+<p>Node.js follows module oriented architecture. It allows third party developers to extend it’s capabilities using modules. These modules can be written using JavaScript or C/C++. There are thousands of these modules available for all kinds of tasks. These modules make node very attractive for server side development. </p>
 
-<p>Every pattern you find in GoF book is discussed here using JavaScript. This book doesn’t follow GoF way of explaining the patterns since it doesn’t make any sense for dynamic languages like JavaScript. The book also gives few examples of patterns from open source libraries like JQuery, YUI which helps the reader to have the glimpse of practical use of patterns.</p>
+<p>Follow this <a href="https://github.com/joyent/node/wiki/installing-node.js-via-package-manager">wiki</a> to install node.js on your system.</p>
 
-<h3 id="good-bad-and-ugly">3. Good, Bad and ugly</h3>
+<h3 id="mongodb">Mongodb</h3>
 
-<p>Douglas crockford “JavaScript: The Good parts” is immensely popular in JavaScript community. This book takes the good practices of the former to the next level by combining them with design patterns. Few things, which were really good, like “eval is evil” found in the former you find it here too.</p>
+<p><a href="https://www.mongodb.org/">Mongodb</a> is a document oriented NoSql database. It stores the data in JSON like data format. As we discussed in earlier post, each components in MEAN stack talk JSON. With mongodb, you can store and query the json without any transformation.</p>
 
-<h3 id="ecma-5-standard">4. ECMA 5 standard</h3>
+<p>The following are few properties of Mongodb</p>
 
-<p>One of the fewest JavaScript books to talk about latest ECMA standard. It talks about the upcoming features in languages and also talks about how your code should be ready to harness it. </p>
+<ul>
+  <li>Supports powerful query language</li>
+  <li>Supports row level atomicity</li>
+  <li>Autosharded </li>
+</ul>
 
-<h3 id="development-vs-deployment">5. Development vs. Deployment</h3>
+<p>Follow this <a href="http://docs.mongodb.org/manual/installation/">wiki</a> to install mongodb on your machine. </p>
 
-<p>If you think deploying a JavaScript heavy application is just putting the scripts into html pages, this book proves you wrong!! The book discuses about deployment enhancements like minification, caching, script combing which reduces bandwidth requirements.</p>
+<h3 id="angularjs">Angular.js</h3>
 
-<h3 id="conclusion">Conclusion</h3>
+<p><a href="https://angularjs.org/">Angular</a> is a front end JavaScript library written by Google. It’s used in developing rich single page applications. It provides powerful abstractions like controllers, dependency injection, two way data binding etc. As it’s a client side library, there is not installation is needed. </p>
 
-<p>It’s a must read JavaScript book for anyone who is developing or who have the plans to develop an application using JavaScript. 240 pages book packs great information and writing style makes you learn a lot about the language as smooth as possible. So give it a shot :) Happy reading… :)</p>
+<h3 id="express">Express</h3>
+
+<p><a href="http://expressjs.com/">Express</a> is a Node.js module used for web development. It supports MVC style of web application development much like J2EE,php etc.</p>
+
+<p>You can install express using npm, node package manager. We will those steps in next section.</p>
+
+<h2 id="read-it-later-application">Read it later application</h2>
+
+<p>Read it later is a service which allow you to save the links from the net, to read it later. You can add the links from browser, phone etc. Clients use REST api to talk to server. It’s similar to services like <a href="http://getpocket.com">pocket</a>, <a href="https://www.instapaper.com/">instapaper</a> etc.</p>
+
+<h3 id="read-it-later-architecture">Read it later architecture</h3>
+
+<p>The below image shows the architecture of the our application.</p>
+
+<p><img src="/images/readitlater_architecture.png" alt="Read it later architecture" /></p>
+
+<p>As you can see in the image, there are two clients</p>
+
+<ul>
+  <li>Chrome extension : To add the link to service</li>
+  <li>Angular UI : To view saved links</li>
+</ul>
+
+<p>Also both clients talk to server using REST API. We will be using mongodb to save the urls.</p>
+
+<h3 id="getting-the-code">Getting the code</h3>
+
+<p>Now you have all the needed tools installed on your machine. From next post, we will start discussing about how to build read it later on this stack. Before that follow the below steps to download the code and build it.</p>
+
+<ul>
+  <li>
+    <p>Clone the code from <a href="https://github.com/phatak-dev/mean-readitlater">github</a></p>
+  </li>
+  <li>
+    <p>Cd into  mean-readitlater/mongorest folder</p>
+  </li>
+  <li>
+    <p>Run <em>npm install</em> to install dependencies</p>
+  </li>
+</ul>
+
+<p>The code is divided into multiple branches in order to understand the evolution of the application. In next post, we will start discussing about code step by step.</p>
 
 
 </article>
@@ -81,12 +126,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">05 Jan 2015</span>
-     &raquo; <a href="/read-it-later-in-mean-part-2">Building Read it later service on MEAN stack - Part 2</a>    
-   </li>           
-         
+          
 
             
     
@@ -107,23 +147,15 @@
    
    
              
-    
-    <li>    
-     <span class="post-date">03 Jan 2015</span>
-     &raquo; <a href="/in-persuit-of-the-unknown-book-review">In Pursuit of the Unknown : 17 equations that changed the world - book review</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">29 Jul 2014</span>
-     &raquo; <a href="/dogfight-book-review">Dog fight - How Apple and Google Went to War and Started a Revolution</a>    
-   </li>           
-         
-
-            
           
+
+            
+    
+    <li>    
+     <span class="post-date">04 Jan 2015</span>
+     &raquo; <a href="/read-it-later-in-mean-part-1">Building Read it later service on MEAN stack - Part 1</a>    
+   </li>           
+         
 
    
    
