@@ -76,53 +76,26 @@
 <p>Let’s first build a RDD</p>
 
 <div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">sparkContext</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkContext</span><span class="o">(</span><span class="s">&quot;local&quot;</span><span class="o">,</span> <span class="s">&quot;functional&quot;</span><span class="o">)</span>
- <span class="k">val</span> <span class="n">list</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">5</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">44</span><span class="o">,</span> <span class="mi">33</span><span class="o">,</span> <span class="mi">44</span><span class="o">,</span> <span class="mi">44</span><span class="o">)</span>
- <span class="k">val</span> <span class="n">listRDD</span> <span class="k">=</span> <span class="n">sparkContext</span><span class="o">.</span><span class="n">makeRDD</span><span class="o">(</span><span class="n">list</span><span class="o">)</span></code></pre></div>
+ <span class="k">val</span> <span class="n">employeeData</span> <span class="k">=</span> <span class="nc">List</span><span class="o">((</span><span class="s">&quot;Jack&quot;</span><span class="o">,</span><span class="mf">1000.0</span><span class="o">),(</span><span class="s">&quot;Bob&quot;</span><span class="o">,</span><span class="mf">2000.0</span><span class="o">),(</span><span class="s">&quot;Carl&quot;</span><span class="o">,</span><span class="mf">7000.0</span><span class="o">))</span>
+ <span class="k">val</span> <span class="n">employeeRDD</span> <span class="k">=</span> <span class="n">sparkContext</span><span class="o">.</span><span class="n">makeRDD</span><span class="o">(</span><span class="n">employeeData</span><span class="o">)</span></code></pre></div>
 
-<p>Naive way of doing it will by sorting. </p>
+<p>Now we want to find an employee, with maximum salary. Spark provides <em>max</em> function on double RDD. So we can do</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">maxBySort</span> <span class="k">=</span> <span class="n">listRDD</span><span class="o">.</span><span class="n">reduce</span><span class="o">(</span><span class="k">_</span> <span class="n">max</span> <span class="k">_</span><span class="o">)</span>
- <span class="n">println</span><span class="o">(</span><span class="s">&quot;max is &quot;</span><span class="o">+</span><span class="n">maxBySort</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">maxSalary</span> <span class="k">=</span> <span class="n">employeeRDD</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">_2</span><span class="o">).</span><span class="n">max</span><span class="o">()</span></code></pre></div>
 
-<p>But this ends up doing lot of shuffling.</p>
+<p>But with this approach we loose all other information about employee. We have to join <em>maxSalary</em> with <em>employeeRDD</em> in order to get back the name of the employee which is not good in performance point of view.</p>
 
-<p>Let’s rephrase the solution like this. Find maximum value in each partition and then reduce it to single value.</p>
+<p>So we want an operator which can keep the original structure of RDD but still allowing to do this max operation. Fold is the right operator.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">maxByMap</span> <span class="k">=</span> <span class="n">listRDD</span><span class="o">.</span><span class="n">mapPartitions</span><span class="o">(</span><span class="n">iterator</span> <span class="k">=&gt;</span> <span class="o">{</span>
-      <span class="k">var</span> <span class="n">maximum</span> <span class="k">=</span> <span class="nc">Int</span><span class="o">.</span><span class="nc">MinValue</span>
-      <span class="n">iterator</span><span class="o">.</span><span class="n">foreach</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="o">{</span>
-        <span class="n">maximum</span> <span class="k">=</span> <span class="n">maximum</span> <span class="n">max</span> <span class="n">value</span>
-      <span class="o">})</span>
-      <span class="nc">List</span><span class="o">(</span><span class="n">maximum</span><span class="o">).</span><span class="n">iterator</span>
-    <span class="o">}).</span><span class="n">reduce</span><span class="o">((</span><span class="n">a</span><span class="o">,</span> <span class="n">b</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">a</span> <span class="n">max</span> <span class="n">b</span><span class="o">)</span>
+<p>To use fold we need a start value. The following code defines a dummy employee as starting accumulator.</p>
 
- <span class="n">println</span><span class="o">(</span><span class="s">&quot;max is &quot;</span> <span class="o">+</span> <span class="n">maxByMap</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">dummyEmployee</span> <span class="k">=</span> <span class="o">(</span><span class="s">&quot;dummy&quot;</span><span class="o">,</span><span class="mf">0.0</span><span class="o">);</span></code></pre></div>
 
-<p>Though we are able to get good performance, using var is against pure functional programming. Let’s update the code using val</p>
+<p>Now using fold, we can find the employee with maximum salary.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">maxByScalaFold</span><span class="k">=</span><span class="n">listRDD</span><span class="o">.</span><span class="n">mapPartitions</span><span class="o">(</span><span class="n">iterator</span> <span class="k">=&gt;</span> <span class="o">{</span>
-      <span class="k">val</span> <span class="n">max</span> <span class="k">=</span><span class="n">iterator</span><span class="o">.</span><span class="n">foldLeft</span><span class="o">(</span><span class="nc">Int</span><span class="o">.</span><span class="nc">MinValue</span><span class="o">)((</span><span class="n">acc</span><span class="o">,</span><span class="n">element</span> <span class="o">)</span> <span class="k">=&gt;</span> <span class="n">acc</span> <span class="n">max</span> <span class="n">element</span><span class="o">)</span>
-      <span class="nc">List</span><span class="o">(</span><span class="n">max</span><span class="o">).</span><span class="n">iterator</span>
-    <span class="o">}).</span><span class="n">reduce</span><span class="o">((</span><span class="n">a</span><span class="o">,</span><span class="n">b</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="k">if</span><span class="o">(</span><span class="n">a</span><span class="o">&gt;</span><span class="n">b</span><span class="o">)</span> <span class="n">a</span> <span class="k">else</span> <span class="n">b</span><span class="o">)</span>
-
-<span class="n">println</span><span class="o">(</span><span class="s">&quot;max is &quot;</span><span class="o">+</span><span class="n">maxByScalaFold</span><span class="o">)</span></code></pre></div>
-
-<p>It works. But still feels like lot’s of code. Let’s optimize it.</p>
-
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">maxByRddFold</span> <span class="k">=</span> <span class="n">listRDD</span><span class="o">.</span><span class="n">fold</span><span class="o">(</span><span class="nc">Integer</span><span class="o">.</span><span class="nc">MIN_VALUE</span><span class="o">)((</span><span class="n">acc</span><span class="o">,</span><span class="n">element</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">acc</span> <span class="n">max</span> <span class="n">element</span><span class="o">)</span>
-<span class="n">println</span><span class="o">(</span><span class="s">&quot;max is &quot;</span><span class="o">+</span><span class="n">maxByRddFold</span><span class="o">)</span></code></pre></div>
-
-<h3 id="finding-both-min-and-max">Finding both min and max</h3>
-<p>Here we cannot use fold directly. We use mapPartitions api and with each partition we use
-fold operation.</p>
-
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="o">(</span><span class="n">min</span><span class="o">,</span><span class="n">max</span><span class="o">)</span> <span class="k">=</span> <span class="n">listRDD</span><span class="o">.</span><span class="n">mapPartitions</span><span class="o">(</span><span class="n">iterator</span> <span class="k">=&gt;</span> <span class="o">{</span>
-      <span class="k">val</span> <span class="o">(</span><span class="n">min</span><span class="o">,</span><span class="n">max</span><span class="o">)</span> <span class="k">=</span> <span class="n">iterator</span><span class="o">.</span><span class="n">foldLeft</span><span class="o">((</span><span class="nc">Int</span><span class="o">.</span><span class="nc">MaxValue</span><span class="o">,</span><span class="nc">Int</span><span class="o">.</span><span class="nc">MinValue</span><span class="o">))((</span><span class="n">acc</span><span class="o">,</span><span class="n">element</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">{</span>
-        <span class="o">(</span><span class="n">acc</span><span class="o">.</span><span class="n">_1</span> <span class="n">min</span> <span class="n">element</span><span class="o">,</span> <span class="n">acc</span><span class="o">.</span><span class="n">_2</span> <span class="n">max</span> <span class="n">element</span><span class="o">)</span>
-      <span class="o">})</span>
-      <span class="nc">List</span><span class="o">((</span><span class="n">min</span><span class="o">,</span><span class="n">max</span><span class="o">)).</span><span class="n">iterator</span>
-    <span class="o">}).</span><span class="n">reduce</span><span class="o">((</span><span class="n">a</span><span class="o">,</span><span class="n">b</span><span class="o">)</span><span class="k">=&gt;</span> <span class="o">(</span><span class="n">a</span><span class="o">.</span><span class="n">_1</span> <span class="n">min</span> <span class="n">b</span><span class="o">.</span><span class="n">_1</span> <span class="o">,</span> <span class="n">a</span><span class="o">.</span><span class="n">_2</span> <span class="n">max</span> <span class="n">b</span><span class="o">.</span><span class="n">_2</span><span class="o">))</span>
- <span class="n">println</span><span class="o">(</span><span class="s">&quot;min and maximum &quot;</span> <span class="o">+</span> <span class="n">min</span> <span class="o">+</span><span class="s">&quot;,&quot;</span><span class="o">+</span><span class="n">max</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">maxSalaryEmployee</span> <span class="k">=</span> <span class="n">employeeRDD</span><span class="o">.</span><span class="n">fold</span><span class="o">(</span><span class="n">dummyEmployee</span><span class="o">)((</span><span class="n">acc</span><span class="o">,</span><span class="n">employee</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">{</span> 
+<span class="k">if</span><span class="o">(</span><span class="n">acc</span><span class="o">.</span><span class="n">_2</span> <span class="o">&lt;</span> <span class="n">employee</span><span class="o">.</span><span class="n">_2</span><span class="o">)</span> <span class="n">employee</span> <span class="k">else</span> <span class="n">acc</span><span class="o">})</span>
+<span class="n">println</span><span class="o">(</span><span class="s">&quot;employee with maximum salary is&quot;</span><span class="o">+</span><span class="n">maxSalaryEmployee</span><span class="o">)</span></code></pre></div>
 
 <h3 id="fold-by-key">Fold by key</h3>
 <p>In Map/Reduce key plays a role of grouping values. We can use foldByKey operation to aggregate values based on keys.</p>
