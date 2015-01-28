@@ -30,17 +30,7 @@ Let's first build a RDD
  val employeeRDD = sparkContext.makeRDD(employeeData)
 {% endhighlight %}
 
-Now we want to find an employee, with maximum salary. Spark provides *max* function on double RDD. So we can do
-
-{% highlight scala %}
- val maxSalary = employeeRDD.map(_._2).max()
-{% endhighlight %}
-
-But with this approach we loose all other information about employee. We have to join *maxSalary* with *employeeRDD* in order to get back the name of the employee which is not good in performance point of view.
-
-
-
-So we want an operator which can keep the original structure of RDD but still allowing to do this max operation. Fold is the right operator.
+Now we want to find an employee, with maximum salary. We can do that using fold. 
 
 To use fold we need a start value. The following code defines a dummy employee as starting accumulator.
 
@@ -72,7 +62,7 @@ In this example, employees are grouped by department name. If you want to find t
     )
   val employeeRDD = sparkContext.makeRDD(deptEmployees)
 
-  val maxByDept = employeeRDD.foldByKey(("dummy",Double.MinValue))
+  val maxByDept = employeeRDD.foldByKey(("dummy",0.0))
   ((acc,element)=> if(acc._2 > element._2) acc else element)
   
   println("maximum salaries in each dept" + maxByDept.collect().toList)
