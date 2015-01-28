@@ -79,13 +79,7 @@
  <span class="k">val</span> <span class="n">employeeData</span> <span class="k">=</span> <span class="nc">List</span><span class="o">((</span><span class="s">&quot;Jack&quot;</span><span class="o">,</span><span class="mf">1000.0</span><span class="o">),(</span><span class="s">&quot;Bob&quot;</span><span class="o">,</span><span class="mf">2000.0</span><span class="o">),(</span><span class="s">&quot;Carl&quot;</span><span class="o">,</span><span class="mf">7000.0</span><span class="o">))</span>
  <span class="k">val</span> <span class="n">employeeRDD</span> <span class="k">=</span> <span class="n">sparkContext</span><span class="o">.</span><span class="n">makeRDD</span><span class="o">(</span><span class="n">employeeData</span><span class="o">)</span></code></pre></div>
 
-<p>Now we want to find an employee, with maximum salary. Spark provides <em>max</em> function on double RDD. So we can do</p>
-
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">maxSalary</span> <span class="k">=</span> <span class="n">employeeRDD</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">_2</span><span class="o">).</span><span class="n">max</span><span class="o">()</span></code></pre></div>
-
-<p>But with this approach we loose all other information about employee. We have to join <em>maxSalary</em> with <em>employeeRDD</em> in order to get back the name of the employee which is not good in performance point of view.</p>
-
-<p>So we want an operator which can keep the original structure of RDD but still allowing to do this max operation. Fold is the right operator.</p>
+<p>Now we want to find an employee, with maximum salary. We can do that using fold. </p>
 
 <p>To use fold we need a start value. The following code defines a dummy employee as starting accumulator.</p>
 
@@ -110,7 +104,7 @@
     <span class="o">)</span>
   <span class="k">val</span> <span class="n">employeeRDD</span> <span class="k">=</span> <span class="n">sparkContext</span><span class="o">.</span><span class="n">makeRDD</span><span class="o">(</span><span class="n">deptEmployees</span><span class="o">)</span>
 
-  <span class="k">val</span> <span class="n">maxByDept</span> <span class="k">=</span> <span class="n">employeeRDD</span><span class="o">.</span><span class="n">foldByKey</span><span class="o">((</span><span class="s">&quot;dummy&quot;</span><span class="o">,</span><span class="nc">Double</span><span class="o">.</span><span class="nc">MinValue</span><span class="o">))</span>
+  <span class="k">val</span> <span class="n">maxByDept</span> <span class="k">=</span> <span class="n">employeeRDD</span><span class="o">.</span><span class="n">foldByKey</span><span class="o">((</span><span class="s">&quot;dummy&quot;</span><span class="o">,</span><span class="mf">0.0</span><span class="o">))</span>
   <span class="o">((</span><span class="n">acc</span><span class="o">,</span><span class="n">element</span><span class="o">)</span><span class="k">=&gt;</span> <span class="k">if</span><span class="o">(</span><span class="n">acc</span><span class="o">.</span><span class="n">_2</span> <span class="o">&gt;</span> <span class="n">element</span><span class="o">.</span><span class="n">_2</span><span class="o">)</span> <span class="n">acc</span> <span class="k">else</span> <span class="n">element</span><span class="o">)</span>
   
   <span class="n">println</span><span class="o">(</span><span class="s">&quot;maximum salaries in each dept&quot;</span> <span class="o">+</span> <span class="n">maxByDept</span><span class="o">.</span><span class="n">collect</span><span class="o">().</span><span class="n">toList</span><span class="o">)</span></code></pre></div>
