@@ -2,8 +2,6 @@ package com.madhukaraphatak.spark
 
 import java.io.PrintWriter
 
-import spark.SparkEnv
-
 import scala.io.Source
 
 /**
