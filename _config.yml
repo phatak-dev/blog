@@ -4,6 +4,7 @@ email: madhukaraphatak@gmail.com
 description: "Thoughts on technology, life and everything else."
 baseurl: ""
 url: "http://blog.madhukaraphatak.com"
+github_code_root : https://github.com/phatak-dev/blog/tree/master/code
 username : phatak-dev
 twitter : madhukaraphatak
 paginate: 10
