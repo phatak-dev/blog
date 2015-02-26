@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Evaluating Spark RDD's for side effects</title>
+    <title>Apache Spark is not a one-trick pony : Going beyond in-memory processing</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/evaluating-spark-rdd-for-side-effects">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/apache-spark-not-a-one-trick-pony">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,8 +45,8 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Evaluating Spark RDD's for side effects</h1>
-  <p class="meta">Sep 29, 2014</p>
+  <h1>Apache Spark is not a one-trick pony : Going beyond in-memory processing</h1>
+  <p class="meta">Feb 26, 2015</p>
   <div class="catagories">
     
     <a href="/categories/spark"><span class="category">spark</span></a>
@@ -55,47 +55,49 @@
 </header> 
 
 <article class="post-content">
-  <p>Accumulators in Spark are highly useful to do side effect based operations.
-For example, the following code calculates both sum and sum of squares as a side effect.</p>
+  <p>At <a href="http://datamantra.io">DataMantra</a>, whenever we suggest Apache Spark to our customers, they respond <em>“it just in-memory thing right?”</em>. There is a misconception about Spark,  that it’s just about in-memory computation. Even creators of spark acknowledge it. In one of their recent <a href="https://databricks.com/blog/2014/10/10/spark-petabyte-sort.html">blog post</a> they say</p>
 
-<div class="highlight"><pre><code class="scala"><span class="c1">//sc is spark context</span>
-<span class="k">val</span> <span class="n">sum</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">accumulator</span><span class="o">[</span><span class="kt">Double</span><span class="o">](</span><span class="mf">0.0</span><span class="o">)</span>
-<span class="k">val</span> <span class="n">squaredSum</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">accumulator</span><span class="o">[</span><span class="kt">Double</span><span class="o">](</span><span class="mf">0.0</span><span class="o">)</span>
-<span class="k">val</span> <span class="n">values</span> <span class="k">=</span> <span class="mi">0</span> <span class="n">to</span> <span class="mi">100000</span>   
-<span class="k">val</span> <span class="n">inputRDD</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">makeRDD</span><span class="o">(</span><span class="n">values</span><span class="o">)</span>
-<span class="k">val</span> <span class="n">sumRDD</span> <span class="k">=</span> <span class="n">inputRDD</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="o">{</span>
-   <span class="n">sum</span><span class="o">+=</span> <span class="n">value</span>
-   <span class="n">squaredSum</span><span class="o">+=</span> <span class="n">value</span><span class="o">*</span><span class="n">value</span>
- <span class="o">})</span>
-<span class="n">println</span><span class="o">(</span><span class="s">&quot;sum is &quot;</span><span class="o">+</span><span class="n">sum</span><span class="o">.</span><span class="n">value</span><span class="o">+</span><span class="s">&quot; and square sum is &quot;</span> <span class="o">+</span> <span class="n">squaredSum</span><span class="o">.</span><span class="n">value</span><span class="o">)</span></code></pre></div>
+<blockquote>
+  <p>This has always been one of the most common misconceptions about Spark, especially for people new to the community. Spark is well known for its in-memory performance, but from its inception Spark was designed to be a general execution engine that works both in-memory and on-disk. Almost all Spark operators perform external operations when data does not fit in memory. More generally, Spark’s operators are a strict superset of MapReduce.</p>
+</blockquote>
 
-<p>The code looks good, but it will produce zero as the sum. This is because map is a lazy operation. Here we want to evaluate sumRDD just to update accumulators. Normally we use <strong>collect</strong> or <strong>count</strong> to trigger the calculation. But collect unnecessarily loads whole split to memory and count does the unnecessary shuffling. </p>
+<p>Though in-memory is an important feature, it’s not only thing that makes Spark special. So in this blog post, I am going to discuss about few of the other important features that make Spark stand out.</p>
 
-<p>So we need an operation which just evaluates the RDD for it’s side effect without actually returning any value. </p>
+<p>(Note : This post originally published in DataMantra <a href="http://datamantra.io/blog/2015/02/16/apache-spark-not-a-one-trick-pony/">blog</a>)</p>
 
-<h2 id="evaluating-a-rdd">Evaluating a RDD</h2>
-<p>The following function takes an RDD and evaluates it</p>
+<h2 id="one-platform-for-all-big-data-loads">1. One platform for all Big data loads</h2>
 
-<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">evaluate</span><span class="o">[</span><span class="kt">T</span><span class="o">](</span><span class="n">rdd</span><span class="k">:</span><span class="kt">RDD</span><span class="o">[</span><span class="kt">T</span><span class="o">])</span> <span class="k">=</span> <span class="o">{</span>
-    <span class="n">rdd</span><span class="o">.</span><span class="n">sparkContext</span><span class="o">.</span><span class="n">runJob</span><span class="o">(</span><span class="n">rdd</span><span class="o">,(</span><span class="n">iter</span><span class="k">:</span> <span class="kt">Iterator</span><span class="o">[</span><span class="kt">T</span><span class="o">])</span> <span class="k">=&gt;</span> <span class="o">{</span>
-      <span class="k">while</span><span class="o">(</span><span class="n">iter</span><span class="o">.</span><span class="n">hasNext</span><span class="o">)</span> <span class="n">iter</span><span class="o">.</span><span class="n">next</span><span class="o">()</span>
-    <span class="o">})</span>
-  <span class="o">}</span></code></pre></div>
+<p>Big data analysis has different data loads. Different use cases need different kind of analysis. Most of the big data analysis need both batch processing and real time capabilities. Not only that, they have structured, unstructured, graph analysis and other advanced processing needs too. So a big data processing framework has to cater to all of this needs.</p>
 
-<p>We are using <strong>runJob</strong> api on context which triggers the evaluation. Api takes a RDD which has to be evaluated and a function which of form</p>
+<p>Hadoop M/R, current leading big data processing framework,  is only optimized for batch processing. So in hadoop, you need to go to other frameworks like Storm for real time and Apache Giraph for graph processing capabilities. Having multiple different frameworks is a pain for development and maintenance. Though introduction of YARN has solved few issues, YARN is too low level to be used in applications.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="o">(</span><span class="n">iterator</span><span class="k">:</span><span class="kt">Iterator</span><span class="o">[</span><span class="kt">T</span><span class="o">])</span> <span class="k">=&gt;</span> <span class="n">U</span></code></pre></div>
+<p>In case of Spark, it was designed to cater to multiple data loads from day one. Batch processing and real time capabilities are built in to the core of Spark. Not only that many advanced graph and machine learning libraries are built in so that it can cater to wide variety of data analysis needs.</p>
 
-<p>We pass a function which just goes over the iterator without producing any value. This allows us to update just the needed accumulators.</p>
+<h2 id="one-abstraction-to-rule-them-all">2. One abstraction to rule them all</h2>
 
-<h2 id="using-evaluate">Using evaluate</h2>
-<p>Now we use evaluate function to evaluate our <strong>sumRDD</strong> and get our accumulator values.</p>
+<p>In Spark, all APIs and libraries talk same abstraction called RDD. RDD stands for Resilient Distributed Dataset. It’s just a big collection of immutable data which is sitting in some storage. But what’s the advantage if all libraries talk in RDD?</p>
 
-<div class="highlight"><pre><code class="scala"><span class="n">evaluate</span><span class="o">(</span><span class="n">sumRDD</span><span class="o">)</span>
- <span class="n">println</span><span class="o">(</span><span class="s">&quot;sum is &quot;</span><span class="o">+</span><span class="n">sum</span><span class="o">.</span><span class="n">value</span><span class="o">+</span><span class="s">&quot; and squared sum is &quot;</span> <span class="o">+</span> <span class="n">squaredSum</span><span class="o">.</span><span class="n">value</span><span class="o">)</span></code></pre></div>
+<p>The advantage is that you can mix and match different kind of processing in same application. You can take a stream of data from spark real time system and can run sql queries using SparkSQL. Then take the output of SparkSQL and feed it to machine learning algorithm using MLLib. All of this is done without ever have to convert or store intermediate result. This is very powerful to build complex data flow systems.</p>
 
-<p>Now it prints correct values of sum and squared sum.</p>
+<h2 id="runs-everywhere">3. Runs everywhere</h2>
 
+<p>Spark runs everywhere. It is designed to run on different platforms and different distributed systems. You can run Spark on Hadoop 1.0, Hadoop 2.0, Apache Mesos or stand alone spark cluster. This flexibility of deployment is very attractive to customers, as it allows them to harness power of spark using their existing infrastructure investments.</p>
+
+<h2 id="small-and-simple">4. Small and Simple</h2>
+<p>The original release of Spark contained only 1600 lines of Scala code. It was designed to be extremely modular. So today you can add or remove capabilities to your spark application simply by changing your build file. Also having a small code base makes extend the framework easy.</p>
+
+<p>Spark API thrives for simplicity. If you ever seen a spark word count vs Map/Reduce word count you will understand how simple API is. There is a lot of thought gone in to the API to make it more approachable and consistent. Contrast to that Java API of Map/Reduce is a mess. There is too much verbosity.</p>
+
+<h2 id="prospering-ecosystem">5. Prospering Ecosystem</h2>
+<p>In Hadoop, ecosystem was an after thought. The ecosystem projects like Hive and Pig dint have access to Map/Reduce abstractions. All they can do was generate Map/Reduce programs on the fly and run it on cluster. This severely effected their performance.</p>
+
+<p>Where as in Spark, there was a plan for ecosystem from day one. The ecosystem libraries Pregel and MLLib were developed side by side with core spark. So in Spark, all libraries have access to same level of abstraction as main API. This makes them first class citizen on the platform.</p>
+
+<h2 id="multi-language-api">6. Multi language API</h2>
+
+<p>Spark officially supports Scala, Java and Python API’s. This makes it more attractable to many developers compared to java only M/R. Though M/R supported C++ and other API’s they are not up to date like Java API. So Spark is great option for developers with different backgrounds.</p>
+
+<p>Now you know spark is not just about in-memory processing. Let’s break this myth by sharing this article with everyone.</p>
 
 </article>
 
@@ -113,12 +115,7 @@ For example, the following code calculates both sum and sum of squares as a side
          
 
             
-    
-    <li>    
-     <span class="post-date">26 Feb 2015</span>
-     &raquo; <a href="/apache-spark-not-a-one-trick-pony">Apache Spark is not a one-trick pony : Going beyond in-memory processing</a>    
-   </li>           
-         
+          
 
             
     

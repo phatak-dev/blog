@@ -7,6 +7,68 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Apache Spark </title>
+        <description>&lt;p&gt;The below video is a recording of my talk on &lt;em&gt;Introduction to Apache Spark&lt;/em&gt; in recent spark meetup. Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/introduction-to-apache-spark-45062010&quot;&gt;slideshare&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;http://www.youtube.com/embed/9mN3N3aoF2w&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
+</description>
+        <pubDate>Thu, 26 Feb 2015 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-spark</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark</guid>
+      </item>
+    
+      <item>
+        <title>Apache Spark is not a one-trick pony : Going beyond in-memory processing</title>
+        <description>&lt;p&gt;At &lt;a href=&quot;http://datamantra.io&quot;&gt;DataMantra&lt;/a&gt;, whenever we suggest Apache Spark to our customers, they respond &lt;em&gt;“it just in-memory thing right?”&lt;/em&gt;. There is a misconception about Spark,  that it’s just about in-memory computation. Even creators of spark acknowledge it. In one of their recent &lt;a href=&quot;https://databricks.com/blog/2014/10/10/spark-petabyte-sort.html&quot;&gt;blog post&lt;/a&gt; they say&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;This has always been one of the most common misconceptions about Spark, especially for people new to the community. Spark is well known for its in-memory performance, but from its inception Spark was designed to be a general execution engine that works both in-memory and on-disk. Almost all Spark operators perform external operations when data does not fit in memory. More generally, Spark’s operators are a strict superset of MapReduce.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Though in-memory is an important feature, it’s not only thing that makes Spark special. So in this blog post, I am going to discuss about few of the other important features that make Spark stand out.&lt;/p&gt;
+
+&lt;p&gt;(Note : This post originally published in DataMantra &lt;a href=&quot;http://datamantra.io/blog/2015/02/16/apache-spark-not-a-one-trick-pony/&quot;&gt;blog&lt;/a&gt;)&lt;/p&gt;
+
+&lt;h2 id=&quot;one-platform-for-all-big-data-loads&quot;&gt;1. One platform for all Big data loads&lt;/h2&gt;
+
+&lt;p&gt;Big data analysis has different data loads. Different use cases need different kind of analysis. Most of the big data analysis need both batch processing and real time capabilities. Not only that, they have structured, unstructured, graph analysis and other advanced processing needs too. So a big data processing framework has to cater to all of this needs.&lt;/p&gt;
+
+&lt;p&gt;Hadoop M/R, current leading big data processing framework,  is only optimized for batch processing. So in hadoop, you need to go to other frameworks like Storm for real time and Apache Giraph for graph processing capabilities. Having multiple different frameworks is a pain for development and maintenance. Though introduction of YARN has solved few issues, YARN is too low level to be used in applications.&lt;/p&gt;
+
+&lt;p&gt;In case of Spark, it was designed to cater to multiple data loads from day one. Batch processing and real time capabilities are built in to the core of Spark. Not only that many advanced graph and machine learning libraries are built in so that it can cater to wide variety of data analysis needs.&lt;/p&gt;
+
+&lt;h2 id=&quot;one-abstraction-to-rule-them-all&quot;&gt;2. One abstraction to rule them all&lt;/h2&gt;
+
+&lt;p&gt;In Spark, all APIs and libraries talk same abstraction called RDD. RDD stands for Resilient Distributed Dataset. It’s just a big collection of immutable data which is sitting in some storage. But what’s the advantage if all libraries talk in RDD?&lt;/p&gt;
+
+&lt;p&gt;The advantage is that you can mix and match different kind of processing in same application. You can take a stream of data from spark real time system and can run sql queries using SparkSQL. Then take the output of SparkSQL and feed it to machine learning algorithm using MLLib. All of this is done without ever have to convert or store intermediate result. This is very powerful to build complex data flow systems.&lt;/p&gt;
+
+&lt;h2 id=&quot;runs-everywhere&quot;&gt;3. Runs everywhere&lt;/h2&gt;
+
+&lt;p&gt;Spark runs everywhere. It is designed to run on different platforms and different distributed systems. You can run Spark on Hadoop 1.0, Hadoop 2.0, Apache Mesos or stand alone spark cluster. This flexibility of deployment is very attractive to customers, as it allows them to harness power of spark using their existing infrastructure investments.&lt;/p&gt;
+
+&lt;h2 id=&quot;small-and-simple&quot;&gt;4. Small and Simple&lt;/h2&gt;
+&lt;p&gt;The original release of Spark contained only 1600 lines of Scala code. It was designed to be extremely modular. So today you can add or remove capabilities to your spark application simply by changing your build file. Also having a small code base makes extend the framework easy.&lt;/p&gt;
+
+&lt;p&gt;Spark API thrives for simplicity. If you ever seen a spark word count vs Map/Reduce word count you will understand how simple API is. There is a lot of thought gone in to the API to make it more approachable and consistent. Contrast to that Java API of Map/Reduce is a mess. There is too much verbosity.&lt;/p&gt;
+
+&lt;h2 id=&quot;prospering-ecosystem&quot;&gt;5. Prospering Ecosystem&lt;/h2&gt;
+&lt;p&gt;In Hadoop, ecosystem was an after thought. The ecosystem projects like Hive and Pig dint have access to Map/Reduce abstractions. All they can do was generate Map/Reduce programs on the fly and run it on cluster. This severely effected their performance.&lt;/p&gt;
+
+&lt;p&gt;Where as in Spark, there was a plan for ecosystem from day one. The ecosystem libraries Pregel and MLLib were developed side by side with core spark. So in Spark, all libraries have access to same level of abstraction as main API. This makes them first class citizen on the platform.&lt;/p&gt;
+
+&lt;h2 id=&quot;multi-language-api&quot;&gt;6. Multi language API&lt;/h2&gt;
+
+&lt;p&gt;Spark officially supports Scala, Java and Python API’s. This makes it more attractable to many developers compared to java only M/R. Though M/R supported C++ and other API’s they are not up to date like Java API. So Spark is great option for developers with different backgrounds.&lt;/p&gt;
+
+&lt;p&gt;Now you know spark is not just about in-memory processing. Let’s break this myth by sharing this article with everyone.&lt;/p&gt;
+</description>
+        <pubDate>Thu, 26 Feb 2015 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/apache-spark-not-a-one-trick-pony</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/apache-spark-not-a-one-trick-pony</guid>
+      </item>
+    
+      <item>
         <title>Pipe in Spark</title>
         <description>&lt;p&gt;Pipe operator in Spark, allows developer to process RDD data using external applications. Sometimes in data analysis, we need to use an external library which may not be written using Java/Scala. Ex: Fortran math libraries. In that case, spark’s pipe operator allows us to send the RDD data to the external application.&lt;/p&gt;
 
@@ -1082,308 +1144,6 @@ $HADOOP_HOME/logs/userlogs.&lt;/p&gt;
         <pubDate>Mon, 15 Dec 2014 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/implementing-shuffle-in-mesos</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/implementing-shuffle-in-mesos</guid>
-      </item>
-    
-      <item>
-        <title>Distributing third party libraries in Mesos</title>
-        <description>&lt;p&gt;Every distributed application needs an effective way of distributing third party libraries. Hadoop uses DistributedCache and Spark uses similar approaches. When you are building your own distributed system, you also have to build a effective mechanism to do the distribution. &lt;/p&gt;
-
-&lt;p&gt;This post talks about how to implement this on mesos. This implementation is inspired by Spark implementation. &lt;/p&gt;
-
-&lt;p&gt;This post extends code discussed in this &lt;a href=&quot;/custom-mesos-executor-scala/&quot;&gt;post&lt;/a&gt;.So if you are new to mesos please go through that post before continuing.&lt;/p&gt;
-
-&lt;p&gt;tl;dr Access the complete code on &lt;a href=&quot;https://github.com/phatak-dev/blog/tree/master/code/MesosThirdPartyJars&quot;&gt;github&lt;/a&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;third-party-libraries-in-distributed-applications&quot;&gt;Third Party libraries in distributed Applications&lt;/h3&gt;
-
-&lt;p&gt;Almost every piece of code we write today uses one or more third party library. In distributed systems third party libraries become tricky to handle.As we don’t have control over instantiation of our tasks, the underlying system should allow us to express the dependencies so that it can add those to the classpath when our task is run.&lt;/p&gt;
-
-&lt;p&gt;There are many ways to handle this problem. The following are the few following options.&lt;/p&gt;
-
-&lt;h2 id=&quot;using-an-uber-jar&quot;&gt;Using an uber jar&lt;/h2&gt;
-&lt;p&gt;We can create a big jar which contains our code and all of it’s dependencies. Build tools like maven,ant makes this very easy to do. Though it’s an attractive solution it has its own quirks.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h4 id=&quot;jar-size&quot;&gt;Jar Size&lt;/h4&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;We will be updating our code faster than changing dependencies. So every time when we make a change we have to distribute a big jar rather than distributing only changed code. This effects the startup time and also eats up lot’s of network bandwidth.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h4 id=&quot;versioning&quot;&gt;Versioning&lt;/h4&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;If we mix user code with dependencies, upgrading third libraries become challenging. Whenever we upgrade any dependence we have to recompile all code and re distribute again. This is not feasible in big code bases.&lt;/p&gt;
-
-&lt;p&gt;So it’s not wise to mix user code with libraries. We will be needing an independent way of distributing jars.&lt;/p&gt;
-
-&lt;h2 id=&quot;using-distributed-file-system&quot;&gt;Using Distributed file system&lt;/h2&gt;
-
-&lt;p&gt;One of the alternative to uber jar is using a distributed file system for distributing libraries. Normally any distributed applications run on distributed file system like HDFS. Though it’s a good approach for most of applications,it does comes with dependency that a distributed file system has to be available. Also the individual library jar size is small,which performs poorly in big data file systems.&lt;/p&gt;
-
-&lt;h2 id=&quot;localized-distribution-over-http&quot;&gt;Localized distribution over HTTP&lt;/h2&gt;
-
-&lt;p&gt;This is the approach we are going to follow in this post. We are going to host our dependencies in a web server and ask the slaves to pull the jars from server. We create this web server on demand and configure tasks to read and configure using them.&lt;/p&gt;
-
-&lt;p&gt;The following steps shows how to implement this distribution on Mesos and Scala.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-1--web-server-at-master-side&quot;&gt;Step 1 : Web server at master side&lt;/h3&gt;
-
-&lt;p&gt;We run a web server at master when we start executing task. The following code shows a http server created using jetty server.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;HttpServer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;resourceBase&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;File&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;server&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Server&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
-
-  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;server&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;RuntimeException&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;server already running&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-
-      &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;threadPool&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;QueuedThreadPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;threadPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setDaemon&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-      &lt;span class=&quot;n&quot;&gt;server&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Server&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;server&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setThreadPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;threadPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-      &lt;span class=&quot;c1&quot;&gt;//serve the files in the folder as the path is indicated&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;resourceHandler&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ResourceHandler&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;resourceHandler&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setResourceBase&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;resourceBase&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getAbsolutePath&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-      &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;handlerList&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;HandlerList&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;handlerList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setHandlers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;resourceHandler&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DefaultHandler&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-
-      &lt;span class=&quot;c1&quot;&gt;//start the server with handler and capture the port&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;server&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setHandler&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;handlerList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;server&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;port&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;server&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getConnectors&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getLocalPort&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;We call start method to start the server, which serves files from &lt;em&gt;resourceBase&lt;/em&gt; folder.&lt;/p&gt;
-
-&lt;p&gt;Access complete code &lt;a href=&quot;https://github.com/phatak-dev/blog/blob/master/code/MesosThirdPartyJars/src/main/scala/com/madhukaraphatak/mesos/jarhandling/HttpServer.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-2--integrate-server-with-scheduler&quot;&gt;Step 2 : Integrate server with Scheduler&lt;/h3&gt;
-
-&lt;p&gt;The above server has to be started dynamically whenever we require to distribute the jars. In Mesos scheduler is responsible for spinning up the task, so we start it before the first task at scheduler side.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;registered&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;driver&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;SchedulerDriver&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;frameworkId&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;FrameworkID&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;masterInfo&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;MasterInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Unit&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;//create the jar server if there are any jars have to be distributed&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;jars&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;createJarServer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;We override registered method,so that whenever scheduler comes up we start the server.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createJarServer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dirFile&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Utils&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createTempDir&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;jar directory is&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dirFile&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getAbsolutePath&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fileNames&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ArrayBuffer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]()&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;&amp;lt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jars&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;zipWithIndex&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;file&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;File&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fileName&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;index&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;_&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;file&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getName&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;copyFile&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;file&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;File&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dirFile&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fileName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;fileNames&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fileName&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;jarServer&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;HttpServer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dirFile&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;jarServer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;uri&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jarServer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;uri&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;jar server started at &amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;uri&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;jarUris&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fileNames&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;uri&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;/&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mkString&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;,&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;em&gt;createServer&lt;/em&gt; copies specified jar from it’s path to a temporary location. Also it populates &lt;em&gt;jarUris&lt;/em&gt; string which contains all the jar URI’s in a comma separated manner.&lt;/p&gt;
-
-&lt;p&gt;Access complete code &lt;a href=&quot;https://github.com/phatak-dev/blog/blob/master/code/MesosThirdPartyJars/src/main/scala/com/madhukaraphatak/mesos/customjars/TaskScheduler.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-3--pass-jaruris-to-executor&quot;&gt;Step 3 : Pass jarUris to executor&lt;/h3&gt;
-
-&lt;p&gt;We have to pass this uri’s to the executor,so that it can download the jars and add them to class path before it starts running tasks. We pass it as the command line argument to the executor script as follows.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getExecutorInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;d&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;SchedulerDriver&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;ExecutorInfo&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;scriptPath&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getProperty&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;executor_script_path&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;&amp;quot;~/run-executor.sh&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;nc&quot;&gt;ExecutorInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;newBuilder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;setCommand&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;CommandInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;newBuilder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;
-      &lt;span class=&quot;s&quot;&gt;&amp;quot;/bin/sh &amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scriptPath&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot; $jarUris&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setExecutorId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;ExecutorID&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;newBuilder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;1234&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Access complete code &lt;a href=&quot;https://github.com/phatak-dev/blog/blob/master/code/MesosThirdPartyJars/src/main/scala/com/madhukaraphatak/mesos/customjars/TaskScheduler.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-4--access-jars-in-executor&quot;&gt;Step 4 : Access jars in Executor&lt;/h3&gt;
-
-&lt;p&gt;In the executor side, we download this jars from specified jar uris. The following code shows that.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getClassLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;ClassLoader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loader&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getClassLoader&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;localfiles&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ArrayBuffer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]()&lt;/span&gt;
-
-        &lt;span class=&quot;c1&quot;&gt;//if jars is specified then split by comma to get all paths&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-          &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;uri&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;&amp;lt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;,&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;filter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;url&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;URL&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;uri&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-            &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fileName&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getPath&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;/&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;last&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;downloadFile&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fileName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;localfiles&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fileName&lt;/span&gt;
-          &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-          &lt;span class=&quot;c1&quot;&gt;//use the URL classloader to add it to the classpath&lt;/span&gt;
-          &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;localfiles&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;urls&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;localfiles&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;file&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; 
-            	&lt;span class=&quot;nc&quot;&gt;File&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;file&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toURI&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toURL&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toArray&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;loader&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;URLClassLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;urls&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-          &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;loader&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Once it downloads the jars, it adds to the class path using URLClassLoader. We set this classloader on the thread which executes the task.&lt;/p&gt;
-
-&lt;p&gt;Access complete code &lt;a href=&quot;https://github.com/phatak-dev/blog/blob/master/code/MesosThirdPartyJars/src/main/scala/com/madhukaraphatak/mesos/customjars/TaskExecutor.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;example--mysql-task&quot;&gt;Example : Mysql task&lt;/h3&gt;
-
-&lt;p&gt;The following is one of example which dynamically loads the mysql driver which is passed as library jar.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mysqlTask&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;FunctionTask&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-          &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;classLoader&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Thread&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;currentThread&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getContextClassLoader&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;classLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loadClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;com.mysql.jdbc.Driver&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;successfully loaded&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-          &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;printStackTrace&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-            &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;
-          &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;})&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Access complete code &lt;a href=&quot;https://github.com/phatak-dev/blog/blob/master/code/MesosThirdPartyJars/src/main/scala/com/madhukaraphatak/mesos/customjars/CustomTasks.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;running&quot;&gt;Running&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Step 1 : Download code from &lt;a href=&quot;https://github.com/phatak-dev/blog/tree/master/code/MesosThirdPartyJars&quot;&gt;github&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;Step 2 : Build the code using maven&lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Step 3 : Update run-executor.sh file in src/main/resources to point to the right directory.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;Step 4 : Run &lt;em&gt;CustomTasks&lt;/em&gt; main method with mesos master url , path to the run-executor.sh shell script and path to the mysql jar file. &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;More detail steps for running you can find &lt;a href=&quot;/mesos-helloworld-scala/#running/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;output&quot;&gt;Output&lt;/h3&gt;
-
-&lt;p&gt;The output should be available in mesos logs as specified &lt;a href=&quot;/mesos-helloworld-scala#output&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;If everything goes right you should be able to see “successfully loaded” message in the logs.&lt;/p&gt;
-
-</description>
-        <pubDate>Mon, 15 Dec 2014 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/distributing-third-party-libraries-in-mesos</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/distributing-third-party-libraries-in-mesos</guid>
-      </item>
-    
-      <item>
-        <title>sizeof operator for Java&amp;#47;Scala</title>
-        <description>&lt;p&gt;As I was going through Apache spark source code, I stumbled upon on one interesting tool. Spark has a utility, called &lt;a href=&quot;https://github.com/apache/spark/blob/master/core/src/main/scala/org/apache/spark/util/SizeEstimator.scala&quot;&gt;SizeEstimator&lt;/a&gt;, which estimates the size of objects in Java heap. This is like sizeof operator for Java. I got fascinated and started to explore. This posts talks about the utility and its use cases.&lt;/p&gt;
-
-&lt;p&gt;tl;dr Access complete code with documentation on &lt;a href=&quot;https://github.com/phatak-dev/java-sizeof&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;sizeof-operator-in-cc&quot;&gt;sizeof operator in C/C++&lt;/h2&gt;
-&lt;p&gt;In C/C++ sizeof operator is used to determine size of a given data structure. This is important, as size of data structures in these languages are platform dependent. For example &lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;c--&quot;&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;the above c++ code will print 2 if it’s 16 bit machine and 4 if it’s 32 bit machine.&lt;/p&gt;
-
-&lt;p&gt;Also these languages does manual memory management. Developer uses sizeof operator to specify how much memory needs to be allocated. &lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;c--&quot;&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;intArray&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;calloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above code create an array of integers which hold 10 elements. Again as you can see here we used sizeof operator specify exact amount memory we wanted to allocate.&lt;/p&gt;
-
-&lt;p&gt;So from above examples, it’s apparent that sizeof operator is a tool which helps you to know the size of the variable at runtime.&lt;/p&gt;
-
-&lt;h2 id=&quot;sizeof-operator-for-java&quot;&gt;sizeof operator for Java&lt;/h2&gt;
-&lt;p&gt;Java do not have any sizeof operator in the language. The following are two reasons for that&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;The size of data structure is same on all platforms&lt;/li&gt;
-  &lt;li&gt;Java virtual machine with garbage collection will do the memory management for you. &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;So as a developer, you do not need to worry about the memory management in java. So creators of Java felt there is no use of sizeof operator.&lt;/p&gt;
-
-&lt;p&gt;But there are few use cases where we may need a way to measure size of objects at runtime. &lt;/p&gt;
-
-&lt;h2 id=&quot;use-case-for-sizeof-operator&quot;&gt;Use case for sizeof operator&lt;/h2&gt;
-&lt;p&gt;As I told in the beginning, this idea of sizeof operator came from Spark source code. So I started digging why they need this. As it turns out SizeEstimator in Spark is used for building memory bounded caches. The idea is that you want to specify amount of heap memory the cache can use so when it runs out of memory it can use LRU method to accommodate newer keys. &lt;/p&gt;
-
-&lt;p&gt;You can find more use cases in &lt;a href=&quot;http://www.javaworld.com/article/2077408/core-java/sizeof-for-java.html&quot;&gt;this&lt;/a&gt; article.&lt;/p&gt;
-
-&lt;h2 id=&quot;memory-bounded-caches-in-spark&quot;&gt;Memory bounded caches in Spark&lt;/h2&gt;
-&lt;p&gt;We use caches in almost every application. Normally most of the in-memory caches are bounded by number of items. You can specify how many keys it should keep. Once you cross the limit, you can use LRU to do the eviction. This works well when you are storing homogeneous values and all the pairs have relatively same size. Also it assumes that all machines where cache is running has same RAM size.&lt;/p&gt;
-
-&lt;p&gt;But in case of spark, the cluster may have varying RAM sizes. Also it may cache heterogeneous values. So having number of items as the bound is not optimal. So Spark uses the size of the cache as the bound value. So using sizeof operator they can optimally use the RAM on the cluster.&lt;/p&gt;
-
-&lt;p&gt;You can look at one of the implementation of memory bounded caches &lt;a href=&quot;https://github.com/phatak-dev/java-sizeof/blob/master/examples/src/main/scala/com/madhukaraphatak/sizeof/examples/BoundedMemoryCache.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;java-sizeof-library&quot;&gt;java-sizeof library&lt;/h2&gt;
-
-&lt;p&gt;I extracted the code from the spark, simplified little and published as a independent &lt;a href=&quot;https://github.com/phatak-dev/java-sizeof&quot;&gt;library&lt;/a&gt;. So if you want to calculate size of your objects in your Java/Scala projects, you can use this library. This library is well tested inside the spark. &lt;/p&gt;
-
-&lt;h2 id=&quot;adding-dependency&quot;&gt;Adding dependency&lt;/h2&gt;
-
-&lt;p&gt;You can add the library through sbt or maven.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Sbt&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;libraryDependencies&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;com.madhukaraphatak&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%%&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;java-sizeof&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;0.1&amp;quot;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Maven&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;com.madhukaraphatak&lt;span class=&quot;nt&quot;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;java-sizeof_2.11&lt;span class=&quot;nt&quot;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;0.1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;using&quot;&gt;Using&lt;/h2&gt;
-
-&lt;p&gt;The following code shows the api usage.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;java&quot;&gt;&lt;span class=&quot;n&quot;&gt;SizeEstimator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;estimate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;sc&quot;&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-   
-&lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;values&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;();&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;30&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;SizeEstimator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;estimate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You can find more examples &lt;a href=&quot;https://github.com/phatak-dev/java-sizeof/tree/master/examples&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-</description>
-        <pubDate>Wed, 03 Dec 2014 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/sizeof-operator-java-scala</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/sizeof-operator-java-scala</guid>
       </item>
     
   </channel>
