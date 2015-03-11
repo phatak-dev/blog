@@ -2,7 +2,7 @@
 layout: post
 title: "Extending Spark API"
 date : 2015-03-11
-categories: spark
+categories: spark scala
 ---
 Apache Spark comes with lot of built in generic operators to do data processing. But many a times, when we are building real world applications, we need domain specific operators to solve problem in hand. So in these cases, we like to extend the Spark API to add our own custom operators.
 
