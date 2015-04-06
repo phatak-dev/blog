@@ -21,12 +21,12 @@
 
 &lt;p&gt;The above code generates empty files for empty batches. If you have many empty batches, unnecessarily too many empty folders will be created. &lt;/p&gt;
 
-&lt;p&gt;We can avoid this by check is a given RDD is empty RDD. &lt;/p&gt;
+&lt;p&gt;We can avoid this by checking, is a given RDD is empty RDD. &lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partitions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isEmpty&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
    &lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;saveAsTextFile&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;outputDir&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;The empty rdd has no partitions. Using this logic, we can only write to HDFS if there are partitions available, otherwise we just ignore it.&lt;/p&gt;
+&lt;p&gt;The empty rdd has no partitions. Using this logic, we check for partition array of RDD. If partition array is empty, then its an EmptyRDD. This way we can avoid saving empty batches to HDFS.&lt;/p&gt;
 </description>
         <pubDate>Mon, 06 Apr 2015 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/handling-empty-rdd-in-spark-streaming</link>

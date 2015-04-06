@@ -70,12 +70,12 @@
 
 <p>The above code generates empty files for empty batches. If you have many empty batches, unnecessarily too many empty folders will be created. </p>
 
-<p>We can avoid this by check is a given RDD is empty RDD. </p>
+<p>We can avoid this by checking, is a given RDD is empty RDD. </p>
 
 <div class="highlight"><pre><code class="scala"><span class="k">if</span><span class="o">(!</span><span class="n">rdd</span><span class="o">.</span><span class="n">partitions</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span>
    <span class="n">rdd</span><span class="o">.</span><span class="n">saveAsTextFile</span><span class="o">(</span><span class="n">outputDir</span><span class="o">)</span></code></pre></div>
 
-<p>The empty rdd has no partitions. Using this logic, we can only write to HDFS if there are partitions available, otherwise we just ignore it.</p>
+<p>The empty rdd has no partitions. Using this logic, we check for partition array of RDD. If partition array is empty, then its an EmptyRDD. This way we can avoid saving empty batches to HDFS.</p>
 
 </article>
 
