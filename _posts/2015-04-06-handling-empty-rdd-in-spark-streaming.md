@@ -20,11 +20,11 @@ socketStream.foreachRDD(rdd => {
 
 The above code generates empty files for empty batches. If you have many empty batches, unnecessarily too many empty folders will be created. 
 
-We can avoid this by check is a given RDD is empty RDD. 
+We can avoid this by checking, is a given RDD is empty RDD. 
 
 {% highlight scala %}
  if(!rdd.partitions.isEmpty)
    rdd.saveAsTextFile(outputDir)
 {% endhighlight %}
 
-The empty rdd has no partitions. Using this logic, we can only write to HDFS if there are partitions available, otherwise we just ignore it.
+The empty rdd has no partitions. Using this logic, we check for partition array of RDD. If partition array is empty, then its an EmptyRDD. This way we can avoid saving empty batches to HDFS.
