@@ -1,8 +1,8 @@
----           
+---
 layout: post
-title: "Anatomy of RDD : Deep dive into spark RDD abstraction"
+title: "Anatomy of RDD : Deep dive into spark RDD abstraction - Meetup video"
 date : 2015-03-31
-categories: spark scala
+categories: spark scala talks
 ---
 The below video is a recording of my talk on *Anatomy of RDD: Deep dive in to Apache Spark RDD abstraction* in recent spark meetup. In this talk, I discuss about how RDD is constructed from ground up. This gives a depth understanding of spark API.
 

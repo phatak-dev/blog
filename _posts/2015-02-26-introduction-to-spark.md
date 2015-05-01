@@ -1,8 +1,8 @@
----           
+---
 layout: post
-title: "Introduction to Apache Spark "
+title: "Introduction to Apache Spark - Meetup video"
 date : 2015-02-26
-categories: spark
+categories: spark talks
 ---
 The below video is a recording of my talk on *Introduction to Apache Spark* in recent spark meetup. Find the slides on [slideshare](http://www.slideshare.net/datamantra/introduction-to-apache-spark-45062010).
 
