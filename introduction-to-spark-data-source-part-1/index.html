@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Sbt on ubuntu</title>
+    <title>Introduction to Spark Data Source API - Part 1</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/sbt-on-ubuntu">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-spark-data-source-part-1">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,48 +45,93 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Sbt on ubuntu</h1>
-  <p class="meta">Aug 18, 2014</p>
+  <h1>Introduction to Spark Data Source API - Part 1</h1>
+  <p class="meta">May 25, 2015</p>
   <div class="catagories">
     
+    <a href="/categories/spark"><span class="category">spark</span></a>
+    
     <a href="/categories/scala"><span class="category">scala</span></a>
+    
+    <a href="/categories/datasource-series"><span class="category">datasource-series</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p><a href="http://www.scala-sbt.org/">Sbt</a> is the default build tool for Scala. This post talks about steps to install sbt on ubuntu.</p>
+  <p>Data source is an API for handling structured data in Spark. It was introduced in Spark 1.2 as part of Spark SQL package.
+It brings a new way of reading data apart from InputFormat API which was adopted from hadoop. In the next series of blog posts,  I will be discussing how to load and query different kind of structured data using data source API.</p>
 
-<h2 id="steps-to-install-sbt-on-ubuntu">Steps to install Sbt on ubuntu</h2>
+<p>This is the first post in the series about how to get started and how to do json data handling.</p>
 
-<div class="highlight"><pre><code class="sh"><span class="c">#Add typesafe repository     </span>
-wget http://apt.typesafe.com/repo-deb-build-0002.deb <span class="sb">`</span>
+<h2 id="reading-data-in-spark">Reading Data in Spark</h2>
 
-<span class="c">#Install the repository</span>
-sudo dpkg -i repo-deb-build-0002.deb
+<p>InputFormat was the only way to load data till Spark 1.1. Thought it’s a great API, it is not
+suited for all  data sources. Particularly structured data sources like JSON, JDBC where we need
+a better integration for schema discovery and smart filtering. Data source API bring the tighter
+integration with the structured sources which will improve developer productivity and also performance.</p>
 
-<span class="c">#Refresh</span>
-sudo apt-get update
+<h2 id="built-in-sources">Built in sources</h2>
 
-<span class="c">#Install sbt</span>
-sudo apt-get install sbt
+<p>The support for following sources are built into Spark-SQL.</p>
 
-<span class="c">#check whether sbt is installed</span>
-sbt</code></pre></div>
+<ul>
+  <li>JSON</li>
+  <li>Parquet</li>
+  <li>JDBC</li>
+</ul>
 
-<h2 id="add-specific-version-of-sbt">Add specific version of sbt</h2>
+<p>But you are not limited by that. There are many other data sources supported by community.
+The following are the few</p>
 
-<p>Some project need specific version of sbt like 0.13.   </p>
+<ul>
+  <li><a href="https://github.com/databricks/spark-csv">CSV</a></li>
+  <li><a href="https://github.com/Stratio/spark-mongodb">MongoDB</a></li>
+</ul>
 
-<p>If you get error saying <strong>Detected sbt version 0.12.2 Cannot find sbt launcher 0.12.2 Please download: From typesafe.artifactoryonline.com/typesafe/ivy-releases/… To /home/{username}/.sbt/.lib/0.12.2/sbt-launch.jar</strong></p>
+<p>You can find more on <a href="http://spark-packages.org/">spark-packages</a> website.</p>
 
-<p>Run the following commands by replacing <username> with you username.</username></p>
+<h2 id="json-querying">Json Querying</h2>
 
-<div class="highlight"><pre><code class="sh">mkdir -p /home/<span class="o">{</span>username<span class="o">}</span>/.sbt/.lib/0.12.2/ 
- wget -O /home/<span class="o">{</span>username<span class="o">}</span>/.sbt/.lib/0.12.2/sbt-launch.jar 
- http://typesafe.artifactoryonline.com/typesafe/ivy-releases/
- org.scala-sbt/sbt-launch/0.12.2/sbt-launch.jar</code></pre></div>
+<p>In this section, we are going to look at load and query JSON data. JSON support is built in. The following section
+gives you step by step instructions for that. You can find sample <a href="https://github.com/phatak-dev/blog/blob/master/code/DataSourceExamples/src/main/resources/sales.json">data</a> and
+complete project on <a href="https://github.com/phatak-dev/blog/tree/master/code/DataSourceExamples">github</a>.</p>
 
+<h3 id="step-1--creating-sqlcontext">Step 1 : Creating SQLContext</h3>
+
+<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">sqlContext</span> <span class="k">=</span> <span class="k">new</span> <span class="n">org</span><span class="o">.</span><span class="n">apache</span><span class="o">.</span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="nc">SQLContext</span><span class="o">(</span><span class="n">sc</span><span class="o">)</span></code></pre></div>
+
+<p>You need to create SQLContext in order to access any data source API.</p>
+
+<h3 id="step-2--load-function-to-load-schema-from-source">Step 2 : Load function to load schema from source</h3>
+
+<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">load</span><span class="o">(</span><span class="s">&quot;org.apache.spark.sql.json&quot;</span><span class="o">,</span> <span class="nc">Map</span><span class="o">(</span><span class="s">&quot;path&quot;</span> <span class="o">-&gt;</span> <span class="n">args</span><span class="o">(</span><span class="mi">1</span><span class="o">)))</span></code></pre></div>
+
+<p>load is an universal way of loading data from any data source supported by data source API. The first
+parameter takes the class name of source. In this example <em>org.apache.spark.sql.json</em> point to that
+data source is JSON. Second parameter is a map options of data source. The parameter we are passing
+here path of the JSON file. The return value will be a DataFrame.</p>
+
+<h3 id="step-3--printing-schema">Step 3 : Printing schema</h3>
+
+<div class="highlight"><pre><code class="scala"><span class="n">df</span><span class="o">.</span><span class="n">printSchema</span><span class="o">()</span></code></pre></div>
+
+<p>When you load the data, most of sources will automatically discover schema from the data. In this example,
+JSON schema is interpreted from the json keys and value. So after load, we can print the schema.</p>
+
+<h3 id="step-4--querying-json-using-sql">Step 4 : Querying JSON using sql</h3>
+
+<div class="highlight"><pre><code class="scala"><span class="n">df</span><span class="o">.</span><span class="n">registerTempTable</span><span class="o">(</span><span class="s">&quot;sales&quot;</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">aggDF</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="s">&quot;select sum(amountPaid) from sales&quot;</span><span class="o">)</span></code></pre></div>
+
+<p>In the above code, we register our dataframe as a temp table called <em>sales</em>. Once we have registered table,
+we can run any sql query using sqlContext.</p>
+
+<h3 id="step-5--print-the-result">Step 5 : Print the result</h3>
+
+<div class="highlight"><pre><code class="scala"><span class="n">println</span><span class="o">(</span><span class="n">aggDF</span><span class="o">.</span><span class="n">collectAsList</span><span class="o">())</span></code></pre></div>
+
+<p>You can call collect get the results.</p>
 
 </article>
 
@@ -96,12 +141,28 @@ sbt</code></pre></div>
   <ul>
     
              
+          
+
+            
     
     <li>    
-     <span class="post-date">25 May 2015</span>
-     &raquo; <a href="/introduction-to-spark-data-source-part-1">Introduction to Spark Data Source API - Part 1</a>    
+     <span class="post-date">01 May 2015</span>
+     &raquo; <a href="/introduction-to-spark-streaming-meetup-talk">An Introduction to Spark Streaming- Meetup Video</a>    
    </li>           
          
+
+            
+    
+    <li>    
+     <span class="post-date">06 Apr 2015</span>
+     &raquo; <a href="/handling-empty-rdd-in-spark-streaming">Handling empty batches in Spark streaming</a>    
+   </li>           
+         
+
+   
+   
+             
+          
 
             
     

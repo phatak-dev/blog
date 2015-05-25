@@ -7,6 +7,87 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Spark Data Source API - Part 1</title>
+        <description>&lt;p&gt;Data source is an API for handling structured data in Spark. It was introduced in Spark 1.2 as part of Spark SQL package.
+It brings a new way of reading data apart from InputFormat API which was adopted from hadoop. In the next series of blog posts,  I will be discussing how to load and query different kind of structured data using data source API.&lt;/p&gt;
+
+&lt;p&gt;This is the first post in the series about how to get started and how to do json data handling.&lt;/p&gt;
+
+&lt;h2 id=&quot;reading-data-in-spark&quot;&gt;Reading Data in Spark&lt;/h2&gt;
+
+&lt;p&gt;InputFormat was the only way to load data till Spark 1.1. Thought it’s a great API, it is not
+suited for all  data sources. Particularly structured data sources like JSON, JDBC where we need
+a better integration for schema discovery and smart filtering. Data source API bring the tighter
+integration with the structured sources which will improve developer productivity and also performance.&lt;/p&gt;
+
+&lt;h2 id=&quot;built-in-sources&quot;&gt;Built in sources&lt;/h2&gt;
+
+&lt;p&gt;The support for following sources are built into Spark-SQL.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;JSON&lt;/li&gt;
+  &lt;li&gt;Parquet&lt;/li&gt;
+  &lt;li&gt;JDBC&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;But you are not limited by that. There are many other data sources supported by community.
+The following are the few&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/databricks/spark-csv&quot;&gt;CSV&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/Stratio/spark-mongodb&quot;&gt;MongoDB&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;You can find more on &lt;a href=&quot;http://spark-packages.org/&quot;&gt;spark-packages&lt;/a&gt; website.&lt;/p&gt;
+
+&lt;h2 id=&quot;json-querying&quot;&gt;Json Querying&lt;/h2&gt;
+
+&lt;p&gt;In this section, we are going to look at load and query JSON data. JSON support is built in. The following section
+gives you step by step instructions for that. You can find sample &lt;a href=&quot;https://github.com/phatak-dev/blog/blob/master/code/DataSourceExamples/src/main/resources/sales.json&quot;&gt;data&lt;/a&gt; and
+complete project on &lt;a href=&quot;https://github.com/phatak-dev/blog/tree/master/code/DataSourceExamples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-1--creating-sqlcontext&quot;&gt;Step 1 : Creating SQLContext&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;org&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;apache&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;spark&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;SQLContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You need to create SQLContext in order to access any data source API.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-2--load-function-to-load-schema-from-source&quot;&gt;Step 2 : Load function to load schema from source&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;org.apache.spark.sql.json&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;path&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;load is an universal way of loading data from any data source supported by data source API. The first
+parameter takes the class name of source. In this example &lt;em&gt;org.apache.spark.sql.json&lt;/em&gt; point to that
+data source is JSON. Second parameter is a map options of data source. The parameter we are passing
+here path of the JSON file. The return value will be a DataFrame.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-3--printing-schema&quot;&gt;Step 3 : Printing schema&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;printSchema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;When you load the data, most of sources will automatically discover schema from the data. In this example,
+JSON schema is interpreted from the json keys and value. So after load, we can print the schema.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-4--querying-json-using-sql&quot;&gt;Step 4 : Querying JSON using sql&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;registerTempTable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;aggDF&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;select sum(amountPaid) from sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In the above code, we register our dataframe as a temp table called &lt;em&gt;sales&lt;/em&gt;. Once we have registered table,
+we can run any sql query using sqlContext.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-5--print-the-result&quot;&gt;Step 5 : Print the result&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;aggDF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;collectAsList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You can call collect get the results.&lt;/p&gt;
+</description>
+        <pubDate>Mon, 25 May 2015 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-spark-data-source-part-1</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-data-source-part-1</guid>
+      </item>
+    
+      <item>
         <title>An Introduction to Spark Streaming- Meetup Video</title>
         <description>&lt;p&gt;The below video is a recording of my talk on &lt;em&gt;An Introduction to Spark Streaming&lt;/em&gt; in recent spark meetup. In this talk, I discuss about how you can use spark batch API in streaming mode also.&lt;/p&gt;
 
@@ -609,134 +690,6 @@
         <pubDate>Mon, 05 Jan 2015 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/read-it-later-in-mean-part-2</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/read-it-later-in-mean-part-2</guid>
-      </item>
-    
-      <item>
-        <title>Building Read it later service on MEAN stack - Part 1</title>
-        <description>&lt;p&gt;Recently I gave a &lt;a href=&quot;http://www.meetup.com/JSChannel-Bengaluru/events/183847322/&quot;&gt;talk&lt;/a&gt; on how to build RESTful services on MEAN stack. As part of the talk, I went through a step by step tutorial to build read it later service on top of the MEAN stack. &lt;/p&gt;
-
-&lt;p&gt;With interest shown by audience, I thought it is good to document the tutorial so that it will be available for any one who dint attend the talk. So in next series of posts, I will be discussing what is MEAN stack and how you can build a read it later service from scratch on MEAN stack.&lt;/p&gt;
-
-&lt;p&gt;This is the first post in multi-post series , where I will be discussing about what is MEAN stack and what is it good for.&lt;/p&gt;
-
-&lt;p&gt;tl;dr You can grab slides from &lt;a href=&quot;http://www.slideshare.net/madhukaraphatak/mean-41838061&quot;&gt;slideshare&lt;/a&gt; and code from &lt;a href=&quot;https://github.com/phatak-dev/mean-readitlater&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;what-is-a-software-stack&quot;&gt;What is a software stack?&lt;/h2&gt;
-
-&lt;p&gt;Software stack is set of tools working together to solve a specific problem. Typically these tools are created and can be used independently. But when these tools are put together as a stack,they give better results.&lt;/p&gt;
-
-&lt;p&gt;One of the example of software stack is LAMP stack.It contains Linux, Apache web server, Mysql and PHP. As you can see, all of these technologies are created independently and can be used separately. But if you put them together as LAMP stack, you get a powerful toolbox to create great websites.&lt;/p&gt;
-
-&lt;h2 id=&quot;what-is-mean-stack&quot;&gt;What is MEAN stack?&lt;/h2&gt;
-
-&lt;p&gt;MEAN stands for Mongodb, Express, Angular and Node. It’s a JavaScript based software stack to build web applications. &lt;/p&gt;
-
-&lt;h2 id=&quot;why-mean-stack&quot;&gt;Why MEAN stack?&lt;/h2&gt;
-
-&lt;p&gt;You may have heard about LAMP stack before. LAMP stack was created for building powerful websites. But it was 1990’s. Times have changed. Now we are building more and more web applications rather than building websites. So we need a better stack which can support rapid development of web applications. MEAN stack helps you to build the web applications rapidly compare to LAMP stack.&lt;/p&gt;
-
-&lt;h2 id=&quot;mean-vs-lamp&quot;&gt;MEAN vs LAMP&lt;/h2&gt;
-
-&lt;table&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th style=&quot;text-align: center&quot;&gt;LAMP&lt;/th&gt;
-      &lt;th style=&quot;text-align: center&quot;&gt;MEAN&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td style=&quot;text-align: center&quot;&gt;Linux&lt;/td&gt;
-      &lt;td style=&quot;text-align: center&quot;&gt;V8&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td style=&quot;text-align: center&quot;&gt;Apache&lt;/td&gt;
-      &lt;td style=&quot;text-align: center&quot;&gt;Node.js&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td style=&quot;text-align: center&quot;&gt;Mysql&lt;/td&gt;
-      &lt;td style=&quot;text-align: center&quot;&gt;Mongodb&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td style=&quot;text-align: center&quot;&gt;Php&lt;/td&gt;
-      &lt;td style=&quot;text-align: center&quot;&gt;Express&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;The above table shows the difference between LAMP and MEAN. I am cheating little bit here. V8, the JavaScript runtime of Chrome, is not a operating system. It’s a virtual machine which is available on all the operating system. But with trend of virtual machines like JVM,CLR the dependence on operating system is fading. So MEAN stack can run any platform.&lt;/p&gt;
-
-&lt;p&gt;We use mongodb in place of Mysql for storage. We use express in place of Php for MVC. Node.js will replace apache for web server.&lt;/p&gt;
-
-&lt;p&gt;You may be wondering where is angular. There is no equivalent in LAMP for angular. So it is not shown in the table.&lt;/p&gt;
-
-&lt;h2 id=&quot;why-to-move-from-lamp-to-mean&quot;&gt;Why to move from LAMP to MEAN&lt;/h2&gt;
-
-&lt;p&gt;LAMP was created to build websites. It’s not suitable for building web applications, where we will be predominately building REST based API’s. There is a lot of overheads to create the REST services on LAMP. But with MEAN you can build those with very less effort.&lt;/p&gt;
-
-&lt;p&gt;In next section, we are going to look at how it looks to create REST web applications in LAMP vs REST on MEAN stack. &lt;/p&gt;
-
-&lt;h2 id=&quot;rest-in-lamp&quot;&gt;REST in LAMP&lt;/h2&gt;
-
-&lt;p&gt;The following picture shows what it takes to build a REST service in LAMP&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/rest_lamp.png&quot; alt=&quot;REST in LAMP&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;The following are the over heads&lt;/p&gt;
-
-&lt;h3 id=&quot;adding-a-new-field&quot;&gt;Adding a new field&lt;/h3&gt;
-
-&lt;p&gt;If you want to add a new field, you have to change in lot of places. First you have to change in client side json, then in the server side Java model, then in ORM mapping and finally in the database table. These kind of over head adds strain on rapid development.&lt;/p&gt;
-
-&lt;h3 id=&quot;mapping-nested-json-to-rdbms&quot;&gt;Mapping nested json to RDBMS&lt;/h3&gt;
-
-&lt;p&gt;Typically json has great support for nested structures. But expressing the nested structures in RDBMS is hard.&lt;/p&gt;
-
-&lt;h3 id=&quot;lost-in-translation&quot;&gt;Lost in translation&lt;/h3&gt;
-
-&lt;p&gt;It’s very easy to forget update model in one of the places mentioned above and loose the data.&lt;/p&gt;
-
-&lt;h2 id=&quot;rest-in-mean&quot;&gt;REST in MEAN&lt;/h2&gt;
-
-&lt;p&gt;Now let’s see how a REST application looks in MEAN stack&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/rest_mean.png&quot; alt=&quot;REST in LAMP&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;As you can see in the above picture, there is almost no translation. It’s easy to add new field in one place and have it update in all places simultaneously.Yes even database can store data json with Mongodb!!.&lt;/p&gt;
-
-&lt;h2 id=&quot;json-is-the-secret-sauce-of-mean-stack&quot;&gt;JSON is the secret sauce of MEAN stack&lt;/h2&gt;
-
-&lt;p&gt;JSON stands for JavaScript Object Notation. It’s a data format like XML. It’s the JSON which makes MEAN work like magic. All components in MEAN talk JSON natively. This means there is no time wasted translating from one language to another language.&lt;/p&gt;
-
-&lt;h2 id=&quot;what-mean-is-good-for&quot;&gt;What MEAN is good for?&lt;/h2&gt;
-
-&lt;p&gt;Now you understand, building REST applications are much easier in MEAN stack. Now you may be wondering what else REST can do?. The following are few places you can use MEAN&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;CRUD web applications&lt;/li&gt;
-  &lt;li&gt;REST API servers&lt;/li&gt;
-  &lt;li&gt;Single page apps&lt;/li&gt;
-  &lt;li&gt;Static content servers&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Anything I/O bound is good for MEAN&lt;/p&gt;
-
-&lt;h2 id=&quot;what-mean-is-not-good-for&quot;&gt;What MEAN is not good for?&lt;/h2&gt;
-
-&lt;p&gt;MEAN is not good for all the applications. The following are few of the examples&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Computation intensive applications&lt;/li&gt;
-  &lt;li&gt;Number crunching systems&lt;/li&gt;
-  &lt;li&gt;Transactional systems.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;In the next post, we will be discussing more about individual pieces of MEAN stack.&lt;/p&gt;
-
-</description>
-        <pubDate>Sun, 04 Jan 2015 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/read-it-later-in-mean-part-1</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/read-it-later-in-mean-part-1</guid>
       </item>
     
   </channel>
