@@ -29,14 +29,14 @@ But you are not limited by that. There are many other data sources supported by 
 The following are the few
 
 * [CSV](https://github.com/databricks/spark-csv)
-* [MongoDB] (https://github.com/Stratio/spark-mongodb)
+* [MongoDB](https://github.com/Stratio/spark-mongodb)
 
 You can find more on [spark-packages](http://spark-packages.org/) website.
 
 ## Json Querying
 
 In this section, we are going to look at load and query JSON data. JSON support is built in. The following section
-gives you step by step instructions for that. You can find sample data and
+gives you step by step instructions for that. You can find sample [data](https://github.com/phatak-dev/blog/blob/master/code/DataSourceExamples/src/main/resources/sales.json) and
 complete project on [github](https://github.com/phatak-dev/blog/tree/master/code/DataSourceExamples).
 
 
