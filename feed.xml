@@ -7,6 +7,74 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Analysing CSV data in Spark : Introduction to Spark Data Source API - Part 2</title>
+        <description>&lt;p&gt;Data source is an API for handling structured data in Spark. It was introduced in Spark 1.2 as part of Spark SQL package.
+It brings a new way of reading data apart from InputFormat API which was adopted from hadoop. In the next series of blog posts,  I will be discussing how to load and query different kind of structured data using data source API.&lt;/p&gt;
+
+&lt;p&gt;This is the second post in the series in which we discuss how to handle csv data in spark. You can find other
+blog posts of the series &lt;a href=&quot;/categories/datasource-series/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;spark-csv&quot;&gt;Spark-csv&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/databricks/spark-csv&quot;&gt;Spark-csv&lt;/a&gt; is a community library provided by Databricks to
+parse and query csv data in the spark. This library adheres to the data source API both for reading and
+writing csv data.&lt;/p&gt;
+
+&lt;h3 id=&quot;csv-loading&quot;&gt;Csv Loading&lt;/h3&gt;
+
+&lt;p&gt;In this section, we are going to look at how to load and query CSV data.
+You can find sample &lt;a href=&quot;https://github.com/phatak-dev/blog/blob/master/code/DataSourceExamples/src/main/resources/sales.csv&quot;&gt;data&lt;/a&gt; and complete project on &lt;a href=&quot;https://github.com/phatak-dev/blog/tree/master/code/DataSourceExamples&quot;&gt;github&lt;/a&gt;. For detailed steps
+about data source API, please refer to this &lt;a href=&quot;/introduction-to-spark-data-source-api-part-1&quot;&gt;post&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SparkContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;Csv loading example&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;org&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;apache&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;spark&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;SQLContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;com.databricks.spark.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;path&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;printSchema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In the above code, we pass &lt;em&gt;com.databricks.spark.csv&lt;/em&gt; to load method to signify that we want to read csv data. Also in the
+second parameter, we pass &lt;em&gt;“header”-&amp;gt;”true”&lt;/em&gt; to tell that, the first line of the file is a header.&lt;/p&gt;
+
+&lt;h3 id=&quot;querying-csv-data&quot;&gt;Querying CSV Data&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;registerTempTable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;aggDF&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;select sum(amountPaid) from sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;aggDF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;collectAsList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Once we load data as dataframe, querying is exactly same as any other data source. You can access complete
+code on &lt;a href=&quot;https://github.com/phatak-dev/blog/blob/master/code/DataSourceExamples/src/main/scala/com/madhukaraphatak/spark/datasource/CsvDataInput.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;save-as-csv&quot;&gt;Save as CSV&lt;/h3&gt;
+
+&lt;p&gt;In the previous section, we looked at how to load and query the data in CSV. In this section, we are going to
+look how to save a dataframe as CSV file. In this example, we will load data from json and then save it as csv file.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SparkContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;Csv loading example&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;org&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;apache&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;spark&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;SQLContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;org.apache.spark.sql.json&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;path&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)))&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;save&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;com.databricks.spark.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SaveMode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;ErrorIfExists&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;path&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The first 3 lines of code loads json data. The last line saves the constructed data frame as a csv file.  The
+&lt;em&gt;save&lt;/em&gt; is an universal method in data source API to save to any source. The following are the parameters passed to save method.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;source - it same as &lt;em&gt;load&lt;/em&gt; method. It says we want to save as csv.&lt;/li&gt;
+  &lt;li&gt;SaveMode - allows user to signify what has to be done if the given output path already exists. You can throw error, append or
+ overwrite. In our example, we will thrown an error as we don’t want to overwrite any existing file.&lt;/li&gt;
+  &lt;li&gt;Options - These options are same as what we passed to &lt;em&gt;load&lt;/em&gt; method. Here we specify the output path and
+specify that the first line output file has to be header.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/blog/blob/master/code/DataSourceExamples/src/main/scala/com/madhukaraphatak/spark/datasource/CsvDataOutput.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;So from the above sections, it’s obvious that data source API brings a very easy to use interface to structured data. You can
+load, query and change between multiple sources with few lines of code.&lt;/p&gt;
+</description>
+        <pubDate>Tue, 26 May 2015 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/analysing-csv-data-in-spark</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/analysing-csv-data-in-spark</guid>
+      </item>
+    
+      <item>
         <title>Introduction to Spark Data Source API - Part 1</title>
         <description>&lt;p&gt;Data source is an API for handling structured data in Spark. It was introduced in Spark 1.2 as part of Spark SQL package.
 It brings a new way of reading data apart from InputFormat API which was adopted from hadoop. In the next series of blog posts,  I will be discussing how to load and query different kind of structured data using data source API.&lt;/p&gt;
@@ -607,89 +675,6 @@ we can run any sql query using sqlContext.&lt;/p&gt;
         <pubDate>Tue, 06 Jan 2015 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/simple-akka-remote-example</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/simple-akka-remote-example</guid>
-      </item>
-    
-      <item>
-        <title>Building Read it later service on MEAN stack - Part 2</title>
-        <description>&lt;p&gt;This is second post in the &lt;a href=&quot;/categories/mean-series/&quot;&gt;mean-series&lt;/a&gt;. In this post, we are going to discuss briefly about each of the components in MEAN stack. We are also going to go through the installation of each of these components.&lt;/p&gt;
-
-&lt;h2 id=&quot;components-of-mean-stack&quot;&gt;Components of MEAN stack&lt;/h2&gt;
-
-&lt;p&gt;MEAN is made of Mongodb, Express, Angualar and Node.js&lt;/p&gt;
-
-&lt;h3 id=&quot;nodejs&quot;&gt;Node.js&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://nodejs.org/&quot;&gt;Node.js&lt;/a&gt; is a JavaScript runtime written on V8, javascript virtual machine for Google chrome. Node.js is written in C/C++ not in JavaScript itself. Using node.js, you can build server side applications in JavaScript. &lt;/p&gt;
-
-&lt;p&gt;Node.js follows module oriented architecture. It allows third party developers to extend it’s capabilities using modules. These modules can be written using JavaScript or C/C++. There are thousands of these modules available for all kinds of tasks. These modules make node very attractive for server side development. &lt;/p&gt;
-
-&lt;p&gt;Follow this &lt;a href=&quot;https://github.com/joyent/node/wiki/installing-node.js-via-package-manager&quot;&gt;wiki&lt;/a&gt; to install node.js on your system.&lt;/p&gt;
-
-&lt;h3 id=&quot;mongodb&quot;&gt;Mongodb&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://www.mongodb.org/&quot;&gt;Mongodb&lt;/a&gt; is a document oriented NoSql database. It stores the data in JSON like data format. As we discussed in earlier post, each components in MEAN stack talk JSON. With mongodb, you can store and query the json without any transformation.&lt;/p&gt;
-
-&lt;p&gt;The following are few properties of Mongodb&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Supports powerful query language&lt;/li&gt;
-  &lt;li&gt;Supports row level atomicity&lt;/li&gt;
-  &lt;li&gt;Autosharded &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Follow this &lt;a href=&quot;http://docs.mongodb.org/manual/installation/&quot;&gt;wiki&lt;/a&gt; to install mongodb on your machine. &lt;/p&gt;
-
-&lt;h3 id=&quot;angularjs&quot;&gt;Angular.js&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://angularjs.org/&quot;&gt;Angular&lt;/a&gt; is a front end JavaScript library written by Google. It’s used in developing rich single page applications. It provides powerful abstractions like controllers, dependency injection, two way data binding etc. As it’s a client side library, there is not installation is needed. &lt;/p&gt;
-
-&lt;h3 id=&quot;express&quot;&gt;Express&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://expressjs.com/&quot;&gt;Express&lt;/a&gt; is a Node.js module used for web development. It supports MVC style of web application development much like J2EE,php etc.&lt;/p&gt;
-
-&lt;p&gt;You can install express using npm, node package manager. We will those steps in next section.&lt;/p&gt;
-
-&lt;h2 id=&quot;read-it-later-application&quot;&gt;Read it later application&lt;/h2&gt;
-
-&lt;p&gt;Read it later is a service which allow you to save the links from the net, to read it later. You can add the links from browser, phone etc. Clients use REST api to talk to server. It’s similar to services like &lt;a href=&quot;http://getpocket.com&quot;&gt;pocket&lt;/a&gt;, &lt;a href=&quot;https://www.instapaper.com/&quot;&gt;instapaper&lt;/a&gt; etc.&lt;/p&gt;
-
-&lt;h3 id=&quot;read-it-later-architecture&quot;&gt;Read it later architecture&lt;/h3&gt;
-
-&lt;p&gt;The below image shows the architecture of the our application.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/readitlater_architecture.png&quot; alt=&quot;Read it later architecture&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;As you can see in the image, there are two clients&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Chrome extension : To add the link to service&lt;/li&gt;
-  &lt;li&gt;Angular UI : To view saved links&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Also both clients talk to server using REST API. We will be using mongodb to save the urls.&lt;/p&gt;
-
-&lt;h3 id=&quot;getting-the-code&quot;&gt;Getting the code&lt;/h3&gt;
-
-&lt;p&gt;Now you have all the needed tools installed on your machine. From next post, we will start discussing about how to build read it later on this stack. Before that follow the below steps to download the code and build it.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;Clone the code from &lt;a href=&quot;https://github.com/phatak-dev/mean-readitlater&quot;&gt;github&lt;/a&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Cd into  mean-readitlater/mongorest folder&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Run &lt;em&gt;npm install&lt;/em&gt; to install dependencies&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The code is divided into multiple branches in order to understand the evolution of the application. In next post, we will start discussing about code step by step.&lt;/p&gt;
-
-</description>
-        <pubDate>Mon, 05 Jan 2015 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/read-it-later-in-mean-part-2</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/read-it-later-in-mean-part-2</guid>
       </item>
     
   </channel>
