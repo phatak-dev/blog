@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Sbt on ubuntu</title>
+    <title>Structured data processing with Spark SQL - Meetup Video</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/sbt-on-ubuntu">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/structured-data-processing-with-spark-sql-meetup-talk">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,48 +45,26 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Sbt on ubuntu</h1>
-  <p class="meta">Aug 18, 2014</p>
+  <h1>Structured data processing with Spark SQL - Meetup Video</h1>
+  <p class="meta">Jun 8, 2015</p>
   <div class="catagories">
     
+    <a href="/categories/spark"><span class="category">spark</span></a>
+    
     <a href="/categories/scala"><span class="category">scala</span></a>
+    
+    <a href="/categories/talks"><span class="category">talks</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p><a href="http://www.scala-sbt.org/">Sbt</a> is the default build tool for Scala. This post talks about steps to install sbt on ubuntu.</p>
+  <p>The below video is a recording of my talk on <em>Structured data processing with Spark SQL</em> in recent spark meetup. In this talk, I discuss about how you can use spark sql API’s like Data source, Data frame API’s
+to analyse structured data with Spark.</p>
 
-<h2 id="steps-to-install-sbt-on-ubuntu">Steps to install Sbt on ubuntu</h2>
+<p>Find the slides on <a href="http://www.slideshare.net/datamantra/introduction-to-structured-data-in-spark">slideshare</a> and code on <a href="https://github.com/phatak-dev/structured_data_processing_spark_sql">github</a>.</p>
 
-<div class="highlight"><pre><code class="sh"><span class="c">#Add typesafe repository     </span>
-wget http://apt.typesafe.com/repo-deb-build-0002.deb <span class="sb">`</span>
-
-<span class="c">#Install the repository</span>
-sudo dpkg -i repo-deb-build-0002.deb
-
-<span class="c">#Refresh</span>
-sudo apt-get update
-
-<span class="c">#Install sbt</span>
-sudo apt-get install sbt
-
-<span class="c">#check whether sbt is installed</span>
-sbt</code></pre></div>
-
-<h2 id="add-specific-version-of-sbt">Add specific version of sbt</h2>
-
-<p>Some project need specific version of sbt like 0.13.   </p>
-
-<p>If you get error saying <strong>Detected sbt version 0.12.2 Cannot find sbt launcher 0.12.2 Please download: From typesafe.artifactoryonline.com/typesafe/ivy-releases/… To /home/{username}/.sbt/.lib/0.12.2/sbt-launch.jar</strong></p>
-
-<p>Run the following commands by replacing <username> with you username.</username></p>
-
-<div class="highlight"><pre><code class="sh">mkdir -p /home/<span class="o">{</span>username<span class="o">}</span>/.sbt/.lib/0.12.2/ 
- wget -O /home/<span class="o">{</span>username<span class="o">}</span>/.sbt/.lib/0.12.2/sbt-launch.jar 
- http://typesafe.artifactoryonline.com/typesafe/ivy-releases/
- org.scala-sbt/sbt-launch/0.12.2/sbt-launch.jar</code></pre></div>
-
+<div class="video-container"> <iframe src="https://www.youtube.com/embed/0jd3EWmKQfo" frameborder="0" width="560" height="315"></iframe> </div>
 
 </article>
 
@@ -96,12 +74,28 @@ sbt</code></pre></div>
   <ul>
     
              
+          
+
+            
     
     <li>    
-     <span class="post-date">08 Jun 2015</span>
-     &raquo; <a href="/structured-data-processing-with-spark-sql-meetup-talk">Structured data processing with Spark SQL - Meetup Video</a>    
+     <span class="post-date">26 May 2015</span>
+     &raquo; <a href="/analysing-csv-data-in-spark">Analysing CSV data in Spark : Introduction to Spark Data Source API - Part 2</a>    
    </li>           
          
+
+            
+    
+    <li>    
+     <span class="post-date">25 May 2015</span>
+     &raquo; <a href="/introduction-to-spark-data-source-api-part-1">Introduction to Spark Data Source API - Part 1</a>    
+   </li>           
+         
+
+   
+   
+             
+          
 
             
     
