@@ -7,6 +7,19 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Anatomy of Data Frame API : Deep dive into Spark SQL Data Frame API</title>
+        <description>&lt;p&gt;The below video is a screen cast  of my talk on &lt;em&gt;Anatomy of Data Frame API : Deep dive into Spark SQL Data Frame API&lt;/em&gt; in recent spark meetup. In this talk, we will discuss about internals of dataframe.&lt;/p&gt;
+
+&lt;p&gt;Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/anatomy-of-data-frame-api&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/anatomy_of_spark_dataframe_api&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/iKOGBr-kOks&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
+</description>
+        <pubDate>Wed, 05 Aug 2015 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/anatomy-of-spark-dataframe-api</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/anatomy-of-spark-dataframe-api</guid>
+      </item>
+    
+      <item>
         <title>Anatomy of Data Source API : Deep dive into Spark SQL Data Source API</title>
         <description>&lt;p&gt;The below video is a screen cast  of my talk on &lt;em&gt;Anatomy of Data Source API : Deep dive into Spark SQL Data Source API&lt;/em&gt; in recent spark meetup. In this talk, I discuss about how to create a data source from scratch using Spark SQL data source API’s.&lt;/p&gt;
 
@@ -371,57 +384,6 @@ we can run any sql query using sqlContext.&lt;/p&gt;
         <pubDate>Thu, 26 Feb 2015 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/introduction-to-spark</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark</guid>
-      </item>
-    
-      <item>
-        <title>Apache Spark is not a one-trick pony : Going beyond in-memory processing</title>
-        <description>&lt;p&gt;At &lt;a href=&quot;http://datamantra.io&quot;&gt;DataMantra&lt;/a&gt;, whenever we suggest Apache Spark to our customers, they respond &lt;em&gt;“it just in-memory thing right?”&lt;/em&gt;. There is a misconception about Spark,  that it’s just about in-memory computation. Even creators of spark acknowledge it. In one of their recent &lt;a href=&quot;https://databricks.com/blog/2014/10/10/spark-petabyte-sort.html&quot;&gt;blog post&lt;/a&gt; they say&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;This has always been one of the most common misconceptions about Spark, especially for people new to the community. Spark is well known for its in-memory performance, but from its inception Spark was designed to be a general execution engine that works both in-memory and on-disk. Almost all Spark operators perform external operations when data does not fit in memory. More generally, Spark’s operators are a strict superset of MapReduce.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;Though in-memory is an important feature, it’s not only thing that makes Spark special. So in this blog post, I am going to discuss about few of the other important features that make Spark stand out.&lt;/p&gt;
-
-&lt;p&gt;(Note : This post originally published in DataMantra &lt;a href=&quot;http://datamantra.io/blog/2015/02/16/apache-spark-not-a-one-trick-pony/&quot;&gt;blog&lt;/a&gt;)&lt;/p&gt;
-
-&lt;h2 id=&quot;one-platform-for-all-big-data-loads&quot;&gt;1. One platform for all Big data loads&lt;/h2&gt;
-
-&lt;p&gt;Big data analysis has different data loads. Different use cases need different kind of analysis. Most of the big data analysis need both batch processing and real time capabilities. Not only that, they have structured, unstructured, graph analysis and other advanced processing needs too. So a big data processing framework has to cater to all of this needs.&lt;/p&gt;
-
-&lt;p&gt;Hadoop M/R, current leading big data processing framework,  is only optimized for batch processing. So in hadoop, you need to go to other frameworks like Storm for real time and Apache Giraph for graph processing capabilities. Having multiple different frameworks is a pain for development and maintenance. Though introduction of YARN has solved few issues, YARN is too low level to be used in applications.&lt;/p&gt;
-
-&lt;p&gt;In case of Spark, it was designed to cater to multiple data loads from day one. Batch processing and real time capabilities are built in to the core of Spark. Not only that many advanced graph and machine learning libraries are built in so that it can cater to wide variety of data analysis needs.&lt;/p&gt;
-
-&lt;h2 id=&quot;one-abstraction-to-rule-them-all&quot;&gt;2. One abstraction to rule them all&lt;/h2&gt;
-
-&lt;p&gt;In Spark, all APIs and libraries talk same abstraction called RDD. RDD stands for Resilient Distributed Dataset. It’s just a big collection of immutable data which is sitting in some storage. But what’s the advantage if all libraries talk in RDD?&lt;/p&gt;
-
-&lt;p&gt;The advantage is that you can mix and match different kind of processing in same application. You can take a stream of data from spark real time system and can run sql queries using SparkSQL. Then take the output of SparkSQL and feed it to machine learning algorithm using MLLib. All of this is done without ever have to convert or store intermediate result. This is very powerful to build complex data flow systems.&lt;/p&gt;
-
-&lt;h2 id=&quot;runs-everywhere&quot;&gt;3. Runs everywhere&lt;/h2&gt;
-
-&lt;p&gt;Spark runs everywhere. It is designed to run on different platforms and different distributed systems. You can run Spark on Hadoop 1.0, Hadoop 2.0, Apache Mesos or stand alone spark cluster. This flexibility of deployment is very attractive to customers, as it allows them to harness power of spark using their existing infrastructure investments.&lt;/p&gt;
-
-&lt;h2 id=&quot;small-and-simple&quot;&gt;4. Small and Simple&lt;/h2&gt;
-&lt;p&gt;The original release of Spark contained only 1600 lines of Scala code. It was designed to be extremely modular. So today you can add or remove capabilities to your spark application simply by changing your build file. Also having a small code base makes extend the framework easy.&lt;/p&gt;
-
-&lt;p&gt;Spark API thrives for simplicity. If you ever seen a spark word count vs Map/Reduce word count you will understand how simple API is. There is a lot of thought gone in to the API to make it more approachable and consistent. Contrast to that Java API of Map/Reduce is a mess. There is too much verbosity.&lt;/p&gt;
-
-&lt;h2 id=&quot;prospering-ecosystem&quot;&gt;5. Prospering Ecosystem&lt;/h2&gt;
-&lt;p&gt;In Hadoop, ecosystem was an after thought. The ecosystem projects like Hive and Pig dint have access to Map/Reduce abstractions. All they can do was generate Map/Reduce programs on the fly and run it on cluster. This severely effected their performance.&lt;/p&gt;
-
-&lt;p&gt;Where as in Spark, there was a plan for ecosystem from day one. The ecosystem libraries Pregel and MLLib were developed side by side with core spark. So in Spark, all libraries have access to same level of abstraction as main API. This makes them first class citizen on the platform.&lt;/p&gt;
-
-&lt;h2 id=&quot;multi-language-api&quot;&gt;6. Multi language API&lt;/h2&gt;
-
-&lt;p&gt;Spark officially supports Scala, Java and Python API’s. This makes it more attractable to many developers compared to java only M/R. Though M/R supported C++ and other API’s they are not up to date like Java API. So Spark is great option for developers with different backgrounds.&lt;/p&gt;
-
-&lt;p&gt;Now you know spark is not just about in-memory processing. Let’s break this myth by sharing this article with everyone.&lt;/p&gt;
-</description>
-        <pubDate>Thu, 26 Feb 2015 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/apache-spark-not-a-one-trick-pony</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/apache-spark-not-a-one-trick-pony</guid>
       </item>
     
   </channel>
