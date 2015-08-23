@@ -7,6 +7,19 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Improving Mobile payments with Real time Spark</title>
+        <description>&lt;p&gt;The below video is a recording of my talk on &lt;em&gt;Improving mobile payments with real time spark&lt;/em&gt; in recent spark meetup. It’s a talk about real world spark streaming implementation for improving mobile payments experience. &lt;/p&gt;
+
+&lt;p&gt;Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/improving-mobile-payments-with-real-time-spark&quot;&gt;slideshare&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/Q7O_AOTZ2C8&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
+</description>
+        <pubDate>Wed, 05 Aug 2015 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/improving-mobile-payments-with-real-time-spark</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/improving-mobile-payments-with-real-time-spark</guid>
+      </item>
+    
+      <item>
         <title>Anatomy of Data Frame API : Deep dive into Spark SQL Data Frame API</title>
         <description>&lt;p&gt;The below video is a screen cast  of my talk on &lt;em&gt;Anatomy of Data Frame API : Deep dive into Spark SQL Data Frame API&lt;/em&gt; in recent spark meetup. In this talk, we will discuss about internals of dataframe.&lt;/p&gt;
 
@@ -373,17 +386,6 @@ we can run any sql query using sqlContext.&lt;/p&gt;
         <pubDate>Wed, 11 Mar 2015 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/extending-spark-api</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/extending-spark-api</guid>
-      </item>
-    
-      <item>
-        <title>Introduction to Apache Spark - Meetup video</title>
-        <description>&lt;p&gt;The below video is a recording of my talk on &lt;em&gt;Introduction to Apache Spark&lt;/em&gt; in recent spark meetup. Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/introduction-to-apache-spark-45062010&quot;&gt;slideshare&lt;/a&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;http://www.youtube.com/embed/9mN3N3aoF2w&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
-</description>
-        <pubDate>Thu, 26 Feb 2015 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/introduction-to-spark</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark</guid>
       </item>
     
   </channel>
