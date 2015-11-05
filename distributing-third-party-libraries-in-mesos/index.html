@@ -57,9 +57,9 @@
 </header> 
 
 <article class="post-content">
-  <p>Every distributed application needs an effective way of distributing third party libraries. Hadoop uses DistributedCache and Spark uses similar approaches. When you are building your own distributed system, you also have to build a effective mechanism to do the distribution. </p>
+  <p>Every distributed application needs an effective way of distributing third party libraries. Hadoop uses DistributedCache and Spark uses similar approaches. When you are building your own distributed system, you also have to build a effective mechanism to do the distribution.</p>
 
-<p>This post talks about how to implement this on mesos. This implementation is inspired by Spark implementation. </p>
+<p>This post talks about how to implement this on mesos. This implementation is inspired by Spark implementation.</p>
 
 <p>This post extends code discussed in this <a href="/custom-mesos-executor-scala/">post</a>.So if you are new to mesos please go through that post before continuing.</p>
 
@@ -106,7 +106,7 @@
 
 <p>We run a web server at master when we start executing task. The following code shows a http server created using jetty server.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">class</span> <span class="nc">HttpServer</span><span class="o">(</span><span class="n">resourceBase</span><span class="k">:</span> <span class="kt">File</span><span class="o">)</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">HttpServer</span><span class="o">(</span><span class="n">resourceBase</span><span class="k">:</span> <span class="kt">File</span><span class="o">)</span> <span class="o">{</span>
   <span class="k">var</span> <span class="n">server</span><span class="k">:</span> <span class="kt">Server</span> <span class="o">=</span> <span class="kc">null</span>
   <span class="k">var</span> <span class="n">port</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
 
@@ -145,14 +145,14 @@
 
 <p>The above server has to be started dynamically whenever we require to distribute the jars. In Mesos scheduler is responsible for spinning up the task, so we start it before the first task at scheduler side.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">override</span> <span class="k">def</span> <span class="n">registered</span><span class="o">(</span><span class="n">driver</span><span class="k">:</span> <span class="kt">SchedulerDriver</span><span class="o">,</span> <span class="n">frameworkId</span><span class="k">:</span> <span class="kt">FrameworkID</span><span class="o">,</span> <span class="n">masterInfo</span><span class="k">:</span> <span class="kt">MasterInfo</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">override</span> <span class="k">def</span> <span class="n">registered</span><span class="o">(</span><span class="n">driver</span><span class="k">:</span> <span class="kt">SchedulerDriver</span><span class="o">,</span> <span class="n">frameworkId</span><span class="k">:</span> <span class="kt">FrameworkID</span><span class="o">,</span> <span class="n">masterInfo</span><span class="k">:</span> <span class="kt">MasterInfo</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
     <span class="c1">//create the jar server if there are any jars have to be distributed</span>
     <span class="k">if</span><span class="o">(</span><span class="n">jars</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">)</span>  <span class="n">createJarServer</span><span class="o">()</span>
   <span class="o">}</span></code></pre></div>
 
 <p>We override registered method,so that whenever scheduler comes up we start the server.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">createJarServer</span><span class="o">()</span> <span class="k">=</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">createJarServer</span><span class="o">()</span> <span class="k">=</span> <span class="o">{</span>
     <span class="k">val</span> <span class="n">dirFile</span> <span class="k">=</span> <span class="nc">Utils</span><span class="o">.</span><span class="n">createTempDir</span><span class="o">()</span>
     <span class="n">println</span><span class="o">(</span><span class="s">&quot;jar directory is&quot;</span> <span class="o">+</span> <span class="n">dirFile</span><span class="o">.</span><span class="n">getAbsolutePath</span><span class="o">)</span>
     <span class="k">val</span> <span class="n">fileNames</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ArrayBuffer</span><span class="o">[</span><span class="kt">String</span><span class="o">]()</span>
@@ -178,7 +178,7 @@
 
 <p>We have to pass this uri’s to the executor,so that it can download the jars and add them to class path before it starts running tasks. We pass it as the command line argument to the executor script as follows.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">getExecutorInfo</span><span class="o">(</span><span class="n">d</span><span class="k">:</span> <span class="kt">SchedulerDriver</span><span class="o">)</span><span class="k">:</span> <span class="kt">ExecutorInfo</span> <span class="o">=</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">getExecutorInfo</span><span class="o">(</span><span class="n">d</span><span class="k">:</span> <span class="kt">SchedulerDriver</span><span class="o">)</span><span class="k">:</span> <span class="kt">ExecutorInfo</span> <span class="o">=</span> <span class="o">{</span>
     <span class="k">val</span> <span class="n">scriptPath</span> <span class="k">=</span> <span class="nc">System</span><span class="o">.</span><span class="n">getProperty</span><span class="o">(</span><span class="s">&quot;executor_script_path&quot;</span><span class="o">,</span>
     <span class="s">&quot;~/run-executor.sh&quot;</span><span class="o">)</span>
     <span class="nc">ExecutorInfo</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span>
@@ -194,7 +194,7 @@
 
 <p>In the executor side, we download this jars from specified jar uris. The following code shows that.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">getClassLoader</span><span class="o">()</span><span class="k">:</span> <span class="kt">ClassLoader</span> <span class="o">=</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">getClassLoader</span><span class="o">()</span><span class="k">:</span> <span class="kt">ClassLoader</span> <span class="o">=</span> <span class="o">{</span>
         <span class="k">var</span> <span class="n">loader</span> <span class="k">=</span> <span class="k">this</span><span class="o">.</span><span class="n">getClass</span><span class="o">.</span><span class="n">getClassLoader</span>
         <span class="k">val</span> <span class="n">localfiles</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ArrayBuffer</span><span class="o">[</span><span class="kt">String</span><span class="o">]()</span>
 
@@ -225,7 +225,7 @@
 
 <p>The following is one of example which dynamically loads the mysql driver which is passed as library jar.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">mysqlTask</span><span class="o">()</span> <span class="k">=</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">mysqlTask</span><span class="o">()</span> <span class="k">=</span> <span class="o">{</span>
     <span class="k">new</span> <span class="nc">FunctionTask</span><span class="o">[</span><span class="kt">Unit</span><span class="o">](</span>
       <span class="o">()</span> <span class="k">=&gt;</span> <span class="o">{</span>
         <span class="k">try</span> <span class="o">{</span>
@@ -252,7 +252,7 @@
   <li>
     <p>Step 3 : Update run-executor.sh file in src/main/resources to point to the right directory.</p>
   </li>
-  <li>Step 4 : Run <em>CustomTasks</em> main method with mesos master url , path to the run-executor.sh shell script and path to the mysql jar file. </li>
+  <li>Step 4 : Run <em>CustomTasks</em> main method with mesos master url , path to the run-executor.sh shell script and path to the mysql jar file.</li>
 </ul>
 
 <p>More detail steps for running you can find <a href="/mesos-helloworld-scala/#running/">here</a>.</p>

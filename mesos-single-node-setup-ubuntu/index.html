@@ -63,7 +63,7 @@
 
 <p>Run the following commands to download and extract mesos distribution. Here we are downloading latest stable mesos version 0.20.0.</p>
 
-<div class="highlight"><pre><code class="bash">wget http://www.apache.org/dist/mesos/0.20.0/mesos-0.20.0.tar.gz      
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">wget http://www.apache.org/dist/mesos/0.20.0/mesos-0.20.0.tar.gz      
 tar -zxf mesos-0.20.0.tar.gz</code></pre></div>
 
 <p>After running above commands, we will get a folder named <strong>mesos-0.20.0</strong> which we refer as <strong>MESOS_INSTALL</strong> from now on.</p>
@@ -72,12 +72,12 @@ tar -zxf mesos-0.20.0.tar.gz</code></pre></div>
 
 <p>Mesos is written in C and C++. So to install mesos, we need to install it’s dependencies. So run the following command to install all the needed dependencies.</p>
 
-<div class="highlight"><pre><code class="bash">sudo apt-get update<span class="p">;</span> sudo apt-get install build-essential openjdk-6-jdk python-dev python-boto libcurl4-nss-dev libsasl2-dev</code></pre></div>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">sudo apt-get update<span class="p">;</span> sudo apt-get install build-essential openjdk-6-jdk python-dev python-boto libcurl4-nss-dev libsasl2-dev</code></pre></div>
 
 <h3 id="step-3--build-mesos">Step 3 : Build mesos</h3>
 <p>Mesos is distributed as a source code package, rather than as binary. So we have to build the source code in order to get running binaries. Run the following commands to build the source code. Please replace MESOS_INSTALL in the commands with the path to <em>mesos-0.20.0</em> directory.</p>
 
-<div class="highlight"><pre><code class="bash"><span class="nb">cd </span>MESOS_INSTALL <span class="c"># Replace MESOS_INSTALL with actual path to mesos-0.20.0</span>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">cd </span>MESOS_INSTALL <span class="c"># Replace MESOS_INSTALL with actual path to mesos-0.20.0</span>
  mkdir build     <span class="c">#create directory where the compiled code lives</span>
  <span class="nb">cd </span>build
  ../configure
@@ -93,22 +93,22 @@ tar -zxf mesos-0.20.0.tar.gz</code></pre></div>
 
 <p>Make sure that you are in <em>mesos-0.20.0/build</em> folder to run the following commands.</p>
 
-<div class="highlight"><pre><code class="bash"><span class="c">#start master</span>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#start master</span>
 ./bin/mesos-master.sh --ip<span class="o">=</span>127.0.0.1 --work_dir<span class="o">=</span>/tmp/mesos
 <span class="c">#start slave</span>
 ./bin/mesos-slave.sh --master<span class="o">=</span>127.0.0.1:5050</code></pre></div>
 
 <p>You can check if the cluster started or not by pointing your web browser at <a href="http://127.0.0.1:5050">127.0.0.1:5050</a>. If you can see 1 at under “Slaves -&gt; Activated” then you have single node cluster running.</p>
 
-<p><em>bin</em> folder contains all the shell scripts to start master and slave daemons. <em>mesos-master.sh</em> starts the mesos master with a checkpoint directory supplied at <em>–work-dir</em>. For this example I have used /tmp directory. But in real use case please use some other directory. </p>
+<p><em>bin</em> folder contains all the shell scripts to start master and slave daemons. <em>mesos-master.sh</em> starts the mesos master with a checkpoint directory supplied at <em>–work-dir</em>. For this example I have used /tmp directory. But in real use case please use some other directory.</p>
 
-<p>The script starts the mesos master at localhost:5050. To see all the options for the script, run </p>
+<p>The script starts the mesos master at localhost:5050. To see all the options for the script, run</p>
 
-<div class="highlight"><pre><code class="bash">./bin/mesos-master.sh --help</code></pre></div>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">./bin/mesos-master.sh --help</code></pre></div>
 
 <p>Same way, you can start mesos slave using <em>mesos-slave.sh</em>. You have to pass master info in order to mesos slave to discover it’s master. To see all the options for the script, run</p>
 
-<div class="highlight"><pre><code class="bash">./bin/mesos-slave.sh --help</code></pre></div>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">./bin/mesos-slave.sh --help</code></pre></div>
 
 <h3 id="step-5--testing-single-node-cluster">Step 5 : Testing single node cluster</h3>
 <p>Now we have single node cluster running. But how we can be sure that it is rightly configured to run tasks?. To test that, mesos provides few tests. We are going to use only the java test cases, as we are interested in Mesos Java API. Mesos also provides C++,Python
@@ -116,7 +116,7 @@ API’s.</p>
 
 <p>Run the following command to make sure mesos is rightly configured to run Java frameworks.</p>
 
-<div class="highlight"><pre><code class="bash">./src/examples/java/test-framework 127.0.0.1:5050</code></pre></div>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">./src/examples/java/test-framework 127.0.0.1:5050</code></pre></div>
 
 <p>If the test framework is able to run all the tasks successfully you have the mesos single node cluster working.</p>
 

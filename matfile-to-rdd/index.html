@@ -59,9 +59,9 @@
 
 <h2 id="jmatio---matlabs-mat-file-io-in-java">JMatIO - Matlab’s MAT-file I/O in JAVA</h2>
 
-<p><a href="http://sourceforge.net/projects/jmatio/">JMatIO</a> is an open source library provided to read matlab files in java. We can use this to read matlab files in spark also. You can download jar from <a href="http://sourceforge.net/projects/jmatio/">here</a> or if you are using maven , you can add the following dependency </p>
+<p><a href="http://sourceforge.net/projects/jmatio/">JMatIO</a> is an open source library provided to read matlab files in java. We can use this to read matlab files in spark also. You can download jar from <a href="http://sourceforge.net/projects/jmatio/">here</a> or if you are using maven , you can add the following dependency</p>
 
-<div class="highlight"><pre><code class="xml"><span class="nt">&lt;dependency&gt;</span>
+<div class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;dependency&gt;</span>
     <span class="nt">&lt;groupId&gt;</span>net.sourceforge.jmatio<span class="nt">&lt;/groupId&gt;</span>
     <span class="nt">&lt;artifactId&gt;</span>jmatio<span class="nt">&lt;/artifactId&gt;</span>
     <span class="nt">&lt;version&gt;</span>1.0<span class="nt">&lt;/version&gt;</span>
@@ -83,23 +83,23 @@
   <li>Reading mat file using JMatIO</li>
 </ul>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">file</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">MatFileReader</span><span class="o">(</span><span class="s">&quot;src/main/resources/mnist_uint8.mat&quot;</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">file</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">MatFileReader</span><span class="o">(</span><span class="s">&quot;src/main/resources/mnist_uint8.mat&quot;</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">content</span> <span class="k">=</span> <span class="n">file</span><span class="o">.</span><span class="n">getContent</span></code></pre></div>
 
 <ul>
   <li>Getting specific Matlab variable from content</li>
 </ul>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">train_x</span> <span class="k">=</span> <span class="n">content</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="s">&quot;train_x&quot;</span><span class="o">).</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">MLUInt8</span><span class="o">].</span><span class="n">getArray</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">train_x</span> <span class="k">=</span> <span class="n">content</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="s">&quot;train_x&quot;</span><span class="o">).</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">MLUInt8</span><span class="o">].</span><span class="n">getArray</span>
  <span class="k">val</span> <span class="n">train_y</span> <span class="k">=</span> <span class="n">content</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="s">&quot;train_y&quot;</span><span class="o">).</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">MLUInt8</span><span class="o">].</span><span class="n">getArray</span></code></pre></div>
 
-<p>Casting to MLUInt8 says that array content is integers. </p>
+<p>Casting to MLUInt8 says that array content is integers.</p>
 
 <ul>
   <li>Converting Matlab arrays to spark label point rdd</li>
 </ul>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">trainList</span> <span class="k">=</span> <span class="n">toList</span><span class="o">(</span><span class="n">train_x</span><span class="o">,</span><span class="n">train_y</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">trainList</span> <span class="k">=</span> <span class="n">toList</span><span class="o">(</span><span class="n">train_x</span><span class="o">,</span><span class="n">train_y</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">trainRDD</span> <span class="k">=</span> <span class="n">sparkContext</span><span class="o">.</span><span class="n">makeRDD</span><span class="o">(</span><span class="n">trainList</span><span class="o">)</span></code></pre></div>
 
 <ul>
@@ -108,7 +108,7 @@ Here we take both X and Y vector and converting to a Spark Labeled point which i
 in most of the classification algorithms.</li>
 </ul>
 
-<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">toList</span><span class="o">(</span><span class="n">xValue</span><span class="k">:</span><span class="kt">Array</span><span class="o">[</span><span class="kt">Array</span><span class="o">[</span><span class="kt">Byte</span><span class="o">]],</span><span class="n">yValue</span><span class="k">:</span><span class="kt">Array</span><span class="o">[</span><span class="kt">Array</span><span class="o">[</span><span class="kt">Byte</span><span class="o">]])</span><span class="k">:</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">toList</span><span class="o">(</span><span class="n">xValue</span><span class="k">:</span><span class="kt">Array</span><span class="o">[</span><span class="kt">Array</span><span class="o">[</span><span class="kt">Byte</span><span class="o">]],</span><span class="n">yValue</span><span class="k">:</span><span class="kt">Array</span><span class="o">[</span><span class="kt">Array</span><span class="o">[</span><span class="kt">Byte</span><span class="o">]])</span><span class="k">:</span>
  <span class="kt">Array</span><span class="o">[(</span><span class="kt">Double</span>,<span class="kt">Vector</span><span class="o">)]</span> <span class="o">={</span>
      <span class="n">xValue</span><span class="o">.</span><span class="n">zipWithIndex</span><span class="o">.</span><span class="n">map</span><span class="o">{</span>
        <span class="k">case</span> <span class="o">(</span><span class="n">row</span><span class="o">,</span><span class="n">rowIndex</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">{</span>
@@ -119,13 +119,13 @@ in most of the classification algorithms.</li>
      <span class="o">}</span>
    <span class="o">}</span></code></pre></div>
 
-<p>“toDouble” is used as spark label point expects all values to be in double. </p>
+<p>“toDouble” is used as spark label point expects all values to be in double.</p>
 
 <ul>
   <li>Saving rdd for further processing</li>
 </ul>
 
-<div class="highlight"><pre><code class="scala"><span class="n">trainRDD</span><span class="o">.</span><span class="n">saveAsObjectFile</span><span class="o">(</span><span class="s">&quot;mnsit&quot;</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">trainRDD</span><span class="o">.</span><span class="n">saveAsObjectFile</span><span class="o">(</span><span class="s">&quot;mnsit&quot;</span><span class="o">)</span></code></pre></div>
 
 
 </article>

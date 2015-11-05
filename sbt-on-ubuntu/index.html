@@ -59,7 +59,7 @@
 
 <h2 id="steps-to-install-sbt-on-ubuntu">Steps to install Sbt on ubuntu</h2>
 
-<div class="highlight"><pre><code class="sh"><span class="c">#Add typesafe repository     </span>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh"><span class="c">#Add typesafe repository     </span>
 wget http://apt.typesafe.com/repo-deb-build-0002.deb <span class="sb">`</span>
 
 <span class="c">#Install the repository</span>
@@ -76,13 +76,13 @@ sbt</code></pre></div>
 
 <h2 id="add-specific-version-of-sbt">Add specific version of sbt</h2>
 
-<p>Some project need specific version of sbt like 0.13.   </p>
+<p>Some project need specific version of sbt like 0.13.</p>
 
 <p>If you get error saying <strong>Detected sbt version 0.12.2 Cannot find sbt launcher 0.12.2 Please download: From typesafe.artifactoryonline.com/typesafe/ivy-releases/… To /home/{username}/.sbt/.lib/0.12.2/sbt-launch.jar</strong></p>
 
 <p>Run the following commands by replacing <username> with you username.</username></p>
 
-<div class="highlight"><pre><code class="sh">mkdir -p /home/<span class="o">{</span>username<span class="o">}</span>/.sbt/.lib/0.12.2/ 
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">mkdir -p /home/<span class="o">{</span>username<span class="o">}</span>/.sbt/.lib/0.12.2/ 
  wget -O /home/<span class="o">{</span>username<span class="o">}</span>/.sbt/.lib/0.12.2/sbt-launch.jar 
  http://typesafe.artifactoryonline.com/typesafe/ivy-releases/
  org.scala-sbt/sbt-launch/0.12.2/sbt-launch.jar</code></pre></div>

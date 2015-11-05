@@ -59,17 +59,17 @@
 <article class="post-content">
   <p>Apache Spark comes with lot of built in generic operators to do data processing. But many a times, when we are building real world applications, we need domain specific operators to solve problem in hand. So in these cases, we like to extend the Spark API to add our own custom operators.</p>
 
-<p>We can extend spark API in two ways. One of the way is to add custom operator for existing RDD’s and second is to one create our own RDD. </p>
+<p>We can extend spark API in two ways. One of the way is to add custom operator for existing RDD’s and second is to one create our own RDD.</p>
 
 <p>In this post, we are going to discuss both the methods.</p>
 
-<p>tl;dr Access complete code on <a href="https://github.com/phatak-dev/blog/tree/master/code/ExtendingSpark">github</a>. </p>
+<p>tl;dr Access complete code on <a href="https://github.com/phatak-dev/blog/tree/master/code/ExtendingSpark">github</a>.</p>
 
 <h2 id="motivation">Motivation</h2>
 
 <p>Let’ say we have sales data from an online store. The data is in csv format. It contains <em>transactionId</em>, <em>customerId</em>, <em>itemId</em> and <em>itemValue</em>. This model is represented as SalesRecord.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">class</span> <span class="nc">SalesRecord</span><span class="o">(</span><span class="k">val</span> <span class="n">transactionId</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">SalesRecord</span><span class="o">(</span><span class="k">val</span> <span class="n">transactionId</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span>
                   <span class="k">val</span> <span class="n">customerId</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span>
                   <span class="k">val</span> <span class="n">itemId</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span>
                   <span class="k">val</span> <span class="n">itemValue</span><span class="k">:</span> <span class="kt">Double</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Comparable</span><span class="o">[</span><span class="kt">SalesRecord</span><span class="o">]</span>
@@ -77,7 +77,7 @@
 
 <p>So whenever we get sales data, we convert the raw data to RDD[SalesRecord].</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">sc</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkContext</span><span class="o">(</span><span class="n">args</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="s">&quot;extendingspark&quot;</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sc</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkContext</span><span class="o">(</span><span class="n">args</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="s">&quot;extendingspark&quot;</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">dataRDD</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">textFile</span><span class="o">(</span><span class="n">args</span><span class="o">(</span><span class="mi">1</span><span class="o">))</span>
 <span class="k">val</span> <span class="n">salesRecordRDD</span> <span class="k">=</span> <span class="n">dataRDD</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">row</span> <span class="k">=&gt;</span> <span class="o">{</span>
     <span class="k">val</span> <span class="n">colValues</span> <span class="k">=</span> <span class="n">row</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;,&quot;</span><span class="o">)</span>
@@ -87,11 +87,11 @@
 
 <p>Let’s say we want to find out total amount of sales, then in Spark we can write</p>
 
-<div class="highlight"><pre><code class="scala"><span class="n">salesRecordRDD</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">itemValue</span><span class="o">).</span><span class="n">sum</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">salesRecordRDD</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">itemValue</span><span class="o">).</span><span class="n">sum</span></code></pre></div>
 
 <p>though it’s concise, it’s not super readable. It will be nice to have</p>
 
-<div class="highlight"><pre><code class="scala"><span class="n">salesRecordRDD</span><span class="o">.</span><span class="n">totalSales</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">salesRecordRDD</span><span class="o">.</span><span class="n">totalSales</span></code></pre></div>
 
 <p>In the above code, the <em>totalSales</em> feels like built in spark operator.Of course spark don’t know anything about our data or our data model.  Then how we can add our own custom operator on RDD?</p>
 
@@ -103,7 +103,7 @@
 
 <p>The following code defines an utility class, <em>CustomFunctions</em> , which holds all the custom operators. We take specific RDD,i.e RDD[SalesRecord] so that these operators only available on sales record RDD.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">class</span> <span class="nc">CustomFunctions</span><span class="o">(</span><span class="n">rdd</span><span class="k">:</span><span class="kt">RDD</span><span class="o">[</span><span class="kt">SalesRecord</span><span class="o">])</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">CustomFunctions</span><span class="o">(</span><span class="n">rdd</span><span class="k">:</span><span class="kt">RDD</span><span class="o">[</span><span class="kt">SalesRecord</span><span class="o">])</span> <span class="o">{</span>
   <span class="k">def</span> <span class="n">totalSales</span> <span class="k">=</span> <span class="n">rdd</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">itemValue</span><span class="o">).</span><span class="n">sum</span>  
 <span class="o">}</span></code></pre></div>
 
@@ -111,15 +111,15 @@
 
 <p>The following code defines an implicit function, <em>addCustomFunctions</em> which will add all the custom functions defined in <em>CustomFunctions</em> to the RDD[SalesRecord]</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">object</span> <span class="nc">CustomFunctions</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">object</span> <span class="nc">CustomFunctions</span> <span class="o">{</span>
   <span class="k">implicit</span> <span class="k">def</span> <span class="n">addCustomFunctions</span><span class="o">(</span><span class="n">rdd</span><span class="k">:</span> <span class="kt">RDD</span><span class="o">[</span><span class="kt">SalesRecord</span><span class="o">])</span> <span class="k">=</span> <span class="k">new</span>
   <span class="nc">CustomFunctions</span><span class="o">(</span><span class="n">rdd</span><span class="o">)</span> 
 <span class="o">}</span></code></pre></div>
 
 <h3 id="step-3-use-custom-functions-using-implicit-import">Step 3: Use custom functions, using implicit import</h3>
-<p>The following code has access to custom operator, <em>totalSales</em> using <em>CustomFunctions._</em> import. </p>
+<p>The following code has access to custom operator, <em>totalSales</em> using <em>CustomFunctions._</em> import.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">import</span> <span class="nn">CustomFunctions._</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">import</span> <span class="nn">CustomFunctions._</span>
 <span class="n">println</span><span class="o">(</span><span class="n">salesRecordRDD</span><span class="o">.</span><span class="n">totalSales</span><span class="o">)</span></code></pre></div>
 
 <p>With the above steps, you defined a domain specific operator on RDD.</p>
@@ -130,7 +130,7 @@
 
 <h3 id="step-1-create-discountrdd-by-extending-rdd">Step 1: Create DiscountRDD by extending RDD</h3>
 
-<div class="highlight"><pre><code class="scala"><span class="k">class</span> <span class="nc">DiscountRDD</span><span class="o">(</span><span class="n">prev</span><span class="k">:</span><span class="kt">RDD</span><span class="o">[</span><span class="kt">SalesRecord</span><span class="o">],</span><span class="n">discountPercentage</span><span class="k">:</span><span class="kt">Double</span><span class="o">)</span> 
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">DiscountRDD</span><span class="o">(</span><span class="n">prev</span><span class="k">:</span><span class="kt">RDD</span><span class="o">[</span><span class="kt">SalesRecord</span><span class="o">],</span><span class="n">discountPercentage</span><span class="k">:</span><span class="kt">Double</span><span class="o">)</span> 
 <span class="k">extends</span> <span class="nc">RDD</span><span class="o">[</span><span class="kt">SalesRecord</span><span class="o">](</span><span class="n">prev</span><span class="o">){</span>
 
 <span class="c1">// override compute method to calculate the discount</span>
@@ -167,11 +167,11 @@
 
 <p>Using similar trick discussed earlier, we can add custom operator called <em>discount</em> which creates DiscountRDD.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">discount</span><span class="o">(</span><span class="n">discountPercentage</span><span class="k">:</span><span class="kt">Double</span><span class="o">)</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">DiscountRDD</span><span class="o">(</span><span class="n">rdd</span><span class="o">,</span><span class="n">discountPercentage</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">discount</span><span class="o">(</span><span class="n">discountPercentage</span><span class="k">:</span><span class="kt">Double</span><span class="o">)</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">DiscountRDD</span><span class="o">(</span><span class="n">rdd</span><span class="o">,</span><span class="n">discountPercentage</span><span class="o">)</span></code></pre></div>
 
 <h3 id="step-3--use-discount-using-implicit-import">Step 3 : Use discount, using implicit import</h3>
 
-<div class="highlight"><pre><code class="scala"><span class="k">import</span> <span class="nn">CustomFunctions._</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">import</span> <span class="nn">CustomFunctions._</span>
  <span class="k">val</span> <span class="n">discountRDD</span> <span class="k">=</span> <span class="n">salesRecordRDD</span><span class="o">.</span><span class="n">discount</span><span class="o">(</span><span class="mf">0.1</span><span class="o">)</span>
  <span class="n">println</span><span class="o">(</span><span class="n">discountRDD</span><span class="o">.</span><span class="n">collect</span><span class="o">().</span><span class="n">toList</span><span class="o">)</span></code></pre></div>
 

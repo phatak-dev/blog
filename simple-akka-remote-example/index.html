@@ -57,7 +57,7 @@
 </header> 
 
 <article class="post-content">
-  <p>It’s hard to find a simple example that shows how to do akka remoting. Akka <a href="http://doc.akka.io/docs/akka/snapshot/scala/remoting.html">remote</a> documentation is highly cryptic. Other <a href="http://alvinalexander.com/scala/simple-akka-actors-remote-example">blogs</a> and <a href="http://stackoverflow.com/questions/14934782/akka-2-1-minimal-remote-actor-example">stackoverflow</a> answers are not much help as they makes you to create multiple projects and follow non obvious steps. </p>
+  <p>It’s hard to find a simple example that shows how to do akka remoting. Akka <a href="http://doc.akka.io/docs/akka/snapshot/scala/remoting.html">remote</a> documentation is highly cryptic. Other <a href="http://alvinalexander.com/scala/simple-akka-actors-remote-example">blogs</a> and <a href="http://stackoverflow.com/questions/14934782/akka-2-1-minimal-remote-actor-example">stackoverflow</a> answers are not much help as they makes you to create multiple projects and follow non obvious steps.</p>
 
 <p>So I was thinking there is should be an easier way to do this. It should be as simple as having two actors in a given project talking through remote interface. After digging through akka documentation I was able to create one such example. In this post, I am going to discuss about that.</p>
 
@@ -69,7 +69,7 @@
 
 <p>Create a single sbt project using IDE or any other tools. Once you created the project, add the following dependencies.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="n">resolvers</span> <span class="o">+=</span> <span class="s">&quot;Typesafe Repository&quot;</span> <span class="n">at</span> <span class="s">&quot;http://repo.typesafe.com/typesafe/releases/&quot;</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">resolvers</span> <span class="o">+=</span> <span class="s">&quot;Typesafe Repository&quot;</span> <span class="n">at</span> <span class="s">&quot;http://repo.typesafe.com/typesafe/releases/&quot;</span>
 
 <span class="n">libraryDependencies</span> <span class="o">+=</span>
   <span class="s">&quot;com.typesafe.akka&quot;</span> <span class="o">%%</span> <span class="s">&quot;akka-actor&quot;</span> <span class="o">%</span> <span class="s">&quot;2.3.7&quot;</span>
@@ -86,7 +86,7 @@
 
 <h3 id="step-21-define-remote-actor">Step 2.1 Define Remote Actor</h3>
 
-<div class="highlight"><pre><code class="scala"><span class="k">class</span> <span class="nc">RemoteActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">RemoteActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
   <span class="k">override</span> <span class="k">def</span> <span class="n">receive</span><span class="k">:</span> <span class="kt">Receive</span> <span class="o">=</span> <span class="o">{</span>
     <span class="k">case</span> <span class="n">msg</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=&gt;</span> <span class="o">{</span>
       <span class="n">println</span><span class="o">(</span><span class="s">&quot;remote received &quot;</span> <span class="o">+</span> <span class="n">msg</span> <span class="o">+</span> <span class="s">&quot; from &quot;</span> <span class="o">+</span> <span class="n">sender</span><span class="o">)</span>
@@ -104,7 +104,7 @@
 
 <p>Create a file name “remote_application.conf” in resources folder. Then place following code</p>
 
-<div class="highlight"><pre><code class="scala"><span class="n">akka</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">akka</span> <span class="o">{</span>
   <span class="n">loglevel</span> <span class="k">=</span> <span class="s">&quot;INFO&quot;</span>
   <span class="n">actor</span> <span class="o">{</span>
     <span class="n">provider</span> <span class="k">=</span> <span class="s">&quot;akka.remote.RemoteActorRefProvider&quot;</span>
@@ -125,7 +125,7 @@
 <ul>
   <li>Actor ref provider : We are specifying the references should be remote aware.</li>
   <li>Transports used : tcp is the transport layer protocol used</li>
-  <li>hostname : 127.0.0.1 </li>
+  <li>hostname : 127.0.0.1</li>
   <li>port : 5150 is the port on which the actor system listen on</li>
 </ul>
 
@@ -139,20 +139,20 @@
   <li>Get the file path from classpath</li>
 </ul>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">configFile</span> <span class="k">=</span> <span class="n">getClass</span><span class="o">.</span><span class="n">getClassLoader</span><span class="o">.</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">configFile</span> <span class="k">=</span> <span class="n">getClass</span><span class="o">.</span><span class="n">getClassLoader</span><span class="o">.</span>
   <span class="n">getResource</span><span class="o">(</span><span class="s">&quot;remote_application.conf&quot;</span><span class="o">).</span><span class="n">getFile</span></code></pre></div>
 
 <ul>
   <li>Parse the config file to create config object</li>
 </ul>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">config</span> <span class="k">=</span> <span class="nc">ConfigFactory</span><span class="o">.</span><span class="n">parseFile</span><span class="o">(</span><span class="k">new</span> <span class="nc">File</span><span class="o">(</span><span class="n">configFile</span><span class="o">))</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">config</span> <span class="k">=</span> <span class="nc">ConfigFactory</span><span class="o">.</span><span class="n">parseFile</span><span class="o">(</span><span class="k">new</span> <span class="nc">File</span><span class="o">(</span><span class="n">configFile</span><span class="o">))</span></code></pre></div>
 
 <ul>
   <li>Create an actor system with this config</li>
 </ul>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">(</span><span class="s">&quot;RemoteSystem&quot;</span> <span class="o">,</span> <span class="n">config</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">(</span><span class="s">&quot;RemoteSystem&quot;</span> <span class="o">,</span> <span class="n">config</span><span class="o">)</span></code></pre></div>
 
 <p>As you can observe, the configuration is always set in the level of actor system, not at actors level.</p>
 
@@ -160,7 +160,7 @@
   <li>Create an instance of remote actor using this actor system</li>
 </ul>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">remote</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">[</span><span class="kt">RemoteActor</span><span class="o">],</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;remote&quot;</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">remote</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">[</span><span class="kt">RemoteActor</span><span class="o">],</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;remote&quot;</span><span class="o">)</span></code></pre></div>
 
 <p>Once you create actor, it will be available at <em>akka:tcp://RemoteSystem@127.0.0.1:5150/user/remote</em>.</p>
 
@@ -174,7 +174,7 @@
 
 <h3 id="step-31--define-local-actor">Step 3.1 : Define local actor</h3>
 
-<div class="highlight"><pre><code class="scala"><span class="k">class</span> <span class="nc">LocalActor</span> <span class="k">extends</span> <span class="nc">Actor</span><span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">LocalActor</span> <span class="k">extends</span> <span class="nc">Actor</span><span class="o">{</span>
   <span class="nd">@throws</span><span class="o">[</span><span class="kt">Exception</span><span class="o">](</span><span class="n">classOf</span><span class="o">[</span><span class="kt">Exception</span><span class="o">])</span>
   <span class="k">override</span> <span class="k">def</span> <span class="n">preStart</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
     <span class="cm">/*</span>
@@ -208,7 +208,7 @@
 <h3 id="step-32--configuration-file-for-local-actor">Step 3.2 : Configuration file for local actor</h3>
 <p>As with remote actor, we need to specify the configuration file. We call it “local-configuration.conf”</p>
 
-<div class="highlight"><pre><code class="scala"><span class="n">loglevel</span> <span class="k">=</span> <span class="s">&quot;INFO&quot;</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">loglevel</span> <span class="k">=</span> <span class="s">&quot;INFO&quot;</span>
   <span class="n">actor</span> <span class="o">{</span>
     <span class="n">provider</span> <span class="k">=</span> <span class="s">&quot;akka.remote.RemoteActorRefProvider&quot;</span>
   <span class="o">}</span>

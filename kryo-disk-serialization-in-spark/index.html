@@ -59,7 +59,7 @@
 <article class="post-content">
   <p>In apache spark, it’s <a href="http://spark.apache.org/docs/latest/tuning.html#data-serialization">advised</a> to use the kryo serialization over java serialization for big data applications. Kryo has less memory footprint compared to java serialization which becomes very important when you are shuffling and caching large amount of data.</p>
 
-<p>Though kryo is supported for RDD caching and shuffling, it’s not natively supported to serialize to the disk. Both methods, <em>saveAsObjectFile</em> on RDD and <em>objectFile</em> method on SparkContext supports only java serialization. </p>
+<p>Though kryo is supported for RDD caching and shuffling, it’s not natively supported to serialize to the disk. Both methods, <em>saveAsObjectFile</em> on RDD and <em>objectFile</em> method on SparkContext supports only java serialization.</p>
 
 <p>As number of custom data types increases it’s tedious to support multiple serialization’s. So it will be nice if we can use  kryo serialization everywhere.</p>
 
@@ -70,25 +70,25 @@
 <h2 id="write">Write</h2>
 <p>Normally we use <em>rdd.saveAsObjectFile</em> api to save the serialized object’s into the disk. The following code shows how you can write your own <em>saveAsObjectFile</em> method which saves the objects in kryo serialization format.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">saveAsObjectFile</span><span class="o">[</span><span class="kt">T:</span> <span class="kt">ClassTag</span><span class="o">](</span><span class="n">rdd</span><span class="k">:</span> <span class="kt">RDD</span><span class="o">[</span><span class="kt">T</span><span class="o">],</span> <span class="n">path</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">saveAsObjectFile</span><span class="o">[</span><span class="kt">T:</span> <span class="kt">ClassTag</span><span class="o">](</span><span class="n">rdd</span><span class="k">:</span> <span class="kt">RDD</span><span class="o">[</span><span class="kt">T</span><span class="o">],</span> <span class="n">path</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span></code></pre></div>
 
 <p>We take rdd that to be written and output path as input parameters.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">kryoSerializer</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">KryoSerializer</span><span class="o">(</span><span class="n">rdd</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">getConf</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">kryoSerializer</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">KryoSerializer</span><span class="o">(</span><span class="n">rdd</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">getConf</span><span class="o">)</span></code></pre></div>
 
 <p><em>KryoSerializer</em> is a helper class provided by the spark to deal with kryo. We create a single instance of KryoSerializer which configures the required buffer sizes provided in the configuration.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="n">rdd</span><span class="o">.</span><span class="n">mapPartitions</span><span class="o">(</span><span class="n">iter</span> <span class="k">=&gt;</span> <span class="n">iter</span><span class="o">.</span><span class="n">grouped</span><span class="o">(</span><span class="mi">10</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">rdd</span><span class="o">.</span><span class="n">mapPartitions</span><span class="o">(</span><span class="n">iter</span> <span class="k">=&gt;</span> <span class="n">iter</span><span class="o">.</span><span class="n">grouped</span><span class="o">(</span><span class="mi">10</span><span class="o">)</span>
       <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">toArray</span><span class="o">))</span>
       <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">splitArray</span> <span class="k">=&gt;</span> <span class="o">{}</span></code></pre></div>
 
 <p>Every objectFile is saved as HDFS sequence files. So we loop over each of the rdd split and then convert those split into byte arrays.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">kryo</span> <span class="k">=</span> <span class="n">kryoSerializer</span><span class="o">.</span><span class="n">newKryo</span><span class="o">()</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">kryo</span> <span class="k">=</span> <span class="n">kryoSerializer</span><span class="o">.</span><span class="n">newKryo</span><span class="o">()</span></code></pre></div>
 
 <p>For every <em>splitArray</em>, first we create an instance of kryo. kryo instances are not thread safe. That’s why we create one for each map operation. When we call <em>kryoSerializer.newKryo()</em> it creates a new instance of kryo and also it calls our custom <a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.serializer.KryoRegistrator">registrator</a> if any.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="c1">//create output stream and plug it to the kryo output</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">//create output stream and plug it to the kryo output</span>
 <span class="k">val</span> <span class="n">bao</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ByteArrayOutputStream</span><span class="o">()</span>
 <span class="k">val</span> <span class="n">output</span> <span class="k">=</span> <span class="n">kryoSerializer</span><span class="o">.</span><span class="n">newKryoOutput</span><span class="o">()</span>
 <span class="n">output</span><span class="o">.</span><span class="n">setOutputStream</span><span class="o">(</span><span class="n">bao</span><span class="o">)</span>
@@ -97,7 +97,7 @@
 
 <p>Once we have the kryo instance, we create kryo output. Then we write class information and object to that output.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">byteWritable</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">BytesWritable</span><span class="o">(</span><span class="n">bao</span><span class="o">.</span><span class="n">toByteArray</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">byteWritable</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">BytesWritable</span><span class="o">(</span><span class="n">bao</span><span class="o">.</span><span class="n">toByteArray</span><span class="o">)</span>
       <span class="o">(</span><span class="nc">NullWritable</span><span class="o">.</span><span class="n">get</span><span class="o">(),</span> <span class="n">byteWritable</span><span class="o">)</span>
     <span class="o">}).</span><span class="n">saveAsSequenceFile</span><span class="o">(</span><span class="n">path</span><span class="o">)</span></code></pre></div>
 
@@ -111,7 +111,7 @@
 
 <p>It’s not enough if you are able to write to disk. You should be also able to create RDD from this data. Normally we use <em>objectFile</em> api on sparkContext to read from disk. Here we are going to write our own <em>objectFile</em> api to read kryo object files.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">objectFile</span><span class="o">[</span><span class="kt">T</span><span class="o">](</span><span class="n">sc</span><span class="k">:</span> <span class="kt">SparkContext</span><span class="o">,</span> <span class="n">path</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">minPartitions</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1</span><span class="o">)(</span><span class="k">implicit</span> <span class="n">ct</span><span class="k">:</span> <span class="kt">ClassTag</span><span class="o">[</span><span class="kt">T</span><span class="o">])</span> <span class="k">=</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">objectFile</span><span class="o">[</span><span class="kt">T</span><span class="o">](</span><span class="n">sc</span><span class="k">:</span> <span class="kt">SparkContext</span><span class="o">,</span> <span class="n">path</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">minPartitions</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1</span><span class="o">)(</span><span class="k">implicit</span> <span class="n">ct</span><span class="k">:</span> <span class="kt">ClassTag</span><span class="o">[</span><span class="kt">T</span><span class="o">])</span> <span class="k">=</span> <span class="o">{</span>
     <span class="k">val</span> <span class="n">kryoSerializer</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">KryoSerializer</span><span class="o">(</span><span class="n">sc</span><span class="o">.</span><span class="n">getConf</span><span class="o">)</span>
     <span class="n">sc</span><span class="o">.</span><span class="n">sequenceFile</span><span class="o">(</span><span class="n">path</span><span class="o">,</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">NullWritable</span><span class="o">],</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">BytesWritable</span><span class="o">],</span>
        <span class="n">minPartitions</span><span class="o">)</span>
@@ -131,7 +131,7 @@
 
 <p>The following example uses above two methods to serialize and deserialize a custom object named Person.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="c1">// user defined class that need to serialized</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">// user defined class that need to serialized</span>
   <span class="k">class</span> <span class="nc">Person</span><span class="o">(</span><span class="k">val</span> <span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span>
 
  <span class="k">def</span> <span class="n">main</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span> <span class="o">{</span>

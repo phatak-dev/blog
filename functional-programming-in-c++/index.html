@@ -57,7 +57,7 @@
 </header> 
 
 <article class="post-content">
-  <p>Few days back I attended a <a href="https://geekup.in/2014/olvemaudal">talk</a> on modern C++ <a href="http://www.pvv.org/~oma/ModernCPP_Bangalore_Nov2014_reduced.pdf">features</a> given by <a href="https://twitter.com/olvemaudal">Olve Mudal</a>. I have not coded in C++ after passing out of university. So it was interesting to revisit the language after long time. In the talk, speaker mentioned that modern C++ has good support for functional programming. </p>
+  <p>Few days back I attended a <a href="https://geekup.in/2014/olvemaudal">talk</a> on modern C++ <a href="http://www.pvv.org/~oma/ModernCPP_Bangalore_Nov2014_reduced.pdf">features</a> given by <a href="https://twitter.com/olvemaudal">Olve Mudal</a>. I have not coded in C++ after passing out of university. So it was interesting to revisit the language after long time. In the talk, speaker mentioned that modern C++ has good support for functional programming.</p>
 
 <p>C++ and functional programming!!!. I got fascinated by this and started digging around the C++ specification to find about it. I am really impressed by what I saw. So I wrote this post to show how you can write elegant functional programs with C++ now.</p>
 
@@ -70,11 +70,11 @@
 <p>The following are the new language constructs used by example code.</p>
 
 <h3 id="auto-keyword">auto keyword</h3>
-<p>In C++11 standard, meaning of <em>auto</em> keyword is changed. Now auto is used for doing type inference. Whenever you declare a variable as auto, compiler tries to infer the type by looking at it’s value. </p>
+<p>In C++11 standard, meaning of <em>auto</em> keyword is changed. Now auto is used for doing type inference. Whenever you declare a variable as auto, compiler tries to infer the type by looking at it’s value.</p>
 
-<div class="highlight"><pre><code class="c--"><span class="k">auto</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span></code></pre></div>
+<div class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="k">auto</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span></code></pre></div>
 
-<p>In the above code, <em>i</em> will be type inferred as an integer. </p>
+<p>In the above code, <em>i</em> will be type inferred as an integer.</p>
 
 <p>Using type inference, we can skip specifying types which makes code more clean.</p>
 
@@ -83,7 +83,7 @@
 
 <p>As it’s tedious to create a class for each function, C++ provides a shortcut syntax to create function objects.</p>
 
-<div class="highlight"><pre><code class="c--"><span class="k">auto</span> <span class="n">println</span> <span class="o">=</span> <span class="p">[](</span><span class="k">const</span> <span class="kt">char</span>  <span class="o">*</span><span class="n">message</span><span class="p">){</span> <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">message</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;};</span></code></pre></div>
+<div class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="k">auto</span> <span class="n">println</span> <span class="o">=</span> <span class="p">[](</span><span class="k">const</span> <span class="kt">char</span>  <span class="o">*</span><span class="n">message</span><span class="p">){</span> <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">message</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;};</span></code></pre></div>
 
 <p>Above code is creating a function object,println, which takes a single parameter and returns nothing. The <em>[]</em> brackets are used to specify the environment aka closure for the function. We will see more about closure in later part of the post.</p>
 
@@ -98,7 +98,7 @@
 
 <h3 id="foreach-combinator">for_each combinator</h3>
 
-<div class="highlight"><pre><code class="c--"><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">Collection</span><span class="p">,</span><span class="k">typename</span> <span class="n">unop</span><span class="o">&gt;</span>
+<div class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">Collection</span><span class="p">,</span><span class="k">typename</span> <span class="n">unop</span><span class="o">&gt;</span>
 <span class="kt">void</span> <span class="n">for_each</span><span class="p">(</span><span class="n">Collection</span> <span class="n">col</span><span class="p">,</span> <span class="n">unop</span> <span class="n">op</span><span class="p">){</span>
   <span class="n">std</span><span class="o">::</span><span class="n">for_each</span><span class="p">(</span><span class="n">col</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="n">col</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span><span class="n">op</span><span class="p">);</span>
 <span class="p">}</span></code></pre></div>
@@ -107,16 +107,16 @@
 
 <p>The following code uses it to print elements of a vector.</p>
 
-<div class="highlight"><pre><code class="c--"><span class="k">auto</span> <span class="n">lambda_echo</span> <span class="o">=</span> <span class="p">[](</span><span class="kt">int</span> <span class="n">i</span> <span class="p">)</span> <span class="p">{</span> <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">i</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span> <span class="p">};</span>  
+<div class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="k">auto</span> <span class="n">lambda_echo</span> <span class="o">=</span> <span class="p">[](</span><span class="kt">int</span> <span class="n">i</span> <span class="p">)</span> <span class="p">{</span> <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">i</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span> <span class="p">};</span>  
  <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">col</span><span class="p">{</span><span class="mi">20</span><span class="p">,</span><span class="mi">24</span><span class="p">,</span><span class="mi">37</span><span class="p">,</span><span class="mi">42</span><span class="p">,</span><span class="mi">23</span><span class="p">,</span><span class="mi">45</span><span class="p">,</span><span class="mi">37</span><span class="p">};</span>
  <span class="n">for_each</span><span class="p">(</span><span class="n">col</span><span class="p">,</span><span class="n">lambda_echo</span><span class="p">);</span></code></pre></div>
 
-<p>In the above code,we have a echo lambda, which prints element passed to it. </p>
+<p>In the above code,we have a echo lambda, which prints element passed to it.</p>
 
 <h3 id="map-combinator">map combinator</h3>
 <p>In algorithm, there is a transform function which allows us to implement map functionality.</p>
 
-<div class="highlight"><pre><code class="c--"><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">Collection</span><span class="p">,</span><span class="k">typename</span> <span class="n">unop</span><span class="o">&gt;</span>
+<div class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">Collection</span><span class="p">,</span><span class="k">typename</span> <span class="n">unop</span><span class="o">&gt;</span>
   <span class="n">Collection</span> <span class="n">map</span><span class="p">(</span><span class="n">Collection</span> <span class="n">col</span><span class="p">,</span><span class="n">unop</span> <span class="n">op</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">std</span><span class="o">::</span><span class="n">transform</span><span class="p">(</span><span class="n">col</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="n">col</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span><span class="n">col</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="n">op</span><span class="p">);</span>
   <span class="k">return</span> <span class="n">col</span><span class="p">;</span>
@@ -124,7 +124,7 @@
 
 <p>The following code calls the map function to add one to each element.</p>
 
-<div class="highlight"><pre><code class="c--"><span class="k">auto</span> <span class="n">addOne</span> <span class="o">=</span> <span class="p">[](</span><span class="kt">int</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">;};</span>
+<div class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="k">auto</span> <span class="n">addOne</span> <span class="o">=</span> <span class="p">[](</span><span class="kt">int</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">;};</span>
  <span class="k">auto</span> <span class="n">returnCol</span> <span class="o">=</span> <span class="n">map</span><span class="p">(</span><span class="n">col</span><span class="p">,</span><span class="n">addOne</span><span class="p">);</span>
  <span class="n">for_each</span><span class="p">(</span><span class="n">returnCol</span><span class="p">,</span><span class="n">lambda_echo</span><span class="p">);</span></code></pre></div>
 
@@ -147,7 +147,7 @@
 
 <p>Before implementing filter, we will implement <strong>filterNot</strong>. <em>filterNot</em> combinator removes all the elements which satisfies the predicate.</p>
 
-<div class="highlight"><pre><code class="c--"><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">Collection</span><span class="p">,</span><span class="k">typename</span> <span class="n">Predicate</span><span class="o">&gt;</span>
+<div class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">Collection</span><span class="p">,</span><span class="k">typename</span> <span class="n">Predicate</span><span class="o">&gt;</span>
 <span class="n">Collection</span> <span class="n">filterNot</span><span class="p">(</span><span class="n">Collection</span> <span class="n">col</span><span class="p">,</span><span class="n">Predicate</span> <span class="n">predicate</span> <span class="p">)</span> <span class="p">{</span>   
     <span class="k">auto</span> <span class="n">returnIterator</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">remove_if</span><span class="p">(</span><span class="n">col</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="n">col</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span><span class="n">predicate</span><span class="p">);</span>
     <span class="n">col</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">returnIterator</span><span class="p">,</span><span class="n">std</span><span class="o">::</span><span class="n">end</span><span class="p">(</span><span class="n">col</span><span class="p">));</span>    
@@ -158,7 +158,7 @@
 
 <p>Now we can implement filter in terms of <em>filterNot</em>.</p>
 
-<div class="highlight"><pre><code class="c--"><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">Collection</span><span class="p">,</span><span class="k">typename</span> <span class="n">Predicate</span><span class="o">&gt;</span>
+<div class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">Collection</span><span class="p">,</span><span class="k">typename</span> <span class="n">Predicate</span><span class="o">&gt;</span>
 <span class="n">Collection</span> <span class="n">filter</span><span class="p">(</span><span class="n">Collection</span> <span class="n">col</span><span class="p">,</span><span class="n">Predicate</span> <span class="n">predicate</span><span class="p">)</span> <span class="p">{</span>
  <span class="c1">//capture the predicate in order to be used inside function</span>
  <span class="k">auto</span> <span class="n">fnCol</span> <span class="o">=</span> <span class="n">filterNot</span><span class="p">(</span><span class="n">col</span><span class="p">,[</span><span class="n">predicate</span><span class="p">](</span><span class="k">typename</span> <span class="n">Collection</span><span class="o">::</span><span class="n">value_type</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="o">!</span><span class="n">predicate</span><span class="p">(</span><span class="n">i</span><span class="p">);});</span>
@@ -171,7 +171,7 @@
 
 <p>Finally we can filter as follows</p>
 
-<div class="highlight"><pre><code class="c--"><span class="k">auto</span> <span class="n">filteredCol</span> <span class="o">=</span> <span class="n">filter</span><span class="p">(</span><span class="n">col</span><span class="p">,[](</span><span class="kt">int</span> <span class="n">value</span><span class="p">){</span> <span class="k">return</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">30</span><span class="p">;});</span>
+<div class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="k">auto</span> <span class="n">filteredCol</span> <span class="o">=</span> <span class="n">filter</span><span class="p">(</span><span class="n">col</span><span class="p">,[](</span><span class="kt">int</span> <span class="n">value</span><span class="p">){</span> <span class="k">return</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">30</span><span class="p">;});</span>
  <span class="n">for_each</span><span class="p">(</span><span class="n">filteredCol</span><span class="p">,</span><span class="n">lambda_echo</span><span class="p">);</span></code></pre></div>
 
 <h2 id="memory-management">Memory management</h2>

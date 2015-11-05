@@ -55,13 +55,13 @@
 </header> 
 
 <article class="post-content">
-  <p>I am a huge fan of machine learning classes on <a href="http://www.ml-class.org">coursera</a>. They do a great job of explaining machine learning techniques with lots of hands on . If you are following the course or watching videos you will find this post useful.       </p>
+  <p>I am a huge fan of machine learning classes on <a href="http://www.ml-class.org">coursera</a>. They do a great job of explaining machine learning techniques with lots of hands on . If you are following the course or watching videos you will find this post useful.</p>
 
 <p>In the discussion of Logistic Regression,  exercise two, we use fminunc function rather than standard gradient descent for minimizing for theta. Exercise does not discuss how to use gradient descent for the same. If you use the code of gradient descent of linear  regression exercise you don’t get same values of theta . So you will be left wondering how to use gradient descent for logistic regression.  Even I also got stuck at same place and was able to figure it out after lot of trial and error. To save other’s pain I am sharing following code for the same.</p>
 
 <p>Create a file called gradientDescent.m and paste the following code</p>
 
-<div class="highlight"><pre><code class="octave"><span class="k">function</span><span class="w"> </span>[theta,cost] <span class="p">=</span><span class="w"> </span><span class="nf">gradientDescent</span><span class="p">(</span>X, y, theta, alpha, num_iters<span class="p">)</span><span class="w"></span>
+<div class="highlight"><pre><code class="language-octave" data-lang="octave"><span class="k">function</span><span class="w"> </span>[theta,cost] <span class="p">=</span><span class="w"> </span><span class="nf">gradientDescent</span><span class="p">(</span>X, y, theta, alpha, num_iters<span class="p">)</span><span class="w"></span>
 
 <span class="c">%GRADIENTDESCENT Performs gradient descent to learn theta</span>
 
@@ -97,7 +97,7 @@
 
 <p>To call gradient descent , add the following lines to ex2.m</p>
 
-<div class="highlight"><pre><code class="octave"><span class="c">%%============= Part 4: Optimizing using Gradient Descent =============</span>
+<div class="highlight"><pre><code class="language-octave" data-lang="octave"><span class="c">%%============= Part 4: Optimizing using Gradient Descent =============</span>
 
 <span class="n">alpha</span> <span class="p">=</span> <span class="mf">0.0014</span><span class="p">;</span>
 

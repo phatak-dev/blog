@@ -73,13 +73,13 @@ run general scala code.</p>
 
 <p>To run any function, we need to represent that function as a mesos task. The following trait represent the task abstraction.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">trait</span> <span class="nc">Task</span><span class="o">[</span><span class="kt">T</span><span class="o">]</span> <span class="nc">extends</span> <span class="nc">Serializable</span><span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">trait</span> <span class="nc">Task</span><span class="o">[</span><span class="kt">T</span><span class="o">]</span> <span class="nc">extends</span> <span class="nc">Serializable</span><span class="o">{</span>
   <span class="k">def</span> <span class="n">run</span><span class="k">:</span> <span class="kt">T</span>
 <span class="o">}</span></code></pre></div>
 
 <p>Our task has a single <strong>run</strong> method. It does not take anything. Type T signifies the return type of the function. Note that task extends the serialization which allows us to send this task over wire to execute on mesos cluster.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">class</span>  <span class="nc">FunctionTask</span><span class="o">[</span><span class="kt">T</span><span class="o">](</span> <span class="n">body</span><span class="k">:</span> <span class="o">=&gt;</span> <span class="o">()</span> <span class="k">=&gt;</span> <span class="n">T</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Task</span><span class="o">[</span><span class="kt">T</span><span class="o">]</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span>  <span class="nc">FunctionTask</span><span class="o">[</span><span class="kt">T</span><span class="o">](</span> <span class="n">body</span><span class="k">:</span> <span class="o">=&gt;</span> <span class="o">()</span> <span class="k">=&gt;</span> <span class="n">T</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Task</span><span class="o">[</span><span class="kt">T</span><span class="o">]</span> <span class="o">{</span>
   <span class="k">override</span> <span class="k">def</span> <span class="n">run</span><span class="k">:</span> <span class="kt">T</span> <span class="o">=</span> <span class="n">body</span><span class="o">()</span>
 <span class="o">}</span></code></pre></div>
 
@@ -92,7 +92,7 @@ run general scala code.</p>
 <p>TaskExecutor is our custom executor which runs above task abstraction. It’s just a normal scala program which has a main method. It creates an instance of
 mesos.Executor and listens on launchTask callback.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">object</span> <span class="nc">TaskExecutor</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">object</span> <span class="nc">TaskExecutor</span> <span class="o">{</span>
 
   <span class="k">def</span> <span class="n">main</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span> <span class="o">{</span>
     <span class="k">val</span> <span class="n">logger</span> <span class="k">=</span> <span class="nc">Logger</span><span class="o">.</span><span class="n">getLogger</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="n">getClass</span><span class="o">.</span><span class="n">getName</span><span class="o">)</span>
@@ -130,7 +130,7 @@ mesos.Executor and listens on launchTask callback.</p>
 
 <p>In the code, we deserialize the task from the <em>TaskInfo</em> object. We run each task on different thread so that we can run multiple tasks at same time.</p>
 
-<p>Once the execution is done, we wrap the result and set the task state to finished. </p>
+<p>Once the execution is done, we wrap the result and set the task state to finished.</p>
 
 <p>You can access complete code listing <a href="https://github.com/phatak-dev/blog/blob/master/code/MesosCustomExecutor/src/main/scala/com/madhu/mesos/customexecutor/TaskExecutor.scala">here</a>.</p>
 
@@ -138,7 +138,7 @@ mesos.Executor and listens on launchTask callback.</p>
 
 <p>Once we have the custom executor, next step is to plug it in our mesos scheduler. Mesos doesn’t understand any specific language, it just understands how to run shell scripts. So we run our task executor from a shell script and specify the shell script path in executor info.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">getExecutorInfo</span><span class="o">(</span><span class="n">d</span><span class="k">:</span> <span class="kt">SchedulerDriver</span><span class="o">)</span><span class="k">:</span> <span class="kt">ExecutorInfo</span> <span class="o">=</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">getExecutorInfo</span><span class="o">(</span><span class="n">d</span><span class="k">:</span> <span class="kt">SchedulerDriver</span><span class="o">)</span><span class="k">:</span> <span class="kt">ExecutorInfo</span> <span class="o">=</span> <span class="o">{</span>
     <span class="k">val</span> <span class="n">scriptPath</span> <span class="k">=</span> <span class="nc">System</span><span class="o">.</span><span class="n">getProperty</span><span class="o">(</span><span class="s">&quot;executor_script_path&quot;</span><span class="o">,</span><span class="s">&quot;~/run-executor.sh&quot;</span><span class="o">)</span>
     <span class="nc">ExecutorInfo</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span>
       <span class="n">setCommand</span><span class="o">(</span><span class="nc">CommandInfo</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span><span class="n">setValue</span><span class="o">(</span><span class="s">&quot;&quot;</span> <span class="o">+</span>
@@ -163,9 +163,9 @@ mesos.Executor and listens on launchTask callback.</p>
 <p>You can access complete code listing <a href="https://github.com/phatak-dev/blog/blob/master/code/MesosCustomExecutor/src/main/scala/com/madhu/mesos/customexecutor/TaskScheduler.scala">here</a>.</p>
 
 <h2 id="step-4--run-executor-script-file">Step 4 : run-executor script file</h2>
-<p>This script file, used by the executor info to instantiate our custom executor. </p>
+<p>This script file, used by the executor info to instantiate our custom executor.</p>
 
-<div class="highlight"><pre><code class="sh"><span class="c">#!/bin/sh</span>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh"><span class="c">#!/bin/sh</span>
 <span class="nb">echo</span> <span class="s2">&quot;running Executor&quot;</span>
 <span class="nb">export </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span><span class="nv">$MESOS_HOME</span>/src/.libs:<span class="nv">$LD_LIBRARY_PATH</span>
 <span class="c">#update the path to point to jar</span>
@@ -176,7 +176,7 @@ java -cp &lt;project-path&gt;/target/mesoscustomexecutor-1.0-SNAPSHOT.jar com.ma
 <h2 id="step-5--creating-tasks">Step 5 : Creating tasks</h2>
 <p>We create 2 simple tasks to just to print hi and index. Note how we can even access closure inside our tasks.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">multipleTasks</span><span class="o">()</span> <span class="k">=</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">multipleTasks</span><span class="o">()</span> <span class="k">=</span> <span class="o">{</span>
      <span class="mi">0</span> <span class="n">to</span> <span class="mi">1</span> <span class="n">map</span> <span class="o">{</span>
        <span class="n">index</span> <span class="k">=&gt;</span> <span class="o">{</span>
          <span class="k">val</span> <span class="n">f</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">FunctionTask</span><span class="o">[</span><span class="kt">Unit</span><span class="o">](()</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;hi&quot;</span> <span class="o">+</span> <span class="n">index</span><span class="o">))</span>

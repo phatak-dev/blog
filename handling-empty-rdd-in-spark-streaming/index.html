@@ -59,20 +59,20 @@
 <article class="post-content">
   <p>Spark streaming is a near real time tiny batch processing system. For given interval, spark streaming generates new batch and runs some processing. Each of these batch data is represented as RDD. But what happens there is no data for a given batch? Spark generates a special kind of RDD called <em>EmptyRDD</em>.</p>
 
-<p>This empty RDD makes sure that processing is consistent across multiple batches. But having an empty RDD sometimes may create some issues. For example, let’s say you want to save the data of a stream to HDFS. </p>
+<p>This empty RDD makes sure that processing is consistent across multiple batches. But having an empty RDD sometimes may create some issues. For example, let’s say you want to save the data of a stream to HDFS.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">ssc</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">StreamingContext</span><span class="o">(</span><span class="n">args</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span><span class="s">&quot;test&quot;</span><span class="o">,</span><span class="nc">Seconds</span><span class="o">(</span><span class="mi">10</span><span class="o">))</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">ssc</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">StreamingContext</span><span class="o">(</span><span class="n">args</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span><span class="s">&quot;test&quot;</span><span class="o">,</span><span class="nc">Seconds</span><span class="o">(</span><span class="mi">10</span><span class="o">))</span>
 <span class="k">val</span> <span class="n">socketStream</span> <span class="k">=</span> <span class="n">ssc</span><span class="o">.</span><span class="n">socketTextStream</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span><span class="mi">50050</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">outputDir</span> <span class="k">=</span> <span class="n">args</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
 <span class="n">socketStream</span><span class="o">.</span><span class="n">foreachRDD</span><span class="o">(</span><span class="n">rdd</span> <span class="k">=&gt;</span> <span class="o">{</span>
   <span class="n">rdd</span><span class="o">.</span><span class="n">saveAsTextFile</span><span class="o">(</span><span class="n">outputDir</span><span class="o">)</span>
 <span class="o">})</span></code></pre></div>
 
-<p>The above code generates empty files for empty batches. If you have many empty batches, unnecessarily too many empty folders will be created. </p>
+<p>The above code generates empty files for empty batches. If you have many empty batches, unnecessarily too many empty folders will be created.</p>
 
-<p>We can avoid this by checking, is a given RDD is empty RDD. </p>
+<p>We can avoid this by checking, is a given RDD is empty RDD.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">if</span><span class="o">(!</span><span class="n">rdd</span><span class="o">.</span><span class="n">partitions</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">if</span><span class="o">(!</span><span class="n">rdd</span><span class="o">.</span><span class="n">partitions</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span>
    <span class="n">rdd</span><span class="o">.</span><span class="n">saveAsTextFile</span><span class="o">(</span><span class="n">outputDir</span><span class="o">)</span></code></pre></div>
 
 <p>The empty rdd has no partitions. Using this logic, we check for partition array of RDD. If partition array is empty, then its an EmptyRDD. This way we can avoid saving empty batches to HDFS.</p>

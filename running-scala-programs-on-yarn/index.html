@@ -61,12 +61,12 @@
 <article class="post-content">
   <p>Apache YARN is  <em>Yet Another Resource Negotiator</em> for distributed systems. It’s a distributed system resource scheduler similar to mesos. Yarn was created as effort to diversify the hadoop for different use cases. Yarn is available in all hadoop 2.x releases.</p>
 
-<p>In this post, we are going to discuss about how to run a scala program in yarn. You may have seen <a href="https://github.com/hortonworks/simple-yarn-app">distributed shell example </a> which run shell commands on yarn. This example extends that code to run scala programs in place of shell commands. </p>
+<p>In this post, we are going to discuss about how to run a scala program in yarn. You may have seen <a href="https://github.com/hortonworks/simple-yarn-app">distributed shell example </a> which run shell commands on yarn. This example extends that code to run scala programs in place of shell commands.</p>
 
 <p>If you are new to yarn please go through <a href="http://hadoop.apache.org/docs/current/hadoop-yarn/hadoop-yarn-site/YARN.html">YARN architecture</a> before continuing.</p>
 
 <h2 id="yarn-and-scala">Yarn and Scala</h2>
-<p>Yarn is written in Java. So the API it exposes is primarily in java. There is no special support for Scala. We just use the java api in our example. </p>
+<p>Yarn is written in Java. So the API it exposes is primarily in java. There is no special support for Scala. We just use the java api in our example.</p>
 
 <p>tl;dr Access the complete code on <a href="https://github.com/phatak-dev/blog/tree/master/code/YarnScalaHelloWorld">github</a>.</p>
 
@@ -74,7 +74,7 @@
 
 <h2 id="step-1--add-yarn-dependencies">Step 1 : Add yarn dependencies</h2>
 
-<div class="highlight"><pre><code class="xml"><span class="nt">&lt;dependency&gt;</span>
+<div class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;dependency&gt;</span>
   <span class="nt">&lt;groupId&gt;</span>org.apache.hadoop<span class="nt">&lt;/groupId&gt;</span>
   <span class="nt">&lt;artifactId&gt;</span>hadoop-common<span class="nt">&lt;/artifactId&gt;</span>
   <span class="nt">&lt;version&gt;</span>2.2.0<span class="nt">&lt;/version&gt;</span>
@@ -99,13 +99,13 @@
 
 <p>First we have to start a YarnClient, which will talk to Resource manager on our behalf.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">client</span> <span class="k">=</span> <span class="nc">YarnClient</span><span class="o">.</span><span class="n">createYarnClient</span><span class="o">()</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">client</span> <span class="k">=</span> <span class="nc">YarnClient</span><span class="o">.</span><span class="n">createYarnClient</span><span class="o">()</span>
 <span class="n">client</span><span class="o">.</span><span class="n">init</span><span class="o">(</span><span class="n">conf</span><span class="o">)</span>
 <span class="n">client</span><span class="o">.</span><span class="n">start</span><span class="o">()</span></code></pre></div>
 
 <h3 id="step-22--specify-command-to-launch-application-master">Step 2.2 : Specify command to launch Application master</h3>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">app</span> <span class="k">=</span> <span class="n">client</span><span class="o">.</span><span class="n">createApplication</span><span class="o">()</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">app</span> <span class="k">=</span> <span class="n">client</span><span class="o">.</span><span class="n">createApplication</span><span class="o">()</span>
     <span class="k">val</span> <span class="n">amContainer</span> <span class="k">=</span> <span class="nc">Records</span><span class="o">.</span><span class="n">newRecord</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">ContainerLaunchContext</span><span class="o">])</span>
     <span class="c1">//application master is a just java program with given commands</span>
     <span class="n">amContainer</span><span class="o">.</span><span class="n">setCommands</span><span class="o">(</span><span class="nc">List</span><span class="o">(</span>
@@ -125,7 +125,7 @@
 
 <h3 id="step-23--add-the-application-jar-to-local-resource">Step 2.3 : Add the application jar to local resource</h3>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">appMasterJar</span> <span class="k">=</span> <span class="nc">Records</span><span class="o">.</span><span class="n">newRecord</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">LocalResource</span><span class="o">])</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">appMasterJar</span> <span class="k">=</span> <span class="nc">Records</span><span class="o">.</span><span class="n">newRecord</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">LocalResource</span><span class="o">])</span>
  <span class="n">setUpLocalResource</span><span class="o">(</span><span class="k">new</span> <span class="nc">Path</span><span class="o">(</span><span class="n">jarPath</span><span class="o">),</span> <span class="n">appMasterJar</span><span class="o">)</span>
  <span class="n">amContainer</span><span class="o">.</span><span class="n">setLocalResources</span><span class="o">(</span><span class="nc">Collections</span><span class="o">.</span><span class="n">singletonMap</span><span class="o">(</span><span class="s">&quot;helloworld.jar&quot;</span><span class="o">,</span> <span class="n">appMasterJar</span><span class="o">))</span></code></pre></div>
 
@@ -135,7 +135,7 @@
 
 <p>As our code depends on hadoop and yarn api, we have to add them to class path. The following code does that.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">setUpEnv</span><span class="o">(</span><span class="n">env</span><span class="k">:</span> <span class="kt">collection.mutable.Map</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">])</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">setUpEnv</span><span class="o">(</span><span class="n">env</span><span class="k">:</span> <span class="kt">collection.mutable.Map</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">])</span>
 <span class="o">(</span><span class="k">implicit</span> <span class="n">conf</span><span class="k">:</span><span class="kt">YarnConfiguration</span><span class="o">)</span> <span class="k">=</span> <span class="o">{</span>
  
  <span class="k">val</span> <span class="n">classPath</span> <span class="k">=</span>  <span class="n">conf</span><span class="o">.</span><span class="n">getStrings</span><span class="o">(</span><span class="nc">YarnConfiguration</span><span class="o">.</span><span class="nc">YARN_APPLICATION_CLASSPATH</span><span class="o">,</span><span class="nc">YarnConfiguration</span><span class="o">.</span>
@@ -150,17 +150,17 @@
       <span class="nc">Environment</span><span class="o">.</span><span class="nc">PWD</span><span class="o">.</span><span class="n">$</span><span class="o">()</span> <span class="o">+</span> <span class="nc">File</span><span class="o">.</span><span class="n">separator</span> <span class="o">+</span> <span class="s">&quot;*&quot;</span><span class="o">)</span>
  <span class="o">}</span></code></pre></div>
 
-<p>We fill up our env map using the jar name from <em>yarn classpath</em> </p>
+<p>We fill up our env map using the jar name from <em>yarn classpath</em></p>
 
-<div class="highlight"><pre><code class="scala"><span class="n">amContainer</span><span class="o">.</span><span class="n">setEnvironment</span><span class="o">(</span><span class="n">env</span><span class="o">.</span><span class="n">asJava</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">amContainer</span><span class="o">.</span><span class="n">setEnvironment</span><span class="o">(</span><span class="n">env</span><span class="o">.</span><span class="n">asJava</span><span class="o">)</span></code></pre></div>
 
 <p>Once we have map, set the map as environment for application master.</p>
 
 <h3 id="step-25-specifying-resource-requirement-for-application-master">Step 2.5: Specifying resource requirement for Application master</h3>
 
-<p>Everything in yarn runs on a container which consumes part of resources on cluster. So before launching any container you have to specify how much resource it needs. </p>
+<p>Everything in yarn runs on a container which consumes part of resources on cluster. So before launching any container you have to specify how much resource it needs.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">resource</span> <span class="k">=</span> <span class="nc">Records</span><span class="o">.</span><span class="n">newRecord</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">Resource</span><span class="o">])</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">resource</span> <span class="k">=</span> <span class="nc">Records</span><span class="o">.</span><span class="n">newRecord</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">Resource</span><span class="o">])</span>
  <span class="n">resource</span><span class="o">.</span><span class="n">setMemory</span><span class="o">(</span><span class="mi">300</span><span class="o">)</span>
  <span class="n">resource</span><span class="o">.</span><span class="n">setVirtualCores</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span></code></pre></div>
 
@@ -170,7 +170,7 @@
 
 <p>Once everything is ready, create an application submission context which will request a new application id from RM. Then submit the application.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">appContext</span> <span class="k">=</span> <span class="n">app</span><span class="o">.</span><span class="n">getApplicationSubmissionContext</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">appContext</span> <span class="k">=</span> <span class="n">app</span><span class="o">.</span><span class="n">getApplicationSubmissionContext</span>
 <span class="n">appContext</span><span class="o">.</span><span class="n">setApplicationName</span><span class="o">(</span><span class="s">&quot;helloworld&quot;</span><span class="o">)</span>
 <span class="n">appContext</span><span class="o">.</span><span class="n">setAMContainerSpec</span><span class="o">(</span><span class="n">amContainer</span><span class="o">)</span>
 <span class="n">appContext</span><span class="o">.</span><span class="n">setResource</span><span class="o">(</span><span class="n">resource</span><span class="o">)</span>
@@ -191,7 +191,7 @@
 
 <p>We have to start RM and NM client in order to talk to these components.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="c1">// Create a client to talk to the RM</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">// Create a client to talk to the RM</span>
 <span class="k">val</span> <span class="n">rmClient</span> <span class="k">=</span> <span class="nc">AMRMClient</span><span class="o">.</span><span class="n">createAMRMClient</span><span class="o">().</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">AMRMClient</span><span class="o">[</span><span class="kt">ContainerRequest</span><span class="o">]]</span>
 <span class="n">rmClient</span><span class="o">.</span><span class="n">init</span><span class="o">(</span><span class="n">conf</span><span class="o">)</span>
 <span class="n">rmClient</span><span class="o">.</span><span class="n">start</span><span class="o">()</span>
@@ -205,7 +205,7 @@
 <h3 id="step-32--request-for-containers">Step 3.2 : Request for containers</h3>
 <p>Once we have established communication to RM and NM, we will request for containers which allows us to run our program. No.of containers is specified as command line argument. If you specify more than 1, hello world runs more than ones.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">for</span> <span class="o">(</span> <span class="n">i</span> <span class="k">&lt;-</span> <span class="mi">1</span> <span class="n">to</span> <span class="n">n</span><span class="o">)</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">for</span> <span class="o">(</span> <span class="n">i</span> <span class="k">&lt;-</span> <span class="mi">1</span> <span class="n">to</span> <span class="n">n</span><span class="o">)</span> <span class="o">{</span>
  <span class="k">val</span> <span class="n">containerAsk</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ContainerRequest</span><span class="o">(</span><span class="n">resource</span><span class="o">,</span><span class="kc">null</span><span class="o">,</span><span class="kc">null</span><span class="o">,</span><span class="n">priority</span><span class="o">)</span>
  <span class="n">println</span><span class="o">(</span><span class="s">&quot;asking for &quot;</span> <span class="o">+</span><span class="n">s</span><span class="s">&quot;$i&quot;</span><span class="o">)</span>
  <span class="n">rmClient</span><span class="o">.</span><span class="n">addContainerRequest</span><span class="o">(</span><span class="n">containerAsk</span><span class="o">)</span> <span class="o">}</span></code></pre></div>
@@ -218,7 +218,7 @@
 
 <p>Once resources are available, YARN will allocate requested containers. Once we have container we will launch the our hello world. Setting up jar and environment is exactly same like client.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">while</span><span class="o">(</span> <span class="n">completedContainers</span> <span class="o">&lt;</span> <span class="n">n</span><span class="o">)</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">while</span><span class="o">(</span> <span class="n">completedContainers</span> <span class="o">&lt;</span> <span class="n">n</span><span class="o">)</span> <span class="o">{</span>
 
 <span class="k">val</span> <span class="n">appMasterJar</span> <span class="k">=</span> <span class="nc">Records</span><span class="o">.</span><span class="n">newRecord</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">LocalResource</span><span class="o">])</span>
 <span class="n">setUpLocalResource</span><span class="o">(</span><span class="k">new</span> <span class="nc">Path</span><span class="o">(</span><span class="n">jarPath</span><span class="o">),</span><span class="n">appMasterJar</span><span class="o">)</span>
@@ -257,7 +257,7 @@
 
 <p>Our hello world is just simple scala class.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">object</span> <span class="nc">HelloWorld</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">object</span> <span class="nc">HelloWorld</span> <span class="o">{</span>
  <span class="k">def</span> <span class="n">main</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span> <span class="o">{</span>
     <span class="n">println</span><span class="o">(</span><span class="s">&quot;helloworld&quot;</span><span class="o">)</span>
  <span class="o">}</span>
@@ -276,19 +276,19 @@
 <p>This folder will hold the jar built in the build step. As we discussed earlier,
 the jar containing application master has to be in HDFS in order to add as a local resource.</p>
 
-<div class="highlight"><pre><code class="sh">hdfs dfs -mkdir /jars</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">hdfs dfs -mkdir /jars</code></pre></div>
 
 <h3 id="step-62--put-the-jar-file-in-jars">Step 6.2 : Put the jar file in /jars</h3>
 
 <p>Copy the jar from your local file system to HDFS.</p>
 
-<div class="highlight"><pre><code class="sh">hdfs dfs -put &lt;jar-path&gt; /jars</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">hdfs dfs -put &lt;jar-path&gt; /jars</code></pre></div>
 
 <h3 id="step-63--run-the-code">Step 6.3 : Run the code</h3>
 
 <p>Replace <em>jar-path</em> with absolute path to jar on you system. Also put appropriate values for namenode-host and namenode-port. The last parameter specifies number of containers.</p>
 
-<div class="highlight"><pre><code class="sh">hadoop jar &lt;jar-path&gt;  com.madhukaraphatak.yarn.helloworld.Client hdfs://&lt;namenode-host:namenode-port&gt;/jars/yarn-helloworld-scala-1.0-SNAPSHOT.jar 1</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">hadoop jar &lt;jar-path&gt;  com.madhukaraphatak.yarn.helloworld.Client hdfs://&lt;namenode-host:namenode-port&gt;/jars/yarn-helloworld-scala-1.0-SNAPSHOT.jar 1</code></pre></div>
 
 <p>If everything runs fine, you should see hello world in logs, available at
 $HADOOP_HOME/logs/userlogs.</p>

@@ -129,9 +129,9 @@ Here, org.antlr.Tool is the main class which would take the ${resource_name} for
 
 <p>Create a grammar file with .g extension. Say, Example.g</p>
 
-<div class="highlight"><pre><code class="octave"><span class="n">grammar</span> <span class="n">Example</span><span class="p">;</span>
+<div class="highlight"><pre><code class="language-octave" data-lang="octave"><span class="n">grammar</span> <span class="n">Example</span><span class="p">;</span>
 <span class="n">start</span> <span class="p">:</span> <span class="s">&#39;hello&#39;</span> <span class="n">ID</span> <span class="s">&#39;;&#39;</span> <span class="p">{</span><span class="n">System</span><span class="p">.</span><span class="n">out</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">&quot;hiii... &quot;</span><span class="o">+</span>$<span class="n">ID</span><span class="p">.</span><span class="nb">text</span><span class="p">);}</span> <span class="p">;</span>
-<span class="n">ID</span><span class="p">:</span> <span class="s">&#39;a&#39;</span><span class="p">..</span><span class="s">&#39;z&#39;</span> <span class="o">+</span> <span class="p">;</span>
+<span class="n">ID</span><span class="p">:</span> <span class="s">&#39;a&#39;</span><span class="p">..</span><span class="o">&#39;</span><span class="n">z</span><span class="o">&#39;</span> <span class="o">+</span> <span class="p">;</span>
 <span class="n">WS</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39; &#39;</span> <span class="o">|</span><span class="s">&#39;\n&#39;</span> <span class="o">|</span><span class="s">&#39;\r&#39;</span> <span class="p">)</span><span class="o">+</span>
 <span class="p">{</span>$<span class="n">channel</span><span class="p">=</span><span class="n">HIDDEN</span><span class="p">;}</span></code></pre></div>
 
@@ -145,24 +145,24 @@ all you can see is a lexer and parser files generated with the tokens.
 In our example,</p>
 
 <ul>
-  <li>ExampleLexer.java </li>
-  <li>ExampleParser.java </li>
+  <li>ExampleLexer.java</li>
+  <li>ExampleParser.java</li>
   <li>Example.tokens</li>
 </ul>
 
 <p>Create Main.java program in the same project with the following code:</p>
 
-<div class="highlight"><pre><code class="java"><span class="kn">import</span> <span class="nn">org.antlr.runtime.*</span><span class="o">;</span>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="kn">import</span> <span class="nn">org.antlr.runtime.*</span><span class="o">;</span>
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">Main</span> <span class="o">{</span>
 <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
 <span class="c1">// create a CharStream that reads from standard input</span>
-<span class="n">ANTLRInputStream</span> <span class="n">input</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ANTLRInputStream</span><span class="o">(</span><span class="n">System</span><span class="o">.</span><span class="na">in</span><span class="o">);</span>
+<span class="n">ANTLRInputStream</span> <span class="n">input</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">ANTLRInputStream</span><span class="o">(</span><span class="n">System</span><span class="o">.</span><span class="na">in</span><span class="o">);</span>
 <span class="c1">// create a lexer that feeds off of input CharStream</span>
-<span class="n">ExampleLexer</span> <span class="n">lexer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ExampleLexer</span><span class="o">(</span><span class="n">input</span><span class="o">);</span>
+<span class="n">ExampleLexer</span> <span class="n">lexer</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">ExampleLexer</span><span class="o">(</span><span class="n">input</span><span class="o">);</span>
 <span class="c1">// create a buffer of tokens pulled from the lexer</span>
-<span class="n">CommonTokenStream</span> <span class="n">tokens</span> <span class="o">=</span> <span class="k">new</span> <span class="n">CommonTokenStream</span><span class="o">(</span><span class="n">lexer</span><span class="o">);</span>
+<span class="n">CommonTokenStream</span> <span class="n">tokens</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">CommonTokenStream</span><span class="o">(</span><span class="n">lexer</span><span class="o">);</span>
 <span class="c1">// create a parser that feeds off the tokens buffer</span>
-<span class="n">ExampleParser</span> <span class="n">parser</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ExampleParser</span><span class="o">(</span><span class="n">tokens</span><span class="o">);</span>
+<span class="n">ExampleParser</span> <span class="n">parser</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">ExampleParser</span><span class="o">(</span><span class="n">tokens</span><span class="o">);</span>
 <span class="c1">// begin parsing at rule start</span>
 <span class="n">parser</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
 <span class="o">}</span>

@@ -59,7 +59,7 @@
 
 <h3 id="syntax">Syntax</h3>
 
-<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">fold</span><span class="o">[</span><span class="kt">T</span><span class="o">](</span><span class="n">acc</span><span class="k">:</span><span class="kt">T</span><span class="o">)((</span><span class="n">acc</span><span class="o">,</span><span class="n">value</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">acc</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">fold</span><span class="o">[</span><span class="kt">T</span><span class="o">](</span><span class="n">acc</span><span class="k">:</span><span class="kt">T</span><span class="o">)((</span><span class="n">acc</span><span class="o">,</span><span class="n">value</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">acc</span><span class="o">)</span></code></pre></div>
 
 <p>The above is kind of high level view of fold api. It has following three things</p>
 
@@ -69,25 +69,25 @@
   <li>A function , which will be called for each element in rdd with previous accumulator.</li>
 </ol>
 
-<p>Let’s see some examples of fold </p>
+<p>Let’s see some examples of fold</p>
 
 <h3 id="finding-max-in-a-given-rdd">Finding max in a given RDD</h3>
 
 <p>Let’s first build a RDD</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">sparkContext</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkContext</span><span class="o">(</span><span class="s">&quot;local&quot;</span><span class="o">,</span> <span class="s">&quot;functional&quot;</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sparkContext</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkContext</span><span class="o">(</span><span class="s">&quot;local&quot;</span><span class="o">,</span> <span class="s">&quot;functional&quot;</span><span class="o">)</span>
  <span class="k">val</span> <span class="n">employeeData</span> <span class="k">=</span> <span class="nc">List</span><span class="o">((</span><span class="s">&quot;Jack&quot;</span><span class="o">,</span><span class="mf">1000.0</span><span class="o">),(</span><span class="s">&quot;Bob&quot;</span><span class="o">,</span><span class="mf">2000.0</span><span class="o">),(</span><span class="s">&quot;Carl&quot;</span><span class="o">,</span><span class="mf">7000.0</span><span class="o">))</span>
  <span class="k">val</span> <span class="n">employeeRDD</span> <span class="k">=</span> <span class="n">sparkContext</span><span class="o">.</span><span class="n">makeRDD</span><span class="o">(</span><span class="n">employeeData</span><span class="o">)</span></code></pre></div>
 
-<p>Now we want to find an employee, with maximum salary. We can do that using fold. </p>
+<p>Now we want to find an employee, with maximum salary. We can do that using fold.</p>
 
 <p>To use fold we need a start value. The following code defines a dummy employee as starting accumulator.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">dummyEmployee</span> <span class="k">=</span> <span class="o">(</span><span class="s">&quot;dummy&quot;</span><span class="o">,</span><span class="mf">0.0</span><span class="o">);</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">dummyEmployee</span> <span class="k">=</span> <span class="o">(</span><span class="s">&quot;dummy&quot;</span><span class="o">,</span><span class="mf">0.0</span><span class="o">);</span></code></pre></div>
 
 <p>Now using fold, we can find the employee with maximum salary.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">maxSalaryEmployee</span> <span class="k">=</span> <span class="n">employeeRDD</span><span class="o">.</span><span class="n">fold</span><span class="o">(</span><span class="n">dummyEmployee</span><span class="o">)((</span><span class="n">acc</span><span class="o">,</span><span class="n">employee</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">{</span> 
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">maxSalaryEmployee</span> <span class="k">=</span> <span class="n">employeeRDD</span><span class="o">.</span><span class="n">fold</span><span class="o">(</span><span class="n">dummyEmployee</span><span class="o">)((</span><span class="n">acc</span><span class="o">,</span><span class="n">employee</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">{</span> 
 <span class="k">if</span><span class="o">(</span><span class="n">acc</span><span class="o">.</span><span class="n">_2</span> <span class="o">&lt;</span> <span class="n">employee</span><span class="o">.</span><span class="n">_2</span><span class="o">)</span> <span class="n">employee</span> <span class="k">else</span> <span class="n">acc</span><span class="o">})</span>
 <span class="n">println</span><span class="o">(</span><span class="s">&quot;employee with maximum salary is&quot;</span><span class="o">+</span><span class="n">maxSalaryEmployee</span><span class="o">)</span></code></pre></div>
 
@@ -96,7 +96,7 @@
 
 <p>In this example, employees are grouped by department name. If you want to find the maximum salaries in a given department we can use following code.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">deptEmployees</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">deptEmployees</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span>
       <span class="o">(</span><span class="s">&quot;cs&quot;</span><span class="o">,(</span><span class="s">&quot;jack&quot;</span><span class="o">,</span><span class="mf">1000.0</span><span class="o">)),</span>
       <span class="o">(</span><span class="s">&quot;cs&quot;</span><span class="o">,(</span><span class="s">&quot;bron&quot;</span><span class="o">,</span><span class="mf">1200.0</span><span class="o">)),</span>
       <span class="o">(</span><span class="s">&quot;phy&quot;</span><span class="o">,(</span><span class="s">&quot;sam&quot;</span><span class="o">,</span><span class="mf">2200.0</span><span class="o">)),</span>

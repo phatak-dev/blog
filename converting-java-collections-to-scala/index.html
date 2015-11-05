@@ -57,7 +57,7 @@
 </header> 
 
 <article class="post-content">
-  <p>Many times when you use Scala, you want to interact with a Java api like JDBC,Hibernate etc. All of those api’s return Java collections. Java collections are not as rich as Scala collections. So you may want to convert them to Scala collections so that you can write idiomatic Scala code.  </p>
+  <p>Many times when you use Scala, you want to interact with a Java api like JDBC,Hibernate etc. All of those api’s return Java collections. Java collections are not as rich as Scala collections. So you may want to convert them to Scala collections so that you can write idiomatic Scala code.</p>
 
 <p>On the same note, if you want to pass a Scala collection to a Java api, you have to convert  from Scala to Java collection. This post shows you different ways of achieving these conversions using Scala standard library.</p>
 
@@ -65,13 +65,13 @@
 
 <p>In earlier versions of Scala , language endorsed the implicit conversions to convert from one data type to another data type. So till Scala 2.8 ,language included “scala.collection.JavaConversions” api which automatically converts from Java to Scala and vice versa.</p>
 
-<p>The following code shows the api in action     </p>
+<p>The following code shows the api in action</p>
 
-<p>First import </p>
+<p>First import</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">import</span> <span class="nn">scala.collection.JavaConversions._</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">import</span> <span class="nn">scala.collection.JavaConversions._</span></code></pre></div>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">javaList</span> <span class="k">=</span> <span class="k">new</span> <span class="n">java</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="nc">ArrayList</span><span class="o">[</span><span class="kt">Double</span><span class="o">]()</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">javaList</span> <span class="k">=</span> <span class="k">new</span> <span class="n">java</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="nc">ArrayList</span><span class="o">[</span><span class="kt">Double</span><span class="o">]()</span>
     <span class="n">javaList</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="mf">10.0</span><span class="o">)</span>
     <span class="n">javaList</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="mf">20.0</span><span class="o">)</span>
     <span class="n">javaList</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="mf">40.0</span><span class="o">)</span>
@@ -82,19 +82,19 @@
 
 <p>Though it looks simple, there is one caveat with this code. The person who reads this code may assume that methods like map are available on Java collections itself. He will be not aware of behind the scene implicit conversions.That will be bad for maintenance. Also, if there are many Java collections in the code, there will unnecessary performance penalties for these automatic conversions.</p>
 
-<p>To solve the above issues, there is better way from Scala 2.8. </p>
+<p>To solve the above issues, there is better way from Scala 2.8.</p>
 
 <h3 id="pimp-my-library-pattern-from-scala-281">“Pimp My library” pattern from Scala 2.8.1</h3>
 
 <p>From Scala 2.8.1, these conversions are made explicit using “scala.collection.JavaConverters._” api. The following code shows same conversion using this api.</p>
 
-<p>First import </p>
+<p>First import</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">import</span> <span class="nn">scala.collection.JavaConverters._</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">import</span> <span class="nn">scala.collection.JavaConverters._</span></code></pre></div>
 
 <p>Use “asScala “ to convert Java list to Scala list</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">javaList</span> <span class="k">=</span> <span class="k">new</span> <span class="n">java</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="nc">ArrayList</span><span class="o">[</span><span class="kt">Double</span><span class="o">]()</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">javaList</span> <span class="k">=</span> <span class="k">new</span> <span class="n">java</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="nc">ArrayList</span><span class="o">[</span><span class="kt">Double</span><span class="o">]()</span>
     <span class="n">javaList</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="mf">10.0</span><span class="o">)</span>
     <span class="n">javaList</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="mf">20.0</span><span class="o">)</span>
     <span class="n">javaList</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="mf">40.0</span><span class="o">)</span>
@@ -108,7 +108,7 @@
 
 <p>Converting Java map to Scala map</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">javaHashMap</span> <span class="k">=</span> <span class="k">new</span> <span class="n">java</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="nc">HashMap</span><span class="o">[</span><span class="kt">String</span>,<span class="kt">Double</span><span class="o">]()</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">javaHashMap</span> <span class="k">=</span> <span class="k">new</span> <span class="n">java</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="nc">HashMap</span><span class="o">[</span><span class="kt">String</span>,<span class="kt">Double</span><span class="o">]()</span>
     <span class="n">javaHashMap</span><span class="o">.</span><span class="n">put</span><span class="o">(</span><span class="s">&quot;jack&quot;</span><span class="o">,</span><span class="mi">1000</span><span class="o">)</span>
     <span class="n">javaHashMap</span><span class="o">.</span><span class="n">put</span><span class="o">(</span><span class="s">&quot;bob&quot;</span><span class="o">,</span><span class="mi">2000</span><span class="o">)</span>
 
@@ -116,9 +116,9 @@
 <span class="n">println</span><span class="o">(</span><span class="n">scalaMap</span><span class="o">.</span><span class="n">getOrElse</span><span class="o">(</span><span class="s">&quot;dummy&quot;</span><span class="o">,</span><span class="mi">0</span><span class="o">))</span>
 <span class="n">println</span><span class="o">(</span><span class="n">scalaMap</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="o">=&gt;(</span><span class="n">value</span><span class="o">.</span><span class="n">_1</span><span class="o">,</span><span class="n">value</span><span class="o">.</span><span class="n">_2</span><span class="o">*</span><span class="n">value</span><span class="o">.</span><span class="n">_2</span><span class="o">)))</span></code></pre></div>
 
-<p>You can use “asJava” to convert from Scala to Java </p>
+<p>You can use “asJava” to convert from Scala to Java</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">jList</span> <span class="k">=</span> <span class="n">scalaList</span><span class="o">.</span><span class="n">asJava</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">jList</span> <span class="k">=</span> <span class="n">scalaList</span><span class="o">.</span><span class="n">asJava</span>
 <span class="n">println</span><span class="o">(</span><span class="n">jList</span><span class="o">.</span><span class="n">getClass</span><span class="o">.</span><span class="n">getName</span><span class="o">)</span></code></pre></div>
 
 <p>As you can see here, the conversion is explicit which makes code more readable. Its also helps in performance , as we are converting only necessary collections, not all collections in the scope. So it is the recommended way of making conversions . This way of making conversions explicit is called <a href="http://alvinalexander.com/scala/scala-2.10-implicit-class-example">“Pimp My library”</a> pattern.</p>

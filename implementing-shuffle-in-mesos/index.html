@@ -74,7 +74,7 @@
 
 <h2 id="shuffle-interface">Shuffle interface</h2>
 
-<div class="highlight"><pre><code class="scala"><span class="k">trait</span> <span class="nc">Shuffle</span><span class="o">[</span><span class="kt">K</span>,<span class="kt">V</span>,<span class="kt">C</span><span class="o">]{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">trait</span> <span class="nc">Shuffle</span><span class="o">[</span><span class="kt">K</span>,<span class="kt">V</span>,<span class="kt">C</span><span class="o">]{</span>
   <span class="k">def</span> <span class="n">compute</span><span class="o">(</span><span class="n">list</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">List</span><span class="o">[(</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">)]],</span>
   <span class="n">createCombiner</span><span class="k">:</span> <span class="kt">V</span> <span class="o">=&gt;</span> <span class="n">C</span><span class="o">,</span>
   <span class="n">mergeValue</span><span class="k">:</span> <span class="o">(</span><span class="kt">C</span><span class="o">,</span> <span class="kt">V</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">C</span><span class="o">,</span>
@@ -83,14 +83,14 @@
   <span class="n">scheduler</span><span class="k">:</span> <span class="kt">TaskScheduler</span><span class="o">)</span><span class="k">:</span><span class="kt">List</span><span class="o">[(</span><span class="kt">K</span>,<span class="kt">C</span><span class="o">)]</span>
 <span class="o">}</span></code></pre></div>
 
-<p>The trait has three types  </p>
+<p>The trait has three types</p>
 
 <ul>
   <li>
-    <p>K - key type    </p>
+    <p>K - key type</p>
   </li>
   <li>
-    <p>V - value type   </p>
+    <p>V - value type</p>
   </li>
   <li>
     <p>C - combined value type (Final result type)</p>
@@ -119,7 +119,7 @@
 
 <h3 id="step-1--implement-shuffle-trait">Step 1 : Implement Shuffle trait</h3>
 
-<div class="highlight"><pre><code class="scala"><span class="k">class</span> <span class="nc">LocalShuffle</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span>, <span class="kt">C</span><span class="o">]</span> <span class="nc">extends</span> <span class="nc">Shuffle</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span>, <span class="kt">C</span><span class="o">]</span> <span class="k">with</span> <span class="nc">Serializable</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">LocalShuffle</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span>, <span class="kt">C</span><span class="o">]</span> <span class="nc">extends</span> <span class="nc">Shuffle</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span>, <span class="kt">C</span><span class="o">]</span> <span class="k">with</span> <span class="nc">Serializable</span> <span class="o">{</span>
   <span class="k">override</span> <span class="k">def</span> <span class="n">compute</span><span class="o">(</span><span class="n">rows</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">List</span><span class="o">[(</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">)]],</span> <span class="n">createCombiner</span><span class="k">:</span> <span class="o">(</span><span class="kt">V</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="n">C</span><span class="o">,</span> <span class="n">mergeValue</span><span class="k">:</span> <span class="o">(</span><span class="kt">C</span><span class="o">,</span> <span class="kt">V</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">C</span><span class="o">,</span> <span class="n">mergeCombiners</span><span class="k">:</span> <span class="o">(</span><span class="kt">C</span><span class="o">,</span> <span class="kt">C</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">C</span><span class="o">,</span> <span class="n">numberOfOutputSplit</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">scheduler</span><span class="k">:</span> <span class="kt">TaskScheduler</span><span class="o">)</span><span class="k">:</span>
   <span class="kt">List</span><span class="o">[(</span><span class="kt">K</span>, <span class="kt">C</span><span class="o">)]</span> <span class="k">=</span> <span class="o">{</span></code></pre></div>
 
@@ -127,31 +127,31 @@
 
 <h3 id="step-2--number-each-split">Step 2 : Number each split</h3>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">numberedList</span> <span class="k">=</span> <span class="n">rows</span><span class="o">.</span><span class="n">zipWithIndex</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">numberedList</span> <span class="k">=</span> <span class="n">rows</span><span class="o">.</span><span class="n">zipWithIndex</span></code></pre></div>
 
 <p>we number each split with index so that we can use it to identify it when we shuffle.</p>
 
 <h3 id="step-3-create-local-combiner-tasks">Step 3: Create local combiner tasks</h3>
-<p>For each split, we create a forEachTask </p>
+<p>For each split, we create a forEachTask</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">tasks</span> <span class="k">=</span> <span class="n">numberedList</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">forEachTask</span><span class="o">(</span><span class="n">value</span><span class="o">))</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">tasks</span> <span class="k">=</span> <span class="n">numberedList</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">forEachTask</span><span class="o">(</span><span class="n">value</span><span class="o">))</span></code></pre></div>
 
 <p>Implementation of <em>forEach</em> task.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">forEachTask</span><span class="o">(</span><span class="n">pair</span><span class="k">:</span> <span class="o">(</span><span class="kt">List</span><span class="o">[(</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">)],</span> <span class="nc">Int</span><span class="o">))</span> <span class="k">=</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">forEachTask</span><span class="o">(</span><span class="n">pair</span><span class="k">:</span> <span class="o">(</span><span class="kt">List</span><span class="o">[(</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">)],</span> <span class="nc">Int</span><span class="o">))</span> <span class="k">=</span> <span class="o">{</span>
    <span class="k">new</span> <span class="nc">FunctionTask</span><span class="o">[(</span><span class="kt">Int</span>, <span class="kt">String</span><span class="o">)](()</span> <span class="k">=&gt;</span> <span class="o">{</span></code></pre></div>
 
 <p>forEachTask returns a function task which does following.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">tempDir</span> <span class="k">=</span> <span class="nc">Utils</span><span class="o">.</span><span class="n">createTempDir</span><span class="o">(</span><span class="s">&quot;/tmp/shuffleLocal&quot;</span><span class="o">).</span><span class="n">getAbsoluteFile</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">tempDir</span> <span class="k">=</span> <span class="nc">Utils</span><span class="o">.</span><span class="n">createTempDir</span><span class="o">(</span><span class="s">&quot;/tmp/shuffleLocal&quot;</span><span class="o">).</span><span class="n">getAbsoluteFile</span>
 <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;using tempDir $tempDir&quot;</span><span class="o">)</span>
 
 <span class="k">val</span> <span class="n">index</span> <span class="k">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">_2</span>
 <span class="k">val</span> <span class="n">iterator</span> <span class="k">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">_1</span></code></pre></div>
 
-<p>We create a temporary directory for each split, where we are going to write the output files for that split. </p>
+<p>We create a temporary directory for each split, where we are going to write the output files for that split.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">buckets</span> <span class="k">=</span> <span class="nc">Array</span><span class="o">.</span><span class="n">tabulate</span><span class="o">(</span><span class="n">numberOfOutputSplit</span><span class="o">)(</span><span class="k">_</span> <span class="k">=&gt;</span> <span class="k">new</span> <span class="nc">HashMap</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">C</span><span class="o">])</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">buckets</span> <span class="k">=</span> <span class="nc">Array</span><span class="o">.</span><span class="n">tabulate</span><span class="o">(</span><span class="n">numberOfOutputSplit</span><span class="o">)(</span><span class="k">_</span> <span class="k">=&gt;</span> <span class="k">new</span> <span class="nc">HashMap</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">C</span><span class="o">])</span>
 <span class="k">for</span> <span class="o">((</span><span class="n">k</span><span class="o">,</span> <span class="n">v</span><span class="o">)</span> <span class="k">&lt;-</span> <span class="n">iterator</span><span class="o">)</span> <span class="o">{</span>
 <span class="k">var</span> <span class="n">bucketId</span> <span class="k">=</span> <span class="n">k</span><span class="o">.</span><span class="n">hashCode</span><span class="o">()</span> <span class="o">%</span> <span class="n">numberOfOutputSplit</span>
 <span class="k">if</span> <span class="o">(</span><span class="n">bucketId</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
@@ -161,7 +161,7 @@
 
 <p>We create buckets(partitions) using hashParitioner.The for each value, we determine which bucket it belongs to using <em>hashCode</em> method. We handle negative hash code case too.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="n">bucket</span><span class="o">(</span><span class="n">k</span><span class="o">)</span> <span class="k">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">k</span><span class="o">)</span> <span class="k">match</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">bucket</span><span class="o">(</span><span class="n">k</span><span class="o">)</span> <span class="k">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">k</span><span class="o">)</span> <span class="k">match</span> <span class="o">{</span>
    <span class="k">case</span> <span class="nc">Some</span><span class="o">(</span><span class="n">c</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">mergeValue</span><span class="o">(</span><span class="n">c</span><span class="o">,</span> <span class="n">v</span><span class="o">)</span>
    <span class="k">case</span> <span class="nc">None</span> <span class="k">=&gt;</span> <span class="n">createCombiner</span><span class="o">(</span><span class="n">v</span><span class="o">)</span>
 <span class="o">}</span></code></pre></div>
@@ -172,7 +172,7 @@
 
 <p>Once we have results for a given split, we are going to write them to the disk.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">paths</span> <span class="k">=</span> <span class="o">(</span><span class="mi">0</span> <span class="n">until</span> <span class="n">numberOfOutputSplit</span><span class="o">).</span><span class="n">map</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">paths</span> <span class="k">=</span> <span class="o">(</span><span class="mi">0</span> <span class="n">until</span> <span class="n">numberOfOutputSplit</span><span class="o">).</span><span class="n">map</span> <span class="o">{</span>
           <span class="n">i</span> <span class="k">=&gt;</span>
             <span class="k">val</span> <span class="n">path</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">File</span><span class="o">(</span><span class="n">tempDir</span><span class="o">,</span> <span class="s">&quot;%d-%d&quot;</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="n">index</span><span class="o">,</span> <span class="n">i</span><span class="o">))</span>
             <span class="k">val</span> <span class="n">out</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ObjectOutputStream</span><span class="o">(</span><span class="k">new</span> <span class="nc">FileOutputStream</span><span class="o">(</span><span class="n">path</span><span class="o">))</span>
@@ -185,19 +185,19 @@
 
 <p>Once we write the files to disk, we start a http server which serves these output files to reduce tasks.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">httpServer</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">HttpServer</span><span class="o">(</span><span class="n">tempDir</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">httpServer</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">HttpServer</span><span class="o">(</span><span class="n">tempDir</span><span class="o">)</span>
 <span class="n">httpServer</span><span class="o">.</span><span class="n">start</span><span class="o">()</span>
 <span class="o">(</span><span class="n">index</span><span class="o">,</span> <span class="n">httpServer</span><span class="o">.</span><span class="n">uri</span><span class="o">)</span></code></pre></div>
 
 <h3 id="step-6-run-foreach-tasks">Step 6: Run forEach tasks</h3>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">mapping</span> <span class="k">=</span> <span class="n">scheduler</span><span class="o">.</span><span class="n">runTasks</span><span class="o">(</span><span class="n">tasks</span><span class="k">:</span> <span class="k">_</span><span class="kt">*</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">get</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">mapping</span> <span class="k">=</span> <span class="n">scheduler</span><span class="o">.</span><span class="n">runTasks</span><span class="o">(</span><span class="n">tasks</span><span class="k">:</span> <span class="k">_</span><span class="kt">*</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">get</span><span class="o">)</span></code></pre></div>
 
 <h3 id="step-7--map-the-splits-to-uri">Step 7 : Map the splits to uri</h3>
 
 <p>After map side combiners are completed, we are going to create a hashmap which going to contain uri’s of http servers and the different splits they contain.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">splitsByUri</span> <span class="k">=</span> <span class="k">new</span> <span class="n">mutable</span><span class="o">.</span><span class="nc">HashMap</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">mutable.ArrayBuffer</span><span class="o">[</span><span class="kt">Int</span><span class="o">]]()</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">splitsByUri</span> <span class="k">=</span> <span class="k">new</span> <span class="n">mutable</span><span class="o">.</span><span class="nc">HashMap</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">mutable.ArrayBuffer</span><span class="o">[</span><span class="kt">Int</span><span class="o">]]()</span>
 
  <span class="k">for</span> <span class="o">((</span><span class="n">index</span><span class="o">,</span> <span class="n">uri</span><span class="o">)</span> <span class="k">&lt;-</span> <span class="n">mapping</span><span class="o">)</span> <span class="o">{</span>
       <span class="n">splitsByUri</span><span class="o">.</span><span class="n">getOrElseUpdate</span><span class="o">(</span><span class="n">uri</span><span class="o">,</span> <span class="nc">ArrayBuffer</span><span class="o">[</span><span class="kt">Int</span><span class="o">]())</span> <span class="o">+=</span> <span class="n">index</span>
@@ -206,12 +206,12 @@
 <h3 id="step-8--generate-reduce-task-for-output-split">Step 8 : Generate reduce task for output split</h3>
 <p>We are going to create reduce tasks as specified by <em>numberOfOutputSplit</em>.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">reduceTasks</span> <span class="k">=</span> <span class="o">(</span><span class="mi">0</span> <span class="n">until</span> <span class="n">numberOfOutputSplit</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="n">index</span> <span class="k">=&gt;</span> <span class="n">reduceTask</span><span class="o">(</span><span class="n">index</span><span class="o">,</span><span class="n">splitsByUri</span><span class="o">)).</span><span class="n">toList</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">reduceTasks</span> <span class="k">=</span> <span class="o">(</span><span class="mi">0</span> <span class="n">until</span> <span class="n">numberOfOutputSplit</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="n">index</span> <span class="k">=&gt;</span> <span class="n">reduceTask</span><span class="o">(</span><span class="n">index</span><span class="o">,</span><span class="n">splitsByUri</span><span class="o">)).</span><span class="n">toList</span></code></pre></div>
 
 <h3 id="step-9-implementation-of-reduce-task">Step 9: Implementation of reduce task</h3>
 <p>The following is the implementation of reduce.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">reduceTask</span><span class="o">(</span><span class="n">index</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">splitsByUri</span><span class="k">:</span> <span class="kt">mutable.HashMap</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">ArrayBuffer</span><span class="o">[</span><span class="kt">Int</span><span class="o">]])</span> <span class="k">=</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">reduceTask</span><span class="o">(</span><span class="n">index</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">splitsByUri</span><span class="k">:</span> <span class="kt">mutable.HashMap</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">ArrayBuffer</span><span class="o">[</span><span class="kt">Int</span><span class="o">]])</span> <span class="k">=</span> <span class="o">{</span>
       <span class="k">new</span> <span class="nc">FunctionTask</span><span class="o">[</span><span class="kt">HashMap</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">C</span><span class="o">]](()</span> <span class="k">=&gt;</span> <span class="o">{</span>
         <span class="k">val</span> <span class="n">combiners</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">HashMap</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">C</span><span class="o">]</span>
         <span class="k">for</span> <span class="o">((</span><span class="n">uri</span><span class="o">,</span> <span class="n">splits</span><span class="o">)</span> <span class="k">&lt;-</span> <span class="nc">Utils</span><span class="o">.</span><span class="n">shuffle</span><span class="o">(</span><span class="n">splitsByUri</span><span class="o">))</span> <span class="o">{</span>
@@ -238,7 +238,7 @@
 
 <h3 id="step-10--run-the-reduce-tasks-and-return-result">Step 10 : Run the reduce tasks and return result</h3>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">reducedValues</span> <span class="k">=</span> <span class="n">scheduler</span><span class="o">.</span><span class="n">runTasks</span><span class="o">(</span><span class="n">reduceTasks</span><span class="k">:_</span><span class="kt">*</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">reducedValues</span> <span class="k">=</span> <span class="n">scheduler</span><span class="o">.</span><span class="n">runTasks</span><span class="o">(</span><span class="n">reduceTasks</span><span class="k">:_</span><span class="kt">*</span><span class="o">)</span>
  <span class="n">reducedValues</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">get</span><span class="o">).</span><span class="n">flatten</span><span class="o">.</span><span class="n">toList</span></code></pre></div>
 
 <p>runs the above created reduce tasks and returns the result as a list.</p>
@@ -247,7 +247,7 @@
 
 <p>The following code uses our shuffle to implement word count. Here we do the mapping inline , only implement combiner and reducer functionality.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">paragraph</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">&quot;hello how are you how are you i am fine let&#39;s go till end how are you&quot;</span><span class="o">,</span><span class="s">&quot;hello how are you u asked me&quot;</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">paragraph</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">&quot;hello how are you how are you i am fine let&#39;s go till end how are you&quot;</span><span class="o">,</span><span class="s">&quot;hello how are you u asked me&quot;</span><span class="o">)</span>
 
     
 <span class="k">val</span> <span class="n">twoSplits</span> <span class="k">=</span> <span class="n">paragraph</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">)).</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">value</span><span class="o">,</span> <span class="mi">1</span><span class="o">)).</span><span class="n">splitAt</span><span class="o">(</span><span class="mi">10</span><span class="o">)</span>

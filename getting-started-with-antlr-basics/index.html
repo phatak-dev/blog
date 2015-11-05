@@ -59,7 +59,7 @@
 <article class="post-content">
   <p>Yeah! It’s after a lapse of a month or so that there is a post in this blog! :)</p>
 
-<p>Well, this post drives you towards the basics of ANTLR. Previously, we had learnt about setting up of ANTLR as an external tool. </p>
+<p>Well, this post drives you towards the basics of ANTLR. Previously, we had learnt about setting up of ANTLR as an external tool.</p>
 
 <h3 id="what-is-antlr">What is ANTLR?</h3>
 
@@ -159,12 +159,12 @@
 
 <p>As we see we can write lexer as follows:</p>
 
-<div class="highlight"><pre><code class="octave"><span class="o">//</span><span class="n">TestLexer</span><span class="p">.</span><span class="n">g</span>
+<div class="highlight"><pre><code class="language-octave" data-lang="octave"><span class="o">//</span><span class="n">TestLexer</span><span class="p">.</span><span class="n">g</span>
 
 <span class="n">grammar</span> <span class="n">TestLexer</span><span class="p">;</span>
-<span class="n">ID</span>  <span class="p">:</span> <span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">..</span><span class="s">&#39;z&#39;</span><span class="o">|</span><span class="s">&#39;A&#39;</span><span class="p">..</span><span class="s">&#39;Z&#39;</span><span class="o">|</span><span class="s">&#39;_&#39;</span><span class="p">)</span> 
-<span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">..</span><span class="s">&#39;z&#39;</span><span class="o">|</span><span class="s">&#39;A&#39;</span><span class="p">..</span><span class="s">&#39;Z&#39;</span><span class="o">|</span><span class="s">&#39;0&#39;</span><span class="p">..</span><span class="s">&#39;9&#39;</span><span class="o">|</span><span class="s">&#39;_&#39;</span>
-<span class="o">|</span><span class="s">&#39;.&#39;</span><span class="o">|</span><span class="s">&#39;a&#39;</span><span class="p">..</span><span class="s">&#39;z&#39;</span><span class="o">|</span><span class="s">&#39;A&#39;</span><span class="p">..</span><span class="s">&#39;Z&#39;</span><span class="p">)</span><span class="o">*</span><span class="p">;</span>
+<span class="n">ID</span>  <span class="p">:</span> <span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">..</span><span class="o">&#39;</span><span class="n">z</span><span class="o">&#39;|</span><span class="s">&#39;A&#39;</span><span class="p">..</span><span class="o">&#39;</span><span class="n">Z</span><span class="o">&#39;|</span><span class="s">&#39;_&#39;</span><span class="p">)</span> 
+<span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">..</span><span class="o">&#39;</span><span class="n">z</span><span class="o">&#39;|</span><span class="s">&#39;A&#39;</span><span class="p">..</span><span class="o">&#39;</span><span class="n">Z</span><span class="o">&#39;|</span><span class="s">&#39;0&#39;</span><span class="p">..</span><span class="o">&#39;</span><span class="mi">9</span><span class="o">&#39;|</span><span class="s">&#39;_&#39;</span>
+<span class="o">|</span><span class="s">&#39;.&#39;</span><span class="o">|</span><span class="s">&#39;a&#39;</span><span class="p">..</span><span class="o">&#39;</span><span class="n">z</span><span class="o">&#39;|</span><span class="s">&#39;A&#39;</span><span class="p">..</span><span class="o">&#39;</span><span class="n">Z</span><span class="o">&#39;</span><span class="p">)</span><span class="o">*</span><span class="p">;</span>
 <span class="n">COMMA</span><span class="p">:</span> <span class="s">&#39;,&#39;</span><span class="p">;</span>
 <span class="n">SEMICOLON</span><span class="p">:</span><span class="s">&#39;;&#39;</span><span class="p">;</span>
 <span class="n">DATATYPE</span><span class="p">:</span> <span class="s">&#39;int&#39;</span> <span class="o">|</span> <span class="s">&#39;float&#39;</span><span class="p">;</span></code></pre></div>
@@ -172,7 +172,7 @@
 <p>As we could see, these were the characters that were to be converted to tokens.
 So, now lets write some rules which processes these tokens generated and may it create a parse tree accordingly.</p>
 
-<div class="highlight"><pre><code class="octave"><span class="o">//</span><span class="n">TestParser</span><span class="p">.</span><span class="n">g</span>
+<div class="highlight"><pre><code class="language-octave" data-lang="octave"><span class="o">//</span><span class="n">TestParser</span><span class="p">.</span><span class="n">g</span>
 
 <span class="n">grammar</span> <span class="n">TestParser</span><span class="p">;</span>
 <span class="n">options</span> <span class="p">{</span>
@@ -183,19 +183,19 @@ So, now lets write some rules which processes these tokens generated and may it 
 <p>Running ANTLR on the grammar just generates the lexer and parser,TestParser and TestLexer. To actually try the grammar on some input, we
 need a test rig with a main( ) method as follows:</p>
 
-<div class="highlight"><pre><code class="java"><span class="c1">// Test.java</span>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="c1">// Test.java</span>
 
 <span class="kn">import</span> <span class="nn">org.antlr.runtime.*</span><span class="o">;</span>
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">Test</span> <span class="o">{</span>
 <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
 <span class="c1">// Create an input character stream from standard in</span>
-<span class="n">ANTLRFileStream</span> <span class="n">input</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ANTLRFileStream</span><span class="o">(</span><span class="s">&quot;input&quot;</span><span class="o">);</span> <span class="c1">// give path to the file input</span>
+<span class="n">ANTLRFileStream</span> <span class="n">input</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">ANTLRFileStream</span><span class="o">(</span><span class="s">&quot;input&quot;</span><span class="o">);</span> <span class="c1">// give path to the file input</span>
 <span class="c1">// Create an ExprLexer that feeds from that stream</span>
-<span class="n">TestLexer</span> <span class="n">lexer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TestLexer</span><span class="o">(</span><span class="n">input</span><span class="o">);</span>
+<span class="n">TestLexer</span> <span class="n">lexer</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">TestLexer</span><span class="o">(</span><span class="n">input</span><span class="o">);</span>
 <span class="c1">// Create a stream of tokens fed by the lexer</span>
-<span class="n">CommonTokenStream</span> <span class="n">tokens</span> <span class="o">=</span> <span class="k">new</span> <span class="n">CommonTokenStream</span><span class="o">(</span><span class="n">lexer</span><span class="o">);</span>
+<span class="n">CommonTokenStream</span> <span class="n">tokens</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">CommonTokenStream</span><span class="o">(</span><span class="n">lexer</span><span class="o">);</span>
 <span class="c1">// Create a parser that feeds off the token stream</span>
-<span class="n">TestParser</span> <span class="n">parser</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TestParser</span><span class="o">(</span><span class="n">tokens</span><span class="o">);</span>
+<span class="n">TestParser</span> <span class="n">parser</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">TestParser</span><span class="o">(</span><span class="n">tokens</span><span class="o">);</span>
 <span class="c1">// Begin parsing at rule decl</span>
 <span class="n">parser</span><span class="o">.</span><span class="na">decl</span><span class="o">();</span>
 <span class="o">}</span>

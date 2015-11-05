@@ -62,15 +62,15 @@
 <p>tl;dr Access complete code with documentation on <a href="https://github.com/phatak-dev/java-sizeof">github</a>.</p>
 
 <h2 id="sizeof-operator-in-cc">sizeof operator in C/C++</h2>
-<p>In C/C++ sizeof operator is used to determine size of a given data structure. This is important, as size of data structures in these languages are platform dependent. For example </p>
+<p>In C/C++ sizeof operator is used to determine size of a given data structure. This is important, as size of data structures in these languages are platform dependent. For example</p>
 
-<div class="highlight"><pre><code class="c--"><span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="p">;</span></code></pre></div>
+<div class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="p">;</span></code></pre></div>
 
 <p>the above c++ code will print 2 if it’s 16 bit machine and 4 if it’s 32 bit machine.</p>
 
-<p>Also these languages does manual memory management. Developer uses sizeof operator to specify how much memory needs to be allocated. </p>
+<p>Also these languages does manual memory management. Developer uses sizeof operator to specify how much memory needs to be allocated.</p>
 
-<div class="highlight"><pre><code class="c--"><span class="kt">int</span> <span class="o">*</span> <span class="n">intArray</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span> <span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="mi">10</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span></code></pre></div>
+<div class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="kt">int</span> <span class="o">*</span> <span class="n">intArray</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span> <span class="o">*</span><span class="p">)</span><span class="n">calloc</span><span class="p">(</span><span class="mi">10</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span></code></pre></div>
 
 <p>The above code create an array of integers which hold 10 elements. Again as you can see here we used sizeof operator specify exact amount memory we wanted to allocate.</p>
 
@@ -81,15 +81,15 @@
 
 <ul>
   <li>The size of data structure is same on all platforms</li>
-  <li>Java virtual machine with garbage collection will do the memory management for you. </li>
+  <li>Java virtual machine with garbage collection will do the memory management for you.</li>
 </ul>
 
 <p>So as a developer, you do not need to worry about the memory management in java. So creators of Java felt there is no use of sizeof operator.</p>
 
-<p>But there are few use cases where we may need a way to measure size of objects at runtime. </p>
+<p>But there are few use cases where we may need a way to measure size of objects at runtime.</p>
 
 <h2 id="use-case-for-sizeof-operator">Use case for sizeof operator</h2>
-<p>As I told in the beginning, this idea of sizeof operator came from Spark source code. So I started digging why they need this. As it turns out SizeEstimator in Spark is used for building memory bounded caches. The idea is that you want to specify amount of heap memory the cache can use so when it runs out of memory it can use LRU method to accommodate newer keys. </p>
+<p>As I told in the beginning, this idea of sizeof operator came from Spark source code. So I started digging why they need this. As it turns out SizeEstimator in Spark is used for building memory bounded caches. The idea is that you want to specify amount of heap memory the cache can use so when it runs out of memory it can use LRU method to accommodate newer keys.</p>
 
 <p>You can find more use cases in <a href="http://www.javaworld.com/article/2077408/core-java/sizeof-for-java.html">this</a> article.</p>
 
@@ -102,7 +102,7 @@
 
 <h2 id="java-sizeof-library">java-sizeof library</h2>
 
-<p>I extracted the code from the spark, simplified little and published as a independent <a href="https://github.com/phatak-dev/java-sizeof">library</a>. So if you want to calculate size of your objects in your Java/Scala projects, you can use this library. This library is well tested inside the spark. </p>
+<p>I extracted the code from the spark, simplified little and published as a independent <a href="https://github.com/phatak-dev/java-sizeof">library</a>. So if you want to calculate size of your objects in your Java/Scala projects, you can use this library. This library is well tested inside the spark.</p>
 
 <h2 id="adding-dependency">Adding dependency</h2>
 
@@ -112,13 +112,13 @@
   <li>Sbt</li>
 </ul>
 
-<div class="highlight"><pre><code class="scala"><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">&quot;com.madhukaraphatak&quot;</span> <span class="o">%%</span> <span class="s">&quot;java-sizeof&quot;</span> <span class="o">%</span> <span class="s">&quot;0.1&quot;</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">&quot;com.madhukaraphatak&quot;</span> <span class="o">%%</span> <span class="s">&quot;java-sizeof&quot;</span> <span class="o">%</span> <span class="s">&quot;0.1&quot;</span></code></pre></div>
 
 <ul>
   <li>Maven</li>
 </ul>
 
-<div class="highlight"><pre><code class="xml"><span class="nt">&lt;dependency&gt;</span>
+<div class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;dependency&gt;</span>
  <span class="nt">&lt;groupId&gt;</span>com.madhukaraphatak<span class="nt">&lt;/groupId&gt;</span>
  <span class="nt">&lt;artifactId&gt;</span>java-sizeof_2.11<span class="nt">&lt;/artifactId&gt;</span>
  <span class="nt">&lt;version&gt;</span>0.1<span class="nt">&lt;/version&gt;</span>
@@ -128,7 +128,7 @@
 
 <p>The following code shows the api usage.</p>
 
-<div class="highlight"><pre><code class="java"><span class="n">SizeEstimator</span><span class="o">.</span><span class="na">estimate</span><span class="o">(</span><span class="sc">&#39;a&#39;</span><span class="o">);</span>
+<div class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">SizeEstimator</span><span class="o">.</span><span class="na">estimate</span><span class="o">(</span><span class="sc">&#39;a&#39;</span><span class="o">);</span>
    
 <span class="n">List</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">values</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;();</span>
 <span class="n">values</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="mi">10</span><span class="o">);</span>

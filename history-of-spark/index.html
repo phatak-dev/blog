@@ -65,7 +65,7 @@
 
 <h3 id="q--how-apache-spark-started">Q : How Apache Spark started?</h3>
 
-<p>The story started back in 2009 with mesos. It was a class project in UC Berkley. Idea was to build a cluster management framework, which can support different kind of cluster computing systems.Once mesos was built, then we thought what we can build on top of mesos. That’s how spark was born. </p>
+<p>The story started back in 2009 with mesos. It was a class project in UC Berkley. Idea was to build a cluster management framework, which can support different kind of cluster computing systems.Once mesos was built, then we thought what we can build on top of mesos. That’s how spark was born.</p>
 
 <p>We wanted to show how easy it was to build a framework from scratch in mesos. We also wanted to be different from existing cluster computing systems. At that time, Hadoop targeted batch processing, so we targeted interactive iterative computations like machine learning.</p>
 
@@ -73,11 +73,11 @@
 
 <h3 id="q--one-of-the-strength-of-spark-is-its-nice-integration-with-hadoop-ecosystem-is-it-was-a-conscious-choice-right-from-the-beginning">Q : One of the strength of Spark is, it’s nice integration with Hadoop ecosystem. Is it was a conscious choice right from the beginning?</h3>
 
-<p>Yes. It was a conscious decision. We never planned for storage layer for Spark,at least at that point of time. So our targeted user base was the one who already had their data in HDFS. </p>
+<p>Yes. It was a conscious decision. We never planned for storage layer for Spark,at least at that point of time. So our targeted user base was the one who already had their data in HDFS.</p>
 
 <h3 id="q--another-thing-that-made-spark-popular-is-how-its-ties-together-different-kind-of-workloads-in-data-science-pipeline-having-common-execution-engine-for-machine-learning-real-time-etc-was-design-decision-from-the-beginning">Q : Another thing that made Spark popular, is how it’s ties together different kind of workloads in data science pipeline. Having common execution engine for machine learning, real time etc was design decision from the beginning?</h3>
 
-<p>That’s an excellent question. May be it was in between. It was pretty obvious at that time we wanted more unification. At conviva, we had two stack. One for real time and one for historical data. Real time system was home grown one and we used hadoop for historical data. It’s hard to integrate between two different stacks. Also, two different stacks comes with higher maintenance costs. </p>
+<p>That’s an excellent question. May be it was in between. It was pretty obvious at that time we wanted more unification. At conviva, we had two stack. One for real time and one for historical data. Real time system was home grown one and we used hadoop for historical data. It’s hard to integrate between two different stacks. Also, two different stacks comes with higher maintenance costs.</p>
 
 <p>One of the challenges was having same metrics in both stacks. For example, one of the metric was how many people watched video at given point of time. This metrics is useful both in real time and historical time. But the problem was,each stack had its own data, algorithm and code base to calculate these metrics. So maintaining these metrics consistently was extremely hard.</p>
 
@@ -97,9 +97,9 @@
 
 <h3 id="q-in-last-year-there-are-many-things-happened-spark-became-apache-project-you-guys-started-data-bricks-spark-summits-attracting-more-and-more-people-it-seems-like-spark-becoming-main-stream-so-whats-the-thinking-behind-becoming-apache-project-and-starting-a-company">Q: In Last year, there are many things happened. Spark became Apache project. You guys started Data bricks. Spark summits attracting more and more people. It seems like spark becoming main stream. So what’s the thinking behind becoming Apache project and starting a company?</h3>
 
-<p>Once again, excellent question. Right from beginning community was interested in contributing to spark. This interest grew and grew over the years. So being an apache project, made spark more consumable for enterprise customers. Also having a entity behind the project, gives more confidence to enterprise to adopt technologies. </p>
+<p>Once again, excellent question. Right from beginning community was interested in contributing to spark. This interest grew and grew over the years. So being an apache project, made spark more consumable for enterprise customers. Also having a entity behind the project, gives more confidence to enterprise to adopt technologies.</p>
 
-<p>As of now, main focus of the company is to increase adoption of spark. We want to put spark in hands of as many people as possible. Also we want people to have great experience on their platform. So instead of having our own distribution of spark, we have partnered  with other hadoop distributors like Cloudera, Hortonworks and big data system distributors like datastax to help them to distribute spark in order to satisfy their customers. </p>
+<p>As of now, main focus of the company is to increase adoption of spark. We want to put spark in hands of as many people as possible. Also we want people to have great experience on their platform. So instead of having our own distribution of spark, we have partnered  with other hadoop distributors like Cloudera, Hortonworks and big data system distributors like datastax to help them to distribute spark in order to satisfy their customers.</p>
 
 <h3 id="q--one-of-the-unique-value-of-spark-is-of-having-apis-in-python-java-other-than-native-scala-whats-the-thinking-behind-this">Q : One of the unique value of Spark is of having API’s in python, Java other than native Scala. What’s the thinking behind this?</h3>
 

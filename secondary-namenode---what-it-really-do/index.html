@@ -82,7 +82,7 @@ Two different files are</p>
 
 <p>So to overcome this issues we need a mechanism which will help us  reduce the edit log size which is manageable and have up to date  fsimage ,so that load on namenode reduces . It’s very similar to Windows Restore point, which will allow us to take snapshot of the OS so that if something goes wrong , we can fallback to the last restore point.</p>
 
-<p>So now we understood NameNode functionality and challenges to keep the meta data up to date.So what is this all have to with Seconadary Namenode? </p>
+<p>So now we understood NameNode functionality and challenges to keep the meta data up to date.So what is this all have to with Seconadary Namenode?</p>
 
 <h3 id="secondary-namenode">Secondary Namenode</h3>
 <p>Secondary Namenode helps to overcome the above issues by taking over responsibility of merging editlogs with fsimage from the namenode.</p>
@@ -97,7 +97,7 @@ Two different files are</p>
   <li>Namenode will use this fsimage for the next restart,which will reduce the startup time</li>
 </ol>
 
-<p>Secondary Namenode whole purpose is to have a checkpoint in HDFS. Its just a helper node for namenode.That’s why it also known as checkpoint node inside the community. </p>
+<p>Secondary Namenode whole purpose is to have a checkpoint in HDFS. Its just a helper node for namenode.That’s why it also known as checkpoint node inside the community.</p>
 
 <p>So we now understood all Secondary Namenode does puts a checkpoint in filesystem which will help Namenode to function better. Its not the replacement or backup for the Namenode. So from now on make a habit of calling it as a checkpoint node.</p>
 

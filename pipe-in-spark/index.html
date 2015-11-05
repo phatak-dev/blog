@@ -67,17 +67,17 @@
 
 <h3 id="step-1--create-a-rdd">Step 1 : Create a RDD</h3>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">data</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">&quot;hi&quot;</span><span class="o">,</span><span class="s">&quot;hello&quot;</span><span class="o">,</span><span class="s">&quot;how&quot;</span><span class="o">,</span><span class="s">&quot;are&quot;</span><span class="o">,</span><span class="s">&quot;you&quot;</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">data</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">&quot;hi&quot;</span><span class="o">,</span><span class="s">&quot;hello&quot;</span><span class="o">,</span><span class="s">&quot;how&quot;</span><span class="o">,</span><span class="s">&quot;are&quot;</span><span class="o">,</span><span class="s">&quot;you&quot;</span><span class="o">)</span>
  <span class="k">val</span> <span class="n">dataRDD</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">makeRDD</span><span class="o">(</span><span class="n">data</span><span class="o">)</span> <span class="c1">//sc is SparkContext</span></code></pre></div>
 
 <h3 id="step-2--create-a-shell-script">Step 2 : Create a shell script</h3>
 
 <p>Once we have RDD, then we will pipe it to a shell script. Let’s create a file called <em>echo.sh</em>, then put the following content.</p>
 
-<div class="highlight"><pre><code class="sh"><span class="c">#!/bin/sh</span>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh"><span class="c">#!/bin/sh</span>
 <span class="nb">echo</span> <span class="s2">&quot;Running shell script&quot;</span>
-<span class="k">while </span><span class="nb">read </span>LINE<span class="p">;</span> <span class="k">do</span>
-<span class="k">   </span><span class="nb">echo</span> <span class="k">${</span><span class="nv">LINE</span><span class="k">}</span>    
+<span class="k">while</span> <span class="nb">read </span>LINE<span class="p">;</span> <span class="k">do</span>
+   <span class="nb">echo</span> <span class="k">${</span><span class="nv">LINE</span><span class="k">}</span>    
 <span class="k">done</span></code></pre></div>
 
 <p>This is a simple shell script which reads the input from stdin and output that to stdout. You can do any other shell operation in this shell script.</p>
@@ -86,7 +86,7 @@
 
 <p>One we have the shell script, we can pipe the RDD through this script. Make sure that you change the <em>scriptPath</em> variable to match path of your file.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">scriptPath</span> <span class="k">=</span> <span class="s">&quot;/home/hadoop/echo.sh&quot;</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">scriptPath</span> <span class="k">=</span> <span class="s">&quot;/home/hadoop/echo.sh&quot;</span>
 <span class="k">val</span> <span class="n">pipeRDD</span> <span class="k">=</span> <span class="n">dataRDD</span><span class="o">.</span><span class="n">pipe</span><span class="o">(</span><span class="n">scriptPath</span><span class="o">)</span>
 <span class="n">pipeRDD</span><span class="o">.</span><span class="n">collect</span><span class="o">()</span></code></pre></div>
 
@@ -94,15 +94,15 @@
 
 <h2 id="pipe-implementation">Pipe implementation</h2>
 
-<p>Now we understand what pipe does. Let’s look at how it is implemented. In this section, we develop a simple scala program which pipes data to the above shell script. </p>
+<p>Now we understand what pipe does. Let’s look at how it is implemented. In this section, we develop a simple scala program which pipes data to the above shell script.</p>
 
 <p>Every executable is represented as a process in the operating system. So we will create a process which runs the shell script command.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">proc</span> <span class="k">=</span> <span class="nc">Runtime</span><span class="o">.</span><span class="n">getRuntime</span><span class="o">.</span><span class="n">exec</span><span class="o">(</span><span class="nc">Array</span><span class="o">(</span><span class="n">command</span><span class="o">))</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">proc</span> <span class="k">=</span> <span class="nc">Runtime</span><span class="o">.</span><span class="n">getRuntime</span><span class="o">.</span><span class="n">exec</span><span class="o">(</span><span class="nc">Array</span><span class="o">(</span><span class="n">command</span><span class="o">))</span></code></pre></div>
 
 <p>Every process has three streams associated with it. They are <strong>stdin</strong> - standard input, <strong>stdout</strong> - standard output and <strong>stderr</strong> - Standard error. It’s important to capture errors produced by the process. So we redirect the process stderr to java stderr. This runs in separate thread as these streams are asynchronous in nature.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">new</span> <span class="nc">Thread</span><span class="o">(</span><span class="s">&quot;stderr reader for &quot;</span> <span class="o">+</span> <span class="n">command</span><span class="o">)</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">new</span> <span class="nc">Thread</span><span class="o">(</span><span class="s">&quot;stderr reader for &quot;</span> <span class="o">+</span> <span class="n">command</span><span class="o">)</span> <span class="o">{</span>
       <span class="k">override</span> <span class="k">def</span> <span class="n">run</span><span class="o">()</span> <span class="o">{</span>
         <span class="k">for</span><span class="o">(</span><span class="n">line</span> <span class="k">&lt;-</span> <span class="nc">Source</span><span class="o">.</span><span class="n">fromInputStream</span><span class="o">(</span><span class="n">proc</span><span class="o">.</span><span class="n">getErrorStream</span><span class="o">).</span><span class="n">getLines</span><span class="o">)</span>
           <span class="nc">System</span><span class="o">.</span><span class="n">err</span><span class="o">.</span><span class="n">println</span><span class="o">(</span><span class="n">line</span><span class="o">)</span>
@@ -113,7 +113,7 @@
 
 <p>As next step, we create some data using List. Then we pass this data to <em>proc.getOutputStream</em>. Output to the stream is piped into the standard input stream of the process.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">lineList</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">&quot;hello&quot;</span><span class="o">,</span><span class="s">&quot;how&quot;</span><span class="o">,</span><span class="s">&quot;are&quot;</span><span class="o">,</span><span class="s">&quot;you&quot;</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">lineList</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">&quot;hello&quot;</span><span class="o">,</span><span class="s">&quot;how&quot;</span><span class="o">,</span><span class="s">&quot;are&quot;</span><span class="o">,</span><span class="s">&quot;you&quot;</span><span class="o">)</span>
   <span class="k">new</span> <span class="nc">Thread</span><span class="o">(</span><span class="s">&quot;stdin writer for &quot;</span> <span class="o">+</span> <span class="n">command</span><span class="o">)</span> <span class="o">{</span>
       <span class="k">override</span> <span class="k">def</span> <span class="n">run</span><span class="o">()</span> <span class="o">{</span>
         <span class="k">val</span> <span class="n">out</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">PrintWriter</span><span class="o">(</span><span class="n">proc</span><span class="o">.</span><span class="n">getOutputStream</span><span class="o">)</span>
@@ -125,10 +125,10 @@
 
 <p>It’s not enough to send the data, we also want to collect the output.</p>
 
-<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">outputLines</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">.</span><span class="n">fromInputStream</span><span class="o">(</span><span class="n">proc</span><span class="o">.</span><span class="n">getInputStream</span><span class="o">).</span><span class="n">getLines</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">outputLines</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">.</span><span class="n">fromInputStream</span><span class="o">(</span><span class="n">proc</span><span class="o">.</span><span class="n">getInputStream</span><span class="o">).</span><span class="n">getLines</span>
   <span class="n">println</span><span class="o">(</span><span class="n">outputLines</span><span class="o">.</span><span class="n">toList</span><span class="o">)</span></code></pre></div>
 
-<p>We collect the output by reading from <em>proc.getInputStream</em>. You can access complete code on <a href="https://github.com/phatak-dev/blog/tree/master/code/PipeExample">github</a>. </p>
+<p>We collect the output by reading from <em>proc.getInputStream</em>. You can access complete code on <a href="https://github.com/phatak-dev/blog/tree/master/code/PipeExample">github</a>.</p>
 
 <p>So now we understand how to use pipe and how is pipe is implemented.</p>
 

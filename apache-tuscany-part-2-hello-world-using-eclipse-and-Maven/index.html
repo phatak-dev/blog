@@ -84,7 +84,7 @@
 <h3 id="creating-a-maven-project-in-eclipse">Creating a Maven Project in Eclipse</h3>
 
 <ul>
-  <li>Goto File-&gt;New-&gt;Other </li>
+  <li>Goto File-&gt;New-&gt;Other</li>
   <li>Select Maven project and press Next</li>
   <li>Just keep default setttings and press Next</li>
   <li>tuscany-contribution-jar as Artifact and press Next</li>
@@ -120,7 +120,7 @@
 
 <p>In resource folder , a HelloWorld.composite file will be created. This file will define the configuration for the compositions. Replace the code in HelloWorld.composite by below code.</p>
 
-<div class="highlight"><pre><code class="xml"><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<div class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
 <span class="nt">&lt;composite</span> <span class="na">xmlns=</span><span class="s">&quot;http://docs.oasis-open.org/ns/opencsa/sca/200912&quot;</span>
 <span class="na">xmlns:tuscany=</span><span class="s">&quot;http://tuscany.apache.org/xmlns/sca/1.1&quot;</span>
 <span class="na">targetNamespace=</span><span class="s">&quot;http://com.demo.sca&quot;</span>
@@ -142,7 +142,7 @@ Note that the service name should be as same as the Interface Name</p>
 <h4 id="contribution-file">4.Contribution file</h4>
 <p>In META-INF , there is a file filed name sca-contribution.xml .It used to specify which component will be used as launching component. Replace the code by below code</p>
 
-<div class="highlight"><pre><code class="xml"><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<div class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
 
 <span class="nt">&lt;contribution</span> <span class="na">xmlns=</span><span class="s">&quot;http://docs.oasis-open.org/ns/opencsa/sca/200912&quot;</span>
 <span class="na">xmlns:sample=</span><span class="s">&quot;http://com.demo.sca&quot;</span><span class="nt">&gt;</span>
@@ -156,7 +156,7 @@ Note that the service name should be as same as the Interface Name</p>
 <p>In this example , we will run the project outside of eclipse . Copy the helloworld.jar to $TUSCANY_HOME/bin</p>
 
 <ul>
-  <li>In windows  </li>
+  <li>In windows</li>
 </ul>
 
 <blockquote>
@@ -165,7 +165,7 @@ Note that the service name should be as same as the Interface Name</p>
 </blockquote>
 
 <ul>
-  <li>In linux     </li>
+  <li>In linux</li>
 </ul>
 
 <blockquote>
