@@ -66,7 +66,7 @@ Once we have the model and parser implicits, we can define a route which has pos
         } ~
         get {
           complete {
-            JsArray(list.asScala.toList.map(_.toJson):_*)
+            list.asScala
         }
       }
     }
