@@ -7,6 +7,19 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Building Distributed Systems from Scratch - Part 1</title>
+        <description>&lt;p&gt;The below video is a recording of my talk on &lt;em&gt;Building Distributed Systems from Scratch&lt;/em&gt; in recent spark meet up. It’s first part in series of talks about how to build a distributed processing system from scratch which looks similar to Apache Spark.&lt;/p&gt;
+
+&lt;p&gt;Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/building-distributed-systems-from-scratch-part-1&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/distributedsystems&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/Oy9ToN4O63c&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
+</description>
+        <pubDate>Wed, 02 Dec 2015 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/building-distributed-systems-from-scratch-part1</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/building-distributed-systems-from-scratch-part1</guid>
+      </item>
+    
+      <item>
         <title>Akka HTTP testing</title>
         <description>&lt;p&gt;Akka-Http is a akka based http library for building RESTful services in scala. In this series of posts, I will be talking about using akka-http to build REST services. This is the third post in the series. You can access all the posts in this series &lt;a href=&quot;/categories/akka-http/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
@@ -443,87 +456,6 @@ load, query and change between multiple sources with few lines of code.&lt;/p&gt
         <pubDate>Tue, 26 May 2015 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/analysing-csv-data-in-spark</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/analysing-csv-data-in-spark</guid>
-      </item>
-    
-      <item>
-        <title>Introduction to Spark Data Source API - Part 1</title>
-        <description>&lt;p&gt;Data source is an API for handling structured data in Spark. It was introduced in Spark 1.2 as part of Spark SQL package.
-It brings a new way of reading data apart from InputFormat API which was adopted from hadoop. In the next series of blog posts,  I will be discussing how to load and query different kind of structured data using data source API.&lt;/p&gt;
-
-&lt;p&gt;This is the first post in the series about how to get started and how to do json data handling.&lt;/p&gt;
-
-&lt;h2 id=&quot;reading-data-in-spark&quot;&gt;Reading Data in Spark&lt;/h2&gt;
-
-&lt;p&gt;InputFormat was the only way to load data till Spark 1.1. Thought it’s a great API, it is not
-suited for all  data sources. Particularly structured data sources like JSON, JDBC where we need
-a better integration for schema discovery and smart filtering. Data source API bring the tighter
-integration with the structured sources which will improve developer productivity and also performance.&lt;/p&gt;
-
-&lt;h2 id=&quot;built-in-sources&quot;&gt;Built in sources&lt;/h2&gt;
-
-&lt;p&gt;The support for following sources are built into Spark-SQL.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;JSON&lt;/li&gt;
-  &lt;li&gt;Parquet&lt;/li&gt;
-  &lt;li&gt;JDBC&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;But you are not limited by that. There are many other data sources supported by community.
-The following are the few&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/databricks/spark-csv&quot;&gt;CSV&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/Stratio/spark-mongodb&quot;&gt;MongoDB&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;You can find more on &lt;a href=&quot;http://spark-packages.org/&quot;&gt;spark-packages&lt;/a&gt; website.&lt;/p&gt;
-
-&lt;h2 id=&quot;json-querying&quot;&gt;Json Querying&lt;/h2&gt;
-
-&lt;p&gt;In this section, we are going to look at load and query JSON data. JSON support is built in. The following section
-gives you step by step instructions for that. You can find sample &lt;a href=&quot;https://github.com/phatak-dev/blog/blob/master/code/DataSourceExamples/src/main/resources/sales.json&quot;&gt;data&lt;/a&gt; and
-complete project on &lt;a href=&quot;https://github.com/phatak-dev/blog/tree/master/code/DataSourceExamples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-1--creating-sqlcontext&quot;&gt;Step 1 : Creating SQLContext&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;org&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;apache&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;spark&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;SQLContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You need to create SQLContext in order to access any data source API.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-2--load-function-to-load-schema-from-source&quot;&gt;Step 2 : Load function to load schema from source&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;org.apache.spark.sql.json&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;path&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;load is an universal way of loading data from any data source supported by data source API. The first
-parameter takes the class name of source. In this example &lt;em&gt;org.apache.spark.sql.json&lt;/em&gt; point to that
-data source is JSON. Second parameter is a map options of data source. The parameter we are passing
-here path of the JSON file. The return value will be a DataFrame.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-3--printing-schema&quot;&gt;Step 3 : Printing schema&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;printSchema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;When you load the data, most of sources will automatically discover schema from the data. In this example,
-JSON schema is interpreted from the json keys and value. So after load, we can print the schema.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-4--querying-json-using-sql&quot;&gt;Step 4 : Querying JSON using sql&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;registerTempTable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;aggDF&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;select sum(amountPaid) from sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In the above code, we register our dataframe as a temp table called &lt;em&gt;sales&lt;/em&gt;. Once we have registered table,
-we can run any sql query using sqlContext.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-5--print-the-result&quot;&gt;Step 5 : Print the result&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;aggDF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;collectAsList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You can call collect get the results.&lt;/p&gt;
-</description>
-        <pubDate>Mon, 25 May 2015 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/introduction-to-spark-data-source-api-part-1</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-data-source-api-part-1</guid>
       </item>
     
   </channel>
