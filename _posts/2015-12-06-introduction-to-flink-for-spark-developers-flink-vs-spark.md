@@ -2,7 +2,7 @@
 layout: post
 title: "Introduction to Apache Flink for Spark Developers : Flink vs Spark"
 date : 2015-12-06
-categories: scala flink-series
+categories: spark flink flink-series
 ---
 
 <style type="text/css">
