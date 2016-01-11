@@ -7,6 +7,21 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Apache Flink - Meetup talk</title>
+        <description>&lt;p&gt;The below video is recording of my talk on &lt;em&gt;Introduction to Apache Flink&lt;/em&gt; in recent spark meetup. In this talk, we will discuss how apache flink is evolving
+as new generation platform for big data processing. We also discuss how flink
+compares to apache spark.&lt;/p&gt;
+
+&lt;p&gt;Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/introduction-to-apache-flink-56892153&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/flink-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/jErEhxP8LYQ&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
+</description>
+        <pubDate>Mon, 11 Jan 2016 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-flink-talk</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-flink-talk</guid>
+      </item>
+    
+      <item>
         <title>Introduction to Apache Flink for Spark Developers : Flink vs Spark</title>
         <description>&lt;style type=&quot;text/css&quot;&gt;
 .post-content blockquote {
@@ -588,20 +603,6 @@ It’s is based on new Akka reactive streams library.&lt;/p&gt;
         <pubDate>Tue, 30 Jun 2015 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/anatomy-of-spark-datasource-api</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/anatomy-of-spark-datasource-api</guid>
-      </item>
-    
-      <item>
-        <title>Structured data processing with Spark SQL - Meetup Video</title>
-        <description>&lt;p&gt;The below video is a recording of my talk on &lt;em&gt;Structured data processing with Spark SQL&lt;/em&gt; in recent spark meetup. In this talk, I discuss about how you can use spark sql API’s like Data source, Data frame API’s
-to analyse structured data with Spark.&lt;/p&gt;
-
-&lt;p&gt;Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/introduction-to-structured-data-in-spark&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/structured_data_processing_spark_sql&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/0jd3EWmKQfo&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
-</description>
-        <pubDate>Mon, 08 Jun 2015 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/structured-data-processing-with-spark-sql-meetup-talk</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/structured-data-processing-with-spark-sql-meetup-talk</guid>
       </item>
     
   </channel>
