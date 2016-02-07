@@ -7,6 +7,19 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Hadoop (HDFS &amp; Map/Reduce) for Spark developers</title>
+        <description>&lt;p&gt;Whenever I talk about Spark in meetup or training, people ask one question &lt;strong&gt;“Do I need to know hadoop for learning Spark?”&lt;/strong&gt;. My answer to this question was “not in the beginning”. In my view, to learn spark you don’t need to know about hadoop. But if you want to be proficient in spark, then knowing hadoop concepts is a must.&lt;/p&gt;
+
+&lt;p&gt;So in below video I have captured neccessary HDFS and Map/Reduce concepts which are needed for improving understanding of Spark. This video is for all the ones who has some understanding of Spark and want to know how ideas from hadoop and spark connect.&lt;/p&gt;
+
+&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/strJwh0hLT8&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
+</description>
+        <pubDate>Sun, 07 Feb 2016 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-hadoop-for-spark-developers</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-hadoop-for-spark-developers</guid>
+      </item>
+    
+      <item>
         <title>Introduction to Apache Flink - Meetup talk</title>
         <description>&lt;p&gt;The below video is recording of my talk on &lt;em&gt;Introduction to Apache Flink&lt;/em&gt; in recent spark meetup. In this talk, we will discuss how apache flink is evolving
 as new generation platform for big data processing. We also discuss how flink
@@ -590,19 +603,6 @@ It’s is based on new Akka reactive streams library.&lt;/p&gt;
         <pubDate>Wed, 05 Aug 2015 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/anatomy-of-spark-dataframe-api</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/anatomy-of-spark-dataframe-api</guid>
-      </item>
-    
-      <item>
-        <title>Anatomy of Data Source API : Deep dive into Spark SQL Data Source API</title>
-        <description>&lt;p&gt;The below video is a screen cast  of my talk on &lt;em&gt;Anatomy of Data Source API : Deep dive into Spark SQL Data Source API&lt;/em&gt; in recent spark meetup. In this talk, I discuss about how to create a data source from scratch using Spark SQL data source API’s.&lt;/p&gt;
-
-&lt;p&gt;Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/anatomy-of-data-source-api&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/anatomy_of_spark_datasource_api&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/ckX6fT3kYG0&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
-</description>
-        <pubDate>Tue, 30 Jun 2015 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/anatomy-of-spark-datasource-api</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/anatomy-of-spark-datasource-api</guid>
       </item>
     
   </channel>
