@@ -7,6 +7,84 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Interactive Scheduling using Azkaban - Part 1 : Setting up Solo Server</title>
+        <description>&lt;p&gt;Azkaban is a scheduler for big data workloads. One of the differentiator of azkaban compared to other schedulers like oozie, airflow is it has good support for REST API to interact with scheduler interactively. So in these series of blogs I will be discussing about setting up azkaban and using azkaban AJAX(REST) API.&lt;/p&gt;
+
+&lt;p&gt;This is the first post in series, where we discuss about setting up azkaban. In this post, we will be setting up azkaban 3.0.&lt;/p&gt;
+
+&lt;h2 id=&quot;building-azkaban&quot;&gt;Building Azkaban&lt;/h2&gt;
+
+&lt;p&gt;Though azkaban provides binary &lt;a href=&quot;http://azkaban.github.io/downloads.html&quot;&gt;downloads&lt;/a&gt; it is not up to date. So we will be getting latest code from the github in order to build azkaban 3.0.&lt;/p&gt;
+
+&lt;p&gt;The following are the steps to get code and build.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;clone-code&quot;&gt;Clone code&lt;/h3&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;git clone https://github.com/azkaban/azkaban.git&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;build&quot;&gt;Build&lt;/h3&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;./gradlew distZip&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;copy-from-build&quot;&gt;Copy from build&lt;/h3&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;cp build/distributions/azkaban-solo-server-3.0.0.zip ~&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;installing-solo-server&quot;&gt;Installing solo server&lt;/h2&gt;
+
+&lt;p&gt;Azkaban supports different mode of executions like solo server, two server mode and multiple executor mode. Solo server is used for initial developments where as other ones are geared towards production scenarios. In this blog, we discuss about setting up solo server, for other modes refer &lt;a href=&quot;http://azkaban.github.io/azkaban/docs/latest/#getting-started&quot;&gt;azkaban documentation&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The below are the steps for installing.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;unzip&quot;&gt;Unzip&lt;/h3&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;unzip ~/azkaban-solo-server-3.0.0.zip
+&lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; ~/azkaban-solo-server-3.0.0&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;starting-solo-server&quot;&gt;Starting solo server&lt;/h3&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;bin/azkaban-solo-start.sh&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;accessing-log&quot;&gt;Accessing log&lt;/h3&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;tail -f logs/azkaban-execserver.log&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;accessing-web-ui&quot;&gt;Accessing web UI&lt;/h2&gt;
+
+&lt;p&gt;Once azkaban solo server started, you can access at &lt;a href=&quot;http://localhost:8081/&quot;&gt;http://localhost:8081&lt;/a&gt;. By default username is &lt;em&gt;azkaban&lt;/em&gt; and password is &lt;em&gt;azkaban&lt;/em&gt;. You can change it in &lt;em&gt;conf/azkaban-users.xml&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Now you have successfully installed azkaban server. In the next set of posts, we will explore how to use this installation to do scheduling.&lt;/p&gt;
+</description>
+        <pubDate>Thu, 03 Mar 2016 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/interactive-scheduling-using-azkaban-setting-up-solo-server</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/interactive-scheduling-using-azkaban-setting-up-solo-server</guid>
+      </item>
+    
+      <item>
         <title>Building Distributed Systems from Scratch - Part 2 : Handling third party libraries</title>
         <description>&lt;p&gt;The below video is a recording of my talk on &lt;em&gt;Building Distributed Systems from Scratch - Part 2&lt;/em&gt; in recent spark meet up. It’s second talk in series of talks about how to build a distributed processing system from scratch which looks similar to Apache Spark. This talk focuses on how to implement a system to distribute third party libraries on mesos.&lt;/p&gt;
 
@@ -14,7 +92,7 @@
 
 &lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/Oj8IO8OICAc&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
 </description>
-        <pubDate>Wed, 17 Feb 2016 00:00:00 +0700</pubDate>
+        <pubDate>Wed, 17 Feb 2016 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/building-distributed-systems-from-scratch-part2</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/building-distributed-systems-from-scratch-part2</guid>
       </item>
@@ -27,7 +105,7 @@
 
 &lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/strJwh0hLT8&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
 </description>
-        <pubDate>Sun, 07 Feb 2016 00:00:00 +0700</pubDate>
+        <pubDate>Sun, 07 Feb 2016 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/introduction-to-hadoop-for-spark-developers</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-hadoop-for-spark-developers</guid>
       </item>
@@ -42,7 +120,7 @@ compares to apache spark.&lt;/p&gt;
 
 &lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/jErEhxP8LYQ&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
 </description>
-        <pubDate>Mon, 11 Jan 2016 00:00:00 +0700</pubDate>
+        <pubDate>Mon, 11 Jan 2016 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/introduction-to-flink-talk</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-flink-talk</guid>
       </item>
@@ -256,7 +334,7 @@ s good enough API to pull the data it’s can’t make use of source abilities s
 &lt;p&gt;At this point of time Spark is much mature and complete framework compared to Flink. But flink does bring very interesting ideas like custom memory management, data set API etc to the table. Spark community is recognizing it and adopting these ideas into spark. So in that sense flink is taking big data processing to next level altogether. So knowing flink API and internals will help you to understand this new stream paradigm shift much before it lands in Spark.&lt;/p&gt;
 
 </description>
-        <pubDate>Sun, 06 Dec 2015 00:00:00 +0700</pubDate>
+        <pubDate>Sun, 06 Dec 2015 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/introduction-to-flink-for-spark-developers-flink-vs-spark</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-flink-for-spark-developers-flink-vs-spark</guid>
       </item>
@@ -269,7 +347,7 @@ s good enough API to pull the data it’s can’t make use of source abilities s
 
 &lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/Oy9ToN4O63c&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
 </description>
-        <pubDate>Wed, 02 Dec 2015 00:00:00 +0700</pubDate>
+        <pubDate>Wed, 02 Dec 2015 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/building-distributed-systems-from-scratch-part1</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/building-distributed-systems-from-scratch-part1</guid>
       </item>
@@ -418,7 +496,7 @@ s good enough API to pull the data it’s can’t make use of source abilities s
 
 &lt;p&gt;Now you have a rest service which can be easily unit tested.&lt;/p&gt;
 </description>
-        <pubDate>Fri, 20 Nov 2015 00:00:00 +0700</pubDate>
+        <pubDate>Fri, 20 Nov 2015 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/akka-http-testing</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/akka-http-testing</guid>
       </item>
@@ -487,7 +565,7 @@ Once we have the customer, we are adding it to a concurrent queue.&lt;/p&gt;
 
 &lt;p&gt;Now you have a working REST api in akka-http which can handle json data.&lt;/p&gt;
 </description>
-        <pubDate>Fri, 13 Nov 2015 00:00:00 +0700</pubDate>
+        <pubDate>Fri, 13 Nov 2015 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/json-in-akka-http</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/json-in-akka-http</guid>
       </item>
@@ -572,7 +650,7 @@ It’s is based on new Akka reactive streams library.&lt;/p&gt;
 
 &lt;p&gt;Now we have a working simple http server using akka-http library.&lt;/p&gt;
 </description>
-        <pubDate>Fri, 13 Nov 2015 00:00:00 +0700</pubDate>
+        <pubDate>Fri, 13 Nov 2015 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/akka-http-helloworld</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/akka-http-helloworld</guid>
       </item>
@@ -587,22 +665,9 @@ It’s is based on new Akka reactive streams library.&lt;/p&gt;
 
 &lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/pehFa-biOyE&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
 </description>
-        <pubDate>Sat, 19 Sep 2015 00:00:00 +0700</pubDate>
+        <pubDate>Sat, 19 Sep 2015 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/machine-learning-with-spark</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/machine-learning-with-spark</guid>
-      </item>
-    
-      <item>
-        <title>Improving Mobile payments with Real time Spark</title>
-        <description>&lt;p&gt;The below video is a recording of my talk on &lt;em&gt;Improving mobile payments with real time spark&lt;/em&gt; in recent spark meetup. It’s a talk about real world spark streaming implementation for improving mobile payments experience.&lt;/p&gt;
-
-&lt;p&gt;Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/improving-mobile-payments-with-real-time-spark&quot;&gt;slideshare&lt;/a&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/Q7O_AOTZ2C8&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
-</description>
-        <pubDate>Wed, 05 Aug 2015 00:00:00 +0700</pubDate>
-        <link>http://blog.madhukaraphatak.com/improving-mobile-payments-with-real-time-spark</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/improving-mobile-payments-with-real-time-spark</guid>
       </item>
     
   </channel>

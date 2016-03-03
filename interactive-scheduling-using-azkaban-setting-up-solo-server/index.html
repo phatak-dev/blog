@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Madhukar's Blog</title>
+    <title>Interactive Scheduling using Azkaban - Part 1 : Setting up Solo Server</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/page6/">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/interactive-scheduling-using-azkaban-setting-up-solo-server">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -43,109 +43,145 @@
 
     <div class="page-content">
       <div class="wrap">
-      <div class="home">
-	
+      <div class="post">
+ <header class="post-header">
+  <h1>Interactive Scheduling using Azkaban - Part 1 : Setting up Solo Server</h1>
+  <p class="meta">Mar 3, 2016</p>
+  <div class="catagories">
+    
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
+    <a href="/categories/azkaban"><span class="category">azkaban</span></a>
+    
+  </div>
+</header> 
 
-	<ul class="posts">
-		
-		<li>           
-			<span class="post-date">Jan 6, 2012</span>             
-			<div>
-				<a class="post-link" href="/say-hello-to-android-part-I-introduction-to-android">Say Hello To Android  Part- I Introduction To Android
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Sep 25, 2011</span>             
-			<div>
-				<a class="post-link" href="/getting-started-with-antlr-basics">Getting Started With ANTLR:Basics
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Aug 23, 2011</span>             
-			<div>
-				<a class="post-link" href="/hadoop-workshop-first-success-story">Hadoop workshop : First success story
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Aug 5, 2011</span>             
-			<div>
-				<a class="post-link" href="/using-antlr-with-maven">Using ANTLR with maven
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Aug 2, 2011</span>             
-			<div>
-				<a class="post-link" href="/one-day-hadoop-workshop-in-bangalore">One day Hadoop Workshop in Bangalore
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Aug 1, 2011</span>             
-			<div>
-				<a class="post-link" href="/antlr-as-an-external-tool-in-eclipse-on-ubuntu">ANTLR as an external tool in eclipse on ubuntu
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Jul 24, 2011</span>             
-			<div>
-				<a class="post-link" href="/nectar-developing-an-open-source-predictive-modeling-framework-on-hadoop">Nectar : Developing an open source predictive modeling framework on Hadoop
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Jul 6, 2011</span>             
-			<div>
-				<a class="post-link" href="/google-plus-after-one-week">Google Plus : After One Week
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Jul 6, 2011</span>             
-			<div>
-				<a class="post-link" href="/apache-tuscany-part-1-installing-tuscany-plug-in-in-eclipse">Apache Tuscany : Part 1 - Installing Tuscany Plug in in eclipse
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Jul 6, 2011</span>             
-			<div>
-				<a class="post-link" href="/exploring-art-with-chrome-store">Exploring Art with Chrome Store
-				</a> 
-			</div>                                  
-		</li>        
-		
-	</ul>
+<article class="post-content">
+  <p>Azkaban is a scheduler for big data workloads. One of the differentiator of azkaban compared to other schedulers like oozie, airflow is it has good support for REST API to interact with scheduler interactively. So in these series of blogs I will be discussing about setting up azkaban and using azkaban AJAX(REST) API.</p>
 
+<p>This is the first post in series, where we discuss about setting up azkaban. In this post, we will be setting up azkaban 3.0.</p>
+
+<h2 id="building-azkaban">Building Azkaban</h2>
+
+<p>Though azkaban provides binary <a href="http://azkaban.github.io/downloads.html">downloads</a> it is not up to date. So we will be getting latest code from the github in order to build azkaban 3.0.</p>
+
+<p>The following are the steps to get code and build.</p>
+
+<ul>
+  <li>
+    <h3 id="clone-code">Clone code</h3>
+  </li>
+</ul>
+
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">git clone https://github.com/azkaban/azkaban.git</code></pre></div>
+
+<ul>
+  <li>
+    <h3 id="build">Build</h3>
+  </li>
+</ul>
+
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">./gradlew distZip</code></pre></div>
+
+<ul>
+  <li>
+    <h3 id="copy-from-build">Copy from build</h3>
+  </li>
+</ul>
+
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">cp build/distributions/azkaban-solo-server-3.0.0.zip ~</code></pre></div>
+
+<h2 id="installing-solo-server">Installing solo server</h2>
+
+<p>Azkaban supports different mode of executions like solo server, two server mode and multiple executor mode. Solo server is used for initial developments where as other ones are geared towards production scenarios. In this blog, we discuss about setting up solo server, for other modes refer <a href="http://azkaban.github.io/azkaban/docs/latest/#getting-started">azkaban documentation</a>.</p>
+
+<p>The below are the steps for installing.</p>
+
+<ul>
+  <li>
+    <h3 id="unzip">Unzip</h3>
+  </li>
+</ul>
+
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">unzip ~/azkaban-solo-server-3.0.0.zip
+<span class="nb">cd</span> ~/azkaban-solo-server-3.0.0</code></pre></div>
+
+<ul>
+  <li>
+    <h3 id="starting-solo-server">Starting solo server</h3>
+  </li>
+</ul>
+
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">bin/azkaban-solo-start.sh</code></pre></div>
+
+<ul>
+  <li>
+    <h3 id="accessing-log">Accessing log</h3>
+  </li>
+</ul>
+
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">tail -f logs/azkaban-execserver.log</code></pre></div>
+
+<h2 id="accessing-web-ui">Accessing web UI</h2>
+
+<p>Once azkaban solo server started, you can access at <a href="http://localhost:8081/">http://localhost:8081</a>. By default username is <em>azkaban</em> and password is <em>azkaban</em>. You can change it in <em>conf/azkaban-users.xml</em>.</p>
+
+<p>Now you have successfully installed azkaban server. In the next set of posts, we will explore how to use this installation to do scheduling.</p>
+
+</article>
+
+
+<div class="related">
+  <h2>Related posts</h2>
+  <ul>
+    
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">17 Feb 2016</span>
+     &raquo; <a href="/building-distributed-systems-from-scratch-part2">Building Distributed Systems from Scratch - Part 2 : Handling third party libraries</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">02 Dec 2015</span>
+     &raquo; <a href="/building-distributed-systems-from-scratch-part1">Building Distributed Systems from Scratch - Part 1</a>    
+   </li>           
+         
+
+   
+   
+             
+          
+
+   
+   
+ </ul>
+
+
+ 
+     
+    <div id="disqus_thread" style="padding-top:4%;"></div>
+     <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'personalblogmadhukar'; // required: replace example with your forum shortname
+        var disqus_developer = 1;
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+   
 </div>
-
-
-
-<div class="pagination">
-
-	
-	<a href="/page5" class="previous">Previous</a>
-	
-	<span class="page_number ">Page: 6 of 9</span>
-	
-	<a href="/page7" class="next ">Next</a>
-	
-</div>
-
-
       </div>
     </div>
 
