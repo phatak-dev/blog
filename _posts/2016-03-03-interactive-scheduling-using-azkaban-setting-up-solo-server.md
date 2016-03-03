@@ -4,7 +4,9 @@ title: "Interactive Scheduling using Azkaban - Part 1 : Setting up Solo Server"
 date : 2016-03-03
 categories: scala azkaban
 ---
-Azkaban is a scheduler for big data workloads. One of the differentiator of azkaban compared to other schedulers like oozie, airflow is it has good support for REST API to interact with scheduler interactively. So in these series of blogs I will be discussing about setting up azkaban and using azkaban AJAX(REST) API.
+Azkaban is a scheduler for big data workloads like Hadoop, Spark. One of the differentiator of azkaban compared to other schedulers like oozie, airflow is it has good support for REST API to interact with scheduler problematically. This programmatic access is important for interactive applications.
+
+In these series of blogs I will be discussing about setting up azkaban and using azkaban AJAX(REST) API.
 
 This is the first post in series, where we discuss about setting up azkaban. In this post, we will be setting up azkaban 3.0.
 
