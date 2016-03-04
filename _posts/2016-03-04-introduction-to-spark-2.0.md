@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Introduction to Spark 2.0 : A Sneak Peak At Next Generation Spark"
+title: "Introduction to Spark 2.0 : A Sneak Peek At Next Generation Spark"
 date : 2016-03-04
 categories: scala spark
 ---
