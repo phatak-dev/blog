@@ -7,7 +7,7 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
-        <title>Introduction to Spark 2.0 : A Sneak Peak At Next Generation Spark</title>
+        <title>Introduction to Spark 2.0 : A Sneak Peek At Next Generation Spark</title>
         <description>&lt;p&gt;Spark 2.0 is the next stable of release of spark, which is expected to be released in April/May 2016. As the major version bump suggests, its is going to be bring some drastic changes to framework. In recent &lt;a href=&quot;https://spark-summit.org/east-2016/&quot;&gt;spark summit&lt;/a&gt;, spark contributors discussed some of those in various talks.&lt;/p&gt;
 
 &lt;p&gt;In this post, I am going to talk about some of the important changes made to the framework and as a spark developer how we can prepare for it.&lt;/p&gt;
