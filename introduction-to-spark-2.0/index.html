@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Improving Mobile payments with Real time Spark</title>
+    <title>Introduction to Spark 2.0 : A Sneak Peak At Next Generation Spark</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/improving-mobile-payments-with-real-time-spark">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-spark-2.0">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,25 +45,56 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Improving Mobile payments with Real time Spark</h1>
-  <p class="meta">Aug 5, 2015</p>
+  <h1>Introduction to Spark 2.0 : A Sneak Peak At Next Generation Spark</h1>
+  <p class="meta">Mar 4, 2016</p>
   <div class="catagories">
-    
-    <a href="/categories/spark"><span class="category">spark</span></a>
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
-    <a href="/categories/talks"><span class="category">talks</span></a>
+    <a href="/categories/spark"><span class="category">spark</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>The below video is a recording of my talk on <em>Improving mobile payments with real time spark</em> in recent spark meetup. It’s a talk about real world spark streaming implementation for improving mobile payments experience.</p>
+  <p>Spark 2.0 is the next stable of release of spark, which is expected to be released in April/May 2016. As the major version bump suggests, its is going to be bring some drastic changes to framework. In recent <a href="https://spark-summit.org/east-2016/">spark summit</a>, spark contributors discussed some of those in various talks.</p>
 
-<p>Find the slides on <a href="http://www.slideshare.net/datamantra/improving-mobile-payments-with-real-time-spark">slideshare</a>.</p>
+<p>In this post, I am going to talk about some of the important changes made to the framework and as a spark developer how we can prepare for it.</p>
 
-<div class="video-container"> <iframe src="https://www.youtube.com/embed/Q7O_AOTZ2C8" frameborder="0" width="560" height="315"></iframe> </div>
+<h2 id="embrace-dataset-dataframe-api-over-rdd-api">1. Embrace Dataset/ Dataframe API over RDD API</h2>
+
+<p>Normally, whoever starts learning spark first learns about RDD abstraction. RDD was one of the novel idea of Spark which gave us a single abstraction over different big data workloads like batch, streaming, ML etc. So naturally RDD API became the way people build spark applications.</p>
+
+<p>But overtime, people have realized RDD as a user facing API held back spark runtime from advanced optimizations. So from Spark 1.3, Dataframe API was introduced to solve some of the optimization issues. Dataframe brought custom memory management and runtime code generation which greatly improved performance. So in last year most of the improvements went into Dataframe API whereas RDD API stood still.</p>
+
+<p>Though dataframe API solved many issues, it was not a good enough replacement for RDD API. One of the major issues with dataframe API was no compile time safety and not able to work with domain objects. So this held back people using dataframe API everywhere. But with introduction of Dataset API in 1.6, we were able to fill the gap.</p>
+
+<p>So in Spark 2.0, Dataset API will be become a stable API. So Dataset API combined with Dataframe API should able to cover most of the use cases where RDD was used earlier. So as a spark developer it is advised to start embracing these two API’s over RDD API from Spark 2.0.</p>
+
+<p>Does that mean RDD API will be removed? Not really. Spark as a project is very serious about backward compatibility. So they don’t want to remove any stable API’s. So RDD API will remain as low level API mostly used by runtime. As developer you will be using Dataset or Dataframe API from Spark 2.0.</p>
+
+<p>Everything above sounds great for batch processing, but what about Spark streaming? Spark streaming has lot of API’s around RDD. What will happen to them?</p>
+
+<h2 id="structured-stream-processing">2. Structured Stream processing</h2>
+
+<p>Spark 2.0 will introduce structured stream processing, which is a higher level API to do stream processing. It essentially going to leverage dataframe and dataset API for stream processing which will get rid of using RDD as an abstraction. Not only this bring dataframes to stream processing, it brings bunch of other benefits like datasource API support for spark streaming. You can watch <a href="https://www.youtube.com/watch?v=i7l3JQRx7Qw">this video</a> to know more.</p>
+
+<p>So from Spark 2.0, you will be interacting with spark streaming using same DF abstraction that you were using in batch layer.</p>
+
+<h2 id="dataset-is-the-new-single-abstraction">3. Dataset is the new single abstraction</h2>
+
+<p>Spark always loved to have a single abstraction which it made it to improve in a rapid phase. Also it meant that different libraries can exchange data between each other. So doesn’t having Dataframe and Dataset as two API’s beats that single abstraction idea?</p>
+
+<p>Currently in Spark 1.6, these are two independent abstractions. But from 2.0 Dataframe will be a special case of Dataset API. So this make dataset as a single abstraction on which all the API’s are build. So Dataset will be new single abstraction which will take the place of RDD in the user API world.</p>
+
+<h2 id="performance-improvements">4. Performance improvements</h2>
+
+<p>Spark 2.0 going to bring many performance improvements thanks to tungsten and code generation. It’s been one of the constant theme in last few releases to going 1-2x performance gains. But in 2.0, data bricks is promising 6-10x performance gains. It’s particularly do with more and more intelligent code generation and moving libraries on better abstraction layers like dataset.</p>
+
+<p>So the above are the most important updates landing in Spark 2.0. I will be discussing more about this as and when we get to see these changes getting implemented.</p>
+
+<p>Source : You can access all the talks and slides of spark summit from <a href="https://spark-summit.org/east-2016/schedule/">here</a>.</p>
+
 
 </article>
 
@@ -73,38 +104,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">04 Mar 2016</span>
-     &raquo; <a href="/introduction-to-spark-2.0">Introduction to Spark 2.0 : A Sneak Peak At Next Generation Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">17 Feb 2016</span>
-     &raquo; <a href="/building-distributed-systems-from-scratch-part2">Building Distributed Systems from Scratch - Part 2 : Handling third party libraries</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">07 Feb 2016</span>
-     &raquo; <a href="/introduction-to-hadoop-for-spark-developers">Introduction to Hadoop (HDFS & Map/Reduce) for Spark developers</a>    
-   </li>           
-         
-
-   
-   
-             
-    
-    <li>    
-     <span class="post-date">04 Mar 2016</span>
-     &raquo; <a href="/introduction-to-spark-2.0">Introduction to Spark 2.0 : A Sneak Peak At Next Generation Spark</a>    
-   </li>           
-         
+          
 
             
     
@@ -119,6 +119,27 @@
     <li>    
      <span class="post-date">17 Feb 2016</span>
      &raquo; <a href="/building-distributed-systems-from-scratch-part2">Building Distributed Systems from Scratch - Part 2 : Handling third party libraries</a>    
+   </li>           
+         
+
+   
+   
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">17 Feb 2016</span>
+     &raquo; <a href="/building-distributed-systems-from-scratch-part2">Building Distributed Systems from Scratch - Part 2 : Handling third party libraries</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">07 Feb 2016</span>
+     &raquo; <a href="/introduction-to-hadoop-for-spark-developers">Introduction to Hadoop (HDFS & Map/Reduce) for Spark developers</a>    
    </li>           
          
 

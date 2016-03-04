@@ -7,6 +7,52 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Spark 2.0 : A Sneak Peak At Next Generation Spark</title>
+        <description>&lt;p&gt;Spark 2.0 is the next stable of release of spark, which is expected to be released in April/May 2016. As the major version bump suggests, its is going to be bring some drastic changes to framework. In recent &lt;a href=&quot;https://spark-summit.org/east-2016/&quot;&gt;spark summit&lt;/a&gt;, spark contributors discussed some of those in various talks.&lt;/p&gt;
+
+&lt;p&gt;In this post, I am going to talk about some of the important changes made to the framework and as a spark developer how we can prepare for it.&lt;/p&gt;
+
+&lt;h2 id=&quot;embrace-dataset-dataframe-api-over-rdd-api&quot;&gt;1. Embrace Dataset/ Dataframe API over RDD API&lt;/h2&gt;
+
+&lt;p&gt;Normally, whoever starts learning spark first learns about RDD abstraction. RDD was one of the novel idea of Spark which gave us a single abstraction over different big data workloads like batch, streaming, ML etc. So naturally RDD API became the way people build spark applications.&lt;/p&gt;
+
+&lt;p&gt;But overtime, people have realized RDD as a user facing API held back spark runtime from advanced optimizations. So from Spark 1.3, Dataframe API was introduced to solve some of the optimization issues. Dataframe brought custom memory management and runtime code generation which greatly improved performance. So in last year most of the improvements went into Dataframe API whereas RDD API stood still.&lt;/p&gt;
+
+&lt;p&gt;Though dataframe API solved many issues, it was not a good enough replacement for RDD API. One of the major issues with dataframe API was no compile time safety and not able to work with domain objects. So this held back people using dataframe API everywhere. But with introduction of Dataset API in 1.6, we were able to fill the gap.&lt;/p&gt;
+
+&lt;p&gt;So in Spark 2.0, Dataset API will be become a stable API. So Dataset API combined with Dataframe API should able to cover most of the use cases where RDD was used earlier. So as a spark developer it is advised to start embracing these two API’s over RDD API from Spark 2.0.&lt;/p&gt;
+
+&lt;p&gt;Does that mean RDD API will be removed? Not really. Spark as a project is very serious about backward compatibility. So they don’t want to remove any stable API’s. So RDD API will remain as low level API mostly used by runtime. As developer you will be using Dataset or Dataframe API from Spark 2.0.&lt;/p&gt;
+
+&lt;p&gt;Everything above sounds great for batch processing, but what about Spark streaming? Spark streaming has lot of API’s around RDD. What will happen to them?&lt;/p&gt;
+
+&lt;h2 id=&quot;structured-stream-processing&quot;&gt;2. Structured Stream processing&lt;/h2&gt;
+
+&lt;p&gt;Spark 2.0 will introduce structured stream processing, which is a higher level API to do stream processing. It essentially going to leverage dataframe and dataset API for stream processing which will get rid of using RDD as an abstraction. Not only this bring dataframes to stream processing, it brings bunch of other benefits like datasource API support for spark streaming. You can watch &lt;a href=&quot;https://www.youtube.com/watch?v=i7l3JQRx7Qw&quot;&gt;this video&lt;/a&gt; to know more.&lt;/p&gt;
+
+&lt;p&gt;So from Spark 2.0, you will be interacting with spark streaming using same DF abstraction that you were using in batch layer.&lt;/p&gt;
+
+&lt;h2 id=&quot;dataset-is-the-new-single-abstraction&quot;&gt;3. Dataset is the new single abstraction&lt;/h2&gt;
+
+&lt;p&gt;Spark always loved to have a single abstraction which it made it to improve in a rapid phase. Also it meant that different libraries can exchange data between each other. So doesn’t having Dataframe and Dataset as two API’s beats that single abstraction idea?&lt;/p&gt;
+
+&lt;p&gt;Currently in Spark 1.6, these are two independent abstractions. But from 2.0 Dataframe will be a special case of Dataset API. So this make dataset as a single abstraction on which all the API’s are build. So Dataset will be new single abstraction which will take the place of RDD in the user API world.&lt;/p&gt;
+
+&lt;h2 id=&quot;performance-improvements&quot;&gt;4. Performance improvements&lt;/h2&gt;
+
+&lt;p&gt;Spark 2.0 going to bring many performance improvements thanks to tungsten and code generation. It’s been one of the constant theme in last few releases to going 1-2x performance gains. But in 2.0, data bricks is promising 6-10x performance gains. It’s particularly do with more and more intelligent code generation and moving libraries on better abstraction layers like dataset.&lt;/p&gt;
+
+&lt;p&gt;So the above are the most important updates landing in Spark 2.0. I will be discussing more about this as and when we get to see these changes getting implemented.&lt;/p&gt;
+
+&lt;p&gt;Source : You can access all the talks and slides of spark summit from &lt;a href=&quot;https://spark-summit.org/east-2016/schedule/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+</description>
+        <pubDate>Fri, 04 Mar 2016 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-spark-2.0</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-2.0</guid>
+      </item>
+    
+      <item>
         <title>Interactive Scheduling using Azkaban - Part 1 : Setting up Solo Server</title>
         <description>&lt;p&gt;Azkaban is a scheduler for big data workloads like Hadoop, Spark. One of the differentiator of azkaban compared to other schedulers like oozie, airflow is it has good support for REST API to interact with scheduler problematically. This programmatic access is important for interactive applications.&lt;/p&gt;
 
@@ -655,21 +701,6 @@ It’s is based on new Akka reactive streams library.&lt;/p&gt;
         <pubDate>Fri, 13 Nov 2015 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/akka-http-helloworld</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/akka-http-helloworld</guid>
-      </item>
-    
-      <item>
-        <title>Introduction to Machine learning with Spark</title>
-        <description>&lt;p&gt;The below video is a recording of my talk on Introduction to machine learning with Spark in recent spark meet up. It’s a talk about how machine learning is implemented using Spark RDD concepts and how to use built in libraries like MLLib.&lt;/p&gt;
-
-&lt;p&gt;Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/introduction-to-machine-learning-with-spark&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/introduction_to_ml_with_spark&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/gRg2m_95c-0&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
-
-&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/pehFa-biOyE&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
-</description>
-        <pubDate>Sat, 19 Sep 2015 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/machine-learning-with-spark</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/machine-learning-with-spark</guid>
       </item>
     
   </channel>
