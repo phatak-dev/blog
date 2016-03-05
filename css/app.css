@@ -46,6 +46,10 @@ img{
   }
 }
 
+.related {
+margin-top : 5%;
+}
+
 .related h2{  
   font-weight: bold;
   display: block;
@@ -75,6 +79,9 @@ img{
  border: 1px solid #ddd;
 }
 
+.post-content {
+margin-bottom : 5%;
+}
 /* Youtube responsive */
 .video-container { 
 position: relative; 
