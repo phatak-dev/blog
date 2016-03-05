@@ -7,6 +7,53 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>What&#39;s New in Spark : Tales from Spark Summit East - Framework Improvements</title>
+        <description>&lt;p&gt;Recently Databricks, company behind the Apache Spark, held this year’s first &lt;a href=&quot;https://spark-summit.org/east-2016/&quot;&gt;spark summit&lt;/a&gt;, spark developer conference, in new york city. Lots of new exciting improvements in spark and it’s ecosystem got discussed in various talks. I was watching the videos of the conference on youtube and wanted to share the ones I found interesting.&lt;/p&gt;
+
+&lt;p&gt;These are the series of blog posts focusing on various talks categorized into different aspects of Spark. You can access all the posts in the series &lt;a href=&quot;/categories/spark-summit-east-2016&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;This is the first post in the series where I will be sharing talks which focused on improvements to the core of the spark itself.&lt;/p&gt;
+
+&lt;h3 id=&quot;matei-zaharia-keynote-on-spark-20&quot;&gt;1. Matei Zaharia keynote on Spark 2.0&lt;/h3&gt;
+
+&lt;p&gt;Matei Zaharia, Spark’s creator, laid out plans for next version of Spark in his keynote. His talks mainly revolved around performance and new abstraction like Dataset. Spark 2.0 is one of the major steps in spark’s evolution.You can read more about my thoughts on Spark 2.0 &lt;a href=&quot;/introduction-to-spark-2.0&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The below is the video of the talk. You can find slides on &lt;a href=&quot;http://www.slideshare.net/databricks/2016-spark-summit-east-keynote-matei-zaharia&quot;&gt;slideshare&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/ZFBgY0PwUeY&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
+
+&lt;h3 id=&quot;structuring-spark-dataframes-datasets-and-spark-streaming&quot;&gt;2. Structuring Spark: Dataframes, Datasets and Spark Streaming&lt;/h3&gt;
+
+&lt;p&gt;Structured data analysis has become very important part of spark in last few releases. More and more work is done on Dataframe API compared to RDD API. In this talk speaker talks about how these API’s share common core and how they are planning to bring the same API’s for stream analysis also.&lt;/p&gt;
+
+&lt;p&gt;The below is the video of the talk. You can find slides on &lt;a href=&quot;http://www.slideshare.net/SparkSummit/structuring-spark-dataframes-datasets-and-streaming-by-michael-armbrust&quot;&gt;slideshare&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/i7l3JQRx7Qw&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
+
+&lt;h3 id=&quot;the-future-of-real-time-spark---a-revamped-spark-streaming&quot;&gt;3. The Future of Real Time Spark - A Revamped Spark Streaming&lt;/h3&gt;
+
+&lt;p&gt;Building streaming application is hard. Combining batch processing and stream processing in a single application needs a lot of design and detailed implementation. Compared to other components of Spark, there was not much going on in spark streaming for a while. But its more the case. Spark 2.0 going to bring a completely new revamped API for spark streaming.&lt;/p&gt;
+
+&lt;p&gt;The below is the video of the talk. You can find slides on &lt;a href=&quot;http://www.slideshare.net/rxin/the-future-of-realtime-in-spark&quot;&gt;slideshare&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/oXkxXDG0gNk&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
+
+&lt;h3 id=&quot;spark-performance-whats-next---10x-performance-improvement-in-spark-20&quot;&gt;4. Spark performance: What’s Next - 10x performance improvement in Spark 2.0&lt;/h3&gt;
+
+&lt;p&gt;With introduction of tungsten and codegen in 1.4, spark performance is significantly improved in last few releases. Spark 2.0 bring whole new set of techniques which going to take the spark performance to next level. In this talk, speaker talks about different techniques getting developed to improve spark performance. Most of these already in master branch which you can start using to test it yourself.&lt;/p&gt;
+
+&lt;p&gt;The below is the video of the talk. You can find slides on &lt;a href=&quot;http://www.slideshare.net/databricks/spark-performance-whats-next&quot;&gt;slideshare&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/JX0CdOTWYX4&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
+
+&lt;p&gt;In next blog in the series, I will be sharing my thoughts on the talks which focused on the ecosystem around spark.&lt;/p&gt;
+</description>
+        <pubDate>Tue, 03 May 2016 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/whats-new-in-spark-framework-improvements</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/whats-new-in-spark-framework-improvements</guid>
+      </item>
+    
+      <item>
         <title>Introduction to Spark 2.0 : A Sneak Peek At Next Generation Spark</title>
         <description>&lt;p&gt;Spark 2.0 is the next stable of release of spark, which is expected to be released in April/May 2016. As the major version bump suggests, its is going to be bring some drastic changes to framework. In recent &lt;a href=&quot;https://spark-summit.org/east-2016/&quot;&gt;spark summit&lt;/a&gt;, spark contributors discussed some of those in various talks.&lt;/p&gt;
 
@@ -616,91 +663,6 @@ Once we have the customer, we are adding it to a concurrent queue.&lt;/p&gt;
         <pubDate>Fri, 13 Nov 2015 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/json-in-akka-http</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/json-in-akka-http</guid>
-      </item>
-    
-      <item>
-        <title>Akka HTTP Hello world</title>
-        <description>&lt;p&gt;Akka HTTP is a akka based http library for building RESTful services in Scala.
-It’s is based on new Akka reactive streams library.&lt;/p&gt;
-
-&lt;p&gt;In this series of posts, I will be talking about how to build REST services using akka-http library.&lt;/p&gt;
-
-&lt;p&gt;This is the first post in the series, where I will be talking about setting up the project and running a hello world program.&lt;/p&gt;
-
-&lt;p&gt;TL;TR You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/akka-http-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;adding-dependency&quot;&gt;Adding dependency&lt;/h2&gt;
-
-&lt;p&gt;To start using akka-http, you should add the following dependency to project. I am using sbt for build management. You can also use other build tools like maven.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;com.typesafe.akka&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%%&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;akka-http-experimental&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;1.0&amp;quot;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Though the artifact name says it’s experimental many companies are using it in the production.&lt;/p&gt;
-
-&lt;p&gt;You can access complete build.sbt &lt;a href=&quot;https://github.com/phatak-dev/akka-http-examples/blob/master/build.sbt&quot;&gt;here&lt;/a&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;helloworld-application&quot;&gt;HelloWorld application&lt;/h2&gt;
-
-&lt;p&gt;The following are the steps to be followed to create a hello world application.&lt;/p&gt;
-
-&lt;h3 id=&quot;create-actor-system&quot;&gt;1. Create Actor System&lt;/h3&gt;
-
-&lt;p&gt;Akka HTTP uses akka actors for handling concurrent requests. So in the first line we have to create akka actor system.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;implicit&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;actorSystem&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ActorSystem&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;system&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;create-actorflowmaterilizer&quot;&gt;2. Create ActorFlowMaterilizer&lt;/h3&gt;
-
-&lt;p&gt;Akka HTTP uses akka reactive streams for stream processing on TPC. So in a reactive system,we need to specify flow materializer which specifies the how requests/repose flow get processed. In akka-http, actors will be used for handling request and response flows. So we use &lt;em&gt;ActorMaterializer&lt;/em&gt; here.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;implicit&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;actorMaterializer&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ActorMaterializer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Please make sure both of the variables are implicits. Otherwise you may get strange cryptic compilation errors.&lt;/p&gt;
-
-&lt;h3 id=&quot;defining-the-route&quot;&gt;3. Defining the route&lt;/h3&gt;
-
-&lt;p&gt;Route specifies the URI endpoints REST server exposing. It is combination of multiple paths.&lt;/p&gt;
-
-&lt;p&gt;A simple path has the following three parts&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Directive/URI&lt;/li&gt;
-  &lt;li&gt;HTTP Method&lt;/li&gt;
-  &lt;li&gt;Response&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;route&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;pathSingleSlash&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;get&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;complete&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;s&quot;&gt;&amp;quot;Hello world&amp;quot;&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above example, we are creating a route with following properties&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;/ is the directive&lt;/li&gt;
-  &lt;li&gt;get is HTTP Method&lt;/li&gt;
-  &lt;li&gt;Returns “hello world” as the response&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;bind&quot;&gt;4. Bind&lt;/h3&gt;
-
-&lt;p&gt;Once we have all pieces in place, we need to create a server and bind to this route, address and port.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;nc&quot;&gt;Http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bindAndHandle&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;route&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;localhost&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8080&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;This creates and runs a simple http server at &lt;a href=&quot;http://localhost:8080&quot;&gt;http://localhost:8080&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;You can access complete code for this server &lt;a href=&quot;https://github.com/phatak-dev/akka-http-examples/blob/master/src/main/scala/com/madhukaraphatak/akkahttp/AkkaHttpHelloWorld.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Now we have a working simple http server using akka-http library.&lt;/p&gt;
-</description>
-        <pubDate>Fri, 13 Nov 2015 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/akka-http-helloworld</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/akka-http-helloworld</guid>
       </item>
     
   </channel>

@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Anatomy of Data Frame API : Deep dive into Spark SQL Data Frame API</title>
+    <title>What's New in Spark : Tales from Spark Summit East - Framework Improvements</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/anatomy-of-spark-dataframe-api">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/whats-new-in-spark-framework-improvements">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,25 +45,57 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Anatomy of Data Frame API : Deep dive into Spark SQL Data Frame API</h1>
-  <p class="meta">Aug 5, 2015</p>
+  <h1>What's New in Spark : Tales from Spark Summit East - Framework Improvements</h1>
+  <p class="meta">May 3, 2016</p>
   <div class="catagories">
     
     <a href="/categories/spark"><span class="category">spark</span></a>
     
-    <a href="/categories/scala"><span class="category">scala</span></a>
-    
-    <a href="/categories/talks"><span class="category">talks</span></a>
+    <a href="/categories/spark-summit-east-2016"><span class="category">spark-summit-east-2016</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>The below video is a screen cast  of my talk on <em>Anatomy of Data Frame API : Deep dive into Spark SQL Data Frame API</em> in recent spark meetup. In this talk, we will discuss about internals of dataframe.</p>
+  <p>Recently Databricks, company behind the Apache Spark, held this year’s first <a href="https://spark-summit.org/east-2016/">spark summit</a>, spark developer conference, in new york city. Lots of new exciting improvements in spark and it’s ecosystem got discussed in various talks. I was watching the videos of the conference on youtube and wanted to share the ones I found interesting.</p>
 
-<p>Find the slides on <a href="http://www.slideshare.net/datamantra/anatomy-of-data-frame-api">slideshare</a> and code on <a href="https://github.com/phatak-dev/anatomy_of_spark_dataframe_api">github</a>.</p>
+<p>These are the series of blog posts focusing on various talks categorized into different aspects of Spark. You can access all the posts in the series <a href="/categories/spark-summit-east-2016">here</a>.</p>
 
-<div class="video-container"> <iframe src="https://www.youtube.com/embed/iKOGBr-kOks" frameborder="0" width="560" height="315"></iframe> </div>
+<p>This is the first post in the series where I will be sharing talks which focused on improvements to the core of the spark itself.</p>
+
+<h3 id="matei-zaharia-keynote-on-spark-20">1. Matei Zaharia keynote on Spark 2.0</h3>
+
+<p>Matei Zaharia, Spark’s creator, laid out plans for next version of Spark in his keynote. His talks mainly revolved around performance and new abstraction like Dataset. Spark 2.0 is one of the major steps in spark’s evolution.You can read more about my thoughts on Spark 2.0 <a href="/introduction-to-spark-2.0">here</a>.</p>
+
+<p>The below is the video of the talk. You can find slides on <a href="http://www.slideshare.net/databricks/2016-spark-summit-east-keynote-matei-zaharia">slideshare</a>.</p>
+
+<div class="video-container"> <iframe src="https://www.youtube.com/embed/ZFBgY0PwUeY" frameborder="0" width="560" height="315"></iframe> </div>
+
+<h3 id="structuring-spark-dataframes-datasets-and-spark-streaming">2. Structuring Spark: Dataframes, Datasets and Spark Streaming</h3>
+
+<p>Structured data analysis has become very important part of spark in last few releases. More and more work is done on Dataframe API compared to RDD API. In this talk speaker talks about how these API’s share common core and how they are planning to bring the same API’s for stream analysis also.</p>
+
+<p>The below is the video of the talk. You can find slides on <a href="http://www.slideshare.net/SparkSummit/structuring-spark-dataframes-datasets-and-streaming-by-michael-armbrust">slideshare</a>.</p>
+
+<div class="video-container"> <iframe src="https://www.youtube.com/embed/i7l3JQRx7Qw" frameborder="0" width="560" height="315"></iframe> </div>
+
+<h3 id="the-future-of-real-time-spark---a-revamped-spark-streaming">3. The Future of Real Time Spark - A Revamped Spark Streaming</h3>
+
+<p>Building streaming application is hard. Combining batch processing and stream processing in a single application needs a lot of design and detailed implementation. Compared to other components of Spark, there was not much going on in spark streaming for a while. But its more the case. Spark 2.0 going to bring a completely new revamped API for spark streaming.</p>
+
+<p>The below is the video of the talk. You can find slides on <a href="http://www.slideshare.net/rxin/the-future-of-realtime-in-spark">slideshare</a>.</p>
+
+<div class="video-container"> <iframe src="https://www.youtube.com/embed/oXkxXDG0gNk" frameborder="0" width="560" height="315"></iframe> </div>
+
+<h3 id="spark-performance-whats-next---10x-performance-improvement-in-spark-20">4. Spark performance: What’s Next - 10x performance improvement in Spark 2.0</h3>
+
+<p>With introduction of tungsten and codegen in 1.4, spark performance is significantly improved in last few releases. Spark 2.0 bring whole new set of techniques which going to take the spark performance to next level. In this talk, speaker talks about different techniques getting developed to improve spark performance. Most of these already in master branch which you can start using to test it yourself.</p>
+
+<p>The below is the video of the talk. You can find slides on <a href="http://www.slideshare.net/databricks/spark-performance-whats-next">slideshare</a>.</p>
+
+<div class="video-container"> <iframe src="https://www.youtube.com/embed/JX0CdOTWYX4" frameborder="0" width="560" height="315"></iframe> </div>
+
+<p>In next blog in the series, I will be sharing my thoughts on the talks which focused on the ecosystem around spark.</p>
 
 </article>
 <div class="related">
@@ -71,12 +103,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">03 May 2016</span>
-     &raquo; <a href="/whats-new-in-spark-framework-improvements">What's New in Spark : Tales from Spark Summit East - Framework Improvements</a>    
-   </li>           
-         
+          
 
             
     
@@ -97,28 +124,7 @@
    
    
              
-    
-    <li>    
-     <span class="post-date">04 Mar 2016</span>
-     &raquo; <a href="/introduction-to-spark-2.0">Introduction to Spark 2.0 : A Sneak Peek At Next Generation Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">03 Mar 2016</span>
-     &raquo; <a href="/interactive-scheduling-using-azkaban-setting-up-solo-server">Interactive Scheduling using Azkaban - Part 1 : Setting up Solo Server</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">17 Feb 2016</span>
-     &raquo; <a href="/building-distributed-systems-from-scratch-part2">Building Distributed Systems from Scratch - Part 2 : Handling third party libraries</a>    
-   </li>           
-         
+          
 
    
    
