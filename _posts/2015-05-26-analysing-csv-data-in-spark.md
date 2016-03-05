@@ -2,6 +2,7 @@
 layout: post
 title: "Analysing CSV data in Spark : Introduction to Spark Data Source API - Part 2"
 date : 2015-05-26
+ads : true
 categories: spark scala datasource-series
 ---
 Data source is an API for handling structured data in Spark. It was introduced in Spark 1.2 as part of Spark SQL package.
