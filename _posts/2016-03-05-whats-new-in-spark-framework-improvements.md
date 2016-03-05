@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "What's New in Spark : Tales from Spark Summit East - Framework Improvements"
-date : 2016-05-03
+date : 2016-03-05
 categories: spark spark-summit-east-2016
 ---
 Recently Databricks, company behind the Apache Spark, held this year's first [spark summit](https://spark-summit.org/east-2016/), spark developer conference, in new york city. Lots of new exciting improvements in spark and it's ecosystem got discussed in various talks. I was watching the videos of the conference on youtube and wanted to share the ones I found interesting.
