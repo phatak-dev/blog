@@ -7,6 +7,125 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Flink Streaming - Part 1 : WordCount</title>
+        <description>&lt;p&gt;Apache Flink is one of the new generation distributed systems which unifies batch and streaming processing. Earlier in my blog, I have &lt;a href=&quot;/introduction-to-flink-for-spark-developers-flink-vs-spark&quot;&gt;discussed&lt;/a&gt; about how it’s different than Apache Spark and also given a introductory &lt;a href=&quot;/introduction-to-flink-talk&quot;&gt;talk&lt;/a&gt; about it’s batch API. In batch world, Flink looks very similar to Spark API as it uses similar concepts from Map/Reduce. But in the case of streaming, flink is much different than the Spark or any other stream processing systems out there.&lt;/p&gt;
+
+&lt;p&gt;So in these series of blogs, I will be discussing about how to get started with flink streaming API and using it’s different unique features. Flink streaming API has undergone significant changes from 0.10 to 1.0 version. So I will be discussing latest 1.0 API. You can access all the blogs in the series &lt;a href=&quot;/categories/flink-streaming/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In this first blog, I will be discussing about how to run word count example in flink streaming. If you are new to flink, I encourage you to watch my &lt;a href=&quot;/introduction-to-flink-talk&quot;&gt;introductory talk&lt;/a&gt; before continuing.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;TL;DR&lt;/strong&gt; All code is written using Flink’s scala API and you can access it on &lt;a href=&quot;https://github.com/phatak-dev/flink-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;flink-streaming-api&quot;&gt;Flink Streaming API&lt;/h2&gt;
+
+&lt;p&gt;Flink provides a streaming API called as Flink DataStream API to process continuous unbounded streams of data in realtime. This API build on top of the pipelined streaming execution engine of flink.&lt;/p&gt;
+
+&lt;p&gt;Datastream API has undergone a significant change from 0.10 to 1.0. So many examples you see in the other blogs including flink blog have become obsolete. I will be discussing about Flink 1.0 API which is released in maven central and yet to be released in binary releases.&lt;/p&gt;
+
+&lt;h2 id=&quot;adding-dependency&quot;&gt;Adding dependency&lt;/h2&gt;
+
+&lt;p&gt;To start using Datastream API, you should add the following dependency to project. I am using sbt for build management. You can also use other build tools like maven.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;org.apache.flink&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%%&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;flink-scala&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;1.0.0&amp;quot;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You can access complete build.sbt &lt;a href=&quot;https://github.com/phatak-dev/flink-examples/blob/master/build.sbt&quot;&gt;here&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;hello-world-example&quot;&gt;Hello World Example&lt;/h2&gt;
+
+&lt;p&gt;Whenever we learn any new API in big data, it has become custom to do word count. In this example, we are reading some lines from a socket and doing word count on them.&lt;/p&gt;
+
+&lt;p&gt;The below are the steps to write an streaming example in datastream API.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-1-get-streaming-environment&quot;&gt;Step 1. Get Streaming Environment&lt;/h3&gt;
+
+&lt;p&gt;In both batch and streaming example, first step is to create a pointer to environment on which this program runs. Flink can run same program in local or cluster mode. You can read more about modes &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/apis/common/index.html#anatomy-of-a-flink-program&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StreamExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getExecutionEnvironment&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;If you are familiar with Spark, StreamExecutionEnvironment is similar to spark context.&lt;/p&gt;
+
+&lt;p&gt;One of the things to remember when using scala API of Flink is to import the implicts. If you don’t import them you will run into strange error messages.&lt;/p&gt;
+
+&lt;p&gt;You can import the implicts for streaming as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.apache.flink.streaming.api.scala._&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;step-2-create-datastream-from-socket&quot;&gt;Step 2. Create DataStream from socket&lt;/h3&gt;
+
+&lt;p&gt;Once we have the pointer to execution environment, next step is to create a stream from socket.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;socketStream&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;socketTextStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;localhost&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;9000&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;em&gt;socketStream&lt;/em&gt; will be of the type DataStream. DataStream is basic abstraction of flink’s streaming API.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-3-implement-wordcount-logic&quot;&gt;Step 3. Implement wordcount logic&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wordsStream&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;socketStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;\\s+&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keyValuePair&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wordsStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;keyBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;countPair&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keyValuePair&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above is very standard code to do word count in map/reduce style. Notable differences are we are using keyBy rather than groupBy and sum for reduce operations. The value 0 and 1 in keyBy and sum calls signifies the index of columns in tuple to be used as key and values.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-4-print-the-word-counts&quot;&gt;Step 4. Print the word counts&lt;/h3&gt;
+
+&lt;p&gt;Once we have wordcount stream, we want to call print, to print the values into standard output&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;countPair&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;step-5-trigger-program-execution&quot;&gt;Step 5. Trigger program execution&lt;/h3&gt;
+
+&lt;p&gt;All the above steps only defines the processing, but do not trigger execution. This needs to be done explicitly using execute.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;execute&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now we have complete code for the word count example. You can access full code &lt;a href=&quot;https://github.com/phatak-dev/flink-examples/blob/master/src/main/scala/com/madhukaraphatak/flink/streaming/examples/StreamingWordCount.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;executing-code&quot;&gt;Executing code&lt;/h2&gt;
+
+&lt;p&gt;To run this example, we need to start the socket at 9000 at following command to&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;nc -lk 9000&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Once you do that, you can run the program from the IDE and &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/apis/cli.html&quot;&gt;command line interface&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;You can keep on entering the lines in nc command line and press enter. As you pass the lines you can observe the word counts printed on the stdout.&lt;/p&gt;
+
+&lt;p&gt;Now we have successfully executed the our first flink streaming example.&lt;/p&gt;
+
+&lt;h2 id=&quot;unbounded-state&quot;&gt;Unbounded state&lt;/h2&gt;
+
+&lt;p&gt;If you observe the result, as an when you pass more rows the count keeps increasing. This indicates that flink keeps updating the count state indefinitely. This may be desired in some examples, but most of the use cases we want to limit the state to some certain time. We will see how to achieve it using window functionality in the next blog in the series.&lt;/p&gt;
+
+&lt;h2 id=&quot;compared-to-spark-streaming-api&quot;&gt;Compared to Spark Streaming API&lt;/h2&gt;
+
+&lt;p&gt;This section is only applicable to you, if you have done spark streaming before. If you are not familiar with Apache Spark feel free to skip it.&lt;/p&gt;
+
+&lt;p&gt;The above code looks a lot similar to Spark streaming’s DStream API. Though syntax looks same there are few key differences. Some of them are&lt;/p&gt;
+
+&lt;h3 id=&quot;no-need-of-batch-size-in-flink&quot;&gt;1. No need of Batch Size in Flink&lt;/h3&gt;
+
+&lt;p&gt;Spark streaming needs batch size to be defined before any stream processing. It’s because spark streaming follows micro batches for stream processing which is also known as near realtime . But flink follows one message at a time way where each message is processed as and when it arrives. So flink doesnot need any batch size to be specified.&lt;/p&gt;
+
+&lt;h3 id=&quot;state-management&quot;&gt;2. State management&lt;/h3&gt;
+
+&lt;p&gt;In spark, after each batch, the state has to be updated explicitly if you want to keep track of wordcount across batches. But in flink the state is up-to-dated as and when new records arrive implicitly.&lt;/p&gt;
+
+&lt;p&gt;We discuss more differences in future posts.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;Apache Flink 1.0 Streaming Guide - &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/&quot;&gt;https://ci.apache.org/projects/flink/flink-docs-master/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Introducing Flink Streaming - &lt;a href=&quot;https://flink.apache.org/news/2015/02/09/streaming-example.html&quot;&gt;https://flink.apache.org/news/2015/02/09/streaming-example.html&lt;/a&gt;&lt;/p&gt;
+</description>
+        <pubDate>Mon, 07 Mar 2016 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-1</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-1</guid>
+      </item>
+    
+      <item>
         <title>What&#39;s New in Spark : Tales from Spark Summit East - Framework Improvements</title>
         <description>&lt;p&gt;Recently Databricks, company behind the Apache Spark, held this year’s first &lt;a href=&quot;https://spark-summit.org/east-2016/&quot;&gt;spark summit&lt;/a&gt;, spark developer conference, in new york city. Lots of new exciting improvements in spark and it’s ecosystem got discussed in various talks. I was watching the videos of the conference on youtube and wanted to share the ones I found interesting.&lt;/p&gt;
 
@@ -594,75 +713,6 @@ s good enough API to pull the data it’s can’t make use of source abilities s
         <pubDate>Fri, 20 Nov 2015 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/akka-http-testing</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/akka-http-testing</guid>
-      </item>
-    
-      <item>
-        <title>JSON in Akka HTTP</title>
-        <description>&lt;p&gt;Akka-Http is a akka based http library for building RESTful services in scala. In this series of posts, I will be talking about using akka-http to build REST services. This is the second post in the series. You can access all the posts in this series &lt;a href=&quot;/categories/akka-http/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;In this post, we are going to discuss how to use json with akka-http for communicating request and responses&lt;/p&gt;
-
-&lt;p&gt;TL;TR You can access complete project on &lt;a href=&quot;https://github.com/phatak-dev/akka-http-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;adding-dependency&quot;&gt;Adding dependency&lt;/h2&gt;
-
-&lt;p&gt;Akka HTTP uses the akka-http-spray-json library for parsing json request and responses. So add the following dependency to your project.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;com.typesafe.akka&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%%&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;akka-http-spray-json-experimental&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;1.0&amp;quot;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;rest-api-with-json&quot;&gt;REST API with JSON&lt;/h2&gt;
-
-&lt;p&gt;In this example, we are going to create an API which can add/list customers. The following are the steps to add the API.&lt;/p&gt;
-
-&lt;h3 id=&quot;define-customer-model&quot;&gt;1. Define customer model&lt;/h3&gt;
-
-&lt;p&gt;Akka HTTP uses case classes to define the models. So we define a simple customer model which has only name.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Customer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;create-writerreader-for-the-model&quot;&gt;2. Create Writer/Reader for the model&lt;/h3&gt;
-
-&lt;p&gt;In spary-json, we have to define the write/reader for a given model in order to be used in the request/response. Most of the time it is very simple as defining the implicit as below.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ServiceJsonProtoocol&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DefaultJsonProtocol&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;implicit&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;customerProtocol&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jsonFormat1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Customer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In the above code snippet, we are creating a service protocol which extends the default protocol. Inside this protocol, we can define all the models. In above code, the number ‘1’ in jsonFormat1 signifies there is only one field in case class.&lt;/p&gt;
-
-&lt;h3 id=&quot;defining-the-route&quot;&gt;3. Defining the route&lt;/h3&gt;
-
-&lt;p&gt;Once we have the model and parser implicits, we can define a route which has post for adding a customer and get to get all the added customers.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;route&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;customer&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;post&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;entity&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;as&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Customer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;])&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;customer&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;complete&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;customer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-              &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;got customer with name ${customer.name}&amp;quot;&lt;/span&gt;
-            &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-          &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;~&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;get&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;complete&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;asScala&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above example, an entity is parsed in post request using entity(as).
-Once we have the customer, we are adding it to a concurrent queue.&lt;/p&gt;
-
-&lt;p&gt;In the get method, we are taking all the values in the list and converting to a JSArray.&lt;/p&gt;
-
-&lt;p&gt;You can access complete code &lt;a href=&quot;https://github.com/phatak-dev/akka-http-examples/blob/master/src/main/scala/com/madhukaraphatak/akkahttp/AkkaJsonParsing.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Now you have a working REST api in akka-http which can handle json data.&lt;/p&gt;
-</description>
-        <pubDate>Fri, 13 Nov 2015 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/json-in-akka-http</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/json-in-akka-http</guid>
       </item>
     
   </channel>

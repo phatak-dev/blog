@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Introduction to Flink Streaming - Part 1 : WordCount</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Thoughts on technology, life and everything else.">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-1">
+     <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/app.css">
+       
+</head>
+
+
+    <body>
+
+    <header >
+  <div class="wrap">
+    <a class="site-title" href="/">Madhukar's Blog</a>  
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+           viewBox="0 0 18 15" enable-background="new 0 0 18 15" xml:space="preserve">
+          <path fill="#505050" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0
+            h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#505050" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484
+            h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#505050" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0
+            c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+      <div class="trigger">        
+          <a class="page-link" href="http://www.madhukaraphatak.com">About me</a>                  
+      </div>
+    </nav>  
+  </div>
+</header>
+
+
+    <div class="page-content">
+      <div class="wrap">
+      <div class="post">
+ <header class="post-header">
+  <h1>Introduction to Flink Streaming - Part 1 : WordCount</h1>
+  <p class="meta">Mar 7, 2016</p>
+  <div class="catagories">
+    
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
+    <a href="/categories/flink"><span class="category">flink</span></a>
+    
+    <a href="/categories/flink-streaming"><span class="category">flink-streaming</span></a>
+    
+  </div>
+</header> 
+
+<article class="post-content">
+  <p>Apache Flink is one of the new generation distributed systems which unifies batch and streaming processing. Earlier in my blog, I have <a href="/introduction-to-flink-for-spark-developers-flink-vs-spark">discussed</a> about how it’s different than Apache Spark and also given a introductory <a href="/introduction-to-flink-talk">talk</a> about it’s batch API. In batch world, Flink looks very similar to Spark API as it uses similar concepts from Map/Reduce. But in the case of streaming, flink is much different than the Spark or any other stream processing systems out there.</p>
+
+<p>So in these series of blogs, I will be discussing about how to get started with flink streaming API and using it’s different unique features. Flink streaming API has undergone significant changes from 0.10 to 1.0 version. So I will be discussing latest 1.0 API. You can access all the blogs in the series <a href="/categories/flink-streaming/">here</a>.</p>
+
+<p>In this first blog, I will be discussing about how to run word count example in flink streaming. If you are new to flink, I encourage you to watch my <a href="/introduction-to-flink-talk">introductory talk</a> before continuing.</p>
+
+<p><strong>TL;DR</strong> All code is written using Flink’s scala API and you can access it on <a href="https://github.com/phatak-dev/flink-examples">github</a>.</p>
+
+<h2 id="flink-streaming-api">Flink Streaming API</h2>
+
+<p>Flink provides a streaming API called as Flink DataStream API to process continuous unbounded streams of data in realtime. This API build on top of the pipelined streaming execution engine of flink.</p>
+
+<p>Datastream API has undergone a significant change from 0.10 to 1.0. So many examples you see in the other blogs including flink blog have become obsolete. I will be discussing about Flink 1.0 API which is released in maven central and yet to be released in binary releases.</p>
+
+<h2 id="adding-dependency">Adding dependency</h2>
+
+<p>To start using Datastream API, you should add the following dependency to project. I am using sbt for build management. You can also use other build tools like maven.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="s">&quot;org.apache.flink&quot;</span> <span class="o">%%</span> <span class="s">&quot;flink-scala&quot;</span> <span class="o">%</span> <span class="s">&quot;1.0.0&quot;</span></code></pre></div>
+
+<p>You can access complete build.sbt <a href="https://github.com/phatak-dev/flink-examples/blob/master/build.sbt">here</a></p>
+
+<h2 id="hello-world-example">Hello World Example</h2>
+
+<p>Whenever we learn any new API in big data, it has become custom to do word count. In this example, we are reading some lines from a socket and doing word count on them.</p>
+
+<p>The below are the steps to write an streaming example in datastream API.</p>
+
+<h3 id="step-1-get-streaming-environment">Step 1. Get Streaming Environment</h3>
+
+<p>In both batch and streaming example, first step is to create a pointer to environment on which this program runs. Flink can run same program in local or cluster mode. You can read more about modes <a href="https://ci.apache.org/projects/flink/flink-docs-master/apis/common/index.html#anatomy-of-a-flink-program">here</a>.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">env</span> <span class="k">=</span> <span class="nc">StreamExecutionEnvironment</span><span class="o">.</span><span class="n">getExecutionEnvironment</span></code></pre></div>
+
+<p>If you are familiar with Spark, StreamExecutionEnvironment is similar to spark context.</p>
+
+<p>One of the things to remember when using scala API of Flink is to import the implicts. If you don’t import them you will run into strange error messages.</p>
+
+<p>You can import the implicts for streaming as below</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">import</span> <span class="nn">org.apache.flink.streaming.api.scala._</span></code></pre></div>
+
+<h3 id="step-2-create-datastream-from-socket">Step 2. Create DataStream from socket</h3>
+
+<p>Once we have the pointer to execution environment, next step is to create a stream from socket.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">socketStream</span> <span class="k">=</span> <span class="n">env</span><span class="o">.</span><span class="n">socketTextStream</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span><span class="mi">9000</span><span class="o">)</span></code></pre></div>
+
+<p><em>socketStream</em> will be of the type DataStream. DataStream is basic abstraction of flink’s streaming API.</p>
+
+<h3 id="step-3-implement-wordcount-logic">Step 3. Implement wordcount logic</h3>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">wordsStream</span> <span class="k">=</span> <span class="n">socketStream</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;\\s+&quot;</span><span class="o">)).</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">value</span><span class="o">,</span><span class="mi">1</span><span class="o">))</span>
+
+    <span class="k">val</span> <span class="n">keyValuePair</span> <span class="k">=</span> <span class="n">wordsStream</span><span class="o">.</span><span class="n">keyBy</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+
+    <span class="k">val</span> <span class="n">countPair</span> <span class="k">=</span> <span class="n">keyValuePair</span><span class="o">.</span><span class="n">sum</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span></code></pre></div>
+
+<p>The above is very standard code to do word count in map/reduce style. Notable differences are we are using keyBy rather than groupBy and sum for reduce operations. The value 0 and 1 in keyBy and sum calls signifies the index of columns in tuple to be used as key and values.</p>
+
+<h3 id="step-4-print-the-word-counts">Step 4. Print the word counts</h3>
+
+<p>Once we have wordcount stream, we want to call print, to print the values into standard output</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">countPair</span><span class="o">.</span><span class="n">print</span><span class="o">()</span></code></pre></div>
+
+<h3 id="step-5-trigger-program-execution">Step 5. Trigger program execution</h3>
+
+<p>All the above steps only defines the processing, but do not trigger execution. This needs to be done explicitly using execute.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">env</span><span class="o">.</span><span class="n">execute</span><span class="o">()</span></code></pre></div>
+
+<p>Now we have complete code for the word count example. You can access full code <a href="https://github.com/phatak-dev/flink-examples/blob/master/src/main/scala/com/madhukaraphatak/flink/streaming/examples/StreamingWordCount.scala">here</a>.</p>
+
+<h2 id="executing-code">Executing code</h2>
+
+<p>To run this example, we need to start the socket at 9000 at following command to</p>
+
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">nc -lk 9000</code></pre></div>
+
+<p>Once you do that, you can run the program from the IDE and <a href="https://ci.apache.org/projects/flink/flink-docs-master/apis/cli.html">command line interface</a>.</p>
+
+<p>You can keep on entering the lines in nc command line and press enter. As you pass the lines you can observe the word counts printed on the stdout.</p>
+
+<p>Now we have successfully executed the our first flink streaming example.</p>
+
+<h2 id="unbounded-state">Unbounded state</h2>
+
+<p>If you observe the result, as an when you pass more rows the count keeps increasing. This indicates that flink keeps updating the count state indefinitely. This may be desired in some examples, but most of the use cases we want to limit the state to some certain time. We will see how to achieve it using window functionality in the next blog in the series.</p>
+
+<h2 id="compared-to-spark-streaming-api">Compared to Spark Streaming API</h2>
+
+<p>This section is only applicable to you, if you have done spark streaming before. If you are not familiar with Apache Spark feel free to skip it.</p>
+
+<p>The above code looks a lot similar to Spark streaming’s DStream API. Though syntax looks same there are few key differences. Some of them are</p>
+
+<h3 id="no-need-of-batch-size-in-flink">1. No need of Batch Size in Flink</h3>
+
+<p>Spark streaming needs batch size to be defined before any stream processing. It’s because spark streaming follows micro batches for stream processing which is also known as near realtime . But flink follows one message at a time way where each message is processed as and when it arrives. So flink doesnot need any batch size to be specified.</p>
+
+<h3 id="state-management">2. State management</h3>
+
+<p>In spark, after each batch, the state has to be updated explicitly if you want to keep track of wordcount across batches. But in flink the state is up-to-dated as and when new records arrive implicitly.</p>
+
+<p>We discuss more differences in future posts.</p>
+
+<h2 id="references">References</h2>
+
+<p>Apache Flink 1.0 Streaming Guide - <a href="https://ci.apache.org/projects/flink/flink-docs-master/">https://ci.apache.org/projects/flink/flink-docs-master/</a></p>
+
+<p>Introducing Flink Streaming - <a href="https://flink.apache.org/news/2015/02/09/streaming-example.html">https://flink.apache.org/news/2015/02/09/streaming-example.html</a></p>
+
+</article>
+<div class="related">
+  <h2>Related posts</h2>
+  <ul>
+    
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">04 Mar 2016</span>
+     &raquo; <a href="/introduction-to-spark-2.0">Introduction to Spark 2.0 : A Sneak Peek At Next Generation Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">03 Mar 2016</span>
+     &raquo; <a href="/interactive-scheduling-using-azkaban-setting-up-solo-server">Interactive Scheduling using Azkaban - Part 1 : Setting up Solo Server</a>    
+   </li>           
+         
+
+   
+   
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">11 Jan 2016</span>
+     &raquo; <a href="/introduction-to-flink-talk">Introduction to Apache Flink - Meetup talk</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">06 Dec 2015</span>
+     &raquo; <a href="/introduction-to-flink-for-spark-developers-flink-vs-spark">Introduction to Apache Flink for Spark Developers : Flink vs Spark</a>    
+   </li>           
+         
+
+   
+   
+ </ul>
+
+
+ 
+     
+    <div id="disqus_thread" style="padding-top:4%;"></div>
+     <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'personalblogmadhukar'; // required: replace example with your forum shortname
+        var disqus_developer = 1;
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+   
+</div>
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrap">   
+    <div class="footer-col-1 column">
+      <ul>
+        <li>
+          <a href="https://github.com/phatak-dev">
+            <span class="icon github">
+              <svg version="1.1" class="github-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill-rule="evenodd" clip-rule="evenodd" fill="#C2C2C2" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761
+                c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32
+                c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472
+                c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037
+                C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65
+                c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261
+                c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082
+                c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129
+                c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+              </svg>
+            </span>
+            <span class="username">phatak-dev</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://twitter.com/madhukaraphatak">
+            <span class="icon twitter">
+              <svg version="1.1" class="twitter-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill="#C2C2C2" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809
+                c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27
+                c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767
+                c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206
+                C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271
+                c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469
+                c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/>
+              </svg>
+            </span>
+            <span class="username">madhukaraphatak</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer-col-3 column">
+      <p class="text">Thoughts on technology, life and everything else.</p>
+    </div>
+
+    <div style="float:right;">
+      <a href="/feed.xml"><img src="/images/rss.png">
+    </div>
+
+
+
+  </div>
+
+</footer>
+
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52311191-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+    </body>
+</html>
