@@ -2,7 +2,7 @@
 layout: post
 title: "Interactive Scheduling using Azkaban - Part 2 : Challenges in scheduling interactive workloads"
 date : 2016-07-03
-categories: scala azkaban
+categories: azkaban
 ---
 Every big data application needs some kind of scheduling to run daily jobs. So over the years having a good stable scheduling systems for hadoop, spark jobs has become more and more important. The different workloads in big data have different requirements from  the scheduler. So in this blog post I will be discussing about different scheduling requirements for batch, streaming and interactive usecases and challenges associated with interactive workload.
 
