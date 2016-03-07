@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Interactive Scheduling using Azkaban - Part 1 : Setting up Solo Server</title>
+    <title>Interactive Scheduling using Azkaban - Part 2 : Challenges in scheduling interactive workloads</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/interactive-scheduling-using-azkaban-setting-up-solo-server">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/interactive-scheduling-using-azkaban-challenges-in-scheduling-interactive-workloads">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,11 +45,9 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Interactive Scheduling using Azkaban - Part 1 : Setting up Solo Server</h1>
-  <p class="meta">Mar 3, 2016</p>
+  <h1>Interactive Scheduling using Azkaban - Part 2 : Challenges in scheduling interactive workloads</h1>
+  <p class="meta">Jul 3, 2016</p>
   <div class="catagories">
-    
-    <a href="/categories/scala"><span class="category">scala</span></a>
     
     <a href="/categories/azkaban"><span class="category">azkaban</span></a>
     
@@ -57,78 +55,73 @@
 </header> 
 
 <article class="post-content">
-  <p>Azkaban is a scheduler for big data workloads like Hadoop, Spark. One of the differentiator of azkaban compared to other schedulers like oozie, airflow is it has good support for REST API to interact with scheduler problematically. This programmatic access is important for interactive applications.</p>
+  <p>Every big data application needs some kind of scheduling to run daily jobs. So over the years having a good stable scheduling systems for hadoop, spark jobs has become more and more important. The different workloads in big data have different requirements from  the scheduler. So in this blog post I will be discussing about different scheduling requirements for batch, streaming and interactive usecases and challenges associated with interactive workload.</p>
 
-<p>In these series of blogs I will be discussing about setting up azkaban and using azkaban AJAX(REST) API.</p>
+<p>This is second post in series of blogs where I will be discussing about using Azkaban scheduler to do interactive scheduling. You can access all other posts from the series <a href="/categories/azkaban">here</a>.</p>
 
-<p>This is the first post in series, where we discuss about setting up azkaban. In this post, we will be setting up azkaban 3.0.</p>
+<h2 id="scheduling-needs-of-different-big-data-workloads">Scheduling needs of different big data workloads</h2>
 
-<h2 id="building-azkaban">Building Azkaban</h2>
-
-<p>Though azkaban provides binary <a href="http://azkaban.github.io/downloads.html">downloads</a> it is not up to date. So we will be getting latest code from the github in order to build azkaban 3.0.</p>
-
-<p>The following are the steps to get code and build.</p>
+<p>The below are the different requirements of big data workloads from scheduler system.</p>
 
 <ul>
   <li>
-    <h3 id="clone-code">Clone code</h3>
+    <h3 id="batch">Batch</h3>
+    <p>Set of jobs which needs to be executed on timely manner. In this scenario, a scheduler system needs to allow user to define the script with all the dependencies of a flow and allow it to be scheduled. To add/modify the jobs user will normally changes the script and runs the updated ones. The examples for these kind of scheduler systems are Ozzie, airflow etc.</p>
+  </li>
+  <li>
+    <h3 id="streaming">Streaming</h3>
+    <p>Continuous stream of data is processed to produce results. Normally streaming only needs scheduler to initiate stream processing system and from there streaming framework will take over.</p>
   </li>
 </ul>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">git clone https://github.com/azkaban/azkaban.git</code></pre></div>
+<p>The above two scenarios are one of most supported and common place in big data world from quite sometime. So all the scheduling system, including azkaban, supports them well. But there is a new workload emerging these days which needs special attention.</p>
+
+<h2 id="interactive-big-data-workload">Interactive big data workload</h2>
+
+<p>As spark became popular, it has made interactive programming as one of the important part of big data workloads. In interactive settings, a user will be analyzing the data adhocly and once he/she is happy with the steps then they want to schedule them to run in timely manner.</p>
+
+<p>The notebook systems like Zeppelin,Jupiter have made interactive programming highly popular. Initially used for the data science use cases, they are also used for data engineering use cases these days.</p>
+
+<p>So as interactive workloads becoming common place, supporting ability to scheduling jobs interactively becoming more and more important. But doing this with existing systems is not easy.</p>
+
+<h2 id="challenges-of-scheduling-interactive-workloads">Challenges of scheduling Interactive workloads</h2>
+
+<p>Unlike batch workloads, interactive workloads are not static. They evolve as user adds/removes the code. Normally user may want to add / remove scheduling on the fly rather than modifying the script. So the non azkaban frameworks cannot be used in scenario because of following reasons.</p>
 
 <ul>
   <li>
-    <h3 id="build">Build</h3>
+    <h3 id="nolimited-rest-api-support">No/Limited REST API support</h3>
   </li>
 </ul>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">./gradlew distZip</code></pre></div>
+<p>Most of the scheduling systems like oozie have very limited support for programmatic access. Often they rely upon the traditional scripting world, where you need to configure jobs using script and submit them. It works great for batch, but cannot be used for interactive applications as they need an good programmatic API to schedule jobs.</p>
 
 <ul>
   <li>
-    <h3 id="copy-from-build">Copy from build</h3>
+    <h3 id="lack-of-good-user-interface-for-monitoring">Lack of good user interface for monitoring</h3>
   </li>
 </ul>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">cp build/distributions/azkaban-solo-server-3.0.0.zip ~</code></pre></div>
+<p>Most of the scheduling system have very limited user interfaces. Most of them limit themselves to show work flow graphs. Also many of them doesn’t allow users to extend the user interfaces which results in building the custom ones themselves.</p>
 
-<h2 id="installing-solo-server">Installing solo server</h2>
-
-<p>Azkaban supports different mode of executions like solo server, two server mode and multiple executor mode. Solo server is used for initial developments where as other ones are geared towards production scenarios. In this blog, we discuss about setting up solo server, for other modes refer <a href="http://azkaban.github.io/azkaban/docs/latest/#getting-started">azkaban documentation</a>.</p>
-
-<p>The below are the steps for installing.</p>
+<p>In batch, normally user interface is not that important. But in interactive it plays a huge role. Ability to monitor the jobs in a small time frame is important as it results in a good user feed back.</p>
 
 <ul>
   <li>
-    <h3 id="unzip">Unzip</h3>
+    <h3 id="support-for-different-executors">Support for different executors</h3>
   </li>
 </ul>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">unzip ~/azkaban-solo-server-3.0.0.zip
-<span class="nb">cd</span> ~/azkaban-solo-server-3.0.0</code></pre></div>
+<p>Many scheduling systems limit themselves for Hadoop or Spark. But in interactive application one often likes to run different kind of processing on same system. So ability to run different workloads becomes extremely important.</p>
 
-<ul>
-  <li>
-    <h3 id="starting-solo-server">Starting solo server</h3>
-  </li>
-</ul>
+<p>So from above points it’s clear that the most of the existing scheduler systems are geared towards the batch processing scenarios. So using them in a interactive application is hard.</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">bin/azkaban-solo-start.sh</code></pre></div>
+<h2 id="note-on-azkaban-for-batch-workload">Note on Azkaban for batch workload</h2>
 
-<ul>
-  <li>
-    <h3 id="accessing-log">Accessing log</h3>
-  </li>
-</ul>
+<p>Though my blog posts are focusing on using azkaban for interactive workloads, azkaban fares well in the batch also. Even most of it’s documentation is dedicated to do batch scheduling using it’s web UI rather than for interactive workloads. But with it’s hidden gem of REST API, it’s well suited for the interactive applications too.</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">tail -f logs/azkaban-execserver.log</code></pre></div>
+<p>So in this blogpost, we discussed about challenges in scheduling interactive workloads. In the next blogpost, we are going to discuss how azkaban solves these issues and is good candidate scheduler framework for interactive workloads.</p>
 
-<h2 id="accessing-web-ui">Accessing web UI</h2>
-
-<p>Once azkaban solo server started, you can access at <a href="http://localhost:8081/">http://localhost:8081</a>. By default username is <em>azkaban</em> and password is <em>azkaban</em>. You can change it in <em>conf/azkaban-users.xml</em>.</p>
-
-<p>Now you have successfully installed azkaban server. In the next set of posts, we will explore how to use this installation to do scheduling.</p>
 
 </article>
 <div class="related">
@@ -136,36 +129,15 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">07 Mar 2016</span>
-     &raquo; <a href="/introduction-to-flink-streaming-part-1">Introduction to Flink Streaming - Part 1 : WordCount</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">04 Mar 2016</span>
-     &raquo; <a href="/introduction-to-spark-2.0">Introduction to Spark 2.0 : A Sneak Peek At Next Generation Spark</a>    
-   </li>           
-         
-
-            
           
 
-   
-   
-             
+            
     
     <li>    
-     <span class="post-date">03 Jul 2016</span>
-     &raquo; <a href="/interactive-scheduling-using-azkaban-challenges-in-scheduling-interactive-workloads">Interactive Scheduling using Azkaban - Part 2 : Challenges in scheduling interactive workloads</a>    
+     <span class="post-date">03 Mar 2016</span>
+     &raquo; <a href="/interactive-scheduling-using-azkaban-setting-up-solo-server">Interactive Scheduling using Azkaban - Part 1 : Setting up Solo Server</a>    
    </li>           
          
-
-            
-          
 
    
    
