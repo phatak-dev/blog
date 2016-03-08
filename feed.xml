@@ -7,6 +7,55 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Flink Streaming - Part 2 : Discretization of Stream using Window API</title>
+        <description>&lt;p&gt;In the last &lt;a href=&quot;/introduction-to-flink-streaming-part-1&quot;&gt;blog&lt;/a&gt;, we discussed about how to do contentious stream processing using flink streaming API. Our wordcount example keeps on updating the counts as and when we received new data. This is good for some of the use cases. But in some use cases we want to aggregate some set of records in a given time interval, in order to keep track of variance over time. In those cases, we need to divide the stream into small batches. This discretization allow us to capture the change in aggregated value overtime. This discretized batches is also known as micro batches.&lt;/p&gt;
+
+&lt;p&gt;In this second blog, I will be discussing about how to discretized the stream using flink’s window operation.We will be using same word count example in this post also. You can access all the blogs in the series &lt;a href=&quot;/categories/flink-streaming/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;TL;DR&lt;/strong&gt; All code is written using Flink’s scala API and you can access it on &lt;a href=&quot;https://github.com/phatak-dev/flink-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;window-in-streaming&quot;&gt;Window in streaming&lt;/h2&gt;
+
+&lt;p&gt;Window is a mechanism to take a snapshot of the stream. This snapshot can be based on time or other variables. For example, if we create a window for 5 seconds then it will be all the records which arrived in the that time frame. You can define the window based on no of records or other stream specific variables also.&lt;/p&gt;
+
+&lt;p&gt;Window allows us to understand change in stream data by taking snapshots in regular intervals. Flink API has wide variety of window support. In this post we are only going to focus on one kind of window known as Tumbling Windows.&lt;/p&gt;
+
+&lt;h2 id=&quot;tumbling-window-in-flink-streaming&quot;&gt;Tumbling Window in Flink Streaming&lt;/h2&gt;
+
+&lt;p&gt;Tumbling window is one kind of windowing operation which will discretize the stream into non overlapping windows. This means every record in the stream only belongs to one window. This kind of discretization allows observing the change in the stream over fixed intervals. There are other kind of windows supported in the flink which we will discuss in the future posts.&lt;/p&gt;
+
+&lt;h2 id=&quot;windowed-wordcount-example&quot;&gt;Windowed Wordcount example&lt;/h2&gt;
+
+&lt;p&gt;In last blog, we saw how to calculate wordcount using Flink API. In this post, we will be calculating wordcount for every 15 seconds. So in this example, we will be dividing the stream for every 15 seconds. Once those 15 seconds passes, the count will be started from zero.&lt;/p&gt;
+
+&lt;p&gt;This example shows to how to snapshot wordcount for each 15 seconds to analyze the trend over time to say how wordcount have changed. This is not possible when we have continuous updation of the count as in earlier example.&lt;/p&gt;
+
+&lt;p&gt;Most of the code to setup and run is same as earlier example. So I am only going to focus on how to add tumbling window to our stream&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keyValuePair&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wordsStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;keyBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;timeWindow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seconds&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;15&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;countStream&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keyValuePair&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above code creates a window using timeWindow API. timeWindow API internally uses tumbling window API to do the windowing operation. In this case, the wordcount will be counted for each 15 seconds and then forgotten.&lt;/p&gt;
+
+&lt;p&gt;You can access complete code &lt;a href=&quot;https://github.com/phatak-dev/flink-examples/blob/master/src/main/scala/com/madhukaraphatak/flink/streaming/examples/WindowedStreamingWordCount.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;compared-to-spark-streaming-api&quot;&gt;Compared to Spark Streaming API&lt;/h2&gt;
+
+&lt;p&gt;This section is only applicable to you, if you have done spark streaming before. If you are not familiar with Apache Spark feel free to skip it.&lt;/p&gt;
+
+&lt;p&gt;The tumbling windows in Flink are similar to microbatches in Spark. As in spark microbatch, tumbling windows are used for discretizing stream into independent batches.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;Introducing Stream Windows in Apache Flink - &lt;a href=&quot;https://flink.apache.org/news/2015/12/04/Introducing-windows.html&quot;&gt;https://flink.apache.org/news/2015/12/04/Introducing-windows.html&lt;/a&gt;.&lt;/p&gt;
+</description>
+        <pubDate>Tue, 08 Mar 2016 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-2</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-2</guid>
+      </item>
+    
+      <item>
         <title>Introduction to Flink Streaming - Part 1 : WordCount</title>
         <description>&lt;p&gt;Apache Flink is one of the new generation distributed systems which unifies batch and streaming processing. Earlier in my blog, I have &lt;a href=&quot;/introduction-to-flink-for-spark-developers-flink-vs-spark&quot;&gt;discussed&lt;/a&gt; about how it’s different than Apache Spark and also given a introductory &lt;a href=&quot;/introduction-to-flink-talk&quot;&gt;talk&lt;/a&gt; about it’s batch API. In batch world, Flink looks very similar to Spark API as it uses similar concepts from Map/Reduce. But in the case of streaming, flink is much different than the Spark or any other stream processing systems out there.&lt;/p&gt;
 
@@ -626,19 +675,6 @@ s good enough API to pull the data it’s can’t make use of source abilities s
         <pubDate>Sun, 06 Dec 2015 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/introduction-to-flink-for-spark-developers-flink-vs-spark</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-flink-for-spark-developers-flink-vs-spark</guid>
-      </item>
-    
-      <item>
-        <title>Building Distributed Systems from Scratch - Part 1</title>
-        <description>&lt;p&gt;The below video is a recording of my talk on &lt;em&gt;Building Distributed Systems from Scratch&lt;/em&gt; in recent spark meet up. It’s first part in series of talks about how to build a distributed processing system from scratch which looks similar to Apache Spark.&lt;/p&gt;
-
-&lt;p&gt;Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/building-distributed-systems-from-scratch-part-1&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/distributedsystems&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/Oy9ToN4O63c&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
-</description>
-        <pubDate>Wed, 02 Dec 2015 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/building-distributed-systems-from-scratch-part1</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/building-distributed-systems-from-scratch-part1</guid>
       </item>
     
   </channel>
