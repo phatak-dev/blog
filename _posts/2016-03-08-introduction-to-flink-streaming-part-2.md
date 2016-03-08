@@ -4,7 +4,7 @@ title: "Introduction to Flink Streaming - Part 2 : Discretization of Stream usin
 date : 2016-03-08
 categories: scala flink flink-streaming
 ---
-In the last [blog](/introduction-to-flink-streaming-part-1), we discussed about how to do contentious stream processing using flink streaming API. Our wordcount example keeps on updating the counts as and when we received new data. This is good for some of the use cases. But in some use cases we want to aggregate some set of records in a given time interval, in order to keep track of variance over time. In those cases, we need to divide the stream into small batches. This discretization allow us to capture the change in aggregated value overtime. This discretized batches is also known as micro batches.
+In the last [blog](/introduction-to-flink-streaming-part-1), we discussed about how to do continuous stream processing using flink streaming API. Our wordcount example keeps on updating the counts as and when we received new data. This is good for some of the use cases. But in some use cases we want to aggregate some set of records in a given time interval, in order to keep track of variance over time. In those cases, we need to divide the stream into small batches. This discretization allow us to capture the change in aggregated value overtime. This discretized batches is also known as micro batches.
 
 In this second blog, I will be discussing about how to discretized the stream using flink's window operation.We will be using same word count example in this post also. You can access all the blogs in the series [here](/categories/flink-streaming/). 
 
