@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Madhukar's Blog</title>
+    <title>Introduction to Flink Streaming - Part 4 : Understanding Flink's Advanced Stream Processing using Google Data Flow</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/page4/">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-4">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -43,109 +43,103 @@
 
     <div class="page-content">
       <div class="wrap">
-      <div class="home">
-	
+      <div class="post">
+ <header class="post-header">
+  <h1>Introduction to Flink Streaming - Part 4 : Understanding Flink's Advanced Stream Processing using Google Data Flow</h1>
+  <p class="meta">Mar 12, 2016</p>
+  <div class="catagories">
+    
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
+    <a href="/categories/flink"><span class="category">flink</span></a>
+    
+    <a href="/categories/flink-streaming"><span class="category">flink-streaming</span></a>
+    
+  </div>
+</header> 
 
-	<ul class="posts">
-		
-		<li>           
-			<span class="post-date">Jan 6, 2015</span>             
-			<div>
-				<a class="post-link" href="/simple-akka-remote-example">A Simple Akka Remote example
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Jan 5, 2015</span>             
-			<div>
-				<a class="post-link" href="/read-it-later-in-mean-part-2">Building Read it later service on MEAN stack - Part 2
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Jan 4, 2015</span>             
-			<div>
-				<a class="post-link" href="/read-it-later-in-mean-part-1">Building Read it later service on MEAN stack - Part 1
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Jan 3, 2015</span>             
-			<div>
-				<a class="post-link" href="/in-persuit-of-the-unknown-book-review">In Pursuit of the Unknown : 17 equations that changed the world - book review
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Jan 2, 2015</span>             
-			<div>
-				<a class="post-link" href="/history-of-spark">History of Apache Spark : Journey from Academia to Industry
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Dec 22, 2014</span>             
-			<div>
-				<a class="post-link" href="/running-scala-programs-on-yarn">Running scala programs on YARN
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Dec 15, 2014</span>             
-			<div>
-				<a class="post-link" href="/implementing-shuffle-in-mesos">Implementing shuffle in Mesos
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Dec 15, 2014</span>             
-			<div>
-				<a class="post-link" href="/distributing-third-party-libraries-in-mesos">Distributing third party libraries in Mesos
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Dec 3, 2014</span>             
-			<div>
-				<a class="post-link" href="/sizeof-operator-java-scala">sizeof operator for Java&#47;Scala
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Nov 18, 2014</span>             
-			<div>
-				<a class="post-link" href="/kryo-disk-serialization-in-spark">Kryo disk serialization in Spark
-				</a> 
-			</div>                                  
-		</li>        
-		
-	</ul>
+<article class="post-content">
+  <p>Flink streaming is a new generation of streaming framework which bring a lot of new concepts to the table. It’s is not just a low latency batch processing like spark streaming or it’s not primitive event processor like storm. It has best of both the worlds and much more.</p>
 
+<p>As with any new generation framework, it’s hard for people coming from the other frameworks to appreciate full power of the new system. We normally end up trying to replicate same old application on new framework. This happened when we moved from Map/Reduce to Spark. So understanding the strengths of these new frameworks is critical to build new generation streaming applications rather than replicating the already existing one.</p>
+
+<p>When I was researching on flink streaming , I came across this excellent video which demonstrated power of these new generation streaming frameworks. This video is from flink forward conference which talks about google dataflow. Google dataflow is a unified batch and streaming API for big data from Google. Lot of ideas for flink streaming API are inspired from google dataflow. So understanding motivations and programming model of google dataflow may help to understand the power of flink streaming. Also recently google made it open source under the name <a href="https://wiki.apache.org/incubator/BeamProposal">apache beam</a>.</p>
+
+<p>As the fourth blog in the series, I am sharing the google dataflow talk from flink forward below. You can access the slides on <a href="http://www.slideshare.net/FlinkForward/william-vambenepe-google-cloud-dataflow-and-flink-stream-processing-by-default">slideshare</a>.</p>
+
+<p>You can access other blog in the series <a href="/categories/flink-streaming/">here</a>.</p>
+
+<div class="video-container"> <iframe src="https://www.youtube.com/embed/y7f6wksGM6c" frameborder="0" width="560" height="315"></iframe> </div>
+
+
+</article>
+<div class="related">
+  <h2>Related posts</h2>
+  <ul>
+    
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">10 Mar 2016</span>
+     &raquo; <a href="/introduction-to-flink-streaming-part-3">Introduction to Flink Streaming - Part 3 : Running Streaming Applications in Flink Local Mode</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Mar 2016</span>
+     &raquo; <a href="/introduction-to-flink-streaming-part-2">Introduction to Flink Streaming - Part 2 : Discretization of Stream using Window API</a>    
+   </li>           
+         
+
+   
+   
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">10 Mar 2016</span>
+     &raquo; <a href="/introduction-to-flink-streaming-part-3">Introduction to Flink Streaming - Part 3 : Running Streaming Applications in Flink Local Mode</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Mar 2016</span>
+     &raquo; <a href="/introduction-to-flink-streaming-part-2">Introduction to Flink Streaming - Part 2 : Discretization of Stream using Window API</a>    
+   </li>           
+         
+
+   
+   
+ </ul>
+
+
+ 
+     
+    <div id="disqus_thread" style="padding-top:4%;"></div>
+     <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'personalblogmadhukar'; // required: replace example with your forum shortname
+        var disqus_developer = 1;
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+   
 </div>
-
-
-
-<div class="pagination">
-
-	
-	<a href="/page3" class="previous">Previous</a>
-	
-	<span class="page_number ">Page: 4 of 9</span>
-	
-	<a href="/page5" class="next ">Next</a>
-	
-</div>
-
-
       </div>
     </div>
 

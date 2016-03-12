@@ -7,6 +7,26 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Flink Streaming - Part 4 : Understanding Flink&#39;s Advanced Stream Processing using Google Data Flow</title>
+        <description>&lt;p&gt;Flink streaming is a new generation of streaming framework which bring a lot of new concepts to the table. It’s is not just a low latency batch processing like spark streaming or it’s not primitive event processor like storm. It has best of both the worlds and much more.&lt;/p&gt;
+
+&lt;p&gt;As with any new generation framework, it’s hard for people coming from the other frameworks to appreciate full power of the new system. We normally end up trying to replicate same old application on new framework. This happened when we moved from Map/Reduce to Spark. So understanding the strengths of these new frameworks is critical to build new generation streaming applications rather than replicating the already existing one.&lt;/p&gt;
+
+&lt;p&gt;When I was researching on flink streaming , I came across this excellent video which demonstrated power of these new generation streaming frameworks. This video is from flink forward conference which talks about google dataflow. Google dataflow is a unified batch and streaming API for big data from Google. Lot of ideas for flink streaming API are inspired from google dataflow. So understanding motivations and programming model of google dataflow may help to understand the power of flink streaming. Also recently google made it open source under the name &lt;a href=&quot;https://wiki.apache.org/incubator/BeamProposal&quot;&gt;apache beam&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;As the fourth blog in the series, I am sharing the google dataflow talk from flink forward below. You can access the slides on &lt;a href=&quot;http://www.slideshare.net/FlinkForward/william-vambenepe-google-cloud-dataflow-and-flink-stream-processing-by-default&quot;&gt;slideshare&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;You can access other blog in the series &lt;a href=&quot;/categories/flink-streaming/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/y7f6wksGM6c&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
+
+</description>
+        <pubDate>Sat, 12 Mar 2016 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-4</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-4</guid>
+      </item>
+    
+      <item>
         <title>Introduction to Flink Streaming - Part 3 : Running Streaming Applications in Flink Local Mode</title>
         <description>&lt;p&gt;In the last two blogs of our &lt;a href=&quot;/categories/flink-streaming/&quot;&gt;series&lt;/a&gt;, we discussed about how to use flink streaming API’s to do word count. In those blogs we ran our examples from IDE. IDE is a good way to start learning any API. But if we want to understand how code executes in distributed setting it will be good to run it outside of IDE.&lt;/p&gt;
 
@@ -546,21 +566,6 @@
         <pubDate>Sun, 07 Feb 2016 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/introduction-to-hadoop-for-spark-developers</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-hadoop-for-spark-developers</guid>
-      </item>
-    
-      <item>
-        <title>Introduction to Apache Flink - Meetup talk</title>
-        <description>&lt;p&gt;The below video is recording of my talk on &lt;em&gt;Introduction to Apache Flink&lt;/em&gt; in recent spark meetup. In this talk, we will discuss how apache flink is evolving
-as new generation platform for big data processing. We also discuss how flink
-compares to apache spark.&lt;/p&gt;
-
-&lt;p&gt;Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/introduction-to-apache-flink-56892153&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/flink-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/jErEhxP8LYQ&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
-</description>
-        <pubDate>Mon, 11 Jan 2016 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/introduction-to-flink-talk</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-flink-talk</guid>
       </item>
     
   </channel>
