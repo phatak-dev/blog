@@ -2,7 +2,7 @@
 layout: post
 title: "Introduction to Flink Streaming - Part 4 : Understanding Flink's Advanced Stream Processing using Google Data Flow"
 date : 2016-03-12
-categories: scala flink flink-streaming
+categories: flink flink-streaming
 ---
 Flink streaming is a new generation of streaming framework which bring a lot of new concepts to the table. It's is not just a low latency batch processing like spark streaming or it's not primitive event processor like storm. It has best of both the worlds and much more. 
 
