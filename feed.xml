@@ -48,7 +48,7 @@
 
 &lt;h2 id=&quot;tumbling-window&quot;&gt;Tumbling Window&lt;/h2&gt;
 
-&lt;p&gt;We have already seen this window on our earlier &lt;a href=&quot;introduction-to-flink-streaming-part-2&quot;&gt;post&lt;/a&gt;. In this section we will be discussing little more.&lt;/p&gt;
+&lt;p&gt;We have already seen this window on our earlier &lt;a href=&quot;/introduction-to-flink-streaming-part-2&quot;&gt;post&lt;/a&gt;. In this section we will be discussing little more.&lt;/p&gt;
 
 &lt;p&gt;A tumbling window is a time based window which tumbles once the window is evaluated. In essence, all the state and records of the window will be purged once the window evaluates. This kind of window is very useful for dividing stream in to multiple discrete batches.&lt;/p&gt;
 
