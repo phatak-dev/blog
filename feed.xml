@@ -7,6 +7,151 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Flink Streaming - Part 5 : Window API in Flink</title>
+        <description>&lt;p&gt;In recent years, there is been a lot of discussion on stateful stream processing. When initial open source stream processor like storm came along, stream processing was viewed as the faster batch processing. The API’s were more geared towards the stateless ETL pipelines. But as realtime/ stream processing became more and more important having stateful processing became necessary. So all modern stream processing frameworks have varied degree of support to do stateful operations.&lt;/p&gt;
+
+&lt;p&gt;Window is one of the way to define continuous state across the stream. So in the fifth blog of the series, I will be discussing about window support in flink API. You can access all the posts in the series &lt;a href=&quot;/categories/flink-streaming&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;TL;DR&lt;/strong&gt; All code is written using Flink’s scala API and you can access it on &lt;a href=&quot;https://github.com/phatak-dev/flink-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;window-in-streaming&quot;&gt;Window in Streaming&lt;/h2&gt;
+
+&lt;p&gt;Window is a mechanism to take a snapshot of the stream. This snapshot can be based on time or other variables. For example, if we create a window for 5 seconds then it will be all the records which arrived in the that time frame. You can define the window based on no of records or other stream specific variables also.&lt;/p&gt;
+
+&lt;h2 id=&quot;types-of-window-in-flink&quot;&gt;Types of window in Flink&lt;/h2&gt;
+
+&lt;p&gt;Flink support wide variety of window operations. The different windows supported in flink are&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Time Windows
+    &lt;ul&gt;
+      &lt;li&gt;Tumbling Windows&lt;/li&gt;
+      &lt;li&gt;Sliding Windows&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Count Windows&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;creating-keyeddatastream&quot;&gt;Creating KeyedDataStream&lt;/h2&gt;
+
+&lt;p&gt;Before we discuss about each of above windows, we need to be aware of one fact. Most of the window operations are encouraged to be used on KeyedDataStream. A KeyedDataStream is a datastream which is partitioned by the key. This partitioning by key allows window to be distributed across machines resulting in good performance. The following code shows how to create a KeyedDataStream from data coming from the socket.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;socketTextStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;localhost&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;9000&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+ &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;values&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;\\s+&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+
+ &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keyValue&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;keyBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above example, we are reading data and creating a stream named &lt;em&gt;source&lt;/em&gt;. Once we receive the data we are extracting the words using &lt;em&gt;flatMap&lt;/em&gt; and &lt;em&gt;map&lt;/em&gt; operators. Once we have a tuple, we are creating a KeyedDataStream using keyBy operation. Once we have a KeyedDataStream, we can start defining the window.&lt;/p&gt;
+
+&lt;p&gt;You can also define windows on non keyed stream. But they often result in poor performance. So I will be not discussing them here.&lt;/p&gt;
+
+&lt;h2 id=&quot;tumbling-window&quot;&gt;Tumbling Window&lt;/h2&gt;
+
+&lt;p&gt;We have already seen this window on our earlier &lt;a href=&quot;introduction-to-flink-streaming-part-2&quot;&gt;post&lt;/a&gt;. In this section we will be discussing little more.&lt;/p&gt;
+
+&lt;p&gt;A tumbling window is a time based window which tumbles once the window is evaluated. In essence, all the state and records of the window will be purged once the window evaluates. This kind of window is very useful for dividing stream in to multiple discrete batches.&lt;/p&gt;
+
+&lt;p&gt;The below code shows how to create a tumbling window&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tumblingWindow&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keyValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;timeWindow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seconds&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;15&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;To create a tumbling window, we use timeWindow API. In above example, stream will be evaluated for every 15 seconds. Here we are calculating the word counts for every 15 seconds.&lt;/p&gt;
+
+&lt;h2 id=&quot;sliding-window&quot;&gt;Sliding window&lt;/h2&gt;
+
+&lt;p&gt;Sliding window is one of most known windowing in streaming. They usually used for keeping running count for a distant past. They allow us to answer questions like “what is word count for last 5 seconds”?.&lt;/p&gt;
+
+&lt;p&gt;Sliding window is also a time based window. The only difference with tumbling window is, an element can belong to multiple windows in sliding window compared to only one window in case of tumbling window. So sliding window normally creates overlapping windows compared to discrete windows in tumbling window.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;slidingWindow&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keyValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;timeWindow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seconds&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;15&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seconds&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;15&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above example, we are calculating wordcount for last 15 seconds, in each 5 second interval.&lt;/p&gt;
+
+&lt;h2 id=&quot;count-based-windows&quot;&gt;Count based windows&lt;/h2&gt;
+
+&lt;p&gt;The above two windows were based on time. But in flink we can define windows on other properties also. One of them is count windows. As name suggests, count window are evaluated when no of records received hits the threshold.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;countWindow&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keyValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;countWindow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above code defines a count window which fires for after every 5 records. Please note that as the stream is keyed, for each key it tracks no records not across the multiple keys.&lt;/p&gt;
+
+&lt;p&gt;You can access complete code for all the three window &lt;a href=&quot;https://github.com/phatak-dev/flink-examples/blob/master/src/main/scala/com/madhukaraphatak/flink/streaming/examples/WindowExample.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;running-with-examples&quot;&gt;Running with examples&lt;/h2&gt;
+
+&lt;p&gt;Window operations are hard to wrap mind around without examples. So in the next few sections we are going to discuss how to run these examples with sample data and understand their behavior. You can run this example from IDE or in local mode. But before running you need to make sure comment out the non necessary outputs. For example, when you are running tumbling window make sure you comment out the below lines in the code.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;slidingWindow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;slidingwindow&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;countWindow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;count window&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We comment out these lines just to make sure they don’t interfere with our output. Follow the same for other two also.&lt;/p&gt;
+
+&lt;p&gt;All the input is entered in stadin of nc command. You can start socket for the program using below command&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;nc -lk localhost 9000&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;running-tumbling-window&quot;&gt;Running tumbling window&lt;/h2&gt;
+
+&lt;p&gt;We are going to run tumbling window in this section. Enter the below lines one by one with in 15 seconds on nc stdin.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;hello how are you
+hello who are you&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You will observe the below result once 15 seconds are done.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;(hello,2)
+(you,2)
+(are,2)
+(who,1)
+(how,1)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;If you wait for sometime and enter same lines you will observe that the count is reset and you get same result as above. So this shows how tumbling window discretized the stream.&lt;/p&gt;
+
+&lt;h2 id=&quot;running-sliding-window&quot;&gt;Running sliding window&lt;/h2&gt;
+
+&lt;p&gt;In this section we are going to run sliding window.&lt;/p&gt;
+
+&lt;p&gt;If you send the same lines as above in the beginning you will see the result is printed thrice. The reason being, we created a window for 15 seconds which is three times of the 5 seconds. So when window evaluates every 5 seconds, it recalculates the same result. You can add more rows in between to observe how count changes.&lt;/p&gt;
+
+&lt;h2 id=&quot;running-count-window&quot;&gt;Running count window&lt;/h2&gt;
+&lt;p&gt;In this section, we are going to run count based windows.&lt;/p&gt;
+
+&lt;p&gt;If you send those two lines, nothing will be printed. The reason is no key has a count of 5.&lt;/p&gt;
+
+&lt;p&gt;Enter the same lines again. Nothing will be printed. Again we have not yet hit the threshold.&lt;/p&gt;
+
+&lt;p&gt;Enter the first line again. Now you will see the below result.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;(are,5)
+(hello,5)
+(you,5)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;So as soon as the the count hits 5 window will be triggered. So from the example it’s apparent the count is kept for a key not across keys.&lt;/p&gt;
+
+&lt;p&gt;So window API in flink is very powerful compared to other frameworks. These constructs should allow you to express your application logic elegantly and efficiently.&lt;/p&gt;
+
+&lt;h2 id=&quot;compared-to-spark-streaming-api&quot;&gt;Compared to Spark Streaming API&lt;/h2&gt;
+
+&lt;p&gt;This section is only applicable to you, if you have done spark streaming before. If you are not familiar with Apache Spark feel free to skip it.&lt;/p&gt;
+
+&lt;p&gt;You can simulate the tumbling window using sliding window operation available in spark. If both window duration and sliding duration is same, you get tumbling window.&lt;/p&gt;
+
+&lt;p&gt;Sliding windows are supported as first class citizens.&lt;/p&gt;
+
+&lt;p&gt;Count based window is not supported in spark streaming. As windowing system of spark is tightly coupled with time, no builtin support for other types of window are there as of now.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;Introducing Stream Windows in Apache Flink - &lt;a href=&quot;https://flink.apache.org/news/2015/12/04/Introducing-windows.html&quot;&gt;https://flink.apache.org/news/2015/12/04/Introducing-windows.html&lt;/a&gt;.&lt;/p&gt;
+
+</description>
+        <pubDate>Mon, 14 Mar 2016 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-5</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-5</guid>
+      </item>
+    
+      <item>
         <title>Introduction to Flink Streaming - Part 4 : Understanding Flink&#39;s Advanced Stream Processing using Google Cloud Dataflow</title>
         <description>&lt;p&gt;Flink streaming is a new generation of streaming framework which bring a lot of new concepts to the table. It’s is not just a low latency batch processing like spark streaming or it’s not primitive event processor like storm. It has best of both the worlds and much more.&lt;/p&gt;
 
@@ -553,19 +698,6 @@
         <pubDate>Wed, 17 Feb 2016 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/building-distributed-systems-from-scratch-part2</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/building-distributed-systems-from-scratch-part2</guid>
-      </item>
-    
-      <item>
-        <title>Introduction to Hadoop (HDFS &amp; Map/Reduce) for Spark developers</title>
-        <description>&lt;p&gt;Whenever I talk about Spark in meetup or training, people ask one question &lt;strong&gt;“Do I need to know hadoop for learning Spark?”&lt;/strong&gt;. My answer to this question was “not in the beginning”. In my view, to learn spark you don’t need to know about hadoop. But if you want to be proficient in spark, then knowing hadoop concepts is a must.&lt;/p&gt;
-
-&lt;p&gt;So in below video I have captured neccessary HDFS and Map/Reduce concepts which are needed for improving understanding of Spark. This video is for all the ones who has some understanding of Spark and want to know how ideas from hadoop and spark connect.&lt;/p&gt;
-
-&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/strJwh0hLT8&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
-</description>
-        <pubDate>Sun, 07 Feb 2016 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/introduction-to-hadoop-for-spark-developers</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-hadoop-for-spark-developers</guid>
       </item>
     
   </channel>
