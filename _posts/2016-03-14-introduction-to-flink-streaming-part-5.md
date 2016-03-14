@@ -45,7 +45,7 @@ You can also define windows on non keyed stream. But they often result in poor p
 
 ## Tumbling Window 
 
-We have already seen this window on our earlier [post](introduction-to-flink-streaming-part-2). In this section we will be discussing little more. 
+We have already seen this window on our earlier [post](/introduction-to-flink-streaming-part-2). In this section we will be discussing little more. 
 
 A tumbling window is a time based window which tumbles once the window is evaluated. In essence, all the state and records of the window will be purged once the window evaluates. This kind of window is very useful for dividing stream in to multiple discrete batches.
 
