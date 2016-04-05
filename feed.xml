@@ -7,6 +7,122 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Flink Streaming - Part 6 : Anatomy of Window API</title>
+        <description>&lt;p&gt;In last few post in flink series, we have discussed about window API in flink. Window API is a powerful construct which allows us to express different stream processing concepts in elegant manner. In Flink, we can build windows using different recipes. Understanding these recipes helps us use them in efficient manner and also allows us to extend them to suit our custom requirements.&lt;/p&gt;
+
+&lt;p&gt;In this sixth blog of series, we will take a deep dive into window internals. You can access all the posts in the series &lt;a href=&quot;/categories/flink-streaming&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;TL;DR&lt;/strong&gt; All code is written using Flink’s scala API and you can access it on &lt;a href=&quot;https://github.com/phatak-dev/flink-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;anatomy-of-window-api&quot;&gt;Anatomy of Window API&lt;/h2&gt;
+
+&lt;p&gt;From earlier blogs, window API in flink may look like a single monolithic API. But under the covers it’s a modular API. A window in flink is constructed using few different functions. This modular nature of defining window gives user flexibility to define the windows for their use case.&lt;/p&gt;
+
+&lt;p&gt;The different functions needed to define a window in flink are,&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;window-assigner&quot;&gt;Window Assigner&lt;/h3&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;A function which is responsible for assigning given element to window. Depending upon the definition of window, one element can belong to one or more window at a time.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;trigger&quot;&gt;Trigger&lt;/h3&gt;
+    &lt;p&gt;Function which defines the condition for triggering window evaluation. This function control when a given window created by window assigner is evaluated.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;evictor&quot;&gt;Evictor&lt;/h3&gt;
+    &lt;p&gt;An optional function which defines the preprocessing before firing window operations.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The above 3 different functions are recipes for putting together the window.&lt;/p&gt;
+
+&lt;h2 id=&quot;understanding-count-window&quot;&gt;Understanding Count window&lt;/h2&gt;
+
+&lt;p&gt;Once we understood the different components of window API, let’s take one of existing window and see how these functions are defined. We will be using count window as example.&lt;/p&gt;
+
+&lt;h3 id=&quot;window-assigner-1&quot;&gt;Window Assigner&lt;/h3&gt;
+&lt;p&gt;When you are building an count based window, there is no start or end to the window. So for those kind of non time based windows, we have window assigner called GlobalWindow. For a given key, all values are filled into the same window.&lt;/p&gt;
+
+&lt;p&gt;The below code shows how to assign the window assigner.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;keyValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;window&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;GlobalWindows&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;em&gt;window&lt;/em&gt; API allows us to add the window assigner to the window. Every window assigner has a default trigger. The default trigger for a global window is &lt;em&gt;NeverTrigger&lt;/em&gt; which never triggers. So this window assigner has to be used with a custom trigger.&lt;/p&gt;
+
+&lt;h3 id=&quot;count-trigger&quot;&gt;Count trigger&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;trigger&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;CountTrigger&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;of&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Once we have the window assigner, now we have to define when the window needs to be trigger. In the above code, we add a trigger which evaluates the window for every two records.&lt;/p&gt;
+
+&lt;p&gt;For this example, we are not using any evictor.&lt;/p&gt;
+
+&lt;h2 id=&quot;aggregation&quot;&gt;Aggregation&lt;/h2&gt;
+
+&lt;p&gt;Once we create window, we need to run an aggregation on window to make it non lazy.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;countWindowWithoutPurge&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You can access full code &lt;a href=&quot;https://github.com/phatak-dev/flink-examples/blob/master/src/main/scala/com/madhukaraphatak/flink/streaming/examples/WindowAnatomy.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;running-example&quot;&gt;Running example&lt;/h2&gt;
+
+&lt;p&gt;Let’s run above count window with following data. Enter this data in socket stdin similar to our last &lt;a href=&quot;/introduction-to-flink-streaming-part-5/&quot;&gt;example&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Input&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;hello how are you
+hello who are you&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Result&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;(you,2)
+(are,2)
+(hello,2)
+(how,2)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above result shows, flink created 4 windows for 4 keys. Now if you enter the below lines again&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;hello how are you
+hello who are you&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;you will be observe the below result.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;(you,4)
+(are,4)
+(hello,4)
+(how,4)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Flink still has 4 windows, but now count is 4 rather than 2. It’s because
+rather than evaluating just new window, flink has retained the records from the earlier window also. This is the default behavior of a trigger. But most of the cases we want to clear the records once window evaluates, rather than keeping forever. In those situations we need to use purge trigger with count trigger.&lt;/p&gt;
+
+&lt;h2 id=&quot;purging-trigger&quot;&gt;Purging Trigger&lt;/h2&gt;
+
+&lt;p&gt;Purging trigger is a trigger which normally wraps the other triggers. Purging trigger is responsible for purging all the values which are passed to the trigger from the window once window evaluates.&lt;/p&gt;
+
+&lt;p&gt;The below code shows how to use purging trigger with count trigger.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;countWindowWithPurge&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keyValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;window&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;GlobalWindows&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()).&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;trigger&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;PurgingTrigger&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;of&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;CountTrigger&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;of&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;GlobalWindow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now &lt;em&gt;PurgingTrigger&lt;/em&gt; wraps the &lt;em&gt;CountTrigger&lt;/em&gt;. So purging trigger is always used in combination with other triggers.&lt;/p&gt;
+
+&lt;p&gt;If you run the code with same data, you will observe that result will be only calculated for latest window not across evaluations.&lt;/p&gt;
+
+&lt;p&gt;Now we understand anatomy of a window in Flink streaming API.&lt;/p&gt;
+
+</description>
+        <pubDate>Tue, 05 Apr 2016 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-6</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-6</guid>
+      </item>
+    
+      <item>
         <title>Introduction to Flink Streaming - Part 5 : Window API in Flink</title>
         <description>&lt;p&gt;In recent years, there is been a lot of discussion on stateful stream processing. When initial open source stream processor like storm came along, stream processing was viewed as the faster batch processing. The API’s were more geared towards the stateless ETL pipelines. But as realtime/ stream processing became more and more important having stateful processing became necessary. So all modern stream processing frameworks have varied degree of support to do stateful operations.&lt;/p&gt;
 
@@ -685,19 +801,6 @@ hello who are you&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
         <pubDate>Thu, 03 Mar 2016 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/interactive-scheduling-using-azkaban-setting-up-solo-server</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/interactive-scheduling-using-azkaban-setting-up-solo-server</guid>
-      </item>
-    
-      <item>
-        <title>Building Distributed Systems from Scratch - Part 2 : Handling third party libraries</title>
-        <description>&lt;p&gt;The below video is a recording of my talk on &lt;em&gt;Building Distributed Systems from Scratch - Part 2&lt;/em&gt; in recent spark meet up. It’s second talk in series of talks about how to build a distributed processing system from scratch which looks similar to Apache Spark. This talk focuses on how to implement a system to distribute third party libraries on mesos.&lt;/p&gt;
-
-&lt;p&gt;Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/building-distributed-processing-system-from-scratch-part-2&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/distributedsystems&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/Oj8IO8OICAc&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
-</description>
-        <pubDate>Wed, 17 Feb 2016 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/building-distributed-systems-from-scratch-part2</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/building-distributed-systems-from-scratch-part2</guid>
       </item>
     
   </channel>

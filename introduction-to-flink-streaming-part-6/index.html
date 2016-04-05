@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Introduction to Flink Streaming - Part 2 : Discretization of Stream using Window API</title>
+    <title>Introduction to Flink Streaming - Part 6 : Anatomy of Window API</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-2">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-6">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,8 +45,8 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Introduction to Flink Streaming - Part 2 : Discretization of Stream using Window API</h1>
-  <p class="meta">Mar 8, 2016</p>
+  <h1>Introduction to Flink Streaming - Part 6 : Anatomy of Window API</h1>
+  <p class="meta">Apr 5, 2016</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
@@ -59,47 +59,114 @@
 </header> 
 
 <article class="post-content">
-  <p>In the last <a href="/introduction-to-flink-streaming-part-1">blog</a>, we discussed about how to do continuous stream processing using flink streaming API. Our wordcount example keeps on updating the counts as and when we received new data. This is good for some of the use cases. But in some use cases we want to aggregate some set of records in a given time interval, in order to keep track of variance over time. In those cases, we need to divide the stream into small batches. This discretization allow us to capture the change in aggregated value overtime. This discretized batches is also known as micro batches.</p>
+  <p>In last few post in flink series, we have discussed about window API in flink. Window API is a powerful construct which allows us to express different stream processing concepts in elegant manner. In Flink, we can build windows using different recipes. Understanding these recipes helps us use them in efficient manner and also allows us to extend them to suit our custom requirements.</p>
 
-<p>In this second blog, I will be discussing about how to discretized the stream using flink’s window operation.We will be using same word count example in this post also. You can access all the blogs in the series <a href="/categories/flink-streaming/">here</a>.</p>
+<p>In this sixth blog of series, we will take a deep dive into window internals. You can access all the posts in the series <a href="/categories/flink-streaming">here</a>.</p>
 
 <p><strong>TL;DR</strong> All code is written using Flink’s scala API and you can access it on <a href="https://github.com/phatak-dev/flink-examples">github</a>.</p>
 
-<h2 id="window-in-streaming">Window in streaming</h2>
+<h2 id="anatomy-of-window-api">Anatomy of Window API</h2>
 
-<p>Window is a mechanism to take a snapshot of the stream. This snapshot can be based on time or other variables. For example, if we create a window for 5 seconds then it will be all the records which arrived in the that time frame. You can define the window based on no of records or other stream specific variables also.</p>
+<p>From earlier blogs, window API in flink may look like a single monolithic API. But under the covers it’s a modular API. A window in flink is constructed using few different functions. This modular nature of defining window gives user flexibility to define the windows for their use case.</p>
 
-<p>Window allows us to understand change in stream data by taking snapshots in regular intervals. Flink API has wide variety of window support. In this post we are only going to focus on one kind of window known as Tumbling Windows.</p>
+<p>The different functions needed to define a window in flink are,</p>
 
-<h2 id="tumbling-window-in-flink-streaming">Tumbling Window in Flink Streaming</h2>
+<ul>
+  <li>
+    <h3 id="window-assigner">Window Assigner</h3>
+  </li>
+</ul>
 
-<p>Tumbling window is one kind of windowing operation which will discretize the stream into non overlapping windows. This means every record in the stream only belongs to one window. This kind of discretization allows observing the change in the stream over fixed intervals. There are other kind of windows supported in the flink which we will discuss in the future posts.</p>
+<p>A function which is responsible for assigning given element to window. Depending upon the definition of window, one element can belong to one or more window at a time.</p>
 
-<h2 id="windowed-wordcount-example">Windowed Wordcount example</h2>
+<ul>
+  <li>
+    <h3 id="trigger">Trigger</h3>
+    <p>Function which defines the condition for triggering window evaluation. This function control when a given window created by window assigner is evaluated.</p>
+  </li>
+  <li>
+    <h3 id="evictor">Evictor</h3>
+    <p>An optional function which defines the preprocessing before firing window operations.</p>
+  </li>
+</ul>
 
-<p>In last blog, we saw how to calculate wordcount using Flink API. In this post, we will be calculating wordcount for every 15 seconds. So in this example, we will be dividing the stream for every 15 seconds. Once those 15 seconds passes, the count will be started from zero.</p>
+<p>The above 3 different functions are recipes for putting together the window.</p>
 
-<p>This example shows to how to snapshot wordcount for each 15 seconds to analyze the trend over time to say how wordcount have changed. This is not possible when we have continuous updation of the count as in earlier example.</p>
+<h2 id="understanding-count-window">Understanding Count window</h2>
 
-<p>Most of the code to setup and run is same as earlier example. So I am only going to focus on how to add tumbling window to our stream</p>
+<p>Once we understood the different components of window API, let’s take one of existing window and see how these functions are defined. We will be using count window as example.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">keyValuePair</span> <span class="k">=</span> <span class="n">wordsStream</span><span class="o">.</span><span class="n">keyBy</span><span class="o">(</span><span class="mi">0</span><span class="o">).</span><span class="n">timeWindow</span><span class="o">(</span><span class="nc">Time</span><span class="o">.</span><span class="n">seconds</span><span class="o">(</span><span class="mi">15</span><span class="o">))</span>
+<h3 id="window-assigner-1">Window Assigner</h3>
+<p>When you are building an count based window, there is no start or end to the window. So for those kind of non time based windows, we have window assigner called GlobalWindow. For a given key, all values are filled into the same window.</p>
 
-<span class="k">val</span> <span class="n">countStream</span> <span class="k">=</span> <span class="n">keyValuePair</span><span class="o">.</span><span class="n">sum</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span></code></pre></div>
+<p>The below code shows how to assign the window assigner.</p>
 
-<p>The above code creates a window using timeWindow API. timeWindow API internally uses tumbling window API to do the windowing operation. In this case, the wordcount will be counted for each 15 seconds and then forgotten.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">keyValue</span><span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">GlobalWindows</span><span class="o">.</span><span class="n">create</span><span class="o">())</span></code></pre></div>
 
-<p>You can access complete code <a href="https://github.com/phatak-dev/flink-examples/blob/master/src/main/scala/com/madhukaraphatak/flink/streaming/examples/WindowedStreamingWordCount.scala">here</a>.</p>
+<p><em>window</em> API allows us to add the window assigner to the window. Every window assigner has a default trigger. The default trigger for a global window is <em>NeverTrigger</em> which never triggers. So this window assigner has to be used with a custom trigger.</p>
 
-<h2 id="compared-to-spark-streaming-api">Compared to Spark Streaming API</h2>
+<h3 id="count-trigger">Count trigger</h3>
 
-<p>This section is only applicable to you, if you have done spark streaming before. If you are not familiar with Apache Spark feel free to skip it.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">trigger</span><span class="o">(</span><span class="nc">CountTrigger</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="mi">2</span><span class="o">))</span></code></pre></div>
 
-<p>The tumbling windows in Flink are similar to microbatches in Spark. As in spark microbatch, tumbling windows are used for discretizing stream into independent batches.</p>
+<p>Once we have the window assigner, now we have to define when the window needs to be trigger. In the above code, we add a trigger which evaluates the window for every two records.</p>
 
-<h2 id="references">References</h2>
+<p>For this example, we are not using any evictor.</p>
 
-<p>Introducing Stream Windows in Apache Flink - <a href="https://flink.apache.org/news/2015/12/04/Introducing-windows.html">https://flink.apache.org/news/2015/12/04/Introducing-windows.html</a>.</p>
+<h2 id="aggregation">Aggregation</h2>
+
+<p>Once we create window, we need to run an aggregation on window to make it non lazy.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">countWindowWithoutPurge</span><span class="o">.</span><span class="n">sum</span><span class="o">(</span><span class="mi">1</span><span class="o">).</span><span class="n">print</span><span class="o">()</span></code></pre></div>
+
+<p>You can access full code <a href="https://github.com/phatak-dev/flink-examples/blob/master/src/main/scala/com/madhukaraphatak/flink/streaming/examples/WindowAnatomy.scala">here</a>.</p>
+
+<h2 id="running-example">Running example</h2>
+
+<p>Let’s run above count window with following data. Enter this data in socket stdin similar to our last <a href="/introduction-to-flink-streaming-part-5/">example</a>.</p>
+
+<p>Input</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">hello how are you
+hello who are you</code></pre></div>
+
+<p>Result</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">(you,2)
+(are,2)
+(hello,2)
+(how,2)</code></pre></div>
+
+<p>The above result shows, flink created 4 windows for 4 keys. Now if you enter the below lines again</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">hello how are you
+hello who are you</code></pre></div>
+
+<p>you will be observe the below result.</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">(you,4)
+(are,4)
+(hello,4)
+(how,4)</code></pre></div>
+
+<p>Flink still has 4 windows, but now count is 4 rather than 2. It’s because
+rather than evaluating just new window, flink has retained the records from the earlier window also. This is the default behavior of a trigger. But most of the cases we want to clear the records once window evaluates, rather than keeping forever. In those situations we need to use purge trigger with count trigger.</p>
+
+<h2 id="purging-trigger">Purging Trigger</h2>
+
+<p>Purging trigger is a trigger which normally wraps the other triggers. Purging trigger is responsible for purging all the values which are passed to the trigger from the window once window evaluates.</p>
+
+<p>The below code shows how to use purging trigger with count trigger.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">countWindowWithPurge</span> <span class="k">=</span> <span class="n">keyValue</span><span class="o">.</span><span class="n">window</span><span class="o">(</span><span class="nc">GlobalWindows</span><span class="o">.</span><span class="n">create</span><span class="o">()).</span>
+      <span class="n">trigger</span><span class="o">(</span><span class="nc">PurgingTrigger</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="nc">CountTrigger</span><span class="o">.</span><span class="n">of</span><span class="o">[</span><span class="kt">GlobalWindow</span><span class="o">](</span><span class="mi">2</span><span class="o">)))</span></code></pre></div>
+
+<p>Now <em>PurgingTrigger</em> wraps the <em>CountTrigger</em>. So purging trigger is always used in combination with other triggers.</p>
+
+<p>If you run the code with same data, you will observe that result will be only calculated for latest window not across evaluations.</p>
+
+<p>Now we understand anatomy of a window in Flink streaming API.</p>
+
 
 </article>
 <div class="related">
@@ -107,12 +174,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">05 Apr 2016</span>
-     &raquo; <a href="/introduction-to-flink-streaming-part-6">Introduction to Flink Streaming - Part 6 : Anatomy of Window API</a>    
-   </li>           
-         
+          
 
             
     
@@ -133,12 +195,7 @@
    
    
              
-    
-    <li>    
-     <span class="post-date">05 Apr 2016</span>
-     &raquo; <a href="/introduction-to-flink-streaming-part-6">Introduction to Flink Streaming - Part 6 : Anatomy of Window API</a>    
-   </li>           
-         
+          
 
             
     
