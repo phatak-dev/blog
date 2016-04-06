@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Introduction to Flink Streaming - Part 7 : Implementing session windows using custom trigger"
+title: "Introduction to Flink Streaming - Part 7 : Implementing Session Windows using Custom Trigger"
 date : 2016-04-06
 categories: scala flink flink-streaming
 ---
