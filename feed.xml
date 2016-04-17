@@ -1,10 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Madhukar&#39;s Blog</title>
+    <title>Madhukar's Blog</title>
     <description>Thoughts on technology, life and everything else.</description>
     <link>http://blog.madhukaraphatak.com/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
+    
+      <item>
+        <title>Apache Beam : Next Step in Big Data Unification</title>
+        <description>&lt;p&gt;Unification been the theme of big data processing for quite some time. More and more frameworks in big data want to be platforms which can do multiple things, rather than yet another framework to solve a specific problem. This idea of unification has taken big data to new levels. These days we have come to expect single platform to do batch, streaming and interactive processing with plethora of libraries on top of it.&lt;/p&gt;
+
+&lt;p&gt;As the processing unification is settling down, there is a new trend in big data to unify the API across multiple platforms like Spark, Flink etc. Apache Beam, is one of the first steps towards that direction.&lt;/p&gt;
+
+&lt;p&gt;In this post, I will be talking about the different level of unification happened over the years and how Apache Beam will be next step in that direction.&lt;/p&gt;
+
+&lt;h2 id=&quot;unification-of-cluster-infrastructure&quot;&gt;Unification of cluster/ infrastructure&lt;/h2&gt;
+
+&lt;p&gt;When Hadoop came along, it was only capable of running Map/Reduce. To run any other system, like Storm, you were needed to have a separate cluster. This meant that you need to maintain separate cluster for each framework which is big overhead in terms of maintenance and cost.&lt;/p&gt;
+
+&lt;p&gt;Over time, frameworks like Mesos and YARN solved those issues. YARN became an unified platform to run the multiple processing frameworks on same cluster. In this way, we need to have only one cluster and we can easily share the resources between the frameworks.&lt;/p&gt;
+
+&lt;h2 id=&quot;unification-of-processing-frameworks&quot;&gt;Unification of processing frameworks&lt;/h2&gt;
+
+&lt;p&gt;As infrastructure unified, we wanted unification in processing. In early days of big data, we used separate frameworks for batch, streaming and structure data analysis namely map/reduce, storm and hive. Learning, developing and maintaining these multiple framework code is became trickier. Also sharing data between these systems became tricky as they don’t share any common abstraction.&lt;/p&gt;
+
+&lt;p&gt;Apache Spark came along to solve this problem. It proposed an single abstraction to base all different kind of processing. This made sharing data trivial and developers can improve applications in much rapid way as they only have to learn single framework than multiple ones. Apache spark dawned the platform era in big data. All other systems, like Flink, came after spark are following that way.&lt;/p&gt;
+
+&lt;h2 id=&quot;unification-of-developers&quot;&gt;Unification of developers&lt;/h2&gt;
+
+&lt;p&gt;Any big data analysis comprise data scientists, the one who focus on the data modeling and data engineers, the one who focus on data pipelines. Earlier each of these teams used to use different toolset. This made difficult to share knowledge and code across the teams.&lt;/p&gt;
+
+&lt;p&gt;Apache Spark with it’s Dataframe API is trying to unify these developers where both can use same platform for modeling and pipeline building.&lt;/p&gt;
+
+&lt;p&gt;So from the above points, it’s clear that more and more efforts are spent by various frameworks to unify the different aspects of big data analysis. But now there is a new level of unification is needed. That is API unification.&lt;/p&gt;
+
+&lt;h2 id=&quot;need-of-api-unification&quot;&gt;Need of API unification&lt;/h2&gt;
+
+&lt;p&gt;Whenever there is a new platform, developers are forced to rewrite their application to get the benefits. Most of the time these platforms share a very similar API for data processing, only differing in the runtime implementation. This need of the rewrite of applications, holding back the adoption of new platforms. Also this makes difficult to use best tool for a given use case.&lt;/p&gt;
+
+&lt;p&gt;For example, Apache Flink has good support for streaming compare to Spark. Spark has good support for batch compared Flink. I want to use both Flink and Spark, but doing same computations for streaming and batch. In the current scenario, I need to write the program twice one in flink and one in spark. Though the API’s look similar, they do differ in various details. So as of now whenever we want to use best of multiple frameworks, we need to write program multiple times.&lt;/p&gt;
+
+&lt;p&gt;So if you want to write program only once, then you need to stick with single platform. This restricts the developers where they cannot use the best frameworks for the work. Isn’t be nice where we can write the program once and run on different platforms?&lt;/p&gt;
+
+&lt;h2 id=&quot;apache-beam--unifying-the-platforms&quot;&gt;Apache Beam : Unifying the platforms&lt;/h2&gt;
+
+&lt;p&gt;Apache Beam, is the new unified batch and streaming framework which is trying to solve the exact problem which we discussed above. Apache Beam allows to write a program in a DSL which can run on both flink and spark. Apache Beam is bringing unification to platforms as YARN brought to infrastructure.&lt;/p&gt;
+
+&lt;p&gt;From Apache Bean website, Apache Beam is&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;An open source, unified model and set of language-specific SDKs for defining and executing data processing workflows, and also data ingestion and integration flows, supporting Enterprise Integration Patterns (EIPs) and Domain Specific Languages (DSLs). Dataflow pipelines simplify the mechanics of large-scale batch and streaming data processing and can run on a number of runtimes like Apache Flink, Apache Spark, and Google Cloud Dataflow (a cloud service)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So from the definition, it’s clear that apache beam is trying to have a single API which can express both batch and streaming application which can run on multiple runtimes. So now I can write a single program which not only can do both streaming and batch but allows me to choose the platform on which I want to run these programs on without any change to the code.&lt;/p&gt;
+
+&lt;p&gt;This kind of unification is taking big data to next level where developers are not need to write code multiple times whenever there is a new framework is around. As of now Beam is still in proposal stage, it will take still time to mature. But this new way of looking at big data will going to immensely benefit the organization to adopt new platforms much faster way.&lt;/p&gt;
+
+</description>
+        <pubDate>Sun, 17 Apr 2016 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/apache-beam-next-step-in-big-data-unification</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/apache-beam-next-step-in-big-data-unification</guid>
+      </item>
     
       <item>
         <title>Introduction to Flink Streaming - Part 7 : Implementing Session Windows using Custom Trigger</title>
@@ -435,7 +490,7 @@ hello who are you&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
       </item>
     
       <item>
-        <title>Introduction to Flink Streaming - Part 4 : Understanding Flink&#39;s Advanced Stream Processing using Google Cloud Dataflow</title>
+        <title>Introduction to Flink Streaming - Part 4 : Understanding Flink's Advanced Stream Processing using Google Cloud Dataflow</title>
         <description>&lt;p&gt;Flink streaming is a new generation of streaming framework which bring a lot of new concepts to the table. It’s is not just a low latency batch processing like spark streaming or it’s not primitive event processor like storm. It has best of both the worlds and much more.&lt;/p&gt;
 
 &lt;p&gt;As with any new generation framework, it’s hard for people coming from the other frameworks to appreciate full power of the new system. We normally end up trying to replicate same old application on new framework. This happened when we moved from Map/Reduce to Spark. So understanding the strengths of these new frameworks is critical to build new generation streaming applications rather than replicating the already existing one.&lt;/p&gt;
@@ -798,7 +853,7 @@ hello who are you&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
       </item>
     
       <item>
-        <title>What&#39;s New in Spark : Tales from Spark Summit East - Framework Improvements</title>
+        <title>What's New in Spark : Tales from Spark Summit East - Framework Improvements</title>
         <description>&lt;p&gt;Recently Databricks, company behind the Apache Spark, held this year’s first &lt;a href=&quot;https://spark-summit.org/east-2016/&quot;&gt;spark summit&lt;/a&gt;, spark developer conference, in new york city. Lots of new exciting improvements in spark and it’s ecosystem got discussed in various talks. I was watching the videos of the conference on youtube and wanted to share the ones I found interesting.&lt;/p&gt;
 
 &lt;p&gt;These are the series of blog posts focusing on various talks categorized into different aspects of Spark. You can access all the posts in the series &lt;a href=&quot;/categories/spark-summit-east-2016&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
@@ -842,52 +897,6 @@ hello who are you&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
         <pubDate>Sat, 05 Mar 2016 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/whats-new-in-spark-framework-improvements</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/whats-new-in-spark-framework-improvements</guid>
-      </item>
-    
-      <item>
-        <title>Introduction to Spark 2.0 : A Sneak Peek At Next Generation Spark</title>
-        <description>&lt;p&gt;Spark 2.0 is the next stable of release of spark, which is expected to be released in April/May 2016. As the major version bump suggests, its is going to be bring some drastic changes to framework. In recent &lt;a href=&quot;https://spark-summit.org/east-2016/&quot;&gt;spark summit&lt;/a&gt;, spark contributors discussed some of those in various talks.&lt;/p&gt;
-
-&lt;p&gt;In this post, I am going to talk about some of the important changes made to the framework and as a spark developer how we can prepare for it.&lt;/p&gt;
-
-&lt;h2 id=&quot;embrace-dataset-dataframe-api-over-rdd-api&quot;&gt;1. Embrace Dataset/ Dataframe API over RDD API&lt;/h2&gt;
-
-&lt;p&gt;Normally, whoever starts learning spark first learns about RDD abstraction. RDD was one of the novel idea of Spark which gave us a single abstraction over different big data workloads like batch, streaming, ML etc. So naturally RDD API became the way people build spark applications.&lt;/p&gt;
-
-&lt;p&gt;But overtime, people have realized RDD as a user facing API held back spark runtime from advanced optimizations. So from Spark 1.3, Dataframe API was introduced to solve some of the optimization issues. Dataframe brought custom memory management and runtime code generation which greatly improved performance. So in last year most of the improvements went into Dataframe API whereas RDD API stood still.&lt;/p&gt;
-
-&lt;p&gt;Though dataframe API solved many issues, it was not a good enough replacement for RDD API. One of the major issues with dataframe API was no compile time safety and not able to work with domain objects. So this held back people using dataframe API everywhere. But with introduction of Dataset API in 1.6, we were able to fill the gap.&lt;/p&gt;
-
-&lt;p&gt;So in Spark 2.0, Dataset API will be become a stable API. So Dataset API combined with Dataframe API should able to cover most of the use cases where RDD was used earlier. So as a spark developer it is advised to start embracing these two API’s over RDD API from Spark 2.0.&lt;/p&gt;
-
-&lt;p&gt;Does that mean RDD API will be removed? Not really. Spark as a project is very serious about backward compatibility. So they don’t want to remove any stable API’s. So RDD API will remain as low level API mostly used by runtime. As developer you will be using Dataset or Dataframe API from Spark 2.0.&lt;/p&gt;
-
-&lt;p&gt;Everything above sounds great for batch processing, but what about Spark streaming? Spark streaming has lot of API’s around RDD. What will happen to them?&lt;/p&gt;
-
-&lt;h2 id=&quot;structured-stream-processing&quot;&gt;2. Structured Stream processing&lt;/h2&gt;
-
-&lt;p&gt;Spark 2.0 will introduce structured stream processing, which is a higher level API to do stream processing. It essentially going to leverage dataframe and dataset API for stream processing which will get rid of using RDD as an abstraction. Not only this bring dataframes to stream processing, it brings bunch of other benefits like datasource API support for spark streaming. You can watch &lt;a href=&quot;https://www.youtube.com/watch?v=i7l3JQRx7Qw&quot;&gt;this video&lt;/a&gt; to know more.&lt;/p&gt;
-
-&lt;p&gt;So from Spark 2.0, you will be interacting with spark streaming using same DF abstraction that you were using in batch layer.&lt;/p&gt;
-
-&lt;h2 id=&quot;dataset-is-the-new-single-abstraction&quot;&gt;3. Dataset is the new single abstraction&lt;/h2&gt;
-
-&lt;p&gt;Spark always loved to have a single abstraction which it made it to improve in a rapid phase. Also it meant that different libraries can exchange data between each other. So doesn’t having Dataframe and Dataset as two API’s beats that single abstraction idea?&lt;/p&gt;
-
-&lt;p&gt;Currently in Spark 1.6, these are two independent abstractions. But from 2.0 Dataframe will be a special case of Dataset API. So this make dataset as a single abstraction on which all the API’s are build. So Dataset will be new single abstraction which will take the place of RDD in the user API world.&lt;/p&gt;
-
-&lt;h2 id=&quot;performance-improvements&quot;&gt;4. Performance improvements&lt;/h2&gt;
-
-&lt;p&gt;Spark 2.0 going to bring many performance improvements thanks to tungsten and code generation. It’s been one of the constant theme in last few releases to going 1-2x performance gains. But in 2.0, data bricks is promising 6-10x performance gains. It’s particularly do with more and more intelligent code generation and moving libraries on better abstraction layers like dataset.&lt;/p&gt;
-
-&lt;p&gt;So the above are the most important updates landing in Spark 2.0. I will be discussing more about this as and when we get to see these changes getting implemented.&lt;/p&gt;
-
-&lt;p&gt;Source : You can access all the talks and slides of spark summit from &lt;a href=&quot;https://spark-summit.org/east-2016/schedule/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-</description>
-        <pubDate>Fri, 04 Mar 2016 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/introduction-to-spark-2.0</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-2.0</guid>
       </item>
     
   </channel>

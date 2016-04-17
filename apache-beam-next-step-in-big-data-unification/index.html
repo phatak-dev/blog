@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Structured data processing with Spark SQL - Meetup Video</title>
+    <title>Apache Beam : Next Step in Big Data Unification</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/structured-data-processing-with-spark-sql-meetup-talk">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/apache-beam-next-step-in-big-data-unification">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,26 +45,67 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Structured data processing with Spark SQL - Meetup Video</h1>
-  <p class="meta">Jun 8, 2015</p>
+  <h1>Apache Beam : Next Step in Big Data Unification</h1>
+  <p class="meta">Apr 17, 2016</p>
   <div class="catagories">
     
     <a href="/categories/spark"><span class="category">spark</span></a>
     
-    <a href="/categories/scala"><span class="category">scala</span></a>
+    <a href="/categories/flink"><span class="category">flink</span></a>
     
-    <a href="/categories/talks"><span class="category">talks</span></a>
+    <a href="/categories/beam"><span class="category">beam</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>The below video is a recording of my talk on <em>Structured data processing with Spark SQL</em> in recent spark meetup. In this talk, I discuss about how you can use spark sql API’s like Data source, Data frame API’s
-to analyse structured data with Spark.</p>
+  <p>Unification been the theme of big data processing for quite some time. More and more frameworks in big data want to be platforms which can do multiple things, rather than yet another framework to solve a specific problem. This idea of unification has taken big data to new levels. These days we have come to expect single platform to do batch, streaming and interactive processing with plethora of libraries on top of it.</p>
 
-<p>Find the slides on <a href="http://www.slideshare.net/datamantra/introduction-to-structured-data-in-spark">slideshare</a> and code on <a href="https://github.com/phatak-dev/structured_data_processing_spark_sql">github</a>.</p>
+<p>As the processing unification is settling down, there is a new trend in big data to unify the API across multiple platforms like Spark, Flink etc. Apache Beam, is one of the first steps towards that direction.</p>
 
-<div class="video-container"> <iframe src="https://www.youtube.com/embed/0jd3EWmKQfo" frameborder="0" width="560" height="315"></iframe> </div>
+<p>In this post, I will be talking about the different level of unification happened over the years and how Apache Beam will be next step in that direction.</p>
+
+<h2 id="unification-of-cluster-infrastructure">Unification of cluster/ infrastructure</h2>
+
+<p>When Hadoop came along, it was only capable of running Map/Reduce. To run any other system, like Storm, you were needed to have a separate cluster. This meant that you need to maintain separate cluster for each framework which is big overhead in terms of maintenance and cost.</p>
+
+<p>Over time, frameworks like Mesos and YARN solved those issues. YARN became an unified platform to run the multiple processing frameworks on same cluster. In this way, we need to have only one cluster and we can easily share the resources between the frameworks.</p>
+
+<h2 id="unification-of-processing-frameworks">Unification of processing frameworks</h2>
+
+<p>As infrastructure unified, we wanted unification in processing. In early days of big data, we used separate frameworks for batch, streaming and structure data analysis namely map/reduce, storm and hive. Learning, developing and maintaining these multiple framework code is became trickier. Also sharing data between these systems became tricky as they don’t share any common abstraction.</p>
+
+<p>Apache Spark came along to solve this problem. It proposed an single abstraction to base all different kind of processing. This made sharing data trivial and developers can improve applications in much rapid way as they only have to learn single framework than multiple ones. Apache spark dawned the platform era in big data. All other systems, like Flink, came after spark are following that way.</p>
+
+<h2 id="unification-of-developers">Unification of developers</h2>
+
+<p>Any big data analysis comprise data scientists, the one who focus on the data modeling and data engineers, the one who focus on data pipelines. Earlier each of these teams used to use different toolset. This made difficult to share knowledge and code across the teams.</p>
+
+<p>Apache Spark with it’s Dataframe API is trying to unify these developers where both can use same platform for modeling and pipeline building.</p>
+
+<p>So from the above points, it’s clear that more and more efforts are spent by various frameworks to unify the different aspects of big data analysis. But now there is a new level of unification is needed. That is API unification.</p>
+
+<h2 id="need-of-api-unification">Need of API unification</h2>
+
+<p>Whenever there is a new platform, developers are forced to rewrite their application to get the benefits. Most of the time these platforms share a very similar API for data processing, only differing in the runtime implementation. This need of the rewrite of applications, holding back the adoption of new platforms. Also this makes difficult to use best tool for a given use case.</p>
+
+<p>For example, Apache Flink has good support for streaming compare to Spark. Spark has good support for batch compared Flink. I want to use both Flink and Spark, but doing same computations for streaming and batch. In the current scenario, I need to write the program twice one in flink and one in spark. Though the API’s look similar, they do differ in various details. So as of now whenever we want to use best of multiple frameworks, we need to write program multiple times.</p>
+
+<p>So if you want to write program only once, then you need to stick with single platform. This restricts the developers where they cannot use the best frameworks for the work. Isn’t be nice where we can write the program once and run on different platforms?</p>
+
+<h2 id="apache-beam--unifying-the-platforms">Apache Beam : Unifying the platforms</h2>
+
+<p>Apache Beam, is the new unified batch and streaming framework which is trying to solve the exact problem which we discussed above. Apache Beam allows to write a program in a DSL which can run on both flink and spark. Apache Beam is bringing unification to platforms as YARN brought to infrastructure.</p>
+
+<p>From Apache Bean website, Apache Beam is</p>
+
+<pre><code>An open source, unified model and set of language-specific SDKs for defining and executing data processing workflows, and also data ingestion and integration flows, supporting Enterprise Integration Patterns (EIPs) and Domain Specific Languages (DSLs). Dataflow pipelines simplify the mechanics of large-scale batch and streaming data processing and can run on a number of runtimes like Apache Flink, Apache Spark, and Google Cloud Dataflow (a cloud service)
+</code></pre>
+
+<p>So from the definition, it’s clear that apache beam is trying to have a single API which can express both batch and streaming application which can run on multiple runtimes. So now I can write a single program which not only can do both streaming and batch but allows me to choose the platform on which I want to run these programs on without any change to the code.</p>
+
+<p>This kind of unification is taking big data to next level where developers are not need to write code multiple times whenever there is a new framework is around. As of now Beam is still in proposal stage, it will take still time to mature. But this new way of looking at big data will going to immensely benefit the organization to adopt new platforms much faster way.</p>
+
 
 </article>
 <div class="related">
@@ -72,12 +113,7 @@ to analyse structured data with Spark.</p>
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">17 Apr 2016</span>
-     &raquo; <a href="/apache-beam-next-step-in-big-data-unification">Apache Beam : Next Step in Big Data Unification</a>    
-   </li>           
-         
+          
 
             
     
@@ -98,6 +134,9 @@ to analyse structured data with Spark.</p>
    
    
              
+          
+
+            
     
     <li>    
      <span class="post-date">06 Apr 2016</span>
@@ -110,14 +149,6 @@ to analyse structured data with Spark.</p>
     <li>    
      <span class="post-date">05 Apr 2016</span>
      &raquo; <a href="/introduction-to-flink-streaming-part-6">Introduction to Flink Streaming - Part 6 : Anatomy of Window API</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">14 Mar 2016</span>
-     &raquo; <a href="/introduction-to-flink-streaming-part-5">Introduction to Flink Streaming - Part 5 : Window API in Flink</a>    
    </li>           
          
 
