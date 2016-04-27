@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Handling empty batches in Spark streaming</title>
+    <title>Introduction to Flink Streaming - Part 8 : Understanding Time in Flink Streaming</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/handling-empty-rdd-in-spark-streaming">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-8">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,37 +45,86 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Handling empty batches in Spark streaming</h1>
-  <p class="meta">Apr 6, 2015</p>
+  <h1>Introduction to Flink Streaming - Part 8 : Understanding Time in Flink Streaming</h1>
+  <p class="meta">Apr 27, 2016</p>
   <div class="catagories">
     
-    <a href="/categories/spark"><span class="category">spark</span></a>
-    
     <a href="/categories/scala"><span class="category">scala</span></a>
+    
+    <a href="/categories/flink"><span class="category">flink</span></a>
+    
+    <a href="/categories/flink-streaming"><span class="category">flink-streaming</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>Spark streaming is a near real time tiny batch processing system. For given interval, spark streaming generates new batch and runs some processing. Each of these batch data is represented as RDD. But what happens there is no data for a given batch? Spark generates a special kind of RDD called <em>EmptyRDD</em>.</p>
+  <p>Time plays an important role in streaming applications. Using time, we can group, correlate different events happening in the stream. Some of the constructs like window, heavily use the time component. Most of the streaming frameworks supports a single meaning of time, which is mostly tied to the processing time.</p>
 
-<p>This empty RDD makes sure that processing is consistent across multiple batches. But having an empty RDD sometimes may create some issues. For example, let’s say you want to save the data of a stream to HDFS.</p>
+<p>Processing time is a clock which keep tracks of the time passed from the beginning of the process. Having support for processing time is not good enough in modern streaming applications. Most of them need flexibility in the time abstractions and flink supports that flexibility compared to other stream processing frameworks.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">ssc</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">StreamingContext</span><span class="o">(</span><span class="n">args</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span><span class="s">&quot;test&quot;</span><span class="o">,</span><span class="nc">Seconds</span><span class="o">(</span><span class="mi">10</span><span class="o">))</span>
-<span class="k">val</span> <span class="n">socketStream</span> <span class="k">=</span> <span class="n">ssc</span><span class="o">.</span><span class="n">socketTextStream</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span><span class="mi">50050</span><span class="o">)</span>
-<span class="k">val</span> <span class="n">outputDir</span> <span class="k">=</span> <span class="n">args</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
-<span class="n">socketStream</span><span class="o">.</span><span class="n">foreachRDD</span><span class="o">(</span><span class="n">rdd</span> <span class="k">=&gt;</span> <span class="o">{</span>
-  <span class="n">rdd</span><span class="o">.</span><span class="n">saveAsTextFile</span><span class="o">(</span><span class="n">outputDir</span><span class="o">)</span>
-<span class="o">})</span></code></pre></div>
+<p>In this eight post in the series, we will be talking about different time abstractions supported in flink. You can find all the other posts in the series <a href="/categories/flink-streaming">here</a>.</p>
 
-<p>The above code generates empty files for empty batches. If you have many empty batches, unnecessarily too many empty folders will be created.</p>
+<h2 id="concept-of-time-in-streaming-application">Concept of time in streaming application</h2>
 
-<p>We can avoid this by checking, is a given RDD is empty RDD.</p>
+<p>A streaming application is an always running application. So in order to understand the behavior of the application over time, we need to take snapshots of the stream in various points. Normally these various points are defined using a time component.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">if</span><span class="o">(!</span><span class="n">rdd</span><span class="o">.</span><span class="n">partitions</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span>
-   <span class="n">rdd</span><span class="o">.</span><span class="n">saveAsTextFile</span><span class="o">(</span><span class="n">outputDir</span><span class="o">)</span></code></pre></div>
+<p>Time in streaming application is way to correlate different events in the stream to extract some meaningful insights. For example, when we say count of words in a word count example for last 10 seconds, we normally mean to collect all the records arrived in that point of time and run a word count on it.</p>
 
-<p>The empty rdd has no partitions. Using this logic, we check for partition array of RDD. If partition array is empty, then its an EmptyRDD. This way we can avoid saving empty batches to HDFS.</p>
+<p>Normally most of the streaming frameworks like storm, spark-streaming only support one concept of time. But flink does support multiple different ones.</p>
+
+<h2 id="time-in-flink">Time in Flink</h2>
+
+<p>When we say, last 10 seconds what it means? Flink say it depends. It can be one of three following</p>
+
+<ul>
+  <li>
+    <h3 id="processing-time">Processing Time</h3>
+  </li>
+</ul>
+
+<p>This concept of time is very familiar to most of the users. In this, time is tracked using a clock run by the processing engine. So in this time, last 10 seconds means the records arrived in last 10 seconds for the processing. Here we only use the semantics of when the records came for processing.</p>
+
+<p>Though processing time is good time measure to have,it’s not always enough. For example, if we want to calculate state of sensors at given point of time, we want to collect events that happened in that time range. But if the events arrive lately to processing system due to various reasons, we may miss some of the events as processing clock does not care about the actual time of events. To address this, flink support another kind of time called event time.</p>
+
+<ul>
+  <li>
+    <h3 id="event-time">Event Time</h3>
+  </li>
+</ul>
+
+<p>Event time is the time embed in the data that is coming into the system. So here 10 seconds means, all the records generated in those 10 seconds at the source. These may come out of order to processing. This time is independent of the clock that is kept by the processing engine.Event time is extremely useful for handling the late arrival events.</p>
+
+<ul>
+  <li>
+    <h3 id="ingestion-time">Ingestion Time</h3>
+  </li>
+</ul>
+
+<p>Ingestion time is the time when events ingested into the system. This time is in between of the event time and processing time. Normally in processing time, each machine in cluster is used to assign the time stamp to track events. This may result in little inconsistent view of the data, as there may be delays in time across the cluster. But ingestion time, timestamp is assigned in ingestion so that all the machines in the cluster have exact same view. These are useful to calculate results on data that arrive in order at the level of ingestion.</p>
+
+<h2 id="watermarks">WaterMarks</h2>
+
+<p>As flink supports multiple concept of time, how flink keep tracks of time?. Because in the normal processing time, a system clock can be used. But you cannot use the system clock in case of the event time and ingestion time. So there has to be a generic mechanism to handle this.</p>
+
+<p>Watermarks is the mechanism used by the flink in order to signify the passing of time in stream. Watermarks are the special control events which are part of the stream itself.</p>
+
+<p><img src="https://ci.apache.org/projects/flink/flink-docs-release-1.0/apis/streaming/fig/stream_watermark_in_order.svg" alt="WaterMarks in Flink" /></p>
+
+<p>The above diagram shows, the water mark events as part of the stream. In above example, w(20) signifies a watermark event that 20 units of time have passed.These water marks can be generated using system clock in case of processing time, source in case of event time. This flexibility of keeping track of time allows flink to support different abstractions of time.</p>
+
+<p>Now we understand different time abstractions supported by Flink. In next blog, we will look at how to use work with event time.</p>
+
+<h2 id="compared-to-spark-streaming-api">Compared to Spark Streaming API</h2>
+
+<p>This section is only applicable to you, if you have done spark streaming before. If you are not familiar with Apache Spark feel free to skip it.</p>
+
+<p>Spark streaming only supports the processing time as of now. The time is tracked using the internal clock in the spark driver.</p>
+
+<h2 id="references">References</h2>
+
+<p>Event time in Flink Docs - <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.0/apis/streaming/event_time.html">https://ci.apache.org/projects/flink/flink-docs-release-1.0/apis/streaming/event_time.html</a>.</p>
+
 
 </article>
 <div class="related">
@@ -83,38 +132,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">17 Apr 2016</span>
-     &raquo; <a href="/apache-beam-next-step-in-big-data-unification">Apache Beam : Next Step in Big Data Unification</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">05 Mar 2016</span>
-     &raquo; <a href="/whats-new-in-spark-framework-improvements">What's New in Spark : Tales from Spark Summit East - Framework Improvements</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">04 Mar 2016</span>
-     &raquo; <a href="/introduction-to-spark-2.0">Introduction to Spark 2.0 : A Sneak Peek At Next Generation Spark</a>    
-   </li>           
-         
-
-   
-   
-             
-    
-    <li>    
-     <span class="post-date">27 Apr 2016</span>
-     &raquo; <a href="/introduction-to-flink-streaming-part-8">Introduction to Flink Streaming - Part 8 : Understanding Time in Flink Streaming</a>    
-   </li>           
-         
+          
 
             
     
@@ -129,6 +147,27 @@
     <li>    
      <span class="post-date">05 Apr 2016</span>
      &raquo; <a href="/introduction-to-flink-streaming-part-6">Introduction to Flink Streaming - Part 6 : Anatomy of Window API</a>    
+   </li>           
+         
+
+   
+   
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">17 Apr 2016</span>
+     &raquo; <a href="/apache-beam-next-step-in-big-data-unification">Apache Beam : Next Step in Big Data Unification</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">06 Apr 2016</span>
+     &raquo; <a href="/introduction-to-flink-streaming-part-7">Introduction to Flink Streaming - Part 7 : Implementing Session Windows using Custom Trigger</a>    
    </li>           
          
 
