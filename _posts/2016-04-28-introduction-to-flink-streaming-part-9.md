@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Introduction to Flink Streaming - Part 9 : Event time in Flink"
+title: "Introduction to Flink Streaming - Part 9 : Event Time in Flink"
 date : 2016-04-28
 categories: scala flink flink-streaming
 ---
