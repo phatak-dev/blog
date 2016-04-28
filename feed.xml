@@ -7,6 +7,101 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Flink Streaming - Part 9 : Event time in Flink</title>
+        <description>&lt;p&gt;In the last post in our flink series , we discussed about different abstractions of time supported in flink. In this we are going to discuss about how to work with these different abstractions. I will be discussing about event time abstraction specifically as it will be pretty new to users who are coming from other stream processing systems.  You can find all the other posts in the series &lt;a href=&quot;/categories/flink-streaming&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;event-time-in-flink&quot;&gt;Event time in Flink&lt;/h2&gt;
+
+&lt;p&gt;Event time, as name suggests, is the time when event is generated. Normally the data which we collect from sources like sensors, logs have a time embedded in them. This time signifies when a given event is generated at the source. Flink allows us to work with this time, with event time support in the framework level.&lt;/p&gt;
+
+&lt;p&gt;Whenever we talk about time, normally we need to address two different components of it. They are&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;When a given event is generated?&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;How long ago a given event is generated?&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The first question is about where a given event fits in event time line. The second question deals about tracking  of passing of time. Answering these two questions helps us to define how event time works in Flink.&lt;/p&gt;
+
+&lt;h2 id=&quot;event-time-characteristic&quot;&gt;Event time characteristic&lt;/h2&gt;
+
+&lt;p&gt;Before we start answering above questions, we need to understand how to tell to flink that we want to use event time abstraction. Flink uses processing time as default time abstraction. We can change it using below code.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setStreamTimeCharacteristic&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;TimeCharacteristic&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;EventTime&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above line, we are setting in environment that we are going to use event time as our time characteristic.&lt;/p&gt;
+
+&lt;h2 id=&quot;when-an-event-is-generated&quot;&gt;When an event is generated?&lt;/h2&gt;
+
+&lt;p&gt;Once we have, set the time as event, we need to now say when a given event is occurred. There are few ways to do in flink. One of the easiest way is extract the time stamp embedded in the event itself.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Stock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;symbol&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;socketTextStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;localhost&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;9000&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  
+  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;parsedStream&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;columns&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;,&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;nc&quot;&gt;Stock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;columns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toLong&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;columns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;columns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toDouble&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+   &lt;span class=&quot;o&quot;&gt;})&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above code, we declared a model which tracks stock price in a given point of time. The first field is timestamp of stock, then second is the symbol and third one is the value of the stock at that point of given time. Normally stock price analysis depends on event time rather than processing time as they want to correlate the change in stock prices when they happened in the market rather than they ended up in our processing engine.&lt;/p&gt;
+
+&lt;p&gt;So once we define the model, we convert of string network stream into model which we want to use. So the time in the model, signifies when this stock reading is done.&lt;/p&gt;
+
+&lt;h2 id=&quot;passing-of-time&quot;&gt;Passing of time&lt;/h2&gt;
+
+&lt;p&gt;Whenever we say, we want to calculate max of a stock in last 5 seconds, how flink knows all the records for that 5 seconds are reached? It’s the way of saying how flink knows the passage of time in the source? We cannot use system clocks because there will be delay between these two systems.&lt;/p&gt;
+
+&lt;p&gt;As we discussed in previous post, watermarks are the solution to this problem. Watermark signify the passage of time in source which will help to flink to understand flow in time. One of the easiest way of water marking is called ascending time. The below code show how to use ascending watermarks.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;timedValue&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;parsedStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;assignAscendingTimestamps&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The meaning of ascending timestamps is, whenever an event of t is occurred, it signifies that all the events happened before t are arrived to the system. This is very simplistic view of event time, as it doesn’t have a robust support for the late events. Still it’s good enough to understand overall event time abstraction. This will become much clearer when we run the example.&lt;/p&gt;
+
+&lt;p&gt;Once we have the both questions answered, we can now work with event time to group relevant stocks.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keyedStream&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;timedValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;keyBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;symbol&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;timeWindow&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keyedStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;timeWindow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seconds&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;value&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;timedwindow&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;timeWindow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;print sink&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above code, calculates max of a given stock price in last 10 seconds.&lt;/p&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/flink-examples/blob/master/src/main/scala/com/madhukaraphatak/flink/streaming/examples/EventTimeExample.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;running-the-example&quot;&gt;Running the example&lt;/h2&gt;
+
+&lt;p&gt;Behavior of event time is best understood using an example. If you are still confused about ascending time stamps, this example should be able help you understand details. Make sure you run this example in local mode, rather from an IDE. For more information how to run flink examples in local mode, refer to this &lt;a href=&quot;/introduction-to-flink-streaming-part-3/&quot;&gt;post&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Enter the below are the records in socket console. These are records for AAPL with time stamps. The first records is for time Wed, 27 Apr 2016 11:34:22 GMT.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;1461756862000,&amp;quot;aapl&amp;quot;,500.0&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now we send the next record, which is after 5 seconds. This signifies to flink that, 5 seconds have passed in source. Nothing will evaluate yet, as we are looking for 10 seconds window. This event is for time Wed, 27 Apr 2016 11:34:27 GMT&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;1461756867000,&amp;quot;aapl&amp;quot;,600.0&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now we send another event, which is after 6 seconds from this time. Now flink understands 11 seconds have been passed and will evaluate the window. This event is for Wed, 27 Apr 2016 11:34:32 GMT&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;1461756872000,&amp;quot;aapl&amp;quot;,400.0&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now flink prints, maximum value as below in 10 seconds.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;1461756872000,&amp;quot;aapl&amp;quot;,600.0&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This shows how flink is keeping track of time using ascending watermarks to keep track of time in event time.&lt;/p&gt;
+</description>
+        <pubDate>Thu, 28 Apr 2016 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-9</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-9</guid>
+      </item>
+    
+      <item>
         <title>Introduction to Flink Streaming - Part 8 : Understanding Time in Flink Streaming</title>
         <description>&lt;p&gt;Time plays an important role in streaming applications. Using time, we can group, correlate different events happening in the stream. Some of the constructs like window, heavily use the time component. Most of the streaming frameworks supports a single meaning of time, which is mostly tied to the processing time.&lt;/p&gt;
 
@@ -849,81 +944,6 @@ hello who are you&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
         <pubDate>Mon, 07 Mar 2016 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-1</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-1</guid>
-      </item>
-    
-      <item>
-        <title>Interactive Scheduling using Azkaban - Part 2 : Challenges in scheduling interactive workloads</title>
-        <description>&lt;p&gt;Every big data application needs some kind of scheduling to run daily jobs. So over the years having a good stable scheduling systems for hadoop, spark jobs has become more and more important. The different workloads in big data have different requirements from  the scheduler. So in this blog post I will be discussing about different scheduling requirements for batch, streaming and interactive usecases and challenges associated with interactive workload.&lt;/p&gt;
-
-&lt;p&gt;This is second post in series of blogs where I will be discussing about using Azkaban scheduler to do interactive scheduling. You can access all other posts from the series &lt;a href=&quot;/categories/azkaban&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;scheduling-needs-of-different-big-data-workloads&quot;&gt;Scheduling needs of different big data workloads&lt;/h2&gt;
-
-&lt;p&gt;The below are the different requirements of big data workloads from scheduler system.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;batch&quot;&gt;Batch&lt;/h3&gt;
-    &lt;p&gt;Set of jobs which needs to be executed on timely manner. In this scenario, a scheduler system needs to allow user to define the script with all the dependencies of a flow and allow it to be scheduled. To add/modify the jobs user will normally changes the script and runs the updated ones. The examples for these kind of scheduler systems are Ozzie, airflow etc.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;streaming&quot;&gt;Streaming&lt;/h3&gt;
-    &lt;p&gt;Continuous stream of data is processed to produce results. Normally streaming only needs scheduler to initiate stream processing system and from there streaming framework will take over.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The above two scenarios are one of most supported and common place in big data world from quite sometime. So all the scheduling system, including azkaban, supports them well. But there is a new workload emerging these days which needs special attention.&lt;/p&gt;
-
-&lt;h2 id=&quot;interactive-big-data-workload&quot;&gt;Interactive big data workload&lt;/h2&gt;
-
-&lt;p&gt;As spark became popular, it has made interactive programming as one of the important part of big data workloads. In interactive settings, a user will be analyzing the data adhocly and once he/she is happy with the steps then they want to schedule them to run in timely manner.&lt;/p&gt;
-
-&lt;p&gt;The notebook systems like Zeppelin,Jupiter have made interactive programming highly popular. Initially used for the data science use cases, they are also used for data engineering use cases these days.&lt;/p&gt;
-
-&lt;p&gt;So as interactive workloads becoming common place, supporting ability to scheduling jobs interactively becoming more and more important. But doing this with existing systems is not easy.&lt;/p&gt;
-
-&lt;h2 id=&quot;challenges-of-scheduling-interactive-workloads&quot;&gt;Challenges of scheduling Interactive workloads&lt;/h2&gt;
-
-&lt;p&gt;Unlike batch workloads, interactive workloads are not static. They evolve as user adds/removes the code. Normally user may want to add / remove scheduling on the fly rather than modifying the script. So the non azkaban frameworks cannot be used in scenario because of following reasons.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;nolimited-rest-api-support&quot;&gt;No/Limited REST API support&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Most of the scheduling systems like oozie have very limited support for programmatic access. Often they rely upon the traditional scripting world, where you need to configure jobs using script and submit them. It works great for batch, but cannot be used for interactive applications as they need an good programmatic API to schedule jobs.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;lack-of-good-user-interface-for-monitoring&quot;&gt;Lack of good user interface for monitoring&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Most of the scheduling system have very limited user interfaces. Most of them limit themselves to show work flow graphs. Also many of them doesn’t allow users to extend the user interfaces which results in building the custom ones themselves.&lt;/p&gt;
-
-&lt;p&gt;In batch, normally user interface is not that important. But in interactive it plays a huge role. Ability to monitor the jobs in a small time frame is important as it results in a good user feed back.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;support-for-different-executors&quot;&gt;Support for different executors&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Many scheduling systems limit themselves for Hadoop or Spark. But in interactive application one often likes to run different kind of processing on same system. So ability to run different workloads becomes extremely important.&lt;/p&gt;
-
-&lt;p&gt;So from above points it’s clear that the most of the existing scheduler systems are geared towards the batch processing scenarios. So using them in a interactive application is hard.&lt;/p&gt;
-
-&lt;h2 id=&quot;note-on-azkaban-for-batch-workload&quot;&gt;Note on Azkaban for batch workload&lt;/h2&gt;
-
-&lt;p&gt;Though my blog posts are focusing on using azkaban for interactive workloads, azkaban fares well in the batch also. Even most of it’s documentation is dedicated to do batch scheduling using it’s web UI rather than for interactive workloads. But with it’s hidden gem of REST API, it’s well suited for the interactive applications too.&lt;/p&gt;
-
-&lt;p&gt;So in this blogpost, we discussed about challenges in scheduling interactive workloads. In the next blogpost, we are going to discuss how azkaban solves these issues and is good candidate scheduler framework for interactive workloads.&lt;/p&gt;
-
-</description>
-        <pubDate>Mon, 07 Mar 2016 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/interactive-scheduling-using-azkaban-challenges-in-scheduling-interactive-workloads</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/interactive-scheduling-using-azkaban-challenges-in-scheduling-interactive-workloads</guid>
       </item>
     
   </channel>
