@@ -7,7 +7,7 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
-        <title>Introduction to Flink Streaming - Part 9 : Event time in Flink</title>
+        <title>Introduction to Flink Streaming - Part 9 : Event Time in Flink</title>
         <description>&lt;p&gt;In the last post in our flink series , we discussed about different abstractions of time supported in flink. In this we are going to discuss about how to work with these different abstractions. I will be discussing about event time abstraction specifically as it will be pretty new to users who are coming from other stream processing systems.  You can find all the other posts in the series &lt;a href=&quot;/categories/flink-streaming&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
 &lt;h2 id=&quot;event-time-in-flink&quot;&gt;Event time in Flink&lt;/h2&gt;
