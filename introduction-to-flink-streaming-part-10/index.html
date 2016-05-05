@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>JSON in Akka HTTP</title>
+    <title>Introduction to Flink Streaming - Part 10 : Meetup Talk</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/json-in-akka-http">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-10">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,79 +45,27 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>JSON in Akka HTTP</h1>
-  <p class="meta">Nov 13, 2015</p>
+  <h1>Introduction to Flink Streaming - Part 10 : Meetup Talk</h1>
+  <p class="meta">May 5, 2016</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
-    <a href="/categories/akka-http"><span class="category">akka-http</span></a>
+    <a href="/categories/flink"><span class="category">flink</span></a>
+    
+    <a href="/categories/flink-streaming"><span class="category">flink-streaming</span></a>
+    
+    <a href="/categories/talks"><span class="category">talks</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>Akka-Http is a akka based http library for building RESTful services in scala. In this series of posts, I will be talking about using akka-http to build REST services. This is the second post in the series. You can access all the posts in this series <a href="/categories/akka-http/">here</a>.</p>
+  <p>In our flink <a href="/categories/flink-streaming">series</a>, we have discussed different aspects of flink streaming API. Recently I gave a talk, Introduction to Flink Streaming, which captures all of this and more in a 2 hour talk.</p>
 
-<p>In this post, we are going to discuss how to use json with akka-http for communicating request and responses</p>
+<p>In this post, I am sharing the recording of that talk. Find the slides on <a href="http://www.slideshare.net/datamantra/introduction-to-flink-streaming">slideshare</a> and code on <a href="https://github.com/phatak-dev/flink-examples">github</a>.</p>
 
-<p>TL;TR You can access complete project on <a href="https://github.com/phatak-dev/akka-http-examples">github</a>.</p>
-
-<h2 id="adding-dependency">Adding dependency</h2>
-
-<p>Akka HTTP uses the akka-http-spray-json library for parsing json request and responses. So add the following dependency to your project.</p>
-
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="s">&quot;com.typesafe.akka&quot;</span> <span class="o">%%</span> <span class="s">&quot;akka-http-spray-json-experimental&quot;</span> <span class="o">%</span> <span class="s">&quot;1.0&quot;</span></code></pre></div>
-
-<h2 id="rest-api-with-json">REST API with JSON</h2>
-
-<p>In this example, we are going to create an API which can add/list customers. The following are the steps to add the API.</p>
-
-<h3 id="define-customer-model">1. Define customer model</h3>
-
-<p>Akka HTTP uses case classes to define the models. So we define a simple customer model which has only name.</p>
-
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">case</span> <span class="k">class</span> <span class="nc">Customer</span><span class="o">(</span><span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span></code></pre></div>
-
-<h3 id="create-writerreader-for-the-model">2. Create Writer/Reader for the model</h3>
-
-<p>In spary-json, we have to define the write/reader for a given model in order to be used in the request/response. Most of the time it is very simple as defining the implicit as below.</p>
-
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">object</span> <span class="nc">ServiceJsonProtoocol</span> <span class="k">extends</span> <span class="nc">DefaultJsonProtocol</span> <span class="o">{</span>
-    <span class="k">implicit</span> <span class="k">val</span> <span class="n">customerProtocol</span> <span class="k">=</span> <span class="n">jsonFormat1</span><span class="o">(</span><span class="nc">Customer</span><span class="o">)</span>
-<span class="o">}</span></code></pre></div>
-
-<p>In the above code snippet, we are creating a service protocol which extends the default protocol. Inside this protocol, we can define all the models. In above code, the number ‘1’ in jsonFormat1 signifies there is only one field in case class.</p>
-
-<h3 id="defining-the-route">3. Defining the route</h3>
-
-<p>Once we have the model and parser implicits, we can define a route which has post for adding a customer and get to get all the added customers.</p>
-
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">route</span> <span class="k">=</span>
-    <span class="n">path</span><span class="o">(</span><span class="s">&quot;customer&quot;</span><span class="o">)</span> <span class="o">{</span>
-      <span class="n">post</span> <span class="o">{</span>
-        <span class="n">entity</span><span class="o">(</span><span class="n">as</span><span class="o">[</span><span class="kt">Customer</span><span class="o">])</span> <span class="o">{</span>
-          <span class="n">customer</span> <span class="k">=&gt;</span> <span class="n">complete</span> <span class="o">{</span>
-            <span class="n">list</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">customer</span><span class="o">)</span>
-              <span class="n">s</span><span class="s">&quot;got customer with name ${customer.name}&quot;</span>
-            <span class="o">}</span>
-          <span class="o">}</span>
-        <span class="o">}</span> <span class="o">~</span>
-        <span class="n">get</span> <span class="o">{</span>
-          <span class="n">complete</span> <span class="o">{</span>
-            <span class="n">list</span><span class="o">.</span><span class="n">asScala</span>
-        <span class="o">}</span>
-      <span class="o">}</span>
-    <span class="o">}</span></code></pre></div>
-
-<p>In above example, an entity is parsed in post request using entity(as).
-Once we have the customer, we are adding it to a concurrent queue.</p>
-
-<p>In the get method, we are taking all the values in the list and converting to a JSArray.</p>
-
-<p>You can access complete code <a href="https://github.com/phatak-dev/akka-http-examples/blob/master/src/main/scala/com/madhukaraphatak/akkahttp/AkkaJsonParsing.scala">here</a>.</p>
-
-<p>Now you have a working REST api in akka-http which can handle json data.</p>
+<div class="video-container"> <iframe src="https://www.youtube.com/embed/IZVdcAOeS70" frameborder="0" width="560" height="315"></iframe> </div>
 
 </article>
 <div class="related">
@@ -125,12 +73,7 @@ Once we have the customer, we are adding it to a concurrent queue.</p>
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">05 May 2016</span>
-     &raquo; <a href="/introduction-to-flink-streaming-part-10">Introduction to Flink Streaming - Part 10 : Meetup Talk</a>    
-   </li>           
-         
+          
 
             
     
@@ -151,21 +94,21 @@ Once we have the customer, we are adding it to a concurrent queue.</p>
    
    
              
-    
-    <li>    
-     <span class="post-date">20 Nov 2015</span>
-     &raquo; <a href="/akka-http-testing">Akka HTTP testing</a>    
-   </li>           
-         
-
-            
           
 
             
     
     <li>    
-     <span class="post-date">13 Nov 2015</span>
-     &raquo; <a href="/akka-http-helloworld">Akka HTTP Hello world</a>    
+     <span class="post-date">28 Apr 2016</span>
+     &raquo; <a href="/introduction-to-flink-streaming-part-9">Introduction to Flink Streaming - Part 9 : Event Time in Flink</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">27 Apr 2016</span>
+     &raquo; <a href="/introduction-to-flink-streaming-part-8">Introduction to Flink Streaming - Part 8 : Understanding Time in Flink Streaming</a>    
    </li>           
          
 
