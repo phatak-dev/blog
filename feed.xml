@@ -7,6 +7,76 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Spark 2.0 - Part 1 : Spark Session API</title>
+        <description>&lt;p&gt;Spark 2.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 2.0.&lt;/p&gt;
+
+&lt;p&gt;This is the first blog in series, where I will be discussing about new entry point in the framework. You can access all the posts in the series &lt;a href=&quot;/categories/spark-two/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR All code examples are available on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;dataset---new-abstraction-of-spark&quot;&gt;Dataset - New Abstraction of Spark&lt;/h3&gt;
+
+&lt;p&gt;For long, RDD was the standard abstraction of Spark. But from Spark 2.0, Dataset will become the new abstraction layer for spark. Though RDD API will be available, it will become low level API, used mostly for runtime and library development. All user land code will be written against the Dataset abstraction and it’s subset Dataframe API.&lt;/p&gt;
+
+&lt;p&gt;Dataset is a superset of Dataframe API which is released in Spark 1.3. Dataset together with Dataframe API brings better performance and flexibility to the platform compared to RDD API. Dataset will be also replacing RDD as an abstraction for streaming in future releases.&lt;/p&gt;
+
+&lt;h3 id=&quot;sparksession---new-entry-point-of-spark&quot;&gt;SparkSession - New entry point of Spark&lt;/h3&gt;
+
+&lt;p&gt;In earlier versions of spark, spark context was entry point for Spark. As RDD was main API, it was created and manipulated using context API’s. For every other API,we needed to use different contexts.For streaming, we needed StreamingContext, for SQL sqlContext and for hive HiveContext. But as DataSet and Dataframe API’s are becoming new standard API’s we need an entry point build for them. So in Spark 2.0, we have a new entry point for DataSet and Dataframe API’s called as Spark Session.&lt;/p&gt;
+
+&lt;p&gt;SparkSession is essentially combination of SQLContext, HiveContext and future StreamingContext. All the API’s available on those contexts are available on spark session also. Spark session internally has a spark context for actual computation.&lt;/p&gt;
+
+&lt;p&gt;So in rest of our post, we will discuss how to create and interact with Spark session.&lt;/p&gt;
+
+&lt;h3 id=&quot;creating-sparksession&quot;&gt;Creating SparkSession&lt;/h3&gt;
+
+&lt;p&gt;SparkSession follows builder factory design pattern. The below is the code to create a spark session.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;master&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;local&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;appName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;spark session example&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getOrCreate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above is similar to creating an SparkContext with local and creating an SQLContext wrapping it. If you need to create, hive context you can use below code to create spark session with hive support.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;master&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;local&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;appName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;spark session example&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;enableHiveSupport&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getOrCreate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;enableHiveSupport&lt;/strong&gt; on factory enables hive support which is similiar to HiveContext.&lt;/p&gt;
+
+&lt;p&gt;Once we have created spark session, we can use it to read the data.&lt;/p&gt;
+
+&lt;h2 id=&quot;read-data-using-spark-session&quot;&gt;Read data using Spark Session&lt;/h2&gt;
+
+&lt;p&gt;The below code is reading data from csv using spark session.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;csv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;src/main/resources/sales.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;It looks like exactly like reading using SQLContext. You can easily replace all your code of SQLContext with SparkSession now.&lt;/p&gt;
+
+&lt;p&gt;You can access complete code &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/SparkSessionExample.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;is-sqlcontext-and-hivecontext-going-away&quot;&gt;Is SQLContext and HiveContext going away?&lt;/h3&gt;
+
+&lt;p&gt;Not really. Spark is big on backward compatibility. So these API’s are still available. Though from documentation it’s clear that they want developers to use SparkSession going forward.&lt;/p&gt;
+
+&lt;p&gt;So in this post, we learnt about new spark API called SparkSession. This will be our new entry point of spark code in future.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;Apache Spark 2.0 presented by Databricks co-founder Reynold Xin - &lt;a href=&quot;https://www.brighttalk.com/webcast/12891/202021&quot;&gt;https://www.brighttalk.com/webcast/12891/202021&lt;/a&gt;&lt;/p&gt;
+
+</description>
+        <pubDate>Wed, 11 May 2016 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-spark-two-part-1</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-two-part-1</guid>
+      </item>
+    
+      <item>
         <title>Introduction to Flink Streaming - Part 10 : Meetup Talk</title>
         <description>&lt;p&gt;In our flink &lt;a href=&quot;/categories/flink-streaming&quot;&gt;series&lt;/a&gt;, we have discussed different aspects of flink streaming API. Recently I gave a talk, Introduction to Flink Streaming, which captures all of this and more in a 2 hour talk.&lt;/p&gt;
 
@@ -789,55 +859,6 @@ hello who are you&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
         <pubDate>Thu, 10 Mar 2016 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-3</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-3</guid>
-      </item>
-    
-      <item>
-        <title>Introduction to Flink Streaming - Part 2 : Discretization of Stream using Window API</title>
-        <description>&lt;p&gt;In the last &lt;a href=&quot;/introduction-to-flink-streaming-part-1&quot;&gt;blog&lt;/a&gt;, we discussed about how to do continuous stream processing using flink streaming API. Our wordcount example keeps on updating the counts as and when we received new data. This is good for some of the use cases. But in some use cases we want to aggregate some set of records in a given time interval, in order to keep track of variance over time. In those cases, we need to divide the stream into small batches. This discretization allow us to capture the change in aggregated value overtime. This discretized batches is also known as micro batches.&lt;/p&gt;
-
-&lt;p&gt;In this second blog, I will be discussing about how to discretized the stream using flink’s window operation.We will be using same word count example in this post also. You can access all the blogs in the series &lt;a href=&quot;/categories/flink-streaming/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;TL;DR&lt;/strong&gt; All code is written using Flink’s scala API and you can access it on &lt;a href=&quot;https://github.com/phatak-dev/flink-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;window-in-streaming&quot;&gt;Window in streaming&lt;/h2&gt;
-
-&lt;p&gt;Window is a mechanism to take a snapshot of the stream. This snapshot can be based on time or other variables. For example, if we create a window for 5 seconds then it will be all the records which arrived in the that time frame. You can define the window based on no of records or other stream specific variables also.&lt;/p&gt;
-
-&lt;p&gt;Window allows us to understand change in stream data by taking snapshots in regular intervals. Flink API has wide variety of window support. In this post we are only going to focus on one kind of window known as Tumbling Windows.&lt;/p&gt;
-
-&lt;h2 id=&quot;tumbling-window-in-flink-streaming&quot;&gt;Tumbling Window in Flink Streaming&lt;/h2&gt;
-
-&lt;p&gt;Tumbling window is one kind of windowing operation which will discretize the stream into non overlapping windows. This means every record in the stream only belongs to one window. This kind of discretization allows observing the change in the stream over fixed intervals. There are other kind of windows supported in the flink which we will discuss in the future posts.&lt;/p&gt;
-
-&lt;h2 id=&quot;windowed-wordcount-example&quot;&gt;Windowed Wordcount example&lt;/h2&gt;
-
-&lt;p&gt;In last blog, we saw how to calculate wordcount using Flink API. In this post, we will be calculating wordcount for every 15 seconds. So in this example, we will be dividing the stream for every 15 seconds. Once those 15 seconds passes, the count will be started from zero.&lt;/p&gt;
-
-&lt;p&gt;This example shows to how to snapshot wordcount for each 15 seconds to analyze the trend over time to say how wordcount have changed. This is not possible when we have continuous updation of the count as in earlier example.&lt;/p&gt;
-
-&lt;p&gt;Most of the code to setup and run is same as earlier example. So I am only going to focus on how to add tumbling window to our stream&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keyValuePair&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wordsStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;keyBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;timeWindow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seconds&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;15&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;countStream&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keyValuePair&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above code creates a window using timeWindow API. timeWindow API internally uses tumbling window API to do the windowing operation. In this case, the wordcount will be counted for each 15 seconds and then forgotten.&lt;/p&gt;
-
-&lt;p&gt;You can access complete code &lt;a href=&quot;https://github.com/phatak-dev/flink-examples/blob/master/src/main/scala/com/madhukaraphatak/flink/streaming/examples/WindowedStreamingWordCount.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;compared-to-spark-streaming-api&quot;&gt;Compared to Spark Streaming API&lt;/h2&gt;
-
-&lt;p&gt;This section is only applicable to you, if you have done spark streaming before. If you are not familiar with Apache Spark feel free to skip it.&lt;/p&gt;
-
-&lt;p&gt;The tumbling windows in Flink are similar to microbatches in Spark. As in spark microbatch, tumbling windows are used for discretizing stream into independent batches.&lt;/p&gt;
-
-&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
-
-&lt;p&gt;Introducing Stream Windows in Apache Flink - &lt;a href=&quot;https://flink.apache.org/news/2015/12/04/Introducing-windows.html&quot;&gt;https://flink.apache.org/news/2015/12/04/Introducing-windows.html&lt;/a&gt;.&lt;/p&gt;
-</description>
-        <pubDate>Tue, 08 Mar 2016 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-2</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-2</guid>
       </item>
     
   </channel>

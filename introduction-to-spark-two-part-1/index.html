@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Introduction to Flink Streaming - Part 3 : Running Streaming Applications in Flink Local Mode</title>
+    <title>Introduction to Spark 2.0 - Part 1 : Spark Session API</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-3">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-spark-two-part-1">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,112 +45,82 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Introduction to Flink Streaming - Part 3 : Running Streaming Applications in Flink Local Mode</h1>
-  <p class="meta">Mar 10, 2016</p>
+  <h1>Introduction to Spark 2.0 - Part 1 : Spark Session API</h1>
+  <p class="meta">May 11, 2016</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
-    <a href="/categories/flink"><span class="category">flink</span></a>
+    <a href="/categories/spark"><span class="category">spark</span></a>
     
-    <a href="/categories/flink-streaming"><span class="category">flink-streaming</span></a>
+    <a href="/categories/spark-two"><span class="category">spark-two</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>In the last two blogs of our <a href="/categories/flink-streaming/">series</a>, we discussed about how to use flink streaming API’s to do word count. In those blogs we ran our examples from IDE. IDE is a good way to start learning any API. But if we want to understand how code executes in distributed setting it will be good to run it outside of IDE.</p>
+  <p>Spark 2.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 2.0.</p>
 
-<p>In this third blog, I will be discussing about how to run flink streaming examples in local mode, which is a good starting point to understand distributed nature of flink. Access other blog in the series <a href="/categories/flink-streaming/">here</a>.</p>
+<p>This is the first blog in series, where I will be discussing about new entry point in the framework. You can access all the posts in the series <a href="/categories/spark-two/">here</a>.</p>
 
-<h2 id="modes-of-execution-in-flink">Modes of execution in Flink</h2>
-<p>As with any modern big data frameworks, flink allows user to run the code on different cluster management systems. No change in code is required to run on these different systems. This makes it very easy to change the cluster management system depending on the use case.</p>
+<p>TL;DR All code examples are available on <a href="https://github.com/phatak-dev/spark2.0-examples">github</a>.</p>
 
-<p>The different modes of execution supported in flink are</p>
+<h3 id="dataset---new-abstraction-of-spark">Dataset - New Abstraction of Spark</h3>
 
-<ul>
-  <li>
-    <h3 id="local-mode">Local Mode</h3>
-    <p>Local mode is a pseudo distributed mode which runs all the daemons in the single jvm. It uses AKKA framework for parallel processing which underneath uses multiple threads.</p>
-  </li>
-  <li>
-    <h3 id="standalone-cluster-mode">Standalone Cluster Mode</h3>
-  </li>
-</ul>
+<p>For long, RDD was the standard abstraction of Spark. But from Spark 2.0, Dataset will become the new abstraction layer for spark. Though RDD API will be available, it will become low level API, used mostly for runtime and library development. All user land code will be written against the Dataset abstraction and it’s subset Dataframe API.</p>
 
-<p>In this setup, different daemons runs on different jvms on a single machine or multiple machines. This mode often used when we want to run only Flink in our infrastructure.</p>
+<p>Dataset is a superset of Dataframe API which is released in Spark 1.3. Dataset together with Dataframe API brings better performance and flexibility to the platform compared to RDD API. Dataset will be also replacing RDD as an abstraction for streaming in future releases.</p>
 
-<ul>
-  <li>
-    <h3 id="yarn">YARN</h3>
-  </li>
-</ul>
+<h3 id="sparksession---new-entry-point-of-spark">SparkSession - New entry point of Spark</h3>
 
-<p>This mode makes flink run on YARN cluster management. This mode often used when we want to run flink on our existing hadoop clusters.</p>
+<p>In earlier versions of spark, spark context was entry point for Spark. As RDD was main API, it was created and manipulated using context API’s. For every other API,we needed to use different contexts.For streaming, we needed StreamingContext, for SQL sqlContext and for hive HiveContext. But as DataSet and Dataframe API’s are becoming new standard API’s we need an entry point build for them. So in Spark 2.0, we have a new entry point for DataSet and Dataframe API’s called as Spark Session.</p>
 
-<p>Though standalone/yarn is suitable for production, local mode is often good start point to understand the distributed model of flink streaming. So in this blog we will be setting up flink in local mode and run our word count example.</p>
+<p>SparkSession is essentially combination of SQLContext, HiveContext and future StreamingContext. All the API’s available on those contexts are available on spark session also. Spark session internally has a spark context for actual computation.</p>
 
-<h2 id="setting-up-local-mode">Setting up local mode</h2>
+<p>So in rest of our post, we will discuss how to create and interact with Spark session.</p>
 
-<p>The following are the steps for setting up flink in local mode.</p>
+<h3 id="creating-sparksession">Creating SparkSession</h3>
 
-<ul>
-  <li>
-    <h3 id="step-1--download-flink-10-distribution">Step 1 : Download Flink 1.0 distribution</h3>
-  </li>
-</ul>
+<p>SparkSession follows builder factory design pattern. The below is the code to create a spark session.</p>
 
-<p>You can download binary distribution of flink <a href="http://flink.apache.org/downloads.html">here</a>. As of now latest version is 1.0. As our examples are compiled against scala 2.10, choose one with that scala version. I chose hadoop 2.6 version for my examples. You can choose the one which matches your hadoop version if you have already any hadoop setup on your machine. If you don’t have any set up choose 2.6.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sparkSession</span> <span class="k">=</span> <span class="nc">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span>
+      <span class="n">master</span><span class="o">(</span><span class="s">&quot;local&quot;</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">appName</span><span class="o">(</span><span class="s">&quot;spark session example&quot;</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">getOrCreate</span><span class="o">()</span></code></pre></div>
 
-<ul>
-  <li>
-    <h3 id="step-2--extract-downloaded-file">Step 2 : Extract downloaded file</h3>
-  </li>
-</ul>
+<p>The above is similar to creating an SparkContext with local and creating an SQLContext wrapping it. If you need to create, hive context you can use below code to create spark session with hive support.</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">tar -zxvf flink-1.0.0-bin-hadoop26-scala_2.10.tgz</code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sparkSession</span> <span class="k">=</span> <span class="nc">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span>
+      <span class="n">master</span><span class="o">(</span><span class="s">&quot;local&quot;</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">appName</span><span class="o">(</span><span class="s">&quot;spark session example&quot;</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">enableHiveSupport</span><span class="o">()</span>
+      <span class="o">.</span><span class="n">getOrCreate</span><span class="o">()</span></code></pre></div>
 
-<ul>
-  <li>
-    <h3 id="step-3--start-flink-in-local-mode">Step 3 : Start Flink in local mode</h3>
-  </li>
-</ul>
+<p><strong>enableHiveSupport</strong> on factory enables hive support which is similiar to HiveContext.</p>
 
-<p>The below command starts the flink in localmode.</p>
+<p>Once we have created spark session, we can use it to read the data.</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">bin/start-local.sh</code></pre></div>
+<h2 id="read-data-using-spark-session">Read data using Spark Session</h2>
 
-<p>Once it started successfully, you can access web UI at <a href="http://localhost:8081">http://localhost:8081</a>.</p>
+<p>The below code is reading data from csv using spark session.</p>
 
-<h2 id="packaging-code">Packaging code</h2>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span><span class="s">&quot;true&quot;</span><span class="o">).</span>
+    <span class="n">csv</span><span class="o">(</span><span class="s">&quot;src/main/resources/sales.csv&quot;</span><span class="o">)</span></code></pre></div>
 
-<p>Once we have the local flink running, we need to package our code as the jar in order to run. Use the below sbt command to create jar.</p>
+<p>It looks like exactly like reading using SQLContext. You can easily replace all your code of SQLContext with SparkSession now.</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">sbt clean package</code></pre></div>
+<p>You can access complete code <a href="https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/SparkSessionExample.scala">here</a>.</p>
 
-<p>Once the build is successful, you will get <em>flink-examples_2.10-1.0.jar</em> under directory <em>target/scala-2.10</em>.</p>
+<h3 id="is-sqlcontext-and-hivecontext-going-away">Is SQLContext and HiveContext going away?</h3>
 
-<h2 id="running-wordcount-in-local-mode">Running wordcount in local mode</h2>
+<p>Not really. Spark is big on backward compatibility. So these API’s are still available. Though from documentation it’s clear that they want developers to use SparkSession going forward.</p>
 
-<p>Once we have packaged jar, now we can run it outside IDE. Run the below command from flink directory. Replace the path to jar with absolute path to the jar generated in last step.</p>
-
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">bin/flink run -c com.madhukaraphatak.flink.streaming.examples.StreamingWordCount &lt;path-to-flink-examples_2.10-1.0.jar&gt;</code></pre></div>
-
-<p>The above command uses <em>flink</em> command to run the example. <em>flink</em>  is a command used for interact with jobs. The <em>run</em> sub command is used for submit jobs. <em>-c</em> option indicates the jar to be added to classpath. Next two parameters are main class and the jar path.</p>
-
-<p>Once you run the above command, wordcount start running in the local mode. You can see this running job <a href="http://localhost:8081/#/running-jobs">here</a>. As you enter the lines in socket you can observe output <a href="http://localhost:8081/#/jobmanager/stdout">here</a>.</p>
-
-<p>Now we have successfully ran our example outside IDE in flink local mode.</p>
-
-<h2 id="compared-to-spark">Compared to Spark</h2>
-
-<p>This section is only applicable to you, if you have done spark streaming before. If you are not familiar with Apache Spark feel free to skip it.</p>
-
-<p>The local mode of flink, is similar to spark local mode. <em>flink</em> command is similar to <em>spark-submit</em>. One of the difference is, in spark you don’t need to start web ui daemon as spark itself starts it when you create spark context.</p>
+<p>So in this post, we learnt about new spark API called SparkSession. This will be our new entry point of spark code in future.</p>
 
 <h2 id="references">References</h2>
 
-<p>Flink Local Setup - <a href="https://ci.apache.org/projects/flink/flink-docs-master/setup/local_setup.html">https://ci.apache.org/projects/flink/flink-docs-master/setup/local_setup.html</a>.</p>
+<p>Apache Spark 2.0 presented by Databricks co-founder Reynold Xin - <a href="https://www.brighttalk.com/webcast/12891/202021">https://www.brighttalk.com/webcast/12891/202021</a></p>
+
 
 </article>
 <div class="related">
@@ -158,12 +128,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">11 May 2016</span>
-     &raquo; <a href="/introduction-to-spark-two-part-1">Introduction to Spark 2.0 - Part 1 : Spark Session API</a>    
-   </li>           
-         
+          
 
             
     
@@ -184,26 +149,21 @@
    
    
              
+          
+
+            
     
     <li>    
-     <span class="post-date">05 May 2016</span>
-     &raquo; <a href="/introduction-to-flink-streaming-part-10">Introduction to Flink Streaming - Part 10 : Meetup Talk</a>    
+     <span class="post-date">17 Apr 2016</span>
+     &raquo; <a href="/apache-beam-next-step-in-big-data-unification">Apache Beam : Next Step in Big Data Unification</a>    
    </li>           
          
 
             
     
     <li>    
-     <span class="post-date">28 Apr 2016</span>
-     &raquo; <a href="/introduction-to-flink-streaming-part-9">Introduction to Flink Streaming - Part 9 : Event Time in Flink</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">27 Apr 2016</span>
-     &raquo; <a href="/introduction-to-flink-streaming-part-8">Introduction to Flink Streaming - Part 8 : Understanding Time in Flink Streaming</a>    
+     <span class="post-date">05 Mar 2016</span>
+     &raquo; <a href="/whats-new-in-spark-framework-improvements">What's New in Spark : Tales from Spark Summit East - Framework Improvements</a>    
    </li>           
          
 
