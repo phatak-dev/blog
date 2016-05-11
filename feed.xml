@@ -7,6 +7,87 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Spark 2.0 - Part 2 : Wordcount in Dataset API</title>
+        <description>&lt;p&gt;Spark 2.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 2.0.&lt;/p&gt;
+
+&lt;p&gt;This is the second blog in series, where I will be discussing about dataset abstraction of Spark. You can access all the posts in the series &lt;a href=&quot;/categories/spark-two/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR All code examples are available on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;introduction-to-dataset&quot;&gt;Introduction to Dataset&lt;/h3&gt;
+
+&lt;p&gt;Dataset is new abstraction in Spark introduced as alpha API in Spark 1.6. It’s becoming stable API in spark 2.0. It’s new single abstraction for all user land code in Spark.&lt;/p&gt;
+
+&lt;p&gt;From Definition, 
+&lt;em&gt;”  
+  A &lt;strong&gt;Dataset&lt;/strong&gt; is a strongly typed collection of domain-specific objects that can be transformed
+  in parallel using functional or relational operations. Each dataset also has an untyped view
+ called a &lt;strong&gt;DataFrame&lt;/strong&gt;, which is a Dataset of &lt;strong&gt;Row&lt;/strong&gt;.
+“&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;which sounds similar to RDD definition&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;”
+ RDD represents an immutable,partitioned collection of elements that can be operated on in parallel
+“&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;The major difference is, dataset is collection of domain specific objects where as RDD is collection of any object. Domain object part of definition signifies the schema part of dataset. So dataset API is always strongly typed and optimized using schema where RDD is not.&lt;/p&gt;
+
+&lt;p&gt;Dataset definition also talks about Dataframes API. Dataframe is special dataset where there is no compilation checks for schema. So this makes dataSet new single abstraction replacing RDD from earlier versions of spark.&lt;/p&gt;
+
+&lt;p&gt;Once we understood the dataset abstraction, in rest of post we will see how to work with this abstraction.&lt;/p&gt;
+
+&lt;h2 id=&quot;dataset-wordcount-example&quot;&gt;Dataset Wordcount example&lt;/h2&gt;
+
+&lt;p&gt;As with any new API, we will learn API using how to use in WordCount example. The below is the code for wordcount in dataset API.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-1--create-sparksession&quot;&gt;Step 1 : Create SparkSession&lt;/h3&gt;
+
+&lt;p&gt;As we discussed in last blog, we use spark session as entry point for dataset API.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;master&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;local&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;appName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;example&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getOrCreate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;step-2--read-data-and-convert-to-dataset&quot;&gt;Step 2 : Read data and convert to Dataset&lt;/h3&gt;
+
+&lt;p&gt;We read data using read.text API which is similar to &lt;em&gt;textFile&lt;/em&gt; API of RDD. The &lt;em&gt;as[String]&lt;/em&gt; part of code assigns the needed schema for dataset.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sparkSession.implicits._&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;text&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;src/main/resources/data.txt&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;as&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Here &lt;em&gt;data&lt;/em&gt; will be of the type of &lt;em&gt;DataSet[String]&lt;/em&gt;. Remember to import &lt;strong&gt;sparkSession.implicits._&lt;/strong&gt; for all schema conversion magic.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-3--split-and-group-by-word&quot;&gt;Step 3 : Split and group by word&lt;/h3&gt;
+&lt;p&gt;Dataset mimics lot of RDD API’s like map, groupByKey etc. The below code we are splitting lines to get words and group them by words.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;words&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;\\s+&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;groupedWords&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;words&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupByKey&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toLowerCase&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;One thing you may observed we don’t create a key/value pair. The reason is unlike RDD, dataset works in row level abstraction. Each value is treated a row with multiple columns and any column can act as key for grouping like in database.&lt;/p&gt;
+
+&lt;h3 id=&quot;step-4---count&quot;&gt;Step 4 :  Count&lt;/h3&gt;
+&lt;p&gt;Once we have grouped, we can count each word using count method. It’s similar to &lt;em&gt;reduceByKey&lt;/em&gt; of RDD.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;counts&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;groupedWords&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;step-5--print-results&quot;&gt;Step 5 : Print results&lt;/h3&gt;
+
+&lt;p&gt;Finally once we count, we need to print the result. As with RDD, all the above API’s are lazy. We need to call an action to trigger computation. In dataset, show is one of those actions. It’s show first 20 results. If you want complete result, you can use &lt;em&gt;collect&lt;/em&gt; API.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;counts&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You can access complete code &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/DataSetWordCount.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Now we have written our first example in dataset abstraction. We will explore more about dataset API in future posts.&lt;/p&gt;
+</description>
+        <pubDate>Wed, 11 May 2016 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-spark-two-part-2</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-two-part-2</guid>
+      </item>
+    
+      <item>
         <title>Introduction to Spark 2.0 - Part 1 : Spark Session API</title>
         <description>&lt;p&gt;Spark 2.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 2.0.&lt;/p&gt;
 
@@ -759,106 +840,6 @@ hello who are you&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
         <pubDate>Sat, 12 Mar 2016 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-4</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-4</guid>
-      </item>
-    
-      <item>
-        <title>Introduction to Flink Streaming - Part 3 : Running Streaming Applications in Flink Local Mode</title>
-        <description>&lt;p&gt;In the last two blogs of our &lt;a href=&quot;/categories/flink-streaming/&quot;&gt;series&lt;/a&gt;, we discussed about how to use flink streaming API’s to do word count. In those blogs we ran our examples from IDE. IDE is a good way to start learning any API. But if we want to understand how code executes in distributed setting it will be good to run it outside of IDE.&lt;/p&gt;
-
-&lt;p&gt;In this third blog, I will be discussing about how to run flink streaming examples in local mode, which is a good starting point to understand distributed nature of flink. Access other blog in the series &lt;a href=&quot;/categories/flink-streaming/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;modes-of-execution-in-flink&quot;&gt;Modes of execution in Flink&lt;/h2&gt;
-&lt;p&gt;As with any modern big data frameworks, flink allows user to run the code on different cluster management systems. No change in code is required to run on these different systems. This makes it very easy to change the cluster management system depending on the use case.&lt;/p&gt;
-
-&lt;p&gt;The different modes of execution supported in flink are&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;local-mode&quot;&gt;Local Mode&lt;/h3&gt;
-    &lt;p&gt;Local mode is a pseudo distributed mode which runs all the daemons in the single jvm. It uses AKKA framework for parallel processing which underneath uses multiple threads.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;standalone-cluster-mode&quot;&gt;Standalone Cluster Mode&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;In this setup, different daemons runs on different jvms on a single machine or multiple machines. This mode often used when we want to run only Flink in our infrastructure.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;yarn&quot;&gt;YARN&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;This mode makes flink run on YARN cluster management. This mode often used when we want to run flink on our existing hadoop clusters.&lt;/p&gt;
-
-&lt;p&gt;Though standalone/yarn is suitable for production, local mode is often good start point to understand the distributed model of flink streaming. So in this blog we will be setting up flink in local mode and run our word count example.&lt;/p&gt;
-
-&lt;h2 id=&quot;setting-up-local-mode&quot;&gt;Setting up local mode&lt;/h2&gt;
-
-&lt;p&gt;The following are the steps for setting up flink in local mode.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;step-1--download-flink-10-distribution&quot;&gt;Step 1 : Download Flink 1.0 distribution&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;You can download binary distribution of flink &lt;a href=&quot;http://flink.apache.org/downloads.html&quot;&gt;here&lt;/a&gt;. As of now latest version is 1.0. As our examples are compiled against scala 2.10, choose one with that scala version. I chose hadoop 2.6 version for my examples. You can choose the one which matches your hadoop version if you have already any hadoop setup on your machine. If you don’t have any set up choose 2.6.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;step-2--extract-downloaded-file&quot;&gt;Step 2 : Extract downloaded file&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;tar -zxvf flink-1.0.0-bin-hadoop26-scala_2.10.tgz&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;step-3--start-flink-in-local-mode&quot;&gt;Step 3 : Start Flink in local mode&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The below command starts the flink in localmode.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;bin/start-local.sh&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Once it started successfully, you can access web UI at &lt;a href=&quot;http://localhost:8081&quot;&gt;http://localhost:8081&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;packaging-code&quot;&gt;Packaging code&lt;/h2&gt;
-
-&lt;p&gt;Once we have the local flink running, we need to package our code as the jar in order to run. Use the below sbt command to create jar.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;sbt clean package&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Once the build is successful, you will get &lt;em&gt;flink-examples_2.10-1.0.jar&lt;/em&gt; under directory &lt;em&gt;target/scala-2.10&lt;/em&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;running-wordcount-in-local-mode&quot;&gt;Running wordcount in local mode&lt;/h2&gt;
-
-&lt;p&gt;Once we have packaged jar, now we can run it outside IDE. Run the below command from flink directory. Replace the path to jar with absolute path to the jar generated in last step.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;bin/flink run -c com.madhukaraphatak.flink.streaming.examples.StreamingWordCount &amp;lt;path-to-flink-examples_2.10-1.0.jar&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above command uses &lt;em&gt;flink&lt;/em&gt; command to run the example. &lt;em&gt;flink&lt;/em&gt;  is a command used for interact with jobs. The &lt;em&gt;run&lt;/em&gt; sub command is used for submit jobs. &lt;em&gt;-c&lt;/em&gt; option indicates the jar to be added to classpath. Next two parameters are main class and the jar path.&lt;/p&gt;
-
-&lt;p&gt;Once you run the above command, wordcount start running in the local mode. You can see this running job &lt;a href=&quot;http://localhost:8081/#/running-jobs&quot;&gt;here&lt;/a&gt;. As you enter the lines in socket you can observe output &lt;a href=&quot;http://localhost:8081/#/jobmanager/stdout&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Now we have successfully ran our example outside IDE in flink local mode.&lt;/p&gt;
-
-&lt;h2 id=&quot;compared-to-spark&quot;&gt;Compared to Spark&lt;/h2&gt;
-
-&lt;p&gt;This section is only applicable to you, if you have done spark streaming before. If you are not familiar with Apache Spark feel free to skip it.&lt;/p&gt;
-
-&lt;p&gt;The local mode of flink, is similar to spark local mode. &lt;em&gt;flink&lt;/em&gt; command is similar to &lt;em&gt;spark-submit&lt;/em&gt;. One of the difference is, in spark you don’t need to start web ui daemon as spark itself starts it when you create spark context.&lt;/p&gt;
-
-&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
-
-&lt;p&gt;Flink Local Setup - &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-master/setup/local_setup.html&quot;&gt;https://ci.apache.org/projects/flink/flink-docs-master/setup/local_setup.html&lt;/a&gt;.&lt;/p&gt;
-</description>
-        <pubDate>Thu, 10 Mar 2016 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-3</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-3</guid>
       </item>
     
   </channel>
