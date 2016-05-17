@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Introduction to Spark 2.0 - Part 1 : Spark Session API</title>
+    <title>Introduction to Spark 2.0 - Part 4 : Introduction to Catalog API</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-spark-two-part-1">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-spark-two-part-4">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,8 +45,8 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Introduction to Spark 2.0 - Part 1 : Spark Session API</h1>
-  <p class="meta">May 11, 2016</p>
+  <h1>Introduction to Spark 2.0 - Part 4 : Introduction to Catalog API</h1>
+  <p class="meta">May 17, 2016</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
@@ -61,65 +61,83 @@
 <article class="post-content">
   <p>Spark 2.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 2.0.</p>
 
-<p>This is the first blog in series, where I will be discussing about new entry point in the framework. You can access all the posts in the series <a href="/categories/spark-two/">here</a>.</p>
+<p>This is the fourth blog in series, where I will be discussing about catalog API. You can access all the posts in the series <a href="/categories/spark-two/">here</a>.</p>
 
 <p>TL;DR All code examples are available on <a href="https://github.com/phatak-dev/spark2.0-examples">github</a>.</p>
 
-<h3 id="dataset---new-abstraction-of-spark">Dataset - New Abstraction of Spark</h3>
+<h2 id="catalog-api">Catalog API</h2>
 
-<p>For long, RDD was the standard abstraction of Spark. But from Spark 2.0, Dataset will become the new abstraction layer for spark. Though RDD API will be available, it will become low level API, used mostly for runtime and library development. All user land code will be written against the Dataset abstraction and it’s subset Dataframe API.</p>
+<p>DataSet with  Dataframe API supports structured data analysis in spark. One of the important aspects of structured data analysis is managing metadata. It may be temporary metadata like temp table, registered udfs on SQL context or permanent metadata like Hive meta store or HCatalog.</p>
 
-<p>Dataset is a superset of Dataframe API which is released in Spark 1.3. Dataset together with Dataframe API brings better performance and flexibility to the platform compared to RDD API. Dataset will be also replacing RDD as an abstraction for streaming in future releases.</p>
+<p>In earlier versions of spark, there was no standard API to access this metadata. Users used to use queries like <em>show tables</em> and others to query this metadata. These queries often needed raw string manipulation and used to differ depending upon the underneath meta store.</p>
 
-<h3 id="sparksession---new-entry-point-of-spark">SparkSession - New entry point of Spark</h3>
+<p>But it’s changing in Spark 2.0.In Spark 2.0, spark has added a standard API called catalog for accessing metadata in spark SQL. This works both for spark sql and hive metadata.</p>
 
-<p>In earlier versions of spark, spark context was entry point for Spark. As RDD was main API, it was created and manipulated using context API’s. For every other API,we needed to use different contexts.For streaming, we needed StreamingContext, for SQL sqlContext and for hive HiveContext. But as DataSet and Dataframe API’s are becoming new standard API’s we need an entry point build for them. So in Spark 2.0, we have a new entry point for DataSet and Dataframe API’s called as Spark Session.</p>
+<p>In this post I will be discussing about how to work with catalog API.</p>
 
-<p>SparkSession is essentially combination of SQLContext, HiveContext and future StreamingContext. All the API’s available on those contexts are available on spark session also. Spark session internally has a spark context for actual computation.</p>
+<h2 id="accessing-catalog">Accessing Catalog</h2>
 
-<p>So in rest of our post, we will discuss how to create and interact with Spark session.</p>
+<p>Catalog is available on spark session. The following code shows how to access catalog.</p>
 
-<h3 id="creating-sparksession">Creating SparkSession</h3>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">catalog</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">catalog</span></code></pre></div>
 
-<p>SparkSession follows builder factory design pattern. The below is the code to create a spark session.</p>
+<h2 id="querying-the-databases">Querying the databases</h2>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sparkSession</span> <span class="k">=</span> <span class="nc">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span>
-      <span class="n">master</span><span class="o">(</span><span class="s">&quot;local&quot;</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">appName</span><span class="o">(</span><span class="s">&quot;spark session example&quot;</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">getOrCreate</span><span class="o">()</span></code></pre></div>
+<p>Once we have access to catalog, we can use it to query the databases. All the API’s on catalog returns a dataset.</p>
 
-<p>The above is similar to creating an SparkContext with local and creating an SQLContext wrapping it. If you need to create, hive context you can use below code to create spark session with hive support.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">catalog</span><span class="o">.</span><span class="n">listDatabases</span><span class="o">().</span><span class="n">select</span><span class="o">(</span><span class="s">&quot;name&quot;</span><span class="o">).</span><span class="n">show</span><span class="o">()</span></code></pre></div>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sparkSession</span> <span class="k">=</span> <span class="nc">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span>
-      <span class="n">master</span><span class="o">(</span><span class="s">&quot;local&quot;</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">appName</span><span class="o">(</span><span class="s">&quot;spark session example&quot;</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">enableHiveSupport</span><span class="o">()</span>
-      <span class="o">.</span><span class="n">getOrCreate</span><span class="o">()</span></code></pre></div>
+<p>On catalog, <em>listDatabases</em> gives all the databases.By default, you will have only one database called <em>default</em>.In case of hive, it also access databases from the metastore. As the listDatabases returns a dataset, we can use all the operation available on dataset to query the metadata.</p>
 
-<p><strong>enableHiveSupport</strong> on factory enables hive support which is similiar to HiveContext.</p>
+<h2 id="registering-dataframe-with-createtempview">Registering Dataframe with createTempView</h2>
 
-<p>Once we have created spark session, we can use it to read the data.</p>
+<p>In earlier versions of spark, we used to register a dataframe using <em>registerTempTable</em>. But in spark 2.0, this API is deprecated. The <em>registerTempleTable</em> API was one of the source of confusion as users used think it materializes the dataframe and saves as a temporary table which was not the case. So this API is replaced with <em>createTempView</em>.</p>
 
-<h2 id="read-data-using-spark-session">Read data using Spark Session</h2>
+<p><em>createTempView</em> can be used as follows.</p>
 
-<p>The below code is reading data from csv using spark session.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">df</span><span class="o">.</span><span class="n">createTempView</span><span class="o">(</span><span class="s">&quot;sales&quot;</span><span class="o">)</span></code></pre></div>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span><span class="s">&quot;true&quot;</span><span class="o">).</span>
-    <span class="n">csv</span><span class="o">(</span><span class="s">&quot;src/main/resources/sales.csv&quot;</span><span class="o">)</span></code></pre></div>
+<p>Once we have registered a view, we can query it using listTables.</p>
 
-<p>It looks like exactly like reading using SQLContext. You can easily replace all your code of SQLContext with SparkSession now.</p>
+<h2 id="querying-the-tables">Querying the tables</h2>
 
-<p>You can access complete code <a href="https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/SparkSessionExample.scala">here</a>.</p>
+<p>As we can query databases, we can query tables. It lists all the temporary table registered in case of spark sql. In hive case, it lists all the tables in the underneath metadata store.</p>
 
-<h3 id="is-sqlcontext-and-hivecontext-going-away">Is SQLContext and HiveContext going away?</h3>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">catalog</span><span class="o">.</span><span class="n">listTables</span><span class="o">().</span><span class="n">select</span><span class="o">(</span><span class="s">&quot;name&quot;</span><span class="o">).</span><span class="n">show</span><span class="o">()</span></code></pre></div>
 
-<p>Not really. Spark is big on backward compatibility. So these API’s are still available. Though from documentation it’s clear that they want developers to use SparkSession going forward.</p>
+<h2 id="checking-is-table-cached-or-not">Checking is table cached or not</h2>
 
-<p>So in this post, we learnt about new spark API called SparkSession. This will be our new entry point of spark code in future.</p>
+<p>Catalog not only is used for querying. It can be used to check state of individual tables. Given a table, we can check is it cache or not. It’s useful in scenarios to make sure we cache the tables which are accessed frequently.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">catalog</span><span class="o">.</span><span class="n">isCached</span><span class="o">(</span><span class="s">&quot;sales&quot;</span><span class="o">)</span></code></pre></div>
+
+<p>You will get false as by default no table will be cache. Now we cache the table and query again.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">df</span><span class="o">.</span><span class="n">cache</span><span class="o">()</span>
+<span class="n">catalog</span><span class="o">.</span><span class="n">isCached</span><span class="o">(</span><span class="s">&quot;sales&quot;</span><span class="o">)</span></code></pre></div>
+
+<p>Now it will print true.</p>
+
+<h2 id="drop-view">Drop view</h2>
+
+<p>We can use catalog to drop views. In spark sql case, it will deregister the view. In case of hive, it will drops from the metadata store.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">catalog</span><span class="o">.</span><span class="n">dropTempView</span><span class="o">(</span><span class="s">&quot;sales&quot;</span><span class="o">)</span></code></pre></div>
+
+<h2 id="query-registered-functions">Query registered functions</h2>
+
+<p>Catalog API not only allow us to interact with tables, it also allows us to interact with udf’s. The below code shows how to query all functions registered on spark session. They also include all built in functions.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">catalog</span><span class="o">.</span><span class="n">listFunctions</span><span class="o">().</span>
+<span class="n">select</span><span class="o">(</span><span class="s">&quot;name&quot;</span><span class="o">,</span><span class="s">&quot;description&quot;</span><span class="o">,</span><span class="s">&quot;className&quot;</span><span class="o">,</span><span class="s">&quot;isTemporary&quot;</span><span class="o">).</span><span class="n">show</span><span class="o">(</span><span class="mi">100</span><span class="o">)</span></code></pre></div>
+
+<p>You can access complete code <a href="https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/CatalogExample.scala">here</a>.</p>
+
+<p>Catalog is new API in spark 2.0 which allows us to interact with metadata of spark sql. This is a much better interface to metadata compared to earlier versions of spark.</p>
 
 <h2 id="references">References</h2>
 
-<p>Apache Spark 2.0 presented by Databricks co-founder Reynold Xin - <a href="https://www.brighttalk.com/webcast/12891/202021">https://www.brighttalk.com/webcast/12891/202021</a></p>
+<p>Jira for catalog API <a href="https://issues.apache.org/jira/browse/SPARK-13477">https://issues.apache.org/jira/browse/SPARK-13477</a>.</p>
 
 
 </article>
@@ -128,12 +146,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">17 May 2016</span>
-     &raquo; <a href="/introduction-to-spark-two-part-4">Introduction to Spark 2.0 - Part 4 : Introduction to Catalog API</a>    
-   </li>           
-         
+          
 
             
     
@@ -154,12 +167,7 @@
    
    
              
-    
-    <li>    
-     <span class="post-date">17 May 2016</span>
-     &raquo; <a href="/introduction-to-spark-two-part-4">Introduction to Spark 2.0 - Part 4 : Introduction to Catalog API</a>    
-   </li>           
-         
+          
 
             
     
