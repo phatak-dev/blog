@@ -1,10 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Madhukar's Blog</title>
+    <title>Madhukar&#39;s Blog</title>
     <description>Thoughts on technology, life and everything else.</description>
     <link>http://blog.madhukaraphatak.com/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
+    
+      <item>
+        <title>Introduction to Spark 2.0 - Part 7 : Meetup Talk on Spark 2.0 API</title>
+        <description>&lt;p&gt;Spark 2.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 2.0.&lt;/p&gt;
+
+&lt;p&gt;This is the seventh blog in the series.You can access all the posts in the series &lt;a href=&quot;/categories/spark-two/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The below video is recording of my talk on &lt;em&gt;Introduction to Spark 2.0 : Next Step in Spark Journey&lt;/em&gt; in recent spark meetup. In this talk, I have discussed about new abstractions and new API’s introduced in latest version of spark.&lt;/p&gt;
+
+&lt;p&gt;Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/evolution-of-apache-spark&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/GhZ-XPGyXiM&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
+</description>
+        <pubDate>Sun, 03 Jul 2016 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-spark-two-part-7</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-two-part-7</guid>
+      </item>
+    
+      <item>
+        <title>Evolution of Apache Spark : Journey of Spark in 1.x Series</title>
+        <description>&lt;p&gt;The below video is recording of my talk on &lt;em&gt;Evolution of Apache Spark : Journey of Spark in 1.x Series&lt;/em&gt; in recent spark meetup. In this talk, we will discuss how apache spark has undergone tremendous changes in API and implementation in last two years. Talk also discusses how big data industry is embracing these changes. Understanding these changes makes us prepared for new things getting introduced in spark 2.0.&lt;/p&gt;
+
+&lt;p&gt;Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/evolution-of-apache-spark&quot;&gt;slideshare&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/_B_erPzkJKA&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
+</description>
+        <pubDate>Sun, 03 Jul 2016 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/evolution-of-apache-spark</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/evolution-of-apache-spark</guid>
+      </item>
     
       <item>
         <title>Introduction to Spark 2.0 - Part 6 : Custom Optimizers in Spark SQL</title>
@@ -721,135 +751,6 @@
         <pubDate>Thu, 28 Apr 2016 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-9</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-9</guid>
-      </item>
-    
-      <item>
-        <title>Introduction to Flink Streaming - Part 8 : Understanding Time in Flink Streaming</title>
-        <description>&lt;p&gt;Time plays an important role in streaming applications. Using time, we can group, correlate different events happening in the stream. Some of the constructs like window, heavily use the time component. Most of the streaming frameworks supports a single meaning of time, which is mostly tied to the processing time.&lt;/p&gt;
-
-&lt;p&gt;Processing time is a clock which keep tracks of the time passed from the beginning of the process. Having support for processing time is not good enough in modern streaming applications. Most of them need flexibility in the time abstractions and flink supports that flexibility compared to other stream processing frameworks.&lt;/p&gt;
-
-&lt;p&gt;In this eight post in the series, we will be talking about different time abstractions supported in flink. You can find all the other posts in the series &lt;a href=&quot;/categories/flink-streaming&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;concept-of-time-in-streaming-application&quot;&gt;Concept of time in streaming application&lt;/h2&gt;
-
-&lt;p&gt;A streaming application is an always running application. So in order to understand the behavior of the application over time, we need to take snapshots of the stream in various points. Normally these various points are defined using a time component.&lt;/p&gt;
-
-&lt;p&gt;Time in streaming application is way to correlate different events in the stream to extract some meaningful insights. For example, when we say count of words in a word count example for last 10 seconds, we normally mean to collect all the records arrived in that point of time and run a word count on it.&lt;/p&gt;
-
-&lt;p&gt;Normally most of the streaming frameworks like storm, spark-streaming only support one concept of time. But flink does support multiple different ones.&lt;/p&gt;
-
-&lt;h2 id=&quot;time-in-flink&quot;&gt;Time in Flink&lt;/h2&gt;
-
-&lt;p&gt;When we say, last 10 seconds what it means? Flink say it depends. It can be one of three following&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;processing-time&quot;&gt;Processing Time&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;This concept of time is very familiar to most of the users. In this, time is tracked using a clock run by the processing engine. So in this time, last 10 seconds means the records arrived in last 10 seconds for the processing. Here we only use the semantics of when the records came for processing.&lt;/p&gt;
-
-&lt;p&gt;Though processing time is good time measure to have,it’s not always enough. For example, if we want to calculate state of sensors at given point of time, we want to collect events that happened in that time range. But if the events arrive lately to processing system due to various reasons, we may miss some of the events as processing clock does not care about the actual time of events. To address this, flink support another kind of time called event time.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;event-time&quot;&gt;Event Time&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Event time is the time embed in the data that is coming into the system. So here 10 seconds means, all the records generated in those 10 seconds at the source. These may come out of order to processing. This time is independent of the clock that is kept by the processing engine.Event time is extremely useful for handling the late arrival events.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;ingestion-time&quot;&gt;Ingestion Time&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Ingestion time is the time when events ingested into the system. This time is in between of the event time and processing time. Normally in processing time, each machine in cluster is used to assign the time stamp to track events. This may result in little inconsistent view of the data, as there may be delays in time across the cluster. But ingestion time, timestamp is assigned in ingestion so that all the machines in the cluster have exact same view. These are useful to calculate results on data that arrive in order at the level of ingestion.&lt;/p&gt;
-
-&lt;h2 id=&quot;watermarks&quot;&gt;WaterMarks&lt;/h2&gt;
-
-&lt;p&gt;As flink supports multiple concept of time, how flink keep tracks of time?. Because in the normal processing time, a system clock can be used. But you cannot use the system clock in case of the event time and ingestion time. So there has to be a generic mechanism to handle this.&lt;/p&gt;
-
-&lt;p&gt;Watermarks is the mechanism used by the flink in order to signify the passing of time in stream. Watermarks are the special control events which are part of the stream itself.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.0/apis/streaming/fig/stream_watermark_in_order.svg&quot; alt=&quot;WaterMarks in Flink&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;The above diagram shows, the water mark events as part of the stream. In above example, w(20) signifies a watermark event that 20 units of time have passed.These water marks can be generated using system clock in case of processing time, source in case of event time. This flexibility of keeping track of time allows flink to support different abstractions of time.&lt;/p&gt;
-
-&lt;p&gt;Now we understand different time abstractions supported by Flink. In next blog, we will look at how to use work with event time.&lt;/p&gt;
-
-&lt;h2 id=&quot;compared-to-spark-streaming-api&quot;&gt;Compared to Spark Streaming API&lt;/h2&gt;
-
-&lt;p&gt;This section is only applicable to you, if you have done spark streaming before. If you are not familiar with Apache Spark feel free to skip it.&lt;/p&gt;
-
-&lt;p&gt;Spark streaming only supports the processing time as of now. The time is tracked using the internal clock in the spark driver.&lt;/p&gt;
-
-&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
-
-&lt;p&gt;Event time in Flink Docs - &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.0/apis/streaming/event_time.html&quot;&gt;https://ci.apache.org/projects/flink/flink-docs-release-1.0/apis/streaming/event_time.html&lt;/a&gt;.&lt;/p&gt;
-
-</description>
-        <pubDate>Wed, 27 Apr 2016 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-8</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-8</guid>
-      </item>
-    
-      <item>
-        <title>Apache Beam : Next Step in Big Data Unification</title>
-        <description>&lt;p&gt;Unification been the theme of big data processing for quite some time. More and more frameworks in big data want to be platforms which can do multiple things, rather than yet another framework to solve a specific problem. This idea of unification has taken big data to new levels. These days we have come to expect single platform to do batch, streaming and interactive processing with plethora of libraries on top of it.&lt;/p&gt;
-
-&lt;p&gt;As the processing unification is settling down, there is a new trend in big data to unify the API across multiple platforms like Spark, Flink etc. Apache Beam, is one of the first steps towards that direction.&lt;/p&gt;
-
-&lt;p&gt;In this post, I will be talking about the different level of unification happened over the years and how Apache Beam will be next step in that direction.&lt;/p&gt;
-
-&lt;h2 id=&quot;unification-of-cluster-infrastructure&quot;&gt;Unification of cluster/ infrastructure&lt;/h2&gt;
-
-&lt;p&gt;When Hadoop came along, it was only capable of running Map/Reduce. To run any other system, like Storm, you were needed to have a separate cluster. This meant that you need to maintain separate cluster for each framework which is big overhead in terms of maintenance and cost.&lt;/p&gt;
-
-&lt;p&gt;Over time, frameworks like Mesos and YARN solved those issues. YARN became an unified platform to run the multiple processing frameworks on same cluster. In this way, we need to have only one cluster and we can easily share the resources between the frameworks.&lt;/p&gt;
-
-&lt;h2 id=&quot;unification-of-processing-frameworks&quot;&gt;Unification of processing frameworks&lt;/h2&gt;
-
-&lt;p&gt;As infrastructure unified, we wanted unification in processing. In early days of big data, we used separate frameworks for batch, streaming and structure data analysis namely map/reduce, storm and hive. Learning, developing and maintaining these multiple framework code is became trickier. Also sharing data between these systems became tricky as they don’t share any common abstraction.&lt;/p&gt;
-
-&lt;p&gt;Apache Spark came along to solve this problem. It proposed an single abstraction to base all different kind of processing. This made sharing data trivial and developers can improve applications in much rapid way as they only have to learn single framework than multiple ones. Apache spark dawned the platform era in big data. All other systems, like Flink, came after spark are following that way.&lt;/p&gt;
-
-&lt;h2 id=&quot;unification-of-developers&quot;&gt;Unification of developers&lt;/h2&gt;
-
-&lt;p&gt;Any big data analysis comprise data scientists, the one who focus on the data modeling and data engineers, the one who focus on data pipelines. Earlier each of these teams used to use different toolset. This made difficult to share knowledge and code across the teams.&lt;/p&gt;
-
-&lt;p&gt;Apache Spark with it’s Dataframe API is trying to unify these developers where both can use same platform for modeling and pipeline building.&lt;/p&gt;
-
-&lt;p&gt;So from the above points, it’s clear that more and more efforts are spent by various frameworks to unify the different aspects of big data analysis. But now there is a new level of unification is needed. That is API unification.&lt;/p&gt;
-
-&lt;h2 id=&quot;need-of-api-unification&quot;&gt;Need of API unification&lt;/h2&gt;
-
-&lt;p&gt;Whenever there is a new platform, developers are forced to rewrite their application to get the benefits. Most of the time these platforms share a very similar API for data processing, only differing in the runtime implementation. This need of the rewrite of applications, holding back the adoption of new platforms. Also this makes difficult to use best tool for a given use case.&lt;/p&gt;
-
-&lt;p&gt;For example, Apache Flink has good support for streaming compare to Spark. Spark has good support for batch compared Flink. I want to use both Flink and Spark, but doing same computations for streaming and batch. In the current scenario, I need to write the program twice one in flink and one in spark. Though the API’s look similar, they do differ in various details. So as of now whenever we want to use best of multiple frameworks, we need to write program multiple times.&lt;/p&gt;
-
-&lt;p&gt;So if you want to write program only once, then you need to stick with single platform. This restricts the developers where they cannot use the best frameworks for the work. Isn’t be nice where we can write the program once and run on different platforms?&lt;/p&gt;
-
-&lt;h2 id=&quot;apache-beam--unifying-the-platforms&quot;&gt;Apache Beam : Unifying the platforms&lt;/h2&gt;
-
-&lt;p&gt;Apache Beam, is the new unified batch and streaming framework which is trying to solve the exact problem which we discussed above. Apache Beam allows to write a program in a DSL which can run on both flink and spark. Apache Beam is bringing unification to platforms as YARN brought to infrastructure.&lt;/p&gt;
-
-&lt;p&gt;From Apache Bean website, Apache Beam is&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;An open source, unified model and set of language-specific SDKs for defining and executing data processing workflows, and also data ingestion and integration flows, supporting Enterprise Integration Patterns (EIPs) and Domain Specific Languages (DSLs). Dataflow pipelines simplify the mechanics of large-scale batch and streaming data processing and can run on a number of runtimes like Apache Flink, Apache Spark, and Google Cloud Dataflow (a cloud service)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;So from the definition, it’s clear that apache beam is trying to have a single API which can express both batch and streaming application which can run on multiple runtimes. So now I can write a single program which not only can do both streaming and batch but allows me to choose the platform on which I want to run these programs on without any change to the code.&lt;/p&gt;
-
-&lt;p&gt;This kind of unification is taking big data to next level where developers are not need to write code multiple times whenever there is a new framework is around. As of now Beam is still in proposal stage, it will take still time to mature. But this new way of looking at big data will going to immensely benefit the organization to adopt new platforms much faster way.&lt;/p&gt;
-
-</description>
-        <pubDate>Sun, 17 Apr 2016 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/apache-beam-next-step-in-big-data-unification</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/apache-beam-next-step-in-big-data-unification</guid>
       </item>
     
   </channel>
