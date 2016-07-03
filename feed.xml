@@ -14,7 +14,7 @@
 
 &lt;p&gt;The below video is recording of my talk on &lt;em&gt;Introduction to Spark 2.0 : Next Step in Spark Journey&lt;/em&gt; in recent spark meetup. In this talk, I have discussed about new abstractions and new API’s introduced in latest version of spark.&lt;/p&gt;
 
-&lt;p&gt;Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/evolution-of-apache-spark&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/introduction-to-spark-20&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
 
 &lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/GhZ-XPGyXiM&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
 </description>
