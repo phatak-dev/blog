@@ -7,6 +7,114 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Functional Programming in Rust - Part 1 : Function Abstraction</title>
+        <description>&lt;p&gt;Rust is a new system programming language developed at mozilla. It is a competitor to C and C++ with machine level access and no gc. But it’s not just better C.It brings many novel features of higher level languages like Java, Scala to system level programming.This combination of low level access, speed of C combined with flexibility  and expressiveness  of functional programming language like scala makes it very interesting language.&lt;/p&gt;
+
+&lt;p&gt;In this series of blog posts, I will discuss how to do functional programming in rust. Most of the examples are inspired from scala, as I use scala in my every day work. If you are new to rust, I highly recommend &lt;a href=&quot;https://doc.rust-lang.org/book&quot;&gt;Rust Book&lt;/a&gt; as a starting point. Use the book to install rust on your machine and familiarise with basic syntax.&lt;/p&gt;
+
+&lt;p&gt;This is the first blog in the series which focuses on defining functions and using them in different scenarios. You can access all the posts in series &lt;a href=&quot;/categories/rust-functional&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/fpinrust&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;defining-a-function-in-rust&quot;&gt;Defining a function in rust&lt;/h2&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;fn&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;simple_function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;nb&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;function called&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above code shows how to define a function. &lt;em&gt;fn&lt;/em&gt; keyword marks beginning of a function followed with function name and argument. As with scala, if we don’t specify any return type it will be inferred as unit.&lt;/p&gt;
+
+&lt;p&gt;The body of function is written inside { } brackets.&lt;/p&gt;
+
+&lt;h2 id=&quot;function-variable&quot;&gt;Function variable&lt;/h2&gt;
+
+&lt;p&gt;In functional programming languages, a function is a first class citizen. So we can store a function inside a variable and return the function from other function. So in this example, we will see how to store a function in a variable.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;fn&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fn_variable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;calling using function variable {}&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fn_variable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above code show how to define a function variable in rust. First we define a function named add. In this function, we specify the return type explicitly. Unlike scala, in rust return types are not type inferred. The last line of the function is considered as return statement.&lt;/p&gt;
+
+&lt;p&gt;Once we have defined the function, we can store in a variable as shown in &lt;em&gt;fn_variable&lt;/em&gt;. Once we have the variable then we can invoke as regular function.&lt;/p&gt;
+
+&lt;h2 id=&quot;higher-order-function---take-function-as-parameter&quot;&gt;Higher Order function - Take function as parameter&lt;/h2&gt;
+
+&lt;p&gt;Once we are able to store a function in a variable, we should be able to pass the function to another function. These kind of functions are known as higher order functions. The below code shows how to define function which accepts another function as parameter.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;fn&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;higer_order_fn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;F&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;step&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;F&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;
+                    &lt;span class=&quot;n&quot;&gt;where&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;F&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Fn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;step&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above code shows a higher order function. The interesting piece in code is the type of second parameter step. step is of generic type F which is defined in  the where clause.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;where&lt;/em&gt; clause in rust is used for type bound on generics. The type bound in our example says, F is of type Fn, one of the trait for function type, which takes i32 value and returns i32. i32 is one of the data types for representing number with 32 bits.&lt;/p&gt;
+
+&lt;p&gt;Once we have defined the higher order function, let’s see how to invoke it using functions. There are two ways to invoke the function. One by passing a named function  and another using anonymous functions.&lt;/p&gt;
+
+&lt;h3 id=&quot;using-named-function&quot;&gt;Using Named Function&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;fn&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_one&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;higer_order_fn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_one&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above code defines a named function add_one and passes it to higher_order function.&lt;/p&gt;
+
+&lt;h3 id=&quot;using-anonymous-functions&quot;&gt;Using anonymous functions&lt;/h3&gt;
+&lt;p&gt;Anonymous functions are in rust are part of closure feature of rust. Closures are special functions which has access to their surrounding scope. So anonymous functions are closures with empty scope.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;kd&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;higer_order_fn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above code show how to pass an anonymous function. You can read more about rust closures &lt;a href=&quot;https://doc.rust-lang.org/book/closures.html&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;higher-order-function---return-a-function-from-function&quot;&gt;Higher Order function - Return a function from function&lt;/h2&gt;
+
+&lt;p&gt;As we can pass a function as parameter to a function, we can return a function from another function. 
+This is quite simple in most of the functional programming languages, but it’s its little bit tricky in rust.&lt;/p&gt;
+
+&lt;p&gt;In this code I will show how to achieve the return of a function.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;fn&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;higer_order_fn_return&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&amp;#39;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;step_value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&amp;amp;&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;&amp;#39;a&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; 
+                            &lt;span class=&quot;n&quot;&gt;Box&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Fn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;&amp;#39;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+       &lt;span class=&quot;n&quot;&gt;Box&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;new&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;move&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;step_value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above code looks complicated. The reason to have the complications is the way rust works with lifetimes. Let’s try to understand what’s going on here.&lt;/p&gt;
+
+&lt;p&gt;In our code, we are defining a function which take i32 value as parameter. Then the function should return a function which wraps this value with logic to increment given value with the step. The question we ask ourselves is how long this function lives?&lt;/p&gt;
+
+&lt;p&gt;In garbage collected language like Scala, it’s easy as garbage collector take care of this issue. But rust doesn’t have a gc. So rust has to determine the lifetime of the function in the compile time only.&lt;/p&gt;
+
+&lt;p&gt;In our example, we are defining a scope &lt;strong&gt;‘a&lt;/strong&gt; which is associate a scope with input value. So we are saying here to compiler, keep lifetime of function as long as value step_value exist. Lifetimes in rust can only exist with references. So in our example we will take &amp;amp;i32 rather than i32. Also we create to reference to Fn using Box.&lt;/p&gt;
+
+&lt;p&gt;Now we understand the lifetime of formal parameters and return type. But what about move in our implementation?. The value we take as parameter is created in stack. So when function returns the step_value is destroyed. So move says copy the step_value as part of closure.&lt;/p&gt;
+
+&lt;p&gt;You can read more about returning closures &lt;a href=&quot;https://doc.rust-lang.org/book/closures.html#returning-closures&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The below code shows how to invoke the above function.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;kd&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;step_value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;step_function&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;higer_order_fn_return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;step_value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;the stepped value is{}&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;step_function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You can access complete code &lt;a href=&quot;https://github.com/phatak-dev/fpinrust/blob/master/src/bin/definefunctions.rs&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;running-code&quot;&gt;Running code&lt;/h2&gt;
+
+&lt;p&gt;You can run all the examples using the below command&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;cargo run --bin definefunctions&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;So in this we got familiar with rust function abstraction. In next post, we will discuss how to use this abstractions to build function combinators on collections.&lt;/p&gt;
+</description>
+        <pubDate>Wed, 24 Aug 2016 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/functional-programming-in-rust-part-1</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/functional-programming-in-rust-part-1</guid>
+      </item>
+    
+      <item>
         <title>Anatomy of Spark Catalyst - Part 1 : Meetup Talk</title>
         <description>&lt;p&gt;The below video is recording of my talk on &lt;em&gt;Anatomy of Spark SQL- Part 1&lt;/em&gt; in recent spark meetup. In this talk, we have discussed spark catalyst in depth.It’s first part of series of talks on catalyst.&lt;/p&gt;
 
@@ -656,19 +764,6 @@
         <pubDate>Wed, 11 May 2016 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/introduction-to-spark-two-part-1</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-two-part-1</guid>
-      </item>
-    
-      <item>
-        <title>Introduction to Flink Streaming - Part 10 : Meetup Talk</title>
-        <description>&lt;p&gt;In our flink &lt;a href=&quot;/categories/flink-streaming&quot;&gt;series&lt;/a&gt;, we have discussed different aspects of flink streaming API. Recently I gave a talk, Introduction to Flink Streaming, which captures all of this and more in a 2 hour talk.&lt;/p&gt;
-
-&lt;p&gt;In this post, I am sharing the recording of that talk. Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/introduction-to-flink-streaming&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/flink-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/IZVdcAOeS70&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
-</description>
-        <pubDate>Thu, 05 May 2016 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-10</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-10</guid>
       </item>
     
   </channel>
