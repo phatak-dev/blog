@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Functional Programming in Rust - Part 2 : Functional combinators"
+title: "Functional Programming in Rust - Part 2 : Functional Combinators"
 date : 2016-08-25
 categories: rust rust-functional
 ---
