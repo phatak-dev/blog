@@ -7,7 +7,7 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
-        <title>Functional Programming in Rust - Part 2 : Functional combinators</title>
+        <title>Functional Programming in Rust - Part 2 : Functional Combinators</title>
         <description>&lt;p&gt;Rust is a new system programming language developed at mozilla. It is a competitor to C and C++ with machine level access and no gc. But it’s not just better C.It brings many novel features of higher level languages like Java, Scala to system level programming.This combination of low level access, speed of C combined with flexibility  and expressiveness  of functional programming language like scala makes it very interesting language.&lt;/p&gt;
 
 &lt;p&gt;In this series of blog posts, I will discuss how to do functional programming in rust. Most of the examples are inspired from scala, as I use scala in my every day work. If you are new to rust, I highly recommend &lt;a href=&quot;https://doc.rust-lang.org/book&quot;&gt;Rust Book&lt;/a&gt; as a starting point. Use the book to install rust on your machine and familiarise with basic syntax.&lt;/p&gt;
