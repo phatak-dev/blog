@@ -6,3 +6,4 @@ project/target
 .DS_Store
 .sync/
 "Icon\r"
+*.swp
