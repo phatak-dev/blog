@@ -7,6 +7,19 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Anatomy of Spark Catalyst - Part 2 : Meetup Talk</title>
+        <description>&lt;p&gt;The below video is recording of my talk on &lt;em&gt;Anatomy of Spark SQL- Part 2&lt;/em&gt; in recent spark meetup. In this talk, we have discussed spark catalyst in depth.It’s second part of series of talks on catalyst.&lt;/p&gt;
+
+&lt;p&gt;Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/anatomy-of-spark-sql-catalyst-part-2&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/anatomy-of-spark-catalyst&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/bqs1HKlvXzQ&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
+</description>
+        <pubDate>Tue, 30 Aug 2016 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/anatomy-of-spark-catalyst-part-2</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/anatomy-of-spark-catalyst-part-2</guid>
+      </item>
+    
+      <item>
         <title>Functional Programming in Rust - Part 2 : Functional Combinators</title>
         <description>&lt;p&gt;Rust is a new system programming language developed at mozilla. It is a competitor to C and C++ with machine level access and no gc. But it’s not just better C.It brings many novel features of higher level languages like Java, Scala to system level programming.This combination of low level access, speed of C combined with flexibility  and expressiveness  of functional programming language like scala makes it very interesting language.&lt;/p&gt;
 
@@ -703,87 +716,6 @@ This is quite simple in most of the functional programming languages, but it’s
         <pubDate>Wed, 11 May 2016 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/introduction-to-spark-two-part-3</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-two-part-3</guid>
-      </item>
-    
-      <item>
-        <title>Introduction to Spark 2.0 - Part 2 : Wordcount in Dataset API</title>
-        <description>&lt;p&gt;Spark 2.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 2.0.&lt;/p&gt;
-
-&lt;p&gt;This is the second blog in series, where I will be discussing about dataset abstraction of Spark. You can access all the posts in the series &lt;a href=&quot;/categories/spark-two/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;TL;DR All code examples are available on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;introduction-to-dataset&quot;&gt;Introduction to Dataset&lt;/h3&gt;
-
-&lt;p&gt;Dataset is new abstraction in Spark introduced as alpha API in Spark 1.6. It’s becoming stable API in spark 2.0. It’s new single abstraction for all user land code in Spark.&lt;/p&gt;
-
-&lt;p&gt;From Definition, 
-&lt;em&gt;”  
-  A &lt;strong&gt;Dataset&lt;/strong&gt; is a strongly typed collection of domain-specific objects that can be transformed
-  in parallel using functional or relational operations. Each dataset also has an untyped view
- called a &lt;strong&gt;DataFrame&lt;/strong&gt;, which is a Dataset of &lt;strong&gt;Row&lt;/strong&gt;.
-“&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;which sounds similar to RDD definition&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;”
- RDD represents an immutable,partitioned collection of elements that can be operated on in parallel
-“&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;The major difference is, dataset is collection of domain specific objects where as RDD is collection of any object. Domain object part of definition signifies the schema part of dataset. So dataset API is always strongly typed and optimized using schema where RDD is not.&lt;/p&gt;
-
-&lt;p&gt;Dataset definition also talks about Dataframes API. Dataframe is special dataset where there is no compilation checks for schema. So this makes dataSet new single abstraction replacing RDD from earlier versions of spark.&lt;/p&gt;
-
-&lt;p&gt;Once we understood the dataset abstraction, in rest of post we will see how to work with this abstraction.&lt;/p&gt;
-
-&lt;h2 id=&quot;dataset-wordcount-example&quot;&gt;Dataset Wordcount example&lt;/h2&gt;
-
-&lt;p&gt;As with any new API, we will learn API using how to use in WordCount example. The below is the code for wordcount in dataset API.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-1--create-sparksession&quot;&gt;Step 1 : Create SparkSession&lt;/h3&gt;
-
-&lt;p&gt;As we discussed in last blog, we use spark session as entry point for dataset API.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;master&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;local&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;appName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;example&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getOrCreate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;step-2--read-data-and-convert-to-dataset&quot;&gt;Step 2 : Read data and convert to Dataset&lt;/h3&gt;
-
-&lt;p&gt;We read data using read.text API which is similar to &lt;em&gt;textFile&lt;/em&gt; API of RDD. The &lt;em&gt;as[String]&lt;/em&gt; part of code assigns the needed schema for dataset.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sparkSession.implicits._&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;text&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;src/main/resources/data.txt&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;as&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Here &lt;em&gt;data&lt;/em&gt; will be of the type of &lt;em&gt;DataSet[String]&lt;/em&gt;. Remember to import &lt;strong&gt;sparkSession.implicits._&lt;/strong&gt; for all schema conversion magic.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-3--split-and-group-by-word&quot;&gt;Step 3 : Split and group by word&lt;/h3&gt;
-&lt;p&gt;Dataset mimics lot of RDD API’s like map, groupByKey etc. The below code we are splitting lines to get words and group them by words.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;words&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;\\s+&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;groupedWords&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;words&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupByKey&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toLowerCase&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;One thing you may observed we don’t create a key/value pair. The reason is unlike RDD, dataset works in row level abstraction. Each value is treated a row with multiple columns and any column can act as key for grouping like in database.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-4---count&quot;&gt;Step 4 :  Count&lt;/h3&gt;
-&lt;p&gt;Once we have grouped, we can count each word using count method. It’s similar to &lt;em&gt;reduceByKey&lt;/em&gt; of RDD.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;counts&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;groupedWords&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;step-5--print-results&quot;&gt;Step 5 : Print results&lt;/h3&gt;
-
-&lt;p&gt;Finally once we count, we need to print the result. As with RDD, all the above API’s are lazy. We need to call an action to trigger computation. In dataset, show is one of those actions. It’s show first 20 results. If you want complete result, you can use &lt;em&gt;collect&lt;/em&gt; API.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;counts&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You can access complete code &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/DataSetWordCount.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Now we have written our first example in dataset abstraction. We will explore more about dataset API in future posts.&lt;/p&gt;
-</description>
-        <pubDate>Wed, 11 May 2016 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/introduction-to-spark-two-part-2</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-two-part-2</guid>
       </item>
     
   </channel>
