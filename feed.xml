@@ -7,7 +7,7 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
-        <title>Statistical Data Exploration using Spark 2.0 : Part 1 - Five Number Summary</title>
+        <title>Statistical Data Exploration using Spark 2.0 - Part 1 : Five Number Summary</title>
         <description>&lt;p&gt;Data exploration is an important part of data analysis to understand nature of data. Data scientists use various mathematical and statistics techniques to understand the distribution and shape of the data which comes handy to draw conclusions.&lt;/p&gt;
 
 &lt;p&gt;Recently I started going through the coursera course “Making Sense of Data” videos to understand the data exploration techniques. Its an excellent course which explains all the basics of theory and practical aspects of data exploration. Currently the course is not available at the coursera. But you can find recording of earlier course on &lt;a href=&quot;https://www.youtube.com/watch?v=rXZD3yVFN9w&amp;amp;list=PL7wD1yDs0UYYmTGN3ZJnZuwloaoEuHvmE&quot;&gt;youtube&lt;/a&gt;.&lt;/p&gt;
