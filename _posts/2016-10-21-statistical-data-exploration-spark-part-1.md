@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Statistical Data Exploration using Spark 2.0 : Part 1 - Five Number Summary"
+title: "Statistical Data Exploration using Spark 2.0 - Part 1 : Five Number Summary"
 date : 2016-10-21
 categories: scala spark statistical-data-exploration
 ---
