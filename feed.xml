@@ -7,6 +7,135 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Statistical Data Exploration using Spark 2.0 : Part 1 - Five Number Summary</title>
+        <description>&lt;p&gt;Data exploration is an important part of data analysis to understand nature of data. Data scientists use various mathematical and statistics techniques to understand the distribution and shape of the data which comes handy to draw conclusions.&lt;/p&gt;
+
+&lt;p&gt;Recently I started going through the coursera course “Making Sense of Data” videos to understand the data exploration techniques. Its an excellent course which explains all the basics of theory and practical aspects of data exploration. Currently the course is not available at the coursera. But you can find recording of earlier course on &lt;a href=&quot;https://www.youtube.com/watch?v=rXZD3yVFN9w&amp;amp;list=PL7wD1yDs0UYYmTGN3ZJnZuwloaoEuHvmE&quot;&gt;youtube&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Most of the examples of course are explained using R programming language. As Spark 2.0 and R share dataframe as common abstraction, I thought it will be interesting to explore possibility of using Spark dataframe/datasets abstractions to do explore the data.&lt;/p&gt;
+
+&lt;p&gt;This series of blog posts are focused  on the data exploration using spark. I will be comparing the R dataframe capabilities with spark ones. I will be using Spark 2.0 version with Scala API and Zeppelin notebooks for visualizations.This is the first blog in series where we will be discussing how to derive summary statistics of a dataset. You can find all other blogs in the series &lt;a href=&quot;/categories/statistical-data-exploration&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR All code examples available on &lt;a href=&quot;https://github.com/phatak-dev/Statistical-Data-Exploration-Using-Spark-2.0&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;loading-dataset&quot;&gt;Loading Dataset&lt;/h2&gt;
+&lt;p&gt;For our example, we will be using life expectancy dataset. This is a dataset which has average life expectancy of all countries across the world. Its space separated file with following three fields.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Country&lt;/li&gt;
+  &lt;li&gt;Life Expectancy&lt;/li&gt;
+  &lt;li&gt;Region&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The below code shows to how to read the data in R&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-r&quot; data-lang=&quot;r&quot;&gt;df &lt;span class=&quot;o&quot;&gt;&amp;lt;-&lt;/span&gt; read.table&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;LifeExpentancy.txt&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;kp&quot;&gt;colnames&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;df&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;-&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Country&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;LifeExp&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Region&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We can load the same data in spark as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rawDF&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;delimiter&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot; &amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;inferSchema&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;src/main/resources/LifeExpentancy.txt&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+   &lt;span class=&quot;c1&quot;&gt;//only extract the values we need&lt;/span&gt;
+   &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;schema&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StructType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+           &lt;span class=&quot;nc&quot;&gt;StructField&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Country&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;StringType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;
+           &lt;span class=&quot;nc&quot;&gt;StructField&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;LifeExp&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;DoubleType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;
+           &lt;span class=&quot;nc&quot;&gt;StructField&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Region&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;StringType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+   &lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+   &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;selectedDF&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rawDF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;_c0&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;_c2&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;_c4&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+   &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lifeExpectancyDF&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createDataFrame&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;selectedDF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;schema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;lifeExpectancyDF&lt;/span&gt;
+ &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We have to do little bit more work in spark as spark-csv package doesn’t handle double spaces properly.&lt;/p&gt;
+
+&lt;p&gt;Now we have data ready to explore.&lt;/p&gt;
+
+&lt;h2 id=&quot;five-number-summary&quot;&gt;Five Number Summary&lt;/h2&gt;
+
+&lt;p&gt;Five number summary is one of the basic data exploration technique where we will find how values of dataset columns are distributed. In our example, we are interested to know the summary of “LifeExp” column.&lt;/p&gt;
+
+&lt;p&gt;Five Number Summary Contains following information&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Min - Minimum value of the column&lt;/li&gt;
+  &lt;li&gt;First Quantile - The 25% th data&lt;/li&gt;
+  &lt;li&gt;Median - Middle Value&lt;/li&gt;
+  &lt;li&gt;Third Quartile - 75% of the value&lt;/li&gt;
+  &lt;li&gt;Max - maximum value&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The above values gives a fair idea about how the values are distributed for the column. For categorical columns it will be different. We will discuss about that in future blogs.&lt;/p&gt;
+
+&lt;p&gt;The below code in R allows to compute above values&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-r&quot; data-lang=&quot;r&quot;&gt;&lt;span class=&quot;kn&quot;&gt;attach&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;df&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;kp&quot;&gt;summary&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;LifeExp&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We get below result&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+  47.79   64.67   73.24   69.86   76.65   83.39&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;R shows mean also as part of the summary.&lt;/p&gt;
+
+&lt;h2 id=&quot;five-number-summary-in-spark&quot;&gt;Five Number Summary in Spark&lt;/h2&gt;
+
+&lt;p&gt;In Spark, we can get same information using &lt;em&gt;describe&lt;/em&gt; method.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;lifeExpectancyDF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;describe&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;LifeExp&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The below is the output&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;+-------+-----------------+
+|summary|          LifeExp|
++-------+-----------------+
+|  count|              197|
+|   mean|69.86281725888323|
+| stddev|9.668736205594511|
+|    min|           47.794|
+|    max|           83.394|
++-------+-----------------+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;If you observe the result, rather than giving quantiles values and median, spark gives standard deviation. The reason is, median and quantiles are costly to compute on large data. Both values need data to be in sorted order and result in skewed calculations.&lt;/p&gt;
+
+&lt;h2 id=&quot;calculating-quantiles-in-spark&quot;&gt;Calculating Quantiles in Spark&lt;/h2&gt;
+
+&lt;p&gt;We can calculate quartiles using &lt;em&gt;approxQuantile&lt;/em&gt; method introduced in spark 2.0. This allows us to find 25%, median and 75% values like R. The name of the method suggests that we can get approximate values whenever we specify the error rate. This makes calculations much faster compared to absolute value.&lt;/p&gt;
+
+&lt;p&gt;In our example we will be calculating the exact values so that we can compare to R.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;medianAndQuantiles&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lifeExpectancyDF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stat&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;approxQuantile&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;LifeExp&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+           &lt;span class=&quot;nc&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.25&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.5&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.75&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above code, the below are the parameter to &lt;em&gt;approxQuantile&lt;/em&gt; method&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Name of the column&lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Array of values signifying which quantile we want. In our example we are calculating 25%, 50% and 75%. 50% is same as median&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;The last parameter signifies the error rate. 0.0 signifies we want exact value.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The below is the result&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;List(64.986, 73.339, 76.835)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;If you compare the result, it matches with the R values.&lt;/p&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/Statistical-Data-Exploration-Using-Spark-2.0/blob/master/src/main/scala/com/madhukaraphatak/spark/dataexploration/SummaryExample.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In this post we discussed how to get started with exploring data using statistics in spark 2.0. In future blogs we will discuss further more techniques and API’s.&lt;/p&gt;
+</description>
+        <pubDate>Fri, 21 Oct 2016 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/statistical-data-exploration-spark-part-1</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/statistical-data-exploration-spark-part-1</guid>
+      </item>
+    
+      <item>
         <title>Interactive Workflow Management using Azkaban : API Driven Workflow Management for Spark</title>
         <description>&lt;p&gt;The below video is recording of my talk on &lt;em&gt;Interactive Workflow Management using Azkaban&lt;/em&gt; in recent spark meetup. In this talk, we talk about using Azkaban AJAX API to build interactive workflow management for spark applications.&lt;/p&gt;
 
@@ -502,94 +631,6 @@ This is quite simple in most of the functional programming languages, but it’s
         <pubDate>Thu, 19 May 2016 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/introduction-to-spark-two-part-5</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-two-part-5</guid>
-      </item>
-    
-      <item>
-        <title>Introduction to Spark 2.0 - Part 4 : Introduction to Catalog API</title>
-        <description>&lt;p&gt;Spark 2.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 2.0.&lt;/p&gt;
-
-&lt;p&gt;This is the fourth blog in series, where I will be discussing about catalog API. You can access all the posts in the series &lt;a href=&quot;/categories/spark-two/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;TL;DR All code examples are available on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;catalog-api&quot;&gt;Catalog API&lt;/h2&gt;
-
-&lt;p&gt;DataSet with  Dataframe API supports structured data analysis in spark. One of the important aspects of structured data analysis is managing metadata. It may be temporary metadata like temp table, registered udfs on SQL context or permanent metadata like Hive meta store or HCatalog.&lt;/p&gt;
-
-&lt;p&gt;In earlier versions of spark, there was no standard API to access this metadata. Users used to use queries like &lt;em&gt;show tables&lt;/em&gt; and others to query this metadata. These queries often needed raw string manipulation and used to differ depending upon the underneath meta store.&lt;/p&gt;
-
-&lt;p&gt;But it’s changing in Spark 2.0.In Spark 2.0, spark has added a standard API called catalog for accessing metadata in spark SQL. This works both for spark sql and hive metadata.&lt;/p&gt;
-
-&lt;p&gt;In this post I will be discussing about how to work with catalog API.&lt;/p&gt;
-
-&lt;h2 id=&quot;accessing-catalog&quot;&gt;Accessing Catalog&lt;/h2&gt;
-
-&lt;p&gt;Catalog is available on spark session. The following code shows how to access catalog.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;querying-the-databases&quot;&gt;Querying the databases&lt;/h2&gt;
-
-&lt;p&gt;Once we have access to catalog, we can use it to query the databases. All the API’s on catalog returns a dataset.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;listDatabases&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;name&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;On catalog, &lt;em&gt;listDatabases&lt;/em&gt; gives all the databases.By default, you will have only one database called &lt;em&gt;default&lt;/em&gt;.In case of hive, it also access databases from the metastore. As the listDatabases returns a dataset, we can use all the operation available on dataset to query the metadata.&lt;/p&gt;
-
-&lt;h2 id=&quot;registering-dataframe-with-createtempview&quot;&gt;Registering Dataframe with createTempView&lt;/h2&gt;
-
-&lt;p&gt;In earlier versions of spark, we used to register a dataframe using &lt;em&gt;registerTempTable&lt;/em&gt;. But in spark 2.0, this API is deprecated. The &lt;em&gt;registerTempleTable&lt;/em&gt; API was one of the source of confusion as users used think it materializes the dataframe and saves as a temporary table which was not the case. So this API is replaced with &lt;em&gt;createTempView&lt;/em&gt;.&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;createTempView&lt;/em&gt; can be used as follows.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createTempView&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Once we have registered a view, we can query it using listTables.&lt;/p&gt;
-
-&lt;h2 id=&quot;querying-the-tables&quot;&gt;Querying the tables&lt;/h2&gt;
-
-&lt;p&gt;As we can query databases, we can query tables. It lists all the temporary table registered in case of spark sql. In hive case, it lists all the tables in the underneath metadata store.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;listTables&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;name&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;checking-is-table-cached-or-not&quot;&gt;Checking is table cached or not&lt;/h2&gt;
-
-&lt;p&gt;Catalog not only is used for querying. It can be used to check state of individual tables. Given a table, we can check is it cache or not. It’s useful in scenarios to make sure we cache the tables which are accessed frequently.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isCached&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You will get false as by default no table will be cache. Now we cache the table and query again.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cache&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isCached&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Now it will print true.&lt;/p&gt;
-
-&lt;h2 id=&quot;drop-view&quot;&gt;Drop view&lt;/h2&gt;
-
-&lt;p&gt;We can use catalog to drop views. In spark sql case, it will deregister the view. In case of hive, it will drops from the metadata store.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dropTempView&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;query-registered-functions&quot;&gt;Query registered functions&lt;/h2&gt;
-
-&lt;p&gt;Catalog API not only allow us to interact with tables, it also allows us to interact with udf’s. The below code shows how to query all functions registered on spark session. They also include all built in functions.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;listFunctions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;name&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;description&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;className&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;isTemporary&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You can access complete code &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/CatalogExample.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Catalog is new API in spark 2.0 which allows us to interact with metadata of spark sql. This is a much better interface to metadata compared to earlier versions of spark.&lt;/p&gt;
-
-&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
-
-&lt;p&gt;Jira for catalog API &lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-13477&quot;&gt;https://issues.apache.org/jira/browse/SPARK-13477&lt;/a&gt;.&lt;/p&gt;
-
-</description>
-        <pubDate>Tue, 17 May 2016 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/introduction-to-spark-two-part-4</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-two-part-4</guid>
       </item>
     
   </channel>
