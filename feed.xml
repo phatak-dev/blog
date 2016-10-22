@@ -7,6 +7,102 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Statistical Data Exploration using Spark 2.0 - Part 2 : Shape of Data with Histograms</title>
+        <description>&lt;p&gt;In our last blog, we discussed about generating summary data using spark. The summary works great for understanding the range of data quantitatively. But sometimes, we want to understand how the data is distributed between different range of the values. Also rather than just know the numbers, it will help a lot if we are able visualize the same. This way of exploring data is known as understanding shape of the data.&lt;/p&gt;
+
+&lt;p&gt;In this second blog of the series, we will be discussing how to understand the shape of the data using the histogram. You can find all other blogs in the series &lt;a href=&quot;/categories/statistical-data-exploration&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR All code examples available on &lt;a href=&quot;https://github.com/phatak-dev/Statistical-Data-Exploration-Using-Spark-2.0&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;histogram&quot;&gt;Histogram&lt;/h2&gt;
+
+&lt;p&gt;Histograms are visual representation of the shape/distribution of the data. This visual representation is heavily used in statistical data exploration.&lt;/p&gt;
+
+&lt;h2 id=&quot;histogram-in-r&quot;&gt;Histogram in R&lt;/h2&gt;
+
+&lt;p&gt;In R, histogram is part of package named &lt;strong&gt;ggplot2&lt;/strong&gt;. Once you installed the package you can generate the histogram as below.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-r&quot; data-lang=&quot;r&quot;&gt;hist&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;LifeExp&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We use hist method provided by the library to draw the histogram. The below picture shows the histogram.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/histogram_in_r.png&quot; alt=&quot;Histogram in R&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;histogram-in-spark&quot;&gt;Histogram in Spark&lt;/h2&gt;
+
+&lt;p&gt;In order to generate the histogram, we need two different things&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Generate the values for histogram&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Display the visual representation&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Calculating the histogram in spark is relatively easy. But unlike R, spark doesn’t come with built in visualization package. So I will be using &lt;a href=&quot;https://zeppelin.apache.org/&quot;&gt;Apache Zeppelin&lt;/a&gt; for generating charts.&lt;/p&gt;
+
+&lt;h2 id=&quot;calculating-the-histogram&quot;&gt;Calculating the histogram&lt;/h2&gt;
+
+&lt;p&gt;We will be using same dataset, life expectancy, dataset for generating our histograms. Refer to &lt;a href=&quot;/statistical-data-exploration-spark-part-1/&quot;&gt;last blog&lt;/a&gt; for loading data into spark dataframe.&lt;/p&gt;
+
+&lt;p&gt;Dataframe API doesn’t have builtin function for histogram. But RDD API has. So using RDD API we can calculate histogram values as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;startValues&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;counts&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lifeExpectancyDF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;LifeExp&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getDouble&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;histogram&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;RDD histogram API takes number of bins.&lt;/p&gt;
+
+&lt;p&gt;The result of the histogram are two arrays.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;First array contains the starting values of each bin&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Second array contains the count for each bin&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The result of the above code on our data will be as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;startValues: Array[Double] = Array(47.794, 54.914, 62.034, 69.154, 76.274, 83.394)
+counts: Array[Long] = Array(24, 18, 32, 69, 54)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;So the values signify that there are 24 countries between life expectancy from 47.794 to 54.914. Most countries are between 76-83.&lt;/p&gt;
+
+&lt;p&gt;If you don’t like using RDD API, we can add histogram function directly on Dataframe using implicits. Refer to the code on &lt;a href=&quot;https://github.com/phatak-dev/Statistical-Data-Exploration-Using-Spark-2.0/blob/master/src/main/scala/com/madhukaraphatak/spark/dataexploration/CustomStatFunctions.scala&quot;&gt;github&lt;/a&gt; for more details.&lt;/p&gt;
+
+&lt;h2 id=&quot;visualizing-the-histogram&quot;&gt;Visualizing the histogram&lt;/h2&gt;
+
+&lt;p&gt;Once we have calculated values for histogram, we want to visualize same. As we discussed earlier, we will be using zeppelin notebook for same.&lt;/p&gt;
+
+&lt;p&gt;In zeppelin, in order to generate a graph easily we need dataframe. But in our case, we got data as arrays. So the below code will convert those arrays to dataframe which can be consumed by the zeppelin.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;zippedValues&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;startValues&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;zip&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;counts&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;HistRow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;startPoint&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rowRDD&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;zippedValues&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;HistRow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;histDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createDataFrame&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rowRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;histDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createOrReplaceTempView&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;histogramTable&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above code, first we combining both arrays using zip method. It will give us a array of tuples. Then we convert that array into a dataframe using the case class.&lt;/p&gt;
+
+&lt;p&gt;Once we have, dataframe ready we can run sql command and generate nice graphs as below.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/histogram_lifexp.png&quot; alt=&quot;Histogram&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;You can download the complete zeppelin notebook from &lt;a href=&quot;https://github.com/phatak-dev/Statistical-Data-Exploration-Using-Spark-2.0/blob/master/src/main/zeppelin/Shape%20of%20Data%20Histogram.json&quot;&gt;github&lt;/a&gt; and import into yours to test by yourself. Please make sure you are using Zeppelin 0.6.2 stable release.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Combining computing power of spark with visualization capabilities of zeppelin allows us to explore data in a way R or python does but for big data. This combination of tools make statistical data exploration on big data much easier and powerful.&lt;/p&gt;
+</description>
+        <pubDate>Sat, 22 Oct 2016 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/statistical-data-exploration-spark-part-2</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/statistical-data-exploration-spark-part-2</guid>
+      </item>
+    
+      <item>
         <title>Statistical Data Exploration using Spark 2.0 - Part 1 : Five Number Summary</title>
         <description>&lt;p&gt;Data exploration is an important part of data analysis to understand nature of data. Data scientists use various mathematical and statistics techniques to understand the distribution and shape of the data which comes handy to draw conclusions.&lt;/p&gt;
 
@@ -502,135 +598,6 @@ This is quite simple in most of the functional programming languages, but it’s
         <pubDate>Fri, 20 May 2016 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/introduction-to-spark-two-part-6</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-two-part-6</guid>
-      </item>
-    
-      <item>
-        <title>Introduction to Spark 2.0 - Part 5 : Time Window in Spark SQL</title>
-        <description>&lt;p&gt;Spark 2.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 2.0.&lt;/p&gt;
-
-&lt;p&gt;This is the fifth blog in series, where I will be discussing about time window API. You can access all the posts in the series &lt;a href=&quot;/categories/spark-two/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;TL;DR All code examples are available on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;window-api-in-spark-sql&quot;&gt;Window API in Spark SQL&lt;/h2&gt;
-
-&lt;p&gt;Spark introduced window API in 1.4 version to support smarter grouping functionalities. They are very useful for people coming from SQL background. One of the missing window API was ability to create windows using time. Time plays an important role in many industries like finance, telecommunication where understanding the data depending upon the time becomes crucial.&lt;/p&gt;
-
-&lt;p&gt;In Spark 2.0, framework has introduced built in support for time windows. These behave very similar to time windows in spark-streaming. In this blog post, I will be discussing about how to use this time window API.&lt;/p&gt;
-
-&lt;h2 id=&quot;time-series-data&quot;&gt;Time Series Data&lt;/h2&gt;
-
-&lt;p&gt;Before we start doing time window, we need to have access to a time series data. For my example, I will be using data of Apple stock from 1980 to 2016. You can access the data &lt;a href=&quot;https://raw.githubusercontent.com/phatak-dev/spark2.0-examples/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/TimeWindowExample.scala&quot;&gt;here&lt;/a&gt;. The original source of data is &lt;a href=&quot;https://in.finance.yahoo.com/q/hp?s=AAPL&quot;&gt;yahoo finance&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;The data has six columns. Out of those six, we are only interested in &lt;em&gt;Date&lt;/em&gt;, which signifies the date of trade and &lt;em&gt;Close&lt;/em&gt; which signifies end of the day value.&lt;/p&gt;
-
-&lt;h2 id=&quot;importing-time-series-data-to-dataframe&quot;&gt;Importing time series data to DataFrame&lt;/h2&gt;
-
-&lt;p&gt;Once we have time series data, we need to import it to dataframe. All the time window API’s need a column with type timestamp. Luckily &lt;em&gt;spark-csv&lt;/em&gt; package can automatically infer the date formats from data and create schema accordingly. The below code is for importing with schema inference.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stocksDF&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;inferSchema&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;csv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;src/main/resources/applestock.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;find-weekly-average-in-2016&quot;&gt;Find weekly average in 2016&lt;/h2&gt;
-
-&lt;p&gt;Once we have data is represented as dataframe, we can start doing time window analysis. In our analysis, we want to find weekly average of the stock for 2016. The below are the steps to do that.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-1--filter-data-for-2016&quot;&gt;Step 1 : Filter data for 2016&lt;/h3&gt;
-
-&lt;p&gt;As we are interested only in 2016, we need to filter the data for 2016. The below code show how to filter data on time.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stocks2016&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stocksDF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;filter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;year(Date)==2016&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;We can use builtin function year, as Date is already represented as a timestamp.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-2--tumbling-window-to-calculate-average&quot;&gt;Step 2 : Tumbling window to calculate average&lt;/h3&gt;
-
-&lt;p&gt;Once we have filtered data, we need to create window for every 1 week. This kind of discretization of data is called as a tumbling window.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tumblingWindowDS&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stocks2016&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;window&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stocks2016&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Date&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;1 week&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;agg&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;avg&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Close&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;as&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;weekly_average&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above code show how to use time window API. Window is normally used inside a group by. The first parameter signifies which column needs to be treated as time. Second parameter signifies the window duration. Window duration can be seconds, minutes, hours, days or weeks.&lt;/p&gt;
-
-&lt;p&gt;Once we have created window, we can run an aggregation like average as shown in the code.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-3--printing-the-window-values&quot;&gt;Step 3 : Printing the window values&lt;/h3&gt;
-
-&lt;p&gt;Once we calculated the time window, we want to see the result.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;printWindow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tumblingWindowDS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;weekly_average&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above code uses a helper function called &lt;em&gt;printWindow&lt;/em&gt; which takes aggregated window dataframe and aggregated column name. The helper function looks as follows.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;printWindow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;windowDF&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;DataFrame&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;aggCol&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;={&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;windowDF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sort&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;window.start&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;window.start&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;window.end&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;$aggCol&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;truncate&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
- &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above function, we are sorting dataframe using &lt;em&gt;window.start&lt;/em&gt;. This column signifies the start time of window. This sorting helps us to understand the output better. Once we have sorted, we print start,end, aggregated value. As the timestamp can be long, we tell the show not to truncate results for better display.&lt;/p&gt;
-
-&lt;p&gt;When you run the example, we see the below result.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;+---------------------+---------------------+------------------+
-|start                |end                  |weekly_average    |
-+---------------------+---------------------+------------------+
-|2015-12-31 05:30:00.0|2016-01-07 05:30:00.0|101.30249774999999|
-|2016-01-07 05:30:00.0|2016-01-14 05:30:00.0|98.47199859999999 |
-|2016-01-14 05:30:00.0|2016-01-21 05:30:00.0|96.72000125000001 |
-|2016-01-21 05:30:00.0|2016-01-28 05:30:00.0|97.6719984        |
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;One thing you may observe is the date is started from 31st and first week is considered till 7. But if you go through the data, the first entry for 2016 start from 2016-01-04. The reason is there was no trading on 1st as it’s new year, 2 and 3 as they are weekend.&lt;/p&gt;
-
-&lt;p&gt;We can fix this by specifying the start time for window, which signifies the offset from which window should start.&lt;/p&gt;
-
-&lt;h2 id=&quot;time-window-with-start-time&quot;&gt;Time window with start time&lt;/h2&gt;
-
-&lt;p&gt;In earlier code, we used a tumbling window. In order to specify start time we need to use a sliding window. As of now, there is no API which combines tumbling window with start time. We can create tumbling window effect by keeping both window duration and slide duration same.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;windowWithStartTime&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stocks2016&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;window&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stocks2016&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Date&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;
-                          &lt;span class=&quot;s&quot;&gt;&amp;quot;1 week&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;1 week&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;4 days&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-                          &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;agg&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;avg&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Close&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;as&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;weekly_average&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above code, we specify “4 days” which is a offset for start time. The first two parameters specify window duration and slide duration.When we run this code, we observe the below result&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;+---------------------+---------------------+------------------+
-|start                |end                  |weekly_average    |
-+---------------------+---------------------+------------------+
-|2015-12-28 05:30:00.0|2016-01-04 05:30:00.0|105.349998        |
-|2016-01-04 05:30:00.0|2016-01-11 05:30:00.0|99.0699982        |
-|2016-01-11 05:30:00.0|2016-01-18 05:30:00.0|98.49999799999999 |
-|2016-01-18 05:30:00.0|2016-01-25 05:30:00.0|98.1220016        |
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Now we have a week starting from &lt;em&gt;2016-01-04&lt;/em&gt;. Still we have initial row which is take from 2015. The reason is, as our start time is 4 days, it creates a window till that time from last seven days.We can remove this row easily using filter as below.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;filteredWindow&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;windowWithStartTime&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;filter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;year(window.start)=2016&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Now we will see the expected result.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;+---------------------+---------------------+------------------+
-|start                |end                  |weekly_average    |
-+---------------------+---------------------+------------------+
-|2016-01-04 05:30:00.0|2016-01-11 05:30:00.0|99.0699982        |
-|2016-01-11 05:30:00.0|2016-01-18 05:30:00.0|98.49999799999999 |
-|2016-01-18 05:30:00.0|2016-01-25 05:30:00.0|98.1220016        |
-|2016-01-25 05:30:00.0|2016-02-01 05:30:00.0|96.2539976        |
-|2016-02-01 05:30:00.0|2016-02-08 05:30:00.0|95.29199960000001 |
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;You can access complete code &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/TimeWindowExample.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;So now we know how to use time windows in Spark 2.0. This is one of the powerful feature which helps in wide variety analysis in big data.&lt;/p&gt;
-
-</description>
-        <pubDate>Thu, 19 May 2016 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/introduction-to-spark-two-part-5</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-two-part-5</guid>
       </item>
     
   </channel>
