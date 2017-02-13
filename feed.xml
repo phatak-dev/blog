@@ -7,6 +7,121 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Scalable Spark Deployment using Kubernetes - Part 1 : Introduction to Kubernetes</title>
+        <description>&lt;p&gt;As our workloads become more and more micro service oriented, building an infrastructure to deploy them easily 
+becomes important. Most of the big data applications need multiple services likes HDFS, YARN, Spark  and their clusters.
+Creating, deploying and monitoring them manually is tedious and error prone.&lt;/p&gt;
+
+&lt;p&gt;So most of the users move to cloud to simplify it. Solutions like EMR, Databricks etc help in this regard. But then users will be locked into
+those specific services. Also sometimes we want same deployment strategy to work on premise also. Most of the cloud providers don’t have that option today.&lt;/p&gt;
+
+&lt;p&gt;So we need a framework which helps us to create and monitor complex big data clusters. Also it should helps us move between on premise and
+other cloud providers seamlessly. Kubernetes is one those frameworks that can help us in that regard.&lt;/p&gt;
+
+&lt;p&gt;In this set of posts, we are going to discuss how kubernetes, an open source container orchestration framework from Google, helps us
+to achieve a deployment strategy for spark and other big data tools which works across the on premise and cloud. As part of the series, we will 
+discuss how to install, configure and scale kubernetes on local and cloud. Also we are going to discuss how to build our own customised images for the services and applications.&lt;/p&gt;
+
+&lt;p&gt;This is the first blog in the series where we discuss about what is kubernetes and it’s advantages. You can access
+all other blogs in the series &lt;a href=&quot;/categories/kubernetes-series/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-is-kubernetes&quot;&gt;What is Kubernetes?&lt;/h2&gt;
+
+&lt;p&gt;Kubernetes is an open source container orchestration framework. In simple words, it’s a framework which allows us
+to create and manage multiple containers. These containers will be docker containers which will be running some services. 
+These can be your typical webapp, database or even big data tools like spark, hbase etc.&lt;/p&gt;
+
+&lt;h2 id=&quot;why-kubernetes&quot;&gt;Why Kubernetes?&lt;/h2&gt;
+
+&lt;p&gt;Most of the readers may have tried docker before. It’s a framework which allows developers containerise their application. It has become a
+popular way to develop, test and deploy applications on scale. When we already have docker, what is kubernetes bring into picture? Can’t we 
+just build our clusters using normal docker itself?&lt;/p&gt;
+
+&lt;p&gt;The below are the some of the advantages of using kubernetes over plain docker tools.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h4 id=&quot;orchestration&quot;&gt;Orchestration&lt;/h4&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;One of the import feature that sets kubernetes apart from docker is it’s not a container framework. But it’s more of a orchestration layer for multiple containers
+that normally make an application. Docker itself has compose feature but it’s very limited. So as our application become complex, we will have
+multiple containers which needs to be orchestrated. Doing them manually becomes tricky. So kubernetes helps in that regard.&lt;/p&gt;
+
+&lt;p&gt;Also kubernetes has support for multiple container frameworks. Currently it supports docker and rkt. This makes users
+to choose their own container frameworks rather than sticking with only docker.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h4 id=&quot;cloud-independent&quot;&gt;Cloud Independent&lt;/h4&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;One of the import design goal of kubernetes, is ability to run everywhere. We can run kubernetes in local machine, on-premise clusters or on cloud.
+Kubernetes has support for AWS,GCE and Azure out of the box. Not only it normalises the deployment across the cloud, it will use best tool for given
+problem given by specific cloud. So it tries to optimise for each cloud.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h4 id=&quot;support-for-easy-clustering&quot;&gt;Support for Easy Clustering&lt;/h4&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;One of the hard part of installing big data tools like spark on cloud is to build the cluster and maintain it. Creating clusters often need tinkering with networking to make sure all services are started in right places. Also once cluster is up and running, making sure each node has sufficient resources also is tricky.&lt;/p&gt;
+
+&lt;p&gt;Often scaling cluster, adding node or removing it, is tricky. Kubernetes makes all this much easier compared to current solutions. It has excellent support to
+virtual networking and ability to easily scale clusters on will.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h4 id=&quot;support-for-service-upgradation-and-rollback&quot;&gt;Support for Service Upgradation and Rollback&lt;/h4&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;One of the hard part of clustered applications, is to update the software. Sometime it may be you want to update the application code or want to update version of
+spark itself. Having a well defined strategy to upgrade the clusters with check and balances is super critical. Also when things go south, ability to rollback 
+in reasonably time frame is also important.&lt;/p&gt;
+
+&lt;p&gt;Kubernetes provides well defined image ( container image) based upgradation policies which can unify the upgrading different services across cluster. This makes
+life easier for all the ops people out there.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h4 id=&quot;effective-resource-isolation-and-management&quot;&gt;Effective Resource Isolation and Management&lt;/h4&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;One of the question, we often ponder should we run services like kafka next to spark or not? Most of the time people advise to have separate machines
+so that each service gets sufficient resources. But defining machine size and segregating services based on machines becomes tricky as we want to scale our
+services.&lt;/p&gt;
+
+&lt;p&gt;Kubernetes frees you from the machine. Kubernetes asks you to define how much resources you want to dedicate for service. Once you do that, it will take care
+of figuring out which machine to run those. It will make sure that it will effectively using all resources across machines and also give guarantees about resource
+allocation. You no more need to worry about is one service is taking over all resources and depriving others or your machines are under utilized.&lt;/p&gt;
+
+&lt;p&gt;Not only kubernetes allows you to define resources In terms of GB of RAM or number of cpu’s, it allows it to be defined in terms of percentage of machine resource or
+in terms of no of requests. These options are there to dedicate the resources more granularly.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h4 id=&quot;well-defined-storage-management&quot;&gt;Well Defined Storage Management&lt;/h4&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;One of the challenges of micro service oriented architectures is to store the state across the restart/ upgradation of containers. It’s critical for applications like Databases not loose data when something goes wrong with container or machine.&lt;/p&gt;
+
+&lt;p&gt;Kubernetes gives a clear abstraction of storage who’s life cycle is independent of the container itself. This makes users ability to use different storages like host based, network attached drives to make sure that there will be no data loss. These abstractions ties well with persistence options provided by cloud like EBS from aws. Kubernetes makes long running persistent services like databases a breeze.&lt;/p&gt;
+
+&lt;p&gt;Now we know what kubernetes brings to the table. In our next post, we will be discussing how to install kubernetes on local machine.&lt;/p&gt;
+
+</description>
+        <pubDate>Mon, 13 Feb 2017 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-1</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-1</guid>
+      </item>
+    
+      <item>
         <title>Statistical Data Exploration using Spark 2.0 - Part 3 : Outlier Detection using Quantiles</title>
         <description>&lt;p&gt;In our &lt;a href=&quot;/statistical-data-exploration-spark-part-1&quot;&gt;first blog&lt;/a&gt; of the series, we discussed about generating summary data using spark.This summary data included mean, standard deviation and quantiles. Quantiles gives pretty good idea about spread of data and are one of the robust measurements compared to mean.&lt;/p&gt;
 
@@ -559,19 +674,6 @@ This is quite simple in most of the functional programming languages, but it’s
         <pubDate>Sun, 03 Jul 2016 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/introduction-to-spark-two-part-7</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-two-part-7</guid>
-      </item>
-    
-      <item>
-        <title>Evolution of Apache Spark : Journey of Spark in 1.x Series</title>
-        <description>&lt;p&gt;The below video is recording of my talk on &lt;em&gt;Evolution of Apache Spark : Journey of Spark in 1.x Series&lt;/em&gt; in recent spark meetup. In this talk, we will discuss how apache spark has undergone tremendous changes in API and implementation in last two years. Talk also discusses how big data industry is embracing these changes. Understanding these changes makes us prepared for new things getting introduced in spark 2.0.&lt;/p&gt;
-
-&lt;p&gt;Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/evolution-of-apache-spark&quot;&gt;slideshare&lt;/a&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/_B_erPzkJKA&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
-</description>
-        <pubDate>Sun, 03 Jul 2016 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/evolution-of-apache-spark</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/evolution-of-apache-spark</guid>
       </item>
     
   </channel>
