@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Scalable Spark Deployment using Kubernetes : Part 1 - Introduction to Kubernetes" 
+title: "Scalable Spark Deployment using Kubernetes - Part 1 : Introduction to Kubernetes" 
 date : 2017-02-13
 categories: scala spark kubernetes-series
 ---
