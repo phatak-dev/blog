@@ -7,6 +7,79 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Scalable Spark Deployment using Kubernetes - Part 2 : Installing Kubernetes Locally using Minikube</title>
+        <description>&lt;p&gt;In last blog, we discussed about what is kubernetes and what are it’s advantages. In this second post of the series, we are going to discuss
+how to install the kubernetes locally on your machine.You can find all the posts in the series &lt;a href=&quot;/categories/kubernetes-series/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;installing-kubernetes-on-local-machine&quot;&gt;Installing Kubernetes on Local Machine&lt;/h2&gt;
+
+&lt;p&gt;One of the cool features of kubernetes that it can be installed and tried out in local. It behaves exactly as it will be on a cluster. To try out 
+kubernetes on local we need to install minikube and kubectl.&lt;/p&gt;
+
+&lt;p&gt;The below are the steps&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h4 id=&quot;step-1-pre-requisites&quot;&gt;Step 1 :Pre-Requisites&lt;/h4&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;To install the kubernetes on local machine, we install minikube. But minikube normally uses some kind of virtualization layer to install the
+needed software. So for our example, we will use virtualbox as our virtualization layer. For more pre-requisites refer &lt;a href=&quot;https://kubernetes.io/docs/getting-started-guides/minikube/#requirements&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Download and Install virtualbox from &lt;a href=&quot;http://www.virtualbox.org&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h4 id=&quot;step-2--install-minikube&quot;&gt;Step 2 : Install MiniKube&lt;/h4&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Run the below commands to install minikube on linux. For other operating system, refer &lt;a href=&quot;https://github.com/kubernetes/minikube/releases&quot;&gt;here&lt;/a&gt;.
+Latest version as of now is 0.16.0&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.16.0/minikube-linux-amd64 &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; chmod +x minikube &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; sudo mv minikube /usr/local/bin/&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;step-3--install-kubectl&quot;&gt;Step 3 : Install KubeCtl&lt;/h3&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Kubectl is a command line utility which communicates to kubernetes over it’s REST API. We can install it using below command&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;curl -LO https://storage.googleapis.com/kubernetes-release/release/&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;/bin/linux/amd64/kubectl
+chmod +x ./kubectl
+sudo mv ./kubectl /usr/local/bin/kubectl&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;interacting-with-minikube&quot;&gt;Interacting With Minikube&lt;/h2&gt;
+
+&lt;p&gt;Once we installed the minikube and kubectl , we can start playing with kubernetes.&lt;/p&gt;
+
+&lt;p&gt;We can start minikube using below command. It downloads minikube iso and start a virtual machine in virtualbox.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;minikube start&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We can open the kubernetes dashboard using below command&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;minikube dashboard&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We can check is anything running or not, using below command&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl get po --all-namespaces&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This command should show some kubernetes container running.&lt;/p&gt;
+
+&lt;p&gt;Now we have successfully installed and configured the kubernetes on our machine.&lt;/p&gt;
+
+&lt;p&gt;In our next post, we will discuss the different abstractions of kubernetes and how to use them in our applications.&lt;/p&gt;
+</description>
+        <pubDate>Wed, 15 Feb 2017 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-2</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-2</guid>
+      </item>
+    
+      <item>
         <title>Scalable Spark Deployment using Kubernetes - Part 1 : Introduction to Kubernetes</title>
         <description>&lt;p&gt;As our workloads become more and more micro service oriented, building an infrastructure to deploy them easily 
 becomes important. Most of the big data applications need multiple services likes HDFS, YARN, Spark  and their clusters.
@@ -657,23 +730,6 @@ This is quite simple in most of the functional programming languages, but it’s
         <pubDate>Fri, 05 Aug 2016 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/anatomy-of-spark-catalyst</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/anatomy-of-spark-catalyst</guid>
-      </item>
-    
-      <item>
-        <title>Introduction to Spark 2.0 - Part 7 : Meetup Talk on Spark 2.0 API</title>
-        <description>&lt;p&gt;Spark 2.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 2.0.&lt;/p&gt;
-
-&lt;p&gt;This is the seventh blog in the series.You can access all the posts in the series &lt;a href=&quot;/categories/spark-two/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;The below video is recording of my talk on &lt;em&gt;Introduction to Spark 2.0 : Next Step in Spark Journey&lt;/em&gt; in recent spark meetup. In this talk, I have discussed about new abstractions and new API’s introduced in latest version of spark.&lt;/p&gt;
-
-&lt;p&gt;Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/introduction-to-spark-20&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/GhZ-XPGyXiM&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
-</description>
-        <pubDate>Sun, 03 Jul 2016 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/introduction-to-spark-two-part-7</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-two-part-7</guid>
       </item>
     
   </channel>
