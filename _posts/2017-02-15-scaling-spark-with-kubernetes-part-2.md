@@ -1,13 +1,15 @@
 ---
 layout: post
-title: "Scalable Spark Deployment using Kubernetes : Part 2 - Installing Kubernetes Locally using Minikube" 
-date : 2017-02-08
+title: "Scalable Spark Deployment using Kubernetes - Part 2 : Installing Kubernetes Locally using Minikube" 
+date : 2017-02-15
 categories: scala spark kubernetes-series
 ---
+In last blog, we discussed about what is kubernetes and what are it's advantages. In this second post of the series, we are going to discuss
+how to install the kubernetes locally on your machine.You can find all the posts in the series [here](/categories/kubernetes-series/).
 
 ## Installing Kubernetes on Local Machine
 
-One of the cool features of kubernetes is it can be installed and tried out in locally. It behaves exactly as it will be on a cluster. To try out 
+One of the cool features of kubernetes that it can be installed and tried out in local. It behaves exactly as it will be on a cluster. To try out 
 kubernetes on local we need to install minikube and kubectl.
 
 The below are the steps
@@ -15,8 +17,8 @@ The below are the steps
 
 * #### Step 1 :Pre-Requisites
 
-To install the kubernetes on local machine, we install minikube. But minikube normally uses some kind of virtualisation layer to install the
-need code. So for our example, we will use virtualbox as our virtualisation layer. For more requirements can be found [here](https://kubernetes.io/docs/getting-started-guides/minikube/#requirements)
+To install the kubernetes on local machine, we install minikube. But minikube normally uses some kind of virtualization layer to install the
+needed software. So for our example, we will use virtualbox as our virtualization layer. For more pre-requisites refer [here](https://kubernetes.io/docs/getting-started-guides/minikube/#requirements).
 
 Download and Install virtualbox from [here](http://www.virtualbox.org).
 
@@ -45,9 +47,9 @@ sudo mv ./kubectl /usr/local/bin/kubectl
 
 ## Interacting With Minikube
 
-Once we installed the minikube and kubectl we can interact with it. 
+Once we installed the minikube and kubectl , we can start playing with kubernetes. 
 
-We can start minikube using below commmand. It downloads minikube iso and start a virtual machine in virtualbox
+We can start minikube using below command. It downloads minikube iso and start a virtual machine in virtualbox.
 
 {% highlight sh %}
 minikube start
@@ -70,3 +72,4 @@ This command should show some kubernetes container running.
 
 Now we have successfully installed and configured the kubernetes on our machine.
 
+In our next post, we will discuss the different abstractions of kubernetes and how to use them in our applications.
