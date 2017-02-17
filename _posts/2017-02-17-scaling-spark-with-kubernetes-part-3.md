@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Scalable Spark Deployment using Kubernetes : Part 3 - Kubernetes Abstractions" 
+title: "Scalable Spark Deployment using Kubernetes - Part 3 : Kubernetes Abstractions" 
 date : 2017-02-17
 categories: scala spark kubernetes-series
 ---
@@ -14,7 +14,7 @@ Kubernetes is a production grade  container orchestration system. It follows an 
 
 The Kubernetes abstractions can be divided into following four major categories
 
-* Compute Abstractions - All the abstractions related running a computing unit. Ex : Container, Pod etc.
+* Compute Abstractions - All the abstractions related to running a computing unit. Ex : Container, Pod etc.
 
 * Network Abstractions - All the abstractions related to expose the computing units on network ex: Container Port, Service etc.
 
@@ -24,10 +24,10 @@ The Kubernetes abstractions can be divided into following four major categories
 
 In the following sections, we will be discussing about important compute abstractions. The other abstractions will be covered in future posts.
 
-## A Brief Word About Containers
+## A Brief Word about Containers
 
-Kubernetes is container orchestration framework. But what is container? In simple terms, container is a light weight virtual machine which runs one of the services
-of an application. The major difference between VM and Containers is how they share operating system and underneath resources. In VM world, each VM has it's own full copy operating system. But in case of containers, all the containers share a common operating system kernel. So containers are much more light weight than the VM's.
+Kubernetes is a container orchestration framework. But what is a container? In simple terms, container is a light weight virtual machine which runs one of the services
+of an application. The major difference between VM and Containers is how they share operating system and underneath resources. In VM world, each VM has it's own full copy of operating system. But in case of containers, all the containers share a common operating system kernel. So containers are much more light weight than the VM's.
 
 Even though containers are around more than a decade, docker made containers popular. You can get basics of docker or container in general by going through this [video](https://www.youtube.com/watch?v=Q5POuMHxW-0).
 
@@ -61,22 +61,22 @@ spec:
 
 The above yaml snippet defines the pod. The below are the different pieces.
 
-*apiVersion - parameter defines the  kubernetes API we are using. This versioning scheme allows kubernetes to support multiple versions of the API's at same time. 
+* **apiVersion** - parameter defines the  kubernetes API we are using. This versioning scheme allows kubernetes to support multiple versions of the API's at same time. 
 
-* kind - This parameter define for which abstraction of kubernetes we are defining this configuration. Here we are defining for a pod.
+* **kind** - This parameter defines for which abstraction of kubernetes we are defining this configuration. Here we are defining for a pod.
 
-* metadata - Metadata of the pod. This allows kubernetes to locate the pod uniquely across the cluster.
+* **metadata** - Metadata of the pod. This allows kubernetes to locate the pod uniquely across the cluster.
 
-* spec - This defines the all the containers we want to run
+* **spec** - This defines the all the containers we want to run
 
 For each container we define
 
- * name - Name of the container. This will be also used as the host name of the container. So this has to be unique within the pod
- * image - Docker image that needs to be used to create the container.
+ * **name** - Name of the container. This will be also used as the host name of the container. So this has to be unique within the pod
+ * **image** - Docker image that needs to be used to create the container.
 
 You can read more about pod abstraction [here](https://kubernetes.io/docs/user-guide/pods/).
 
-You can find the complete yaml file on [github](https://github.com/phatak-dev/blog/blob/master/code/KubernetesExamples/nginxpod.yaml)
+You can find the complete yaml file on [github](https://github.com/phatak-dev/blog/blob/master/code/KubernetesExamples/nginxpod.yaml).
 
 ### Creating Pod from Configuration
 
@@ -110,7 +110,7 @@ Now you have successfully ran a pod on your kubernetes instance.
 
 ### Deployment Abstraction
 
-In earlier section, we discussed about pod abstraction. Pod abstraction works well when we need to create single copy of the container. But in clustered use cases like spark, we may need multiple instance of same containers. For example, each spark worker will run same image. So in those cases using pod abstraction is not good enough.Also pod abstraction doesn't allow us to update the code inside the pod without changing the configuration file. This will be challenging in cluster environment where we may want to dynamically update configs/ version of software.
+In earlier section, we discussed about pod abstraction. Pod abstraction works well when we need to create single copy of the container. But in clustered use cases like spark, we may need multiple instance of same containers. For example, we need multiple instances of spark workers. Expressing them individually is tedious and doesn't scale well.So in those cases using pod abstraction is not good enough.Also pod abstraction doesn't allow us to update the code inside the pod without changing the configuration file. This will be challenging in cluster environment where we may want to dynamically update configs/ version of software.
 
 So to overcome these challenges, kubernetes gives us another abstraction called deployments. As name suggest, this abstraction allows end to end deployment of a pod. This allows us to create, update and destroy pods with much cleaner abstractions than the bare bone pod abstraction. So kubernetes documentation prefers the deployment abstraction over simple pod abstraction.
 
@@ -136,11 +136,12 @@ spec:
 
 The below are the major differences are
 
- * replicas - We can create multiple instances of the pod using this. As we need only instance here we are specifying as the 1.
+ * **replicas** - We can create multiple instances of the pod using this. As we need only instance here we are specifying as the 1.
 
- * template - This holds the template for the pod. This information is same whatever we specified in the pod definition.
+ * **template** - This holds the template for the pod. This information is same whatever we specified in the pod definition.
 
-You can access the complete file on [github](https://github.com/phatak-dev/blog/blob/master/code/KubernetesExamples/nginxdeployment.yaml)
+You can access the complete file on [github](https://github.com/phatak-dev/blog/blob/master/code/KubernetesExamples/nginxdeployment.yaml).
+
 ### Running the deployment
 
 Use the below command to run the deployment
@@ -159,7 +160,7 @@ kubectl get deployments
 
 {%  endhighlight %}
 
-Now you have successfully ran the deployment.
+Now you have successfully ran the deployment. You can run multiple copies of the container just by increasing the replicas count.
 
 ### Conclusion
 Now we know the major compute abstractions of the kubernetes. Use deployment abstraction even when you need single pod. It makes things much cleaner.
