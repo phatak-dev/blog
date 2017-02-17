@@ -7,6 +7,173 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Scalable Spark Deployment using Kubernetes - Part 3 : Kubernetes Abstractions</title>
+        <description>&lt;p&gt;In last blog of the series, we discussed about how to install kubernetes in our local machine.In this third blog, we will discuss what are the different abstractions
+provided by the kubernetes. You can access all the posts in the series &lt;a href=&quot;/categories/kubernetes-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;kubernetes-abstractions&quot;&gt;Kubernetes Abstractions&lt;/h2&gt;
+
+&lt;p&gt;Kubernetes is a production grade  container orchestration system. It follows an API driven approach to interact between different components. It has a vast API surface.We are not going to cover each of those API’s/abstractions here. We are only going to focus on few of the one which are used most of the times. For all the abstractions, refer to &lt;a href=&quot;https://kubernetes.io/docs/user-guide/&quot;&gt;user guide&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The Kubernetes abstractions can be divided into following four major categories&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Compute Abstractions - All the abstractions related to running a computing unit. Ex : Container, Pod etc.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Network Abstractions - All the abstractions related to expose the computing units on network ex: Container Port, Service etc.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Storage Abstractions - All the abstractions related to providing and managing storage for compute ex: Volume, VolumeClaim etc.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Metadata Abstractions - All the abstractions related to discovering compute, network and storage abstractions ex : labels&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In the following sections, we will be discussing about important compute abstractions. The other abstractions will be covered in future posts.&lt;/p&gt;
+
+&lt;h2 id=&quot;a-brief-word-about-containers&quot;&gt;A Brief Word about Containers&lt;/h2&gt;
+
+&lt;p&gt;Kubernetes is a container orchestration framework. But what is a container? In simple terms, container is a light weight virtual machine which runs one of the services
+of an application. The major difference between VM and Containers is how they share operating system and underneath resources. In VM world, each VM has it’s own full copy of operating system. But in case of containers, all the containers share a common operating system kernel. So containers are much more light weight than the VM’s.&lt;/p&gt;
+
+&lt;p&gt;Even though containers are around more than a decade, docker made containers popular. You can get basics of docker or container in general by going through this &lt;a href=&quot;https://www.youtube.com/watch?v=Q5POuMHxW-0&quot;&gt;video&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;compute-abstractions&quot;&gt;Compute Abstractions&lt;/h2&gt;
+
+&lt;p&gt;Once we know what is a container, we can now start discussing about the different compute abstractions in kubernetes. Most of these abstractions discuss about how to create, manage and destroy the containers on scale.&lt;/p&gt;
+
+&lt;h3 id=&quot;pod-abstraction&quot;&gt;Pod Abstraction&lt;/h3&gt;
+
+&lt;p&gt;Pod is a collection of one or more containers. It’s smallest compute unit you can deploy on the kubernetes.&lt;/p&gt;
+
+&lt;p&gt;One of the important aspects of pods are, they run all the containers in the single node. This gives the locality to the containers which need low latency connection between them. Also since they run on same machine, kubernetes creates a networking scheme which allows each containers to address them each other by “localhost”&lt;/p&gt;
+
+&lt;h3 id=&quot;defining-the-pod&quot;&gt;Defining the Pod&lt;/h3&gt;
+
+&lt;p&gt;Kubernetes uses yaml as it’s configuration language for defining various resources.&lt;/p&gt;
+
+&lt;p&gt;In below configuration, we are defining a pod which runs a single container of nginx. Nginx is a popular web server.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-yaml&quot; data-lang=&quot;yaml&quot;&gt;&lt;span class=&quot;l-Scalar-Plain&quot;&gt;apiVersion&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;v1&lt;/span&gt;
+&lt;span class=&quot;l-Scalar-Plain&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;Pod&lt;/span&gt;
+&lt;span class=&quot;l-Scalar-Plain&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx-pod&lt;/span&gt;
+&lt;span class=&quot;l-Scalar-Plain&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;containers&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+   &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx&lt;/span&gt;
+     &lt;span class=&quot;l-Scalar-Plain&quot;&gt;image&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above yaml snippet defines the pod. The below are the different pieces.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;apiVersion&lt;/strong&gt; - parameter defines the  kubernetes API we are using. This versioning scheme allows kubernetes to support multiple versions of the API’s at same time.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;kind&lt;/strong&gt; - This parameter defines for which abstraction of kubernetes we are defining this configuration. Here we are defining for a pod.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;metadata&lt;/strong&gt; - Metadata of the pod. This allows kubernetes to locate the pod uniquely across the cluster.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;spec&lt;/strong&gt; - This defines the all the containers we want to run&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;For each container we define&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;name&lt;/strong&gt; - Name of the container. This will be also used as the host name of the container. So this has to be unique within the pod&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;image&lt;/strong&gt; - Docker image that needs to be used to create the container.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;You can read more about pod abstraction &lt;a href=&quot;https://kubernetes.io/docs/user-guide/pods/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;You can find the complete yaml file on &lt;a href=&quot;https://github.com/phatak-dev/blog/blob/master/code/KubernetesExamples/nginxpod.yaml&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;creating-pod-from-configuration&quot;&gt;Creating Pod from Configuration&lt;/h3&gt;
+
+&lt;p&gt;Once we define the pod, then we can use &lt;em&gt;kubectl create&lt;/em&gt; command to create a pod&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl create -f nginx.yaml&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This will download the latest nginx image from dockerhub and starts the container inside the pod.&lt;/p&gt;
+
+&lt;p&gt;If you run the below command&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl get po&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You should see the results as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;nginx-pod                          1/1       Running   0          37s&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now you have successfully ran a pod on your kubernetes instance.&lt;/p&gt;
+
+&lt;h3 id=&quot;deployment-abstraction&quot;&gt;Deployment Abstraction&lt;/h3&gt;
+
+&lt;p&gt;In earlier section, we discussed about pod abstraction. Pod abstraction works well when we need to create single copy of the container. But in clustered use cases like spark, we may need multiple instance of same containers. For example, we need multiple instances of spark workers. Expressing them individually is tedious and doesn’t scale well.So in those cases using pod abstraction is not good enough.Also pod abstraction doesn’t allow us to update the code inside the pod without changing the configuration file. This will be challenging in cluster environment where we may want to dynamically update configs/ version of software.&lt;/p&gt;
+
+&lt;p&gt;So to overcome these challenges, kubernetes gives us another abstraction called deployments. As name suggest, this abstraction allows end to end deployment of a pod. This allows us to create, update and destroy pods with much cleaner abstractions than the bare bone pod abstraction. So kubernetes documentation prefers the deployment abstraction over simple pod abstraction.&lt;/p&gt;
+
+&lt;p&gt;So let’s rewrite our nginx pod example using deployment abstraction. The below is the yaml configuration for deployment&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-yaml&quot; data-lang=&quot;yaml&quot;&gt;&lt;span class=&quot;l-Scalar-Plain&quot;&gt;apiVersion&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;extensions/v1beta1&lt;/span&gt;
+&lt;span class=&quot;l-Scalar-Plain&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;Deployment&lt;/span&gt;
+&lt;span class=&quot;l-Scalar-Plain&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx-deployment&lt;/span&gt;
+&lt;span class=&quot;l-Scalar-Plain&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;replicas&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;1&lt;/span&gt;
+  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;template&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;metadata&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+     &lt;span class=&quot;l-Scalar-Plain&quot;&gt;labels&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx&lt;/span&gt;
+    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spec&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;l-Scalar-Plain&quot;&gt;containers&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+       &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx&lt;/span&gt;
+         &lt;span class=&quot;l-Scalar-Plain&quot;&gt;image&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The below are the major differences are&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;replicas&lt;/strong&gt; - We can create multiple instances of the pod using this. As we need only instance here we are specifying as the 1.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;template&lt;/strong&gt; - This holds the template for the pod. This information is same whatever we specified in the pod definition.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;You can access the complete file on &lt;a href=&quot;https://github.com/phatak-dev/blog/blob/master/code/KubernetesExamples/nginxdeployment.yaml&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;running-the-deployment&quot;&gt;Running the deployment&lt;/h3&gt;
+
+&lt;p&gt;Use the below command to run the deployment&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl create -f nginxdeployment.yaml&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You can see all running deployments using below command&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl get deployments&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now you have successfully ran the deployment. You can run multiple copies of the container just by increasing the replicas count.&lt;/p&gt;
+
+&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h3&gt;
+&lt;p&gt;Now we know the major compute abstractions of the kubernetes. Use deployment abstraction even when you need single pod. It makes things much cleaner.&lt;/p&gt;
+
+&lt;h3 id=&quot;whats-next&quot;&gt;What’s Next?&lt;/h3&gt;
+
+&lt;p&gt;Even though we have run the pod, we have not accessed  anything from it. So you may be asking how to access the front-page of nginx. To understand that, we need to understand the network/service abstractions provided by the kubernetes. We will be discussing about them in the next blog.&lt;/p&gt;
+
+</description>
+        <pubDate>Fri, 17 Feb 2017 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-3</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-3</guid>
+      </item>
+    
+      <item>
         <title>Scalable Spark Deployment using Kubernetes - Part 2 : Installing Kubernetes Locally using Minikube</title>
         <description>&lt;p&gt;In last blog, we discussed about what is kubernetes and what are it’s advantages. In this second post of the series, we are going to discuss
 how to install the kubernetes locally on your machine.You can find all the posts in the series &lt;a href=&quot;/categories/kubernetes-series/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
@@ -717,19 +884,6 @@ This is quite simple in most of the functional programming languages, but it’s
         <pubDate>Wed, 24 Aug 2016 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/functional-programming-in-rust-part-1</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/functional-programming-in-rust-part-1</guid>
-      </item>
-    
-      <item>
-        <title>Anatomy of Spark Catalyst - Part 1 : Meetup Talk</title>
-        <description>&lt;p&gt;The below video is recording of my talk on &lt;em&gt;Anatomy of Spark SQL- Part 1&lt;/em&gt; in recent spark meetup. In this talk, we have discussed spark catalyst in depth.It’s first part of series of talks on catalyst.&lt;/p&gt;
-
-&lt;p&gt;Find the slides on &lt;a href=&quot;http://www.slideshare.net/datamantra/anatomy-of-spark-catalyst&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/anatomy-of-spark-catalyst&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/TCWOJ6EJprY&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
-</description>
-        <pubDate>Fri, 05 Aug 2016 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/anatomy-of-spark-catalyst</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/anatomy-of-spark-catalyst</guid>
       </item>
     
   </channel>
