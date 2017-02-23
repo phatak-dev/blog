@@ -1,11 +1,11 @@
 ---
 layout: post
 title: "Scalable Spark Deployment using Kubernetes - Part 4 : Service Abstractions" 
-date : 2017-02-23
+date : 2017-02-20
 categories: scala spark kubernetes-series
 ---
 
-In last blog, we discussed about the compute abstraction of kubernetes. In that blog, we discussed about creating a pod with nginx container. At the end of the blog, we needed ability to expose nginx pod for consuming it services. To do that, we need to understand how networking works in kubernetes.So in this fourth blog of the series, we are going to discuss various network related abstractions provided kubernetes. You can access all the blog in the series [here](/categories/kubernetes-series).
+In last blog, we discussed about the compute abstraction with the help of nginx. In that blog, we discussed about how to expose ngnix for consumption. In this fourth blog of the series, we are going to discuss various network related abstractions provided kubernetes. You can access all the blog in the series [here](/categories/kubernetes-series).
 
 ## Network Abstractions
 
@@ -16,38 +16,23 @@ In the following sections, we are going to explore different service abstraction
 
 ### Container Port
 
-As part of the pod definition, we can  define which ports to be exposed from the container using *containerPort* property. This will expose that specific port in
-the container on it's ip address.
+As part of the pod definition, we can  define which ports to be exposed from the container using *containerPort* property. This will expose that specific port to all
+the container on it's ip address
 
-Let's define port at 80 in our nginx deployment.
+Let's define port at 80, for nginx example.
 
 {% highlight yaml %}
-apiVersion : extensions/v1beta1
-kind: Deployment
-metadata:
-  name : nginx-deployment
-spec:
-  replicas : 1
-  template:
-    metadata :
-     labels :
-        name : nginx
-    spec :
-      containers:
-       - name : nginx
-         image : nginx
-         ports :
-          - containerPort : 80
+- containerPort : 80
 {% endhighlight %}
 
-You can access complete file [here](https://github.com/phatak-dev/blog/blob/master/code/KubernetesExamples/nginxpod.yaml).
+You can access complete file [here]().
 
 
 ### Service
 
 Once we defined the container port, next step is to define service.
 
-Service abstraction defines a set of logical pods. This is a network abstraction which defines a policy to expose micro service using these pods to other parts of the application.
+Service abstraction gives way to define a set of logical pods. This is a network abstraction which defines a policy to expose micro service to other parts of the application.
 
 This seperation of container and it's service layer allows us to upgrade the different parts of the applications independent of each other. This is the strength of the microservice.
 
@@ -72,7 +57,7 @@ The above configuration defines the service. The import sections to focus are
 
 * kind - As we specified with pod and deployment abstractions, we specify the service using this parameter.
 
-* selector - Connecting pods with service. This is the way kubernetes knows which pod to forward the requests to the service. In this , we
+* selector - Connecting pod with service. This is the way kubernetes knows which pod to forward the requests to the service. In this , we
 are specifying the selector on label called *name* and it's value *nginx*. This should be same labels that we have specified in the 
 nginxdeployment.yaml. The below was the our deployment definition
 
@@ -102,7 +87,7 @@ In above configuration, we have specified the labels in our template. This shows
 * ports - This specifies the ports which service should connect on the container. By default the service port on which it listens is same as container
 port. You can change it if you want by specifying the *targetPort* parameter.
 
-You can access complete configuration on [github](https://github.com/phatak-dev/blog/blob/master/code/KubernetesExamples/nginxservice.yaml) 
+You can access complete configuration on [github]() 
 ### Starting Service
 
 Once we have defined the configuration, we can start the service using below command.
@@ -121,7 +106,7 @@ kubectl get svc
 
 {% endhighlight %}
 
-It should show the service runnig below.
+It should the service runnig below.
 
 {% highlight text %}
 
@@ -133,7 +118,7 @@ Now we have succesfully started the service.
 
 ### Service EndPoint
 
-Service we have created above is only accessible within the kubernetes cluster. There is a way to expose the service to external world, but we will be not discussing that in this post.
+Service we have created above is only accessible within the kubernetes cluster. There is a way to expose the service to external world, but we will be not discussing that currently. 
 
 To connect to the service, we need to know the machine it runs. As we are running kubernetes in local mode, it will be virtual machine running minikube.
 
@@ -160,7 +145,7 @@ Session Affinity:       None
 
 {% endhighlight %}
 
-In above command, we are describing the complete information about service. We are interested in the *EndPoints* parameter. This gives the IP and port of the machine to which we can connect. Note that the actual values of these parameter will be different on your machine.
+In above command, we are describing the complete information about service. We are interested in the *EndPoints* parameter. This gives the IP and port of the machine to which we can connect
 
 
 ### Testing with busy box
@@ -171,7 +156,7 @@ Now we have end point to call. But we need another pod in cluster to connect to 
 kubectl run -i --tty busybox --image=busybox --restart=Never -- sh 
 {% endhighlight %}
 
-The above command shows another way creating and running the pods. The different pieces of the command are
+The above command shows another way creating and running the pods. In above command the below are different pieces
 
 * run - Specifies create and run pod
 
@@ -231,7 +216,7 @@ Commercial support is available at
 
 Now we have succesfully connected our service and used our pod.
 
-Service layer of the kubernetes may look little complicated. It is. It's built for varieties of use cases. So it has multiple layer of redirection. We will explore more about this abstraction in upcoming posts. 
+Service layer of the kubernetes may look little complicated. It is. It's built for varieties of use cases. So it has multiple layer of redirection. We will explore more about this abstraction in upcoming blogs. 
 
 ### Conclusion
 
@@ -239,5 +224,8 @@ In this blog, we have discussed how to define and consume services. Services are
 
 ## What's Next?
 
-Now we know pod, deployment and service abstractions. These are minimal abstractions we need, to build our spark cluster on kubernetes. In next post, we will be discus how to build and scale spark cluster on kubernetes.
+Now we know pod, deployment and service abstractions. These are minimal abstractions we need to build our spark cluster on kubernetes. In upcoming blog, we will be discussing how to build and scale spark cluster.
+
+
+
 
