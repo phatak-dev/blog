@@ -7,6 +7,227 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Scalable Spark Deployment using Kubernetes - Part 4 : Service Abstractions</title>
+        <description>&lt;p&gt;In last blog, we discussed about the compute abstraction of kubernetes. In that blog, we discussed about creating a pod with nginx container. At the end of the blog, we needed ability to expose nginx pod for consuming it services. To do that, we need to understand how networking works in kubernetes.So in this fourth blog of the series, we are going to discuss various network related abstractions provided kubernetes. You can access all the blog in the series &lt;a href=&quot;/categories/kubernetes-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;network-abstractions&quot;&gt;Network Abstractions&lt;/h2&gt;
+
+&lt;p&gt;Network abstractions in the kubernetes are the one which facilitate the communication between the pods or the communication of the pods from external world. Commonly these are known as service abstractions.&lt;/p&gt;
+
+&lt;p&gt;In the following sections, we are going to explore different service abstractions.&lt;/p&gt;
+
+&lt;h3 id=&quot;container-port&quot;&gt;Container Port&lt;/h3&gt;
+
+&lt;p&gt;As part of the pod definition, we can  define which ports to be exposed from the container using &lt;em&gt;containerPort&lt;/em&gt; property. This will expose that specific port in
+the container on it’s ip address.&lt;/p&gt;
+
+&lt;p&gt;Let’s define port at 80 in our nginx deployment.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-yaml&quot; data-lang=&quot;yaml&quot;&gt;&lt;span class=&quot;l-Scalar-Plain&quot;&gt;apiVersion&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;extensions/v1beta1&lt;/span&gt;
+&lt;span class=&quot;l-Scalar-Plain&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;Deployment&lt;/span&gt;
+&lt;span class=&quot;l-Scalar-Plain&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx-deployment&lt;/span&gt;
+&lt;span class=&quot;l-Scalar-Plain&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;replicas&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;1&lt;/span&gt;
+  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;template&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;metadata&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+     &lt;span class=&quot;l-Scalar-Plain&quot;&gt;labels&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx&lt;/span&gt;
+    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spec&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;l-Scalar-Plain&quot;&gt;containers&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+       &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx&lt;/span&gt;
+         &lt;span class=&quot;l-Scalar-Plain&quot;&gt;image&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx&lt;/span&gt;
+         &lt;span class=&quot;l-Scalar-Plain&quot;&gt;ports&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+          &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;containerPort&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;80&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You can access complete file &lt;a href=&quot;https://github.com/phatak-dev/blog/blob/master/code/KubernetesExamples/nginxdeployment.yaml&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;service&quot;&gt;Service&lt;/h3&gt;
+
+&lt;p&gt;Once we defined the container port, next step is to define service.&lt;/p&gt;
+
+&lt;p&gt;Service abstraction defines a set of logical pods. This is a network abstraction which defines a policy to expose micro service using these pods to other parts of the application.&lt;/p&gt;
+
+&lt;p&gt;This separation of container and it’s service layer allows us to upgrade the different parts of the applications independent of each other. This is the strength of the microservice.&lt;/p&gt;
+
+&lt;p&gt;Let’s define a service for our nginx deployment.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-yaml&quot; data-lang=&quot;yaml&quot;&gt;&lt;span class=&quot;l-Scalar-Plain&quot;&gt;apiVersion&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;v1&lt;/span&gt;
+&lt;span class=&quot;l-Scalar-Plain&quot;&gt;kind&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;Service&lt;/span&gt;
+&lt;span class=&quot;l-Scalar-Plain&quot;&gt;metadata&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+   &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx-service&lt;/span&gt;
+   &lt;span class=&quot;l-Scalar-Plain&quot;&gt;labels&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; 
+     &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx-service&lt;/span&gt;
+&lt;span class=&quot;l-Scalar-Plain&quot;&gt;spec&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;selector&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx&lt;/span&gt;
+  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;ports&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; 
+     &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;port&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;80&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above configuration defines the service. The import sections to focus are&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;kind - As we specified with pod and deployment abstractions, we specify the service using this parameter.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;selector - Connecting pods with service. This is the way kubernetes knows which pod to forward the requests to the service. In this , we
+are specifying the selector on label called &lt;em&gt;name&lt;/em&gt; and it’s value &lt;em&gt;nginx&lt;/em&gt;. This should be same labels that we have specified in the 
+nginxdeployment.yaml. The below was the our deployment definition&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-yaml&quot; data-lang=&quot;yaml&quot;&gt;&lt;span class=&quot;l-Scalar-Plain&quot;&gt;apiVersion&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;extensions/v1beta1&lt;/span&gt;
+&lt;span class=&quot;l-Scalar-Plain&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;Deployment&lt;/span&gt;
+&lt;span class=&quot;l-Scalar-Plain&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx-deployment&lt;/span&gt;
+&lt;span class=&quot;l-Scalar-Plain&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;replicas&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;1&lt;/span&gt;
+  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;template&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;metadata&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+     &lt;span class=&quot;l-Scalar-Plain&quot;&gt;labels&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx&lt;/span&gt;
+    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spec&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;l-Scalar-Plain&quot;&gt;containers&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+       &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx&lt;/span&gt;
+         &lt;span class=&quot;l-Scalar-Plain&quot;&gt;image&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx&lt;/span&gt;
+         &lt;span class=&quot;l-Scalar-Plain&quot;&gt;ports&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
+          &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;containerPort&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;80&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above configuration, we have specified the labels in our template. This shows how label abstraction is used to connect service and pod abstractions.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;ports - This specifies the ports which service should connect on the container. By default the service port on which it listens is same as container
+port. You can change it if you want by specifying the &lt;em&gt;targetPort&lt;/em&gt; parameter.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;You can access complete configuration on &lt;a href=&quot;https://github.com/phatak-dev/blog/blob/master/code/KubernetesExamples/nginxservice.yaml&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;starting-service&quot;&gt;Starting Service&lt;/h3&gt;
+
+&lt;p&gt;Once we have defined the configuration, we can start the service using below command.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubctl create -f nginxservice.yaml&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We can list all the services, as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl get svc&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;It should show the service running below.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;nginx-service   10.0.0.197   &amp;lt;none&amp;gt;        80/TCP    23h&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now we have successfully started the service.&lt;/p&gt;
+
+&lt;h3 id=&quot;service-endpoint&quot;&gt;Service EndPoint&lt;/h3&gt;
+
+&lt;p&gt;Service we have created above is only accessible within the kubernetes cluster. There is a way to expose the service to external world, but we will be not discussing that in this post.&lt;/p&gt;
+
+&lt;p&gt;To connect to the service, we need to know the machine it runs. As we are running kubernetes in local mode, it will be virtual machine running minikube.&lt;/p&gt;
+
+&lt;p&gt;Run below command to get the end point details&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl describe svc&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;It should show the output as below.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;Name:                   nginx-service
+Namespace:              default
+Labels:                 name=nginx-service
+Selector:               name=nginx
+Type:                   ClusterIP
+IP:                     10.0.0.197
+Port:                   &amp;lt;unset&amp;gt; 80/TCP
+Endpoints:              172.17.0.4:80
+Session Affinity:       None&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above command, we are describing the complete information about service. We are interested in the &lt;em&gt;EndPoints&lt;/em&gt; parameter. This gives the IP and port of the machine to which we can connect. Note that the actual values of these parameter will be different on your machine.&lt;/p&gt;
+
+&lt;h3 id=&quot;testing-with-busy-box&quot;&gt;Testing with busy box&lt;/h3&gt;
+
+&lt;p&gt;Now we have end point to call. But we need another pod in cluster to connect to this machine. So let’s run another pod&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl run -i --tty busybox --image&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;busybox --restart&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;Never -- sh&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above command shows another way creating and running the pods. The different pieces of the command are&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;run - Specifies create and run pod&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;-i - Specifies run the pod interactively. This allows us to send commands using pod&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;–tty - Gives access to the terminal of the pod&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;busybox - Name of the pod.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;–image - image to run inside the container. We are a running an image called busybox, which gives minimal linux shell utilities&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;– restart-never - Since it’s a temporary pod, we don’t need HA&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;sh - Specifies run shell command to access&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Once you run the above command, you should drop into a familiar linux shell.&lt;/p&gt;
+
+&lt;p&gt;From the shell, run below command&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;wget -O - http://172.17.0.4&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Replace the IP address with the one you got from end point. This should print the welcome page of nginx as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;
+&amp;lt;title&amp;gt;Welcome to nginx!&amp;lt;/title&amp;gt;
+&amp;lt;style&amp;gt;
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+&amp;lt;/style&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;h1&amp;gt;Welcome to nginx!&amp;lt;/h1&amp;gt;
+&amp;lt;p&amp;gt;If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.&amp;lt;/p&amp;gt;
+
+&amp;lt;p&amp;gt;For online documentation and support please refer to
+&amp;lt;a href=&amp;quot;http://nginx.org/&amp;quot;&amp;gt;nginx.org&amp;lt;/a&amp;gt;.&amp;lt;br/&amp;gt;
+Commercial support is available at
+&amp;lt;a href=&amp;quot;http://nginx.com/&amp;quot;&amp;gt;nginx.com&amp;lt;/a&amp;gt;.&amp;lt;/p&amp;gt;
+
+&amp;lt;p&amp;gt;&amp;lt;em&amp;gt;Thank you for using nginx.&amp;lt;/em&amp;gt;&amp;lt;/p&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now we have successfully connected our service and used our pod.&lt;/p&gt;
+
+&lt;p&gt;Service layer of the kubernetes may look little complicated. It is. It’s built for varieties of use cases. So it has multiple layer of redirection. We will explore more about this abstraction in upcoming posts.&lt;/p&gt;
+
+&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;In this blog, we have discussed how to define and consume services. Services are one of the important features of the kubernetes which makes it powerful platform to deploy clustered applications.&lt;/p&gt;
+
+&lt;h3 id=&quot;whats-next&quot;&gt;What’s Next?&lt;/h3&gt;
+
+&lt;p&gt;Now we know pod, deployment and service abstractions. These are minimal abstractions we need, to build our spark cluster on kubernetes. In next post, we will be discus how to build and scale spark cluster on kubernetes.&lt;/p&gt;
+
+</description>
+        <pubDate>Thu, 23 Feb 2017 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-4</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-4</guid>
+      </item>
+    
+      <item>
         <title>Scalable Spark Deployment using Kubernetes - Part 3 : Kubernetes Abstractions</title>
         <description>&lt;p&gt;In last blog of the series, we discussed about how to install kubernetes in our local machine.In this third blog, we will discuss what are the different abstractions
 provided by the kubernetes. You can access all the posts in the series &lt;a href=&quot;/categories/kubernetes-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
@@ -776,114 +997,6 @@ counts: Array[Long] = Array(24, 18, 32, 69, 54)&lt;/code&gt;&lt;/pre&gt;&lt;/div
         <pubDate>Thu, 25 Aug 2016 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/functional-programming-in-rust-part-2</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/functional-programming-in-rust-part-2</guid>
-      </item>
-    
-      <item>
-        <title>Functional Programming in Rust - Part 1 : Function Abstraction</title>
-        <description>&lt;p&gt;Rust is a new system programming language developed at mozilla. It is a competitor to C and C++ with machine level access and no gc. But it’s not just better C.It brings many novel features of higher level languages like Java, Scala to system level programming.This combination of low level access, speed of C combined with flexibility  and expressiveness  of functional programming language like scala makes it very interesting language.&lt;/p&gt;
-
-&lt;p&gt;In this series of blog posts, I will discuss how to do functional programming in rust. Most of the examples are inspired from scala, as I use scala in my every day work. If you are new to rust, I highly recommend &lt;a href=&quot;https://doc.rust-lang.org/book&quot;&gt;Rust Book&lt;/a&gt; as a starting point. Use the book to install rust on your machine and familiarise with basic syntax.&lt;/p&gt;
-
-&lt;p&gt;This is the first blog in the series which focuses on defining functions and using them in different scenarios. You can access all the posts in series &lt;a href=&quot;/categories/rust-functional&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;TL;DR You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/fpinrust&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;defining-a-function-in-rust&quot;&gt;Defining a function in rust&lt;/h2&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;fn&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;simple_function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-	&lt;span class=&quot;nb&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;function called&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above code shows how to define a function. &lt;em&gt;fn&lt;/em&gt; keyword marks beginning of a function followed with function name and argument. As with scala, if we don’t specify any return type it will be inferred as unit.&lt;/p&gt;
-
-&lt;p&gt;The body of function is written inside { } brackets.&lt;/p&gt;
-
-&lt;h2 id=&quot;function-variable&quot;&gt;Function variable&lt;/h2&gt;
-
-&lt;p&gt;In functional programming languages, a function is a first class citizen. So we can store a function inside a variable and return the function from other function. So in this example, we will see how to store a function in a variable.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;fn&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;kd&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fn_variable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;calling using function variable {}&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fn_variable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above code show how to define a function variable in rust. First we define a function named add. In this function, we specify the return type explicitly. Unlike scala, in rust return types are not type inferred. The last line of the function is considered as return statement.&lt;/p&gt;
-
-&lt;p&gt;Once we have defined the function, we can store in a variable as shown in &lt;em&gt;fn_variable&lt;/em&gt;. Once we have the variable then we can invoke as regular function.&lt;/p&gt;
-
-&lt;h2 id=&quot;higher-order-function---take-function-as-parameter&quot;&gt;Higher Order function - Take function as parameter&lt;/h2&gt;
-
-&lt;p&gt;Once we are able to store a function in a variable, we should be able to pass the function to another function. These kind of functions are known as higher order functions. The below code shows how to define function which accepts another function as parameter.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;fn&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;higer_order_fn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;F&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;step&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;F&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;
-                    &lt;span class=&quot;n&quot;&gt;where&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;F&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Fn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;step&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above code shows a higher order function. The interesting piece in code is the type of second parameter step. step is of generic type F which is defined in  the where clause.&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;where&lt;/em&gt; clause in rust is used for type bound on generics. The type bound in our example says, F is of type Fn, one of the trait for function type, which takes i32 value and returns i32. i32 is one of the data types for representing number with 32 bits.&lt;/p&gt;
-
-&lt;p&gt;Once we have defined the higher order function, let’s see how to invoke it using functions. There are two ways to invoke the function. One by passing a named function  and another using anonymous functions.&lt;/p&gt;
-
-&lt;h3 id=&quot;using-named-function&quot;&gt;Using Named Function&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;fn&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_one&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;kd&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;higer_order_fn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add_one&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above code defines a named function add_one and passes it to higher_order function.&lt;/p&gt;
-
-&lt;h3 id=&quot;using-anonymous-functions&quot;&gt;Using anonymous functions&lt;/h3&gt;
-&lt;p&gt;Anonymous functions are in rust are part of closure feature of rust. Closures are special functions which has access to their surrounding scope. So anonymous functions are closures with empty scope.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;kd&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;higer_order_fn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above code show how to pass an anonymous function. You can read more about rust closures &lt;a href=&quot;https://doc.rust-lang.org/book/closures.html&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;higher-order-function---return-a-function-from-function&quot;&gt;Higher Order function - Return a function from function&lt;/h2&gt;
-
-&lt;p&gt;As we can pass a function as parameter to a function, we can return a function from another function. 
-This is quite simple in most of the functional programming languages, but it’s its little bit tricky in rust.&lt;/p&gt;
-
-&lt;p&gt;In this code I will show how to achieve the return of a function.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;fn&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;higer_order_fn_return&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&amp;#39;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;step_value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&amp;amp;&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;&amp;#39;a&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; 
-                            &lt;span class=&quot;n&quot;&gt;Box&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Fn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;&amp;#39;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-       &lt;span class=&quot;n&quot;&gt;Box&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;new&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;move&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;i32&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;step_value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above code looks complicated. The reason to have the complications is the way rust works with lifetimes. Let’s try to understand what’s going on here.&lt;/p&gt;
-
-&lt;p&gt;In our code, we are defining a function which take i32 value as parameter. Then the function should return a function which wraps this value with logic to increment given value with the step. The question we ask ourselves is how long this function lives?&lt;/p&gt;
-
-&lt;p&gt;In garbage collected language like Scala, it’s easy as garbage collector take care of this issue. But rust doesn’t have a gc. So rust has to determine the lifetime of the function in the compile time only.&lt;/p&gt;
-
-&lt;p&gt;In our example, we are defining a scope &lt;strong&gt;‘a&lt;/strong&gt; which is associate a scope with input value. So we are saying here to compiler, keep lifetime of function as long as value step_value exist. Lifetimes in rust can only exist with references. So in our example we will take &amp;amp;i32 rather than i32. Also we create to reference to Fn using Box.&lt;/p&gt;
-
-&lt;p&gt;Now we understand the lifetime of formal parameters and return type. But what about move in our implementation?. The value we take as parameter is created in stack. So when function returns the step_value is destroyed. So move says copy the step_value as part of closure.&lt;/p&gt;
-
-&lt;p&gt;You can read more about returning closures &lt;a href=&quot;https://doc.rust-lang.org/book/closures.html#returning-closures&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;The below code shows how to invoke the above function.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;kd&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;step_value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;kd&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;step_function&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;higer_order_fn_return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;step_value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;the stepped value is{}&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;step_function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You can access complete code &lt;a href=&quot;https://github.com/phatak-dev/fpinrust/blob/master/src/bin/definefunctions.rs&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;running-code&quot;&gt;Running code&lt;/h2&gt;
-
-&lt;p&gt;You can run all the examples using the below command&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;cargo run --bin definefunctions&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;So in this we got familiar with rust function abstraction. In next post, we will discuss how to use this abstractions to build function combinators on collections.&lt;/p&gt;
-</description>
-        <pubDate>Wed, 24 Aug 2016 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/functional-programming-in-rust-part-1</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/functional-programming-in-rust-part-1</guid>
       </item>
     
   </channel>
