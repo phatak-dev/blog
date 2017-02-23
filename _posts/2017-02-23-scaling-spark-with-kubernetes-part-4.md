@@ -40,7 +40,7 @@ spec:
           - containerPort : 80
 {% endhighlight %}
 
-You can access complete file [here](https://github.com/phatak-dev/blog/blob/master/code/KubernetesExamples/nginxpod.yaml).
+You can access complete file [here](https://github.com/phatak-dev/blog/blob/master/code/KubernetesExamples/nginxdeployment.yaml).
 
 
 ### Service
@@ -49,7 +49,7 @@ Once we defined the container port, next step is to define service.
 
 Service abstraction defines a set of logical pods. This is a network abstraction which defines a policy to expose micro service using these pods to other parts of the application.
 
-This seperation of container and it's service layer allows us to upgrade the different parts of the applications independent of each other. This is the strength of the microservice.
+This separation of container and it's service layer allows us to upgrade the different parts of the applications independent of each other. This is the strength of the microservice.
 
 Let's define a service for our nginx deployment.
 
@@ -102,7 +102,8 @@ In above configuration, we have specified the labels in our template. This shows
 * ports - This specifies the ports which service should connect on the container. By default the service port on which it listens is same as container
 port. You can change it if you want by specifying the *targetPort* parameter.
 
-You can access complete configuration on [github](https://github.com/phatak-dev/blog/blob/master/code/KubernetesExamples/nginxservice.yaml) 
+You can access complete configuration on [github](https://github.com/phatak-dev/blog/blob/master/code/KubernetesExamples/nginxservice.yaml). 
+
 ### Starting Service
 
 Once we have defined the configuration, we can start the service using below command.
@@ -121,7 +122,7 @@ kubectl get svc
 
 {% endhighlight %}
 
-It should show the service runnig below.
+It should show the service running below.
 
 {% highlight text %}
 
@@ -129,7 +130,7 @@ nginx-service   10.0.0.197   <none>        80/TCP    23h
 
 {% endhighlight %}
 
-Now we have succesfully started the service.
+Now we have successfully started the service.
 
 ### Service EndPoint
 
@@ -147,7 +148,7 @@ kubectl describe svc
 It should show the output as below.
 
 
-{% hightlight text %}
+{% highlight text %}
 Name:                   nginx-service
 Namespace:              default
 Labels:                 name=nginx-service
@@ -181,7 +182,7 @@ The above command shows another way creating and running the pods. The different
 
 * busybox - Name of the pod.
 
-* --image - image to run inside the container. We are a running an image called busybox, which gives minimal linux shell utilites
+* --image - image to run inside the container. We are a running an image called busybox, which gives minimal linux shell utilities
 
 * -- restart-never - Since it's a temporary pod, we don't need HA
 
@@ -195,7 +196,7 @@ From the shell, run below command
 
 wget -O - http://172.17.0.4
 
-{% endhighlight 5}
+{% endhighlight %}
 
 Replace the IP address with the one you got from end point. This should print the welcome page of nginx as below
 
@@ -227,9 +228,9 @@ Commercial support is available at
 </body>
 </html>
 
-{% end highlight %}
+{% endhighlight %}
 
-Now we have succesfully connected our service and used our pod.
+Now we have successfully connected our service and used our pod.
 
 Service layer of the kubernetes may look little complicated. It is. It's built for varieties of use cases. So it has multiple layer of redirection. We will explore more about this abstraction in upcoming posts. 
 
@@ -237,7 +238,7 @@ Service layer of the kubernetes may look little complicated. It is. It's built f
 
 In this blog, we have discussed how to define and consume services. Services are one of the important features of the kubernetes which makes it powerful platform to deploy clustered applications.
 
-## What's Next?
+### What's Next?
 
 Now we know pod, deployment and service abstractions. These are minimal abstractions we need, to build our spark cluster on kubernetes. In next post, we will be discus how to build and scale spark cluster on kubernetes.
 
