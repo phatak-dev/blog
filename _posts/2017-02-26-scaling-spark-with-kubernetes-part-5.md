@@ -184,7 +184,7 @@ cd to *docker* folder then run the below docker command.
 
 cd docker
 
-docker build -t spark-2.1.0-bin-hadoop-2.6 .
+docker build -t spark-2.1.0-bin-hadoop2.6 .
 
 {% endhighlight%}
 
