@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Madhukar's Blog</title>
+    <title>Madhukar&#39;s Blog</title>
     <description>Thoughts on technology, life and everything else.</description>
     <link>http://blog.madhukaraphatak.com/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
@@ -396,7 +396,7 @@ spark clustering. We will discuss more about service variable in next post.&lt;/
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;docker
 
-docker build -t spark-2.1.0-bin-hadoop-2.6 .&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+docker build -t spark-2.1.0-bin-hadoop2.6 .&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;In above command, we are tagging (naming) the image as &lt;em&gt;spark-2.1.0-bin-hadoop-2.6&lt;/em&gt;.&lt;/p&gt;
 
