@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Introduction to Spark 2.0 - Part 2 : Wordcount in Dataset API</title>
+    <title>Scalable Spark Deployment using Kubernetes - Part 7 : Dynamic Scaling and Namespaces</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-spark-two-part-2">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-7">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,93 +45,147 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Introduction to Spark 2.0 - Part 2 : Wordcount in Dataset API</h1>
-  <p class="meta">May 11, 2016</p>
+  <h1>Scalable Spark Deployment using Kubernetes - Part 7 : Dynamic Scaling and Namespaces</h1>
+  <p class="meta">Mar 6, 2017</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
     <a href="/categories/spark"><span class="category">spark</span></a>
     
-    <a href="/categories/spark-two"><span class="category">spark-two</span></a>
+    <a href="/categories/kubernetes-series"><span class="category">kubernetes-series</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>Spark 2.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 2.0.</p>
+  <p>In our last post we created two node spark cluster using kubernetes. Once we have defined and created the cluster
+we can easily scale up or scale down using kubernetes. This elastic nature of kubernetes makes easy to scale
+the infrastructure as and when the demand increases rather than setting up everything upfront.</p>
 
-<p>This is the second blog in series, where I will be discussing about dataset abstraction of Spark. You can access all the posts in the series <a href="/categories/spark-two/">here</a>.</p>
+<p>In this seventh blog of the series, we will discuss how to scale the spark cluster on kubernetes.
+You can access all the posts in the series <a href="/categories/kubernetes-series">here</a>.</p>
 
-<p>TL;DR All code examples are available on <a href="https://github.com/phatak-dev/spark2.0-examples">github</a>.</p>
+<h2 id="dynamic-scaling">Dynamic Scaling</h2>
 
-<h3 id="introduction-to-dataset">Introduction to Dataset</h3>
+<p>When we discussed deployment abstraction in our previous blog, we talked about <em>replica</em> factor. In deployment configuration, we can specify the number
+of replications we need for a given pod. This number is set to 1 in our current spark worker deployment.</p>
 
-<p>Dataset is new abstraction in Spark introduced as alpha API in Spark 1.6. It’s becoming stable API in spark 2.0. It’s new single abstraction for all user land code in Spark.</p>
+<p>One of the nice thing about deployment abstraction is, we can change replica size dynamically without changing configuration. This
+allows us to scale our spark cluster dynamically.</p>
 
-<p>From Definition, 
-<em>”  
-  A <strong>Dataset</strong> is a strongly typed collection of domain-specific objects that can be transformed
-  in parallel using functional or relational operations. Each dataset also has an untyped view
- called a <strong>DataFrame</strong>, which is a Dataset of <strong>Row</strong>.
-“</em></p>
+<h3 id="scale-up">Scale Up</h3>
 
-<p>which sounds similar to RDD definition</p>
+<p>Run below command to scale up workers from 1 to 2.</p>
 
-<p><em>”
- RDD represents an immutable,partitioned collection of elements that can be operated on in parallel
-“</em></p>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl scale deployment spark-worker --replicas 2</code></pre></div>
 
-<p>The major difference is, dataset is collection of domain specific objects where as RDD is collection of any object. Domain object part of definition signifies the schema part of dataset. So dataset API is always strongly typed and optimized using schema where RDD is not.</p>
+<p>The above command takes deployment name as parameters and number of replicas. 
+You can check results using</p>
 
-<p>Dataset definition also talks about Dataframes API. Dataframe is special dataset where there is no compilation checks for schema. So this makes dataSet new single abstraction replacing RDD from earlier versions of spark.</p>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl get po</code></pre></div>
 
-<p>Once we understood the dataset abstraction, in rest of post we will see how to work with this abstraction.</p>
+<p>When you run the above command, kubernetes creates more pods using template specified in spark-worker. Whenever these
+pods come up they automatically connect to spark-master and scales the cluster.</p>
 
-<h2 id="dataset-wordcount-example">Dataset Wordcount example</h2>
+<h3 id="scale-down">Scale Down</h3>
 
-<p>As with any new API, we will learn API using how to use in WordCount example. The below is the code for wordcount in dataset API.</p>
+<p>We can not only increase the workers, we can also scale down by setting lower replica numbers.</p>
 
-<h3 id="step-1--create-sparksession">Step 1 : Create SparkSession</h3>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl scale deployment spark-worker --replicas 1</code></pre></div>
 
-<p>As we discussed in last blog, we use spark session as entry point for dataset API.</p>
+<p>When above command executes, kubernetes will kill one of the worker to reduce the replica count to 1.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sparkSession</span> <span class="k">=</span> <span class="nc">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span>
-      <span class="n">master</span><span class="o">(</span><span class="s">&quot;local&quot;</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">appName</span><span class="o">(</span><span class="s">&quot;example&quot;</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">getOrCreate</span><span class="o">()</span></code></pre></div>
+<p>Kubernetes automatically manages all the service related changes. So whenever we scale workers spark will automatically scale.</p>
 
-<h3 id="step-2--read-data-and-convert-to-dataset">Step 2 : Read data and convert to Dataset</h3>
+<h2 id="multiple-clusters">Multiple Clusters</h2>
 
-<p>We read data using read.text API which is similar to <em>textFile</em> API of RDD. The <em>as[String]</em> part of code assigns the needed schema for dataset.</p>
+<p>Till now, we have run single cluster. But sometime we may want to run multiple clusters on same kubernetes cluster. If we try to run
+same configurations twice like below</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">import</span> <span class="nn">sparkSession.implicits._</span>
-<span class="k">val</span> <span class="n">data</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">text</span><span class="o">(</span><span class="s">&quot;src/main/resources/data.txt&quot;</span><span class="o">).</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span></code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl create -f spark-master.yaml</code></pre></div>
 
-<p>Here <em>data</em> will be of the type of <em>DataSet[String]</em>. Remember to import <strong>sparkSession.implicits._</strong> for all schema conversion magic.</p>
+<p>You will get below error</p>
 
-<h3 id="step-3--split-and-group-by-word">Step 3 : Split and group by word</h3>
-<p>Dataset mimics lot of RDD API’s like map, groupByKey etc. The below code we are splitting lines to get words and group them by words.</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">Error from server: error when creating &quot;spark-master.yaml&quot;: deployments.extensions &quot;spark-master&quot; already exists</code></pre></div>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">words</span> <span class="k">=</span> <span class="n">data</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;\\s+&quot;</span><span class="o">))</span>
-<span class="k">val</span> <span class="n">groupedWords</span> <span class="k">=</span> <span class="n">words</span><span class="o">.</span><span class="n">groupByKey</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">toLowerCase</span><span class="o">)</span></code></pre></div>
+<p>Kubernetes is rejecting the request as the spark-master named deployment is already exist. One of the way to solve this issue is to
+duplicate the configurations with different name. But it will be tedious and difficult to maintain.</p>
 
-<p>One thing you may observed we don’t create a key/value pair. The reason is unlike RDD, dataset works in row level abstraction. Each value is treated a row with multiple columns and any column can act as key for grouping like in database.</p>
+<p>Better way to solve this issue to use  namespace abstraction of kubernetes.</p>
 
-<h3 id="step-4---count">Step 4 :  Count</h3>
-<p>Once we have grouped, we can count each word using count method. It’s similar to <em>reduceByKey</em> of RDD.</p>
+<h3 id="namespace-abstraction">Namespace Abstraction</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">counts</span> <span class="k">=</span> <span class="n">groupedWords</span><span class="o">.</span><span class="n">count</span><span class="o">()</span></code></pre></div>
+<p>Kubernetes allows users to create multiple virtual clusters on single physical cluster. These are called as namespaces.</p>
 
-<h3 id="step-5--print-results">Step 5 : Print results</h3>
+<p>Namespace abstraction is used for allowing multiple users to share the same physical cluster. This abstraction gives scopes for names. This makes us to have same named services in different namespace.</p>
 
-<p>Finally once we count, we need to print the result. As with RDD, all the above API’s are lazy. We need to call an action to trigger computation. In dataset, show is one of those actions. It’s show first 20 results. If you want complete result, you can use <em>collect</em> API.</p>
+<p>By default our cluster is running in a namespace called <em>default</em>. In next section, we will create another namespace where we can run one more single node cluster.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">counts</span><span class="o">.</span><span class="n">show</span><span class="o">()</span></code></pre></div>
+<h3 id="creating-namespace">Creating Namespace</h3>
 
-<p>You can access complete code <a href="https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/DataSetWordCount.scala">here</a>.</p>
+<p>In order to create new cluster, first we need to cluster new namespace. Run below command to create namespace called <em>cluster2</em>.</p>
 
-<p>Now we have written our first example in dataset abstraction. We will explore more about dataset API in future posts.</p>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl create namespace cluster2</code></pre></div>
+
+<p>You can list all the namespaces using below command</p>
+
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl get namespaces</code></pre></div>
+
+<p>You should see the below  result</p>
+
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">NAME          STATUS    AGE
+cluster2      Active    16s
+default       Active    81d
+kube-system   Active    81d</code></pre></div>
+
+<p><em>kube-system</em> is the namespace in which all the kubernetes related pods run.</p>
+
+<h3 id="setting-context">Setting Context</h3>
+
+<p>By default, kubectl points to default namespace. We should change it to point to other one to create pods in our namespace. We can do it using changing the context variable.</p>
+
+<p>Run below command to change the context</p>
+
+<div class="highlight"><pre><code class="language-sh" data-lang="sh"><span class="nb">export </span><span class="nv">CONTEXT</span><span class="o">=</span><span class="k">$(</span>kubectl config view <span class="p">|</span> awk <span class="s1">&#39;/current-context/ {print $2}&#39;</span><span class="k">)</span>
+kubectl config <span class="nb">set</span>-context <span class="nv">$CONTEXT</span> --namespace<span class="o">=</span>cluster2</code></pre></div>
+
+<p>In the first step, we get <em>CONTEXT</em> variable. In the next command, we set namespace to <em>cluster2</em>.</p>
+
+<h3 id="creating-cluster-in-namespace">Creating cluster in Namespace</h3>
+
+<p>Once we set the context, we can use same commands to create cluster. Let’s run below the command</p>
+
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl create -f .</code></pre></div>
+
+<p>Now our second cluster is started. We can see all the pods across the namespaces using below command</p>
+
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl get po --all-namespaces</code></pre></div>
+
+<p>You should see some result something like below</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">NAMESPACE     NAME                           READY     STATUS    RESTARTS   AGE
+cluster2      spark-master-498980536-bxda1   1/1       Running   0          1m
+cluster2      spark-worker-91608803-p1mfe    1/1       Running   0          1m
+default       spark-master-498980536-cfw97   1/1       Running   0          46m
+default       spark-worker-91608803-7pwhv    1/1       Running   0          46m
+kube-system   kube-addon-manager-minikube    1/1       Running   17         81d
+kube-system   kube-dns-v20-s0yyp             3/3       Running   80         81d
+kube-system   kubernetes-dashboard-rb46j     1/1       Running   17         81d</code></pre></div>
+
+<p>As you can observe from the result, there are multiple spark-master running in different namespaces.</p>
+
+<p>So using the namespace abstraction of kubernetes we can create multiple spark clusters on same kubernetes cluster.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this blog we discussed how to scale our clusters using kubernetes deployment abstraction. Also we discussed how to use 
+namespace abstraction to create multiple clusters.</p>
+
+<h2 id="whats-next">What’s Next?</h2>
+
+<p>Whenever we run services on kubernetes we may want to restrict their resource usage. This allows better infrastructure planning
+and monitoring. In next blog, we will discuss about resource management on kubernetes.</p>
 
 </article>
 <div class="related">
@@ -139,12 +193,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">06 Mar 2017</span>
-     &raquo; <a href="/scaling-spark-with-kubernetes-part-7">Scalable Spark Deployment using Kubernetes - Part 7 : Dynamic Scaling and Namespaces</a>    
-   </li>           
-         
+          
 
             
     
@@ -165,12 +214,7 @@
    
    
              
-    
-    <li>    
-     <span class="post-date">06 Mar 2017</span>
-     &raquo; <a href="/scaling-spark-with-kubernetes-part-7">Scalable Spark Deployment using Kubernetes - Part 7 : Dynamic Scaling and Namespaces</a>    
-   </li>           
-         
+          
 
             
     
