@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Migrating to Spark 2.0 - Part 1: Scala Version and Dependencies" 
-date : 2017-04-14
+date : 2017-04-13
 categories: scala spark spark-two-migration-series
 ---
 
