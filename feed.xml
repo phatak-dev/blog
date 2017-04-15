@@ -7,7 +7,125 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
-        <title>Migrating to Spark 2.0 - Part 1: Scala Version and Dependencies</title>
+        <title>Migrating to Spark 2.0 - Part 2 : Built-in CSV Connector</title>
+        <description>&lt;p&gt;Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.&lt;/p&gt;
+
+&lt;p&gt;This is the second post in this series. In this post, we will discuss about built-in csv connector. You can access all the posts &lt;a href=&quot;/categories/spark-two-migration-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR You can access all the code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;csv-source-connector-in-spark&quot;&gt;CSV Source Connector in Spark&lt;/h2&gt;
+
+&lt;p&gt;In spark 1.x, csv connector was provided using, &lt;a href=&quot;/analysing-csv-data-in-spark&quot;&gt;spark-csv&lt;/a&gt;, a third party library  by databricks. But in spark 2.0, they have made csv a built-in source. This decision is primarily driven by the fact that csv is one of the major data formats used in enterprises.So when you are migrating to spark 2.0 you need to move your code to use the built in csv source rather than using third party one.&lt;/p&gt;
+
+&lt;h2 id=&quot;migrating-to-new-connector&quot;&gt;Migrating to New Connector&lt;/h2&gt;
+
+&lt;p&gt;The steps for migrating from old connector to new one are as below.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;removing-dependency&quot;&gt;Removing Dependency&lt;/h3&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The first step to migrate code is to remove spark-csv dependency from the build. This makes sure that it doesn’t conflict with built in connector.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;migrating-code&quot;&gt;Migrating Code&lt;/h3&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The below code snippets show the changes need to migrate code. It’s relatively small change as built-in connector preserves all the same options
+that were available in spark-csv.&lt;/p&gt;
+
+&lt;p&gt;If you have below code in spark 1.x&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDF&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;com.databricks.spark.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;../test_data/sales.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Migrate the code to spark 2.0 as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDF&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;../test_data/sales.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;As you can see from the code, you need to replace the source from &lt;em&gt;com.databricks.spark.csv&lt;/em&gt; to &lt;em&gt;csv&lt;/em&gt;. This will migrate your code to use built in spark connector.&lt;/p&gt;
+
+&lt;p&gt;You can access complete code on github for &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/CsvLoad.scala&quot;&gt;1.x&lt;/a&gt; and &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/CsvLoad.scala&quot;&gt;2.x&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;advantages-of-built-in-csv-connector&quot;&gt;Advantages of Built-in CSV Connector&lt;/h2&gt;
+
+&lt;p&gt;Now, if both connector provides the same API, you may wonder what’s the advantage of the upgrading to built in source. The below are the some of the advantages.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;no-third-party-dependency&quot;&gt;No third party dependency&lt;/h3&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;As this connector is built in to spark, we don’t have to depend upon any third party library jars. This is makes playing with csv much easier in spark-shell or any
+other interactive tools. Also it simplifies the dependency graph of our projects.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;better-performance-in-schema-inference&quot;&gt;Better Performance in Schema Inference&lt;/h3&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Csv connector has an option to do schema inference. As third party library, earlier connector was pretty slow to do the schema inference. But
+now the connector is built in to the spark it can use some of the optimised internal API’s to do it much faster.&lt;/p&gt;
+
+&lt;p&gt;The below is the comparison for schema inference on 700mb data with 29 columns.I am using airlines data for year 2007 from &lt;a href=&quot;http://stat-computing.org/dataexpo/2009/the-data.html&quot;&gt;here&lt;/a&gt;. It’s zipped. When you unzip, you get csv file on which the tests are done. Test is done on spark-shell with master as &lt;em&gt;local&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;The results as below&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Spark-Csv connector   51s&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Built-in  connector   20s&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;As you can see from the results, built-in connector is almost twice as fast as earlier one.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;support-for-broadcast-join&quot;&gt;Support For Broadcast Join&lt;/h3&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Earlier spark-csv connector didn’t support broadcast join. So joins are very slow when we combine big dataframes with small ones for csv data. But
+now built-in connector supports the broadcast joins which vastly improves the performance of joins.&lt;/p&gt;
+
+&lt;p&gt;So I have created another small file with first 10000 rows of 2007.csv which is around 1mb. When we join the data on &lt;em&gt;Year&lt;/em&gt; column using below code&lt;/p&gt;
+
+&lt;h4 id=&quot;join-code&quot;&gt;Join code&lt;/h4&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;joinedDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;smalldf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Year&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;smalldf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Year&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;joinedDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Here &lt;em&gt;df&lt;/em&gt; dataframe on 700mb data and &lt;em&gt;smalldf&lt;/em&gt; on 1 mb. We are running count to force spark to do complete join.&lt;/p&gt;
+
+&lt;p&gt;I observed below results.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Spark-Csv connector 52 min&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Built-in Connector 4.1 min&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;As you can see, there is huge difference between join performance. The difference comes as spark built-in connector uses BroadcastJoin where as spark-csv uses SortMergeJoin. So when you migrate to built-in connector you will observe a significant improvement in the join performance.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;So whenever you are moving to spark 2.0, use built in csv connector. It preserves the same API  and gives better performance than older connector.&lt;/p&gt;
+
+&lt;h2 id=&quot;whats-next&quot;&gt;What’s Next?&lt;/h2&gt;
+
+&lt;p&gt;In next blog, we will be discuss about migrating rdd based code in spark 2.0&lt;/p&gt;
+
+</description>
+        <pubDate>Sat, 15 Apr 2017 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-2</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-2</guid>
+      </item>
+    
+      <item>
+        <title>Migrating to Spark 2.0 - Part 1 : Scala Version and Dependencies</title>
         <description>&lt;p&gt;Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.&lt;/p&gt;
 
 &lt;p&gt;This is the first post in this series. In this post, we will discuss how to upgrade our dependencies to add right support for spark 2.0. You can access all the posts &lt;a href=&quot;/categories/spark-two-migration-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
@@ -1279,102 +1397,6 @@ in terms of no of requests. These options are there to dedicate the resources mo
         <pubDate>Tue, 22 Nov 2016 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/statistical-data-exploration-spark-part-3</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/statistical-data-exploration-spark-part-3</guid>
-      </item>
-    
-      <item>
-        <title>Statistical Data Exploration using Spark 2.0 - Part 2 : Shape of Data with Histograms</title>
-        <description>&lt;p&gt;In our last blog, we discussed about generating summary data using spark. The summary works great for understanding the range of data quantitatively. But sometimes, we want to understand how the data is distributed between different range of the values. Also rather than just know the numbers, it will help a lot if we are able visualize the same. This way of exploring data is known as understanding shape of the data.&lt;/p&gt;
-
-&lt;p&gt;In this second blog of the series, we will be discussing how to understand the shape of the data using the histogram. You can find all other blogs in the series &lt;a href=&quot;/categories/statistical-data-exploration&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;TL;DR All code examples available on &lt;a href=&quot;https://github.com/phatak-dev/Statistical-Data-Exploration-Using-Spark-2.0&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;histogram&quot;&gt;Histogram&lt;/h2&gt;
-
-&lt;p&gt;Histograms are visual representation of the shape/distribution of the data. This visual representation is heavily used in statistical data exploration.&lt;/p&gt;
-
-&lt;h2 id=&quot;histogram-in-r&quot;&gt;Histogram in R&lt;/h2&gt;
-
-&lt;p&gt;In R, histogram is part of package named &lt;strong&gt;ggplot2&lt;/strong&gt;. Once you installed the package you can generate the histogram as below.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-r&quot; data-lang=&quot;r&quot;&gt;hist&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;LifeExp&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;We use hist method provided by the library to draw the histogram. The below picture shows the histogram.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/histogram_in_r.png&quot; alt=&quot;Histogram in R&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;histogram-in-spark&quot;&gt;Histogram in Spark&lt;/h2&gt;
-
-&lt;p&gt;In order to generate the histogram, we need two different things&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;Generate the values for histogram&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Display the visual representation&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Calculating the histogram in spark is relatively easy. But unlike R, spark doesn’t come with built in visualization package. So I will be using &lt;a href=&quot;https://zeppelin.apache.org/&quot;&gt;Apache Zeppelin&lt;/a&gt; for generating charts.&lt;/p&gt;
-
-&lt;h2 id=&quot;calculating-the-histogram&quot;&gt;Calculating the histogram&lt;/h2&gt;
-
-&lt;p&gt;We will be using same dataset, life expectancy, dataset for generating our histograms. Refer to &lt;a href=&quot;/statistical-data-exploration-spark-part-1/&quot;&gt;last blog&lt;/a&gt; for loading data into spark dataframe.&lt;/p&gt;
-
-&lt;p&gt;Dataframe API doesn’t have builtin function for histogram. But RDD API has. So using RDD API we can calculate histogram values as below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;startValues&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;counts&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lifeExpectancyDF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;LifeExp&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getDouble&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;histogram&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;RDD histogram API takes number of bins.&lt;/p&gt;
-
-&lt;p&gt;The result of the histogram are two arrays.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;First array contains the starting values of each bin&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Second array contains the count for each bin&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The result of the above code on our data will be as below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;startValues: Array[Double] = Array(47.794, 54.914, 62.034, 69.154, 76.274, 83.394)
-counts: Array[Long] = Array(24, 18, 32, 69, 54)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;So the values signify that there are 24 countries between life expectancy from 47.794 to 54.914. Most countries are between 76-83.&lt;/p&gt;
-
-&lt;p&gt;If you don’t like using RDD API, we can add histogram function directly on Dataframe using implicits. Refer to the code on &lt;a href=&quot;https://github.com/phatak-dev/Statistical-Data-Exploration-Using-Spark-2.0/blob/master/src/main/scala/com/madhukaraphatak/spark/dataexploration/CustomStatFunctions.scala&quot;&gt;github&lt;/a&gt; for more details.&lt;/p&gt;
-
-&lt;h2 id=&quot;visualizing-the-histogram&quot;&gt;Visualizing the histogram&lt;/h2&gt;
-
-&lt;p&gt;Once we have calculated values for histogram, we want to visualize same. As we discussed earlier, we will be using zeppelin notebook for same.&lt;/p&gt;
-
-&lt;p&gt;In zeppelin, in order to generate a graph easily we need dataframe. But in our case, we got data as arrays. So the below code will convert those arrays to dataframe which can be consumed by the zeppelin.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;zippedValues&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;startValues&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;zip&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;counts&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;HistRow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;startPoint&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rowRDD&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;zippedValues&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;HistRow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;histDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createDataFrame&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rowRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;histDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createOrReplaceTempView&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;histogramTable&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above code, first we combining both arrays using zip method. It will give us a array of tuples. Then we convert that array into a dataframe using the case class.&lt;/p&gt;
-
-&lt;p&gt;Once we have, dataframe ready we can run sql command and generate nice graphs as below.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/histogram_lifexp.png&quot; alt=&quot;Histogram&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;You can download the complete zeppelin notebook from &lt;a href=&quot;https://github.com/phatak-dev/Statistical-Data-Exploration-Using-Spark-2.0/blob/master/src/main/zeppelin/Shape%20of%20Data%20Histogram.json&quot;&gt;github&lt;/a&gt; and import into yours to test by yourself. Please make sure you are using Zeppelin 0.6.2 stable release.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;Combining computing power of spark with visualization capabilities of zeppelin allows us to explore data in a way R or python does but for big data. This combination of tools make statistical data exploration on big data much easier and powerful.&lt;/p&gt;
-</description>
-        <pubDate>Sat, 22 Oct 2016 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/statistical-data-exploration-spark-part-2</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/statistical-data-exploration-spark-part-2</guid>
       </item>
     
   </channel>
