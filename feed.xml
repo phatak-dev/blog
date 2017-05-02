@@ -7,6 +7,25 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Scalable Spark Deployment using Kubernetes - Part 8 : Meetup Talk</title>
+        <description>&lt;p&gt;In last few blog posts on kubernetes, we have discussed how to build scalable spark cluster on kubernetes platform. 
+Recently I gave a talk on these topics in a our spark &lt;a href=&quot;https://www.meetup.com/Bangalore-Apache-Spark-Meetup/&quot;&gt;meetup&lt;/a&gt;. It was focused on importance of micro
+service architecture for big data development and deployment using kubernetes.&lt;/p&gt;
+
+&lt;p&gt;In this eighth blog of the series, I will be sharing recording of that talk with slides and code.
+You can access all the posts in the series &lt;a href=&quot;/categories/kubernetes-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Find the slides on &lt;a href=&quot;https://www.slideshare.net/datamantra/scalable-spark-deployment-using-kubernetes&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/kubernetes-spark&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/Q0miRvKA4yk&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
+
+</description>
+        <pubDate>Tue, 02 May 2017 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-8</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-8</guid>
+      </item>
+    
+      <item>
         <title>Migrating to Spark 2.0 - Part 2 : Built-in CSV Connector</title>
         <description>&lt;p&gt;Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.&lt;/p&gt;
 
@@ -1321,82 +1340,6 @@ in terms of no of requests. These options are there to dedicate the resources mo
         <pubDate>Mon, 13 Feb 2017 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-1</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-1</guid>
-      </item>
-    
-      <item>
-        <title>Statistical Data Exploration using Spark 2.0 - Part 3 : Outlier Detection using Quantiles</title>
-        <description>&lt;p&gt;In our &lt;a href=&quot;/statistical-data-exploration-spark-part-1&quot;&gt;first blog&lt;/a&gt; of the series, we discussed about generating summary data using spark.This summary data included mean, standard deviation and quantiles. Quantiles gives pretty good idea about spread of data and are one of the robust measurements compared to mean.&lt;/p&gt;
-
-&lt;p&gt;In this third blog of the series, we will be discussing about how to use quantiles to identify the outliers in our data. You can find all other blogs in the series &lt;a href=&quot;/categories/statistical-data-exploration&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;TL;DR All code examples available on &lt;a href=&quot;https://github.com/phatak-dev/Statistical-Data-Exploration-Using-Spark-2.0&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;outlier&quot;&gt;Outlier&lt;/h2&gt;
-&lt;p&gt;For a given variable in data, outlier is a value distant from other values. Normally outlier is  introduced in data due to issue with measurements or some error. Outlier effects our inference of the data as they may skew the results.&lt;/p&gt;
-
-&lt;p&gt;So in statistics its important to identify the outliers in the data, before we use it for analysis.&lt;/p&gt;
-
-&lt;h2 id=&quot;outlier-detection-using-box-and-whisker-plot&quot;&gt;Outlier detection using Box-and-Whisker Plot&lt;/h2&gt;
-
-&lt;p&gt;There are many methods to identify outlier in statistics. In this blog, we are going to discuss about one of the method which uses quantiles. The logic of the algorithm as follows&lt;/p&gt;
-
-&lt;p&gt;Let’s say we have Q1 as first quantile(25%) and Q3 as third quantile(75%) , the inter quantile range or IQR will be given as&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;IQR = Q3 - Q1&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;IQR gives the width of distribution of data between 25% and 75% of data. Using IQR we can identify the outliers. This method is known as Box and Whisker method.&lt;/p&gt;
-
-&lt;p&gt;In this method, any value smaller than Q1- 1.5 * IQR or any value greater than Q3+1.5 * IQR will be categorised as the outlier.&lt;/p&gt;
-
-&lt;p&gt;You can find more information on this method &lt;a href=&quot;http://www.purplemath.com/modules/boxwhisk3.htm&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;outlier-detection-in-spark&quot;&gt;Outlier detection in Spark&lt;/h2&gt;
-
-&lt;p&gt;Once we understand the method, we can implement it in spark. The following are the steps for implementing the same.&lt;/p&gt;
-
-&lt;h3 id=&quot;create-sample-data&quot;&gt;Create Sample Data&lt;/h3&gt;
-
-&lt;p&gt;First we create a sample dataset to work with and then convert into a spark dataframe.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sampleData&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;10.2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;14.1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;14.4&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;14.4&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;14.4&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;14.5&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;14.5&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;14.6&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;14.7&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-           &lt;span class=&quot;mf&quot;&gt;14.7&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;14.7&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;14.9&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;15.1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;15.9&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;16.4&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-   &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rowRDD&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sparkContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;makeRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sampleData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)))&lt;/span&gt;
-   &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;schema&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StructType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;StructField&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;value&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;DoubleType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)))&lt;/span&gt;
-   &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createDataFrame&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rowRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;schema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above example, we have taken a list of values as sample data. If you observe the data, most of the values are around 14.1-14.7. From that we can assume mostly values 10.2, 16.4 are outliers. There is chance that 15.1 and 15.9 are also outliers but we are not fully sure.&lt;/p&gt;
-
-&lt;h3 id=&quot;calculate-quantiles-and-iqr&quot;&gt;Calculate Quantiles and IQR&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;quantiles&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stat&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;approxQuantile&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;value&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-           &lt;span class=&quot;nc&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.25&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.75&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Q1&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;quantiles&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Q3&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;quantiles&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;IQR&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Q3&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Q1&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As we did in earlier posts, we are using &lt;em&gt;approxQuantile&lt;/em&gt;  method to compute the quantiles needed. Once we have quantiles, we can calculate IQR.&lt;/p&gt;
-
-&lt;h3 id=&quot;filter-outliers&quot;&gt;Filter Outliers&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lowerRange&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Q1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1.5&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;IQR&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;upperRange&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Q3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1.5&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;IQR&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;outliers&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;filter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;value &amp;lt; $lowerRange or value &amp;gt; $upperRange&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;outliers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above code, we first calculate the ranges. Then we filter the data using data frame filters.&lt;/p&gt;
-
-&lt;p&gt;When we run this example, we get 10.2 and 16.4 as the outliers.&lt;/p&gt;
-
-&lt;p&gt;You can access complete example on &lt;a href=&quot;https://github.com/phatak-dev/Statistical-Data-Exploration-Using-Spark-2.0/blob/master/src/main/scala/com/madhukaraphatak/spark/dataexploration/OutliersWithIQR.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;In this blog, we learned how to use quantiles to detect the outliers in data.&lt;/p&gt;
-</description>
-        <pubDate>Tue, 22 Nov 2016 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/statistical-data-exploration-spark-part-3</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/statistical-data-exploration-spark-part-3</guid>
       </item>
     
   </channel>
