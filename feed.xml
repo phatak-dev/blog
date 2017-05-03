@@ -7,6 +7,98 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Scalable Spark Deployment using Kubernetes - Part 9 : Service Update and Rollback</title>
+        <description>&lt;p&gt;In last few blog posts on kubernetes, we have discussed about how to build and scale spark cluster. Once services are deployed, we also
+need to update services time to time. When we update a service, we need to make sure that, it don’t interrupt the working of other
+services. Kubernetes has built in support for the service update and rollbacks. This makes changing services on kubernetes
+much easier than doing them manually in other platforms.&lt;/p&gt;
+
+&lt;p&gt;In this ninth blog of the series, I will be discussing about service update and rollback in kubernetes.
+You can access all the posts in the series &lt;a href=&quot;/categories/kubernetes-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;updating-service&quot;&gt;Updating Service&lt;/h2&gt;
+
+&lt;p&gt;In our discussion of deployment abstraction, I told that deployment helps us to handle life cycle of a service. Currently,
+we are running the spark version 2.1.0. Let’s say we want to change it to 1.6.3 without changing the 
+configuration. We can use deployment abstraction for achieving the same.&lt;/p&gt;
+
+&lt;p&gt;The below are the steps to change spark version from 2.1.0 to 1.6.3 using deployment abstraction.&lt;/p&gt;
+
+&lt;h3 id=&quot;generate-spark-image-for-163&quot;&gt;1. Generate Spark Image for 1.6.3&lt;/h3&gt;
+
+&lt;p&gt;As we did for spark 2.1.0, we first need to have an image of the spark 1.6.3. This can be easily done by changing docker file as below.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;ENV spark_ver 1.6.3&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Once we update the docker file, we need to build new image with below command.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;docker build -t spark-1.6.3-bin-hadoop2.6 .&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now we have  our new spark image ready.&lt;/p&gt;
+
+&lt;h3 id=&quot;set-images-to-deployment&quot;&gt;2. Set Images to Deployment&lt;/h3&gt;
+
+&lt;p&gt;The below two commands sets new images to already running spark-master and spark-worker deployments&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;image deployment/spark-master spark-master&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;spark-1.6.3-bin-hadoop2.6
+
+kubectl &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;image deployment/spark-worker spark-worker&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;spark-1.6.3-bin-hadoop2.6&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In the command, we are setting the image for &lt;em&gt;spark-master&lt;/em&gt;  and &lt;em&gt;spark-worker&lt;/em&gt; container inside the deployment. This helps only update needed containers
+inside deployment rather than updating all.&lt;/p&gt;
+
+&lt;p&gt;This only sets new images. It has not updated the service yet. We need to use roll out command for that.&lt;/p&gt;
+
+&lt;h3 id=&quot;rollout-the-deployment&quot;&gt;3. Rollout the Deployment&lt;/h3&gt;
+
+&lt;p&gt;The below commands rolls out the changes to deployment.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl rollout status deployment/spark-master
+kubectl rollout status deployment/spark-worker&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;When you roll out changes, kubernetes first brings up new pods with 1.6.3 version. Then once they are running
+the old pods will be deleted.&lt;/p&gt;
+
+&lt;p&gt;This shown in the below output.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;NAME                               READY     STATUS        RESTARTS   AGE
+nginx-deployment-619952658-16z1h   1/1       Running       &lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;          11d
+spark-master-1095292607-mb0xh      1/1       Running       &lt;span class=&quot;m&quot;&gt;0&lt;/span&gt;          37s
+spark-worker-1610799992-4f701      0/1       Pending       &lt;span class=&quot;m&quot;&gt;0&lt;/span&gt;          25s
+spark-worker-671341425-xxlxn       1/1       Terminating   &lt;span class=&quot;m&quot;&gt;0&lt;/span&gt;          53s&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;As part of the roll out, kubernetes will update all dns entries to point to new pods.&lt;/p&gt;
+
+&lt;p&gt;This graceful switch over from older version to new version of pods makes sures that service is least interrupted when we
+update services.&lt;/p&gt;
+
+&lt;p&gt;You can verify the spark version using &lt;em&gt;spark-ui&lt;/em&gt; or logging into one of the pods.&lt;/p&gt;
+
+&lt;h2 id=&quot;service-rollback&quot;&gt;Service Rollback&lt;/h2&gt;
+
+&lt;p&gt;As part of the service update, kubernetes remembers state of last two deployments. This helps us to roll back the changes
+we made it to deployment using &lt;em&gt;undo&lt;/em&gt; command.&lt;/p&gt;
+
+&lt;p&gt;If we want to undo our change of spark version, we can run the below commands&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl rollout undo deployment/spark-master
+kubectl rollout undo deployment/spark-worker&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above commands reverses the spark version back to 2.1.0. This ability to quickly undo the service is
+powerful. If something goes wrong, we can rollback the service to it’s previous state without much effort.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Kubernetes has native support for service update and rollback. Using deployment abstraction we can easily roll out the changes to
+our services without effecting other services.&lt;/p&gt;
+
+</description>
+        <pubDate>Wed, 03 May 2017 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-9</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-9</guid>
+      </item>
+    
+      <item>
         <title>Scalable Spark Deployment using Kubernetes - Part 8 : Meetup Talk</title>
         <description>&lt;p&gt;In last few blog posts on kubernetes, we have discussed how to build scalable spark cluster on kubernetes platform. 
 Recently I gave a talk on these topics in a our spark &lt;a href=&quot;https://www.meetup.com/Bangalore-Apache-Spark-Meetup/&quot;&gt;meetup&lt;/a&gt;. It was focused on importance of micro
@@ -1225,121 +1317,6 @@ sudo mv ./kubectl /usr/local/bin/kubectl&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
         <pubDate>Wed, 15 Feb 2017 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-2</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-2</guid>
-      </item>
-    
-      <item>
-        <title>Scalable Spark Deployment using Kubernetes - Part 1 : Introduction to Kubernetes</title>
-        <description>&lt;p&gt;As our workloads become more and more micro service oriented, building an infrastructure to deploy them easily 
-becomes important. Most of the big data applications need multiple services likes HDFS, YARN, Spark  and their clusters.
-Creating, deploying and monitoring them manually is tedious and error prone.&lt;/p&gt;
-
-&lt;p&gt;So most of the users move to cloud to simplify it. Solutions like EMR, Databricks etc help in this regard. But then users will be locked into
-those specific services. Also sometimes we want same deployment strategy to work on premise also. Most of the cloud providers don’t have that option today.&lt;/p&gt;
-
-&lt;p&gt;So we need a framework which helps us to create and monitor complex big data clusters. Also it should helps us move between on premise and
-other cloud providers seamlessly. Kubernetes is one those frameworks that can help us in that regard.&lt;/p&gt;
-
-&lt;p&gt;In this set of posts, we are going to discuss how kubernetes, an open source container orchestration framework from Google, helps us
-to achieve a deployment strategy for spark and other big data tools which works across the on premise and cloud. As part of the series, we will 
-discuss how to install, configure and scale kubernetes on local and cloud. Also we are going to discuss how to build our own customised images for the services and applications.&lt;/p&gt;
-
-&lt;p&gt;This is the first blog in the series where we discuss about what is kubernetes and it’s advantages. You can access
-all other blogs in the series &lt;a href=&quot;/categories/kubernetes-series/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;what-is-kubernetes&quot;&gt;What is Kubernetes?&lt;/h2&gt;
-
-&lt;p&gt;Kubernetes is an open source container orchestration framework. In simple words, it’s a framework which allows us
-to create and manage multiple containers. These containers will be docker containers which will be running some services. 
-These can be your typical webapp, database or even big data tools like spark, hbase etc.&lt;/p&gt;
-
-&lt;h2 id=&quot;why-kubernetes&quot;&gt;Why Kubernetes?&lt;/h2&gt;
-
-&lt;p&gt;Most of the readers may have tried docker before. It’s a framework which allows developers containerise their application. It has become a
-popular way to develop, test and deploy applications on scale. When we already have docker, what is kubernetes bring into picture? Can’t we 
-just build our clusters using normal docker itself?&lt;/p&gt;
-
-&lt;p&gt;The below are the some of the advantages of using kubernetes over plain docker tools.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h4 id=&quot;orchestration&quot;&gt;Orchestration&lt;/h4&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;One of the import feature that sets kubernetes apart from docker is it’s not a container framework. But it’s more of a orchestration layer for multiple containers
-that normally make an application. Docker itself has compose feature but it’s very limited. So as our application become complex, we will have
-multiple containers which needs to be orchestrated. Doing them manually becomes tricky. So kubernetes helps in that regard.&lt;/p&gt;
-
-&lt;p&gt;Also kubernetes has support for multiple container frameworks. Currently it supports docker and rkt. This makes users
-to choose their own container frameworks rather than sticking with only docker.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h4 id=&quot;cloud-independent&quot;&gt;Cloud Independent&lt;/h4&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;One of the import design goal of kubernetes, is ability to run everywhere. We can run kubernetes in local machine, on-premise clusters or on cloud.
-Kubernetes has support for AWS,GCE and Azure out of the box. Not only it normalises the deployment across the cloud, it will use best tool for given
-problem given by specific cloud. So it tries to optimise for each cloud.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h4 id=&quot;support-for-easy-clustering&quot;&gt;Support for Easy Clustering&lt;/h4&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;One of the hard part of installing big data tools like spark on cloud is to build the cluster and maintain it. Creating clusters often need tinkering with networking to make sure all services are started in right places. Also once cluster is up and running, making sure each node has sufficient resources also is tricky.&lt;/p&gt;
-
-&lt;p&gt;Often scaling cluster, adding node or removing it, is tricky. Kubernetes makes all this much easier compared to current solutions. It has excellent support to
-virtual networking and ability to easily scale clusters on will.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h4 id=&quot;support-for-service-upgradation-and-rollback&quot;&gt;Support for Service Upgradation and Rollback&lt;/h4&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;One of the hard part of clustered applications, is to update the software. Sometime it may be you want to update the application code or want to update version of
-spark itself. Having a well defined strategy to upgrade the clusters with check and balances is super critical. Also when things go south, ability to rollback 
-in reasonably time frame is also important.&lt;/p&gt;
-
-&lt;p&gt;Kubernetes provides well defined image ( container image) based upgradation policies which can unify the upgrading different services across cluster. This makes
-life easier for all the ops people out there.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h4 id=&quot;effective-resource-isolation-and-management&quot;&gt;Effective Resource Isolation and Management&lt;/h4&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;One of the question, we often ponder should we run services like kafka next to spark or not? Most of the time people advise to have separate machines
-so that each service gets sufficient resources. But defining machine size and segregating services based on machines becomes tricky as we want to scale our
-services.&lt;/p&gt;
-
-&lt;p&gt;Kubernetes frees you from the machine. Kubernetes asks you to define how much resources you want to dedicate for service. Once you do that, it will take care
-of figuring out which machine to run those. It will make sure that it will effectively using all resources across machines and also give guarantees about resource
-allocation. You no more need to worry about is one service is taking over all resources and depriving others or your machines are under utilized.&lt;/p&gt;
-
-&lt;p&gt;Not only kubernetes allows you to define resources In terms of GB of RAM or number of cpu’s, it allows it to be defined in terms of percentage of machine resource or
-in terms of no of requests. These options are there to dedicate the resources more granularly.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h4 id=&quot;well-defined-storage-management&quot;&gt;Well Defined Storage Management&lt;/h4&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;One of the challenges of micro service oriented architectures is to store the state across the restart/ upgradation of containers. It’s critical for applications like Databases not loose data when something goes wrong with container or machine.&lt;/p&gt;
-
-&lt;p&gt;Kubernetes gives a clear abstraction of storage who’s life cycle is independent of the container itself. This makes users ability to use different storages like host based, network attached drives to make sure that there will be no data loss. These abstractions ties well with persistence options provided by cloud like EBS from aws. Kubernetes makes long running persistent services like databases a breeze.&lt;/p&gt;
-
-&lt;p&gt;Now we know what kubernetes brings to the table. In our next post, we will be discussing how to install kubernetes on local machine.&lt;/p&gt;
-
-</description>
-        <pubDate>Mon, 13 Feb 2017 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-1</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-1</guid>
       </item>
     
   </channel>
