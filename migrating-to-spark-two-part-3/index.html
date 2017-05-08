@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Improving Mobile payments with Real time Spark</title>
+    <title>Migrating to Spark 2.0 - Part 3 : DataFrame to Dataset</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/improving-mobile-payments-with-real-time-spark">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/migrating-to-spark-two-part-3">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,25 +45,78 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Improving Mobile payments with Real time Spark</h1>
-  <p class="meta">Aug 5, 2015</p>
+  <h1>Migrating to Spark 2.0 - Part 3 : DataFrame to Dataset</h1>
+  <p class="meta">May 8, 2017</p>
   <div class="catagories">
-    
-    <a href="/categories/spark"><span class="category">spark</span></a>
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
-    <a href="/categories/talks"><span class="category">talks</span></a>
+    <a href="/categories/spark"><span class="category">spark</span></a>
+    
+    <a href="/categories/spark-two-migration-series"><span class="category">spark-two-migration-series</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>The below video is a recording of my talk on <em>Improving mobile payments with real time spark</em> in recent spark meetup. It’s a talk about real world spark streaming implementation for improving mobile payments experience.</p>
+  <p>Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.</p>
 
-<p>Find the slides on <a href="http://www.slideshare.net/datamantra/improving-mobile-payments-with-real-time-spark">slideshare</a>.</p>
+<p>This is the third post in this series.In this post we discuss about migrating  dataframe based API’s to dataset based once. You can access all the posts <a href="/categories/spark-two-migration-series">here</a>.</p>
 
-<div class="video-container"> <iframe src="https://www.youtube.com/embed/Q7O_AOTZ2C8" frameborder="0" width="560" height="315"></iframe> </div>
+<p>TL;DR You can access all the code on <a href="https://github.com/phatak-dev/spark-two-migration">github</a>.</p>
+
+<h2 id="dataframe-abstraction-in-spark-1x">DataFrame Abstraction in Spark 1.x</h2>
+
+<p>In 1.x series of spark, dataframe was a structured abstraction over native RDD abstraction. Dataframe 
+was built to support the structured transformation of data, using dataframe dsl or spark sql query language.
+Where as rdd abstraction was there to provide the functional API’s for manipulating the data.</p>
+
+<p>So whenever we wanted to use functional API’s on dataframe, we would be converting dataframe into a
+RDD and then manipulated as RDD abstraction. This kind of conversion made it’s easy to move between dataframe 
+and rdd abstractions.</p>
+
+<h2 id="dataframe-to-rdd-example">DataFrame to RDD Example</h2>
+
+<p>The below code shows, how to use functional <em>map</em> API on dataframe abstraction</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">loadedDF</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;com.databricks.spark.csv&quot;</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;inferSchema&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">).</span><span class="n">load</span><span class="o">(</span><span class="s">&quot;../test_data/sales.csv&quot;</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">amountRDD</span> <span class="k">=</span> <span class="n">loadedDF</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">row</span> <span class="k">⇒</span> <span class="n">row</span><span class="o">.</span><span class="n">getDouble</span><span class="o">(</span><span class="mi">3</span><span class="o">))</span></code></pre></div>
+
+<p>In above code, whenever we call <em>map</em> spark implicitly converts to an RDD. So this is the way we operated on the dataframe in spark 1.x.</p>
+
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/DFMapExample.scala">github</a>.</p>
+
+<h2 id="dataframe-abstraction-in-2x">DataFrame abstraction in 2.x</h2>
+
+<p>From spark 2.x, the dataframe abstraction has changed significantly. In 2.x, dataframe is alias of Dataset[Row].Dataset is combination of both dataframe and RDD like API’s. So not only dataset supports structured querying using dsl and sql, it also supports the functional API’s which are supported in RDD.</p>
+
+<p>So whenever we call <em>map</em> in 2.x, we no more get a RDD. Instead we get dataset. This change in the conversion will break your code if you are using the RDD based code showed earlier.</p>
+
+<h2 id="porting-dataframe-to-rdd-code-in-2x">Porting DataFrame to RDD code in 2.x</h2>
+
+<p>To port your existing code,you need to add extra, <em>.rdd</em> before calling map method as shown in the code.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">amountRDD</span> <span class="k">=</span> <span class="n">loadedDF</span><span class="o">.</span><span class="n">rdd</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">row</span> <span class="k">⇒</span> <span class="n">row</span><span class="o">.</span><span class="n">getDouble</span><span class="o">(</span><span class="mi">3</span><span class="o">))</span>
+<span class="n">println</span><span class="o">(</span><span class="n">amountRDD</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">toList</span><span class="o">)</span></code></pre></div>
+
+<h2 id="rdd-to-dataset-abstraction">RDD to Dataset Abstraction</h2>
+
+<p>The above code makes it easy to port but doesn’t provide good performance. Also converting rdd back to dataframe is a tedious work. So rather than using rdd functional API’s, you can use dataset functional API’s. Only constraint is that the return type of map should have a encoder. By default all primitive types and case classes are supported.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">import</span> <span class="nn">sparkSession.implicits._</span>
+<span class="k">val</span> <span class="n">amountDataSet</span> <span class="k">=</span> <span class="n">loadedDF</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">row</span> <span class="k">⇒</span> <span class="n">row</span><span class="o">.</span><span class="n">getDouble</span><span class="o">(</span><span class="mi">3</span><span class="o">))</span></code></pre></div>
+
+<p>By importing <em>sparkSession.implicits._</em> in to the scope, we are importing all default encoders. As we are returning a double value, there is a built in encoder for the same.</p>
+
+<p>This code is more performant than the RDD code. So use dataset based functional API wherever you were using RDD before. Only fall back to RDD API, whenever dataset API doesn’t support that API.</p>
+
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/DFMapExample.scala">github</a>.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this post we learnt how to port RDD based functional API’s to more peformant dataset alternatives.</p>
+
 
 </article>
 <div class="related">
@@ -71,12 +124,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">08 May 2017</span>
-     &raquo; <a href="/migrating-to-spark-two-part-3">Migrating to Spark 2.0 - Part 3 : DataFrame to Dataset</a>    
-   </li>           
-         
+          
 
             
     
@@ -97,12 +145,7 @@
    
    
              
-    
-    <li>    
-     <span class="post-date">08 May 2017</span>
-     &raquo; <a href="/migrating-to-spark-two-part-3">Migrating to Spark 2.0 - Part 3 : DataFrame to Dataset</a>    
-   </li>           
-         
+          
 
             
     

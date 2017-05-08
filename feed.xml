@@ -7,6 +7,72 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Migrating to Spark 2.0 - Part 3 : DataFrame to Dataset</title>
+        <description>&lt;p&gt;Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.&lt;/p&gt;
+
+&lt;p&gt;This is the third post in this series.In this post we discuss about migrating  dataframe based API’s to dataset based once. You can access all the posts &lt;a href=&quot;/categories/spark-two-migration-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR You can access all the code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;dataframe-abstraction-in-spark-1x&quot;&gt;DataFrame Abstraction in Spark 1.x&lt;/h2&gt;
+
+&lt;p&gt;In 1.x series of spark, dataframe was a structured abstraction over native RDD abstraction. Dataframe 
+was built to support the structured transformation of data, using dataframe dsl or spark sql query language.
+Where as rdd abstraction was there to provide the functional API’s for manipulating the data.&lt;/p&gt;
+
+&lt;p&gt;So whenever we wanted to use functional API’s on dataframe, we would be converting dataframe into a
+RDD and then manipulated as RDD abstraction. This kind of conversion made it’s easy to move between dataframe 
+and rdd abstractions.&lt;/p&gt;
+
+&lt;h2 id=&quot;dataframe-to-rdd-example&quot;&gt;DataFrame to RDD Example&lt;/h2&gt;
+
+&lt;p&gt;The below code shows, how to use functional &lt;em&gt;map&lt;/em&gt; API on dataframe abstraction&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDF&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;com.databricks.spark.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;inferSchema&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;../test_data/sales.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;amountRDD&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;row&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;⇒&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getDouble&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above code, whenever we call &lt;em&gt;map&lt;/em&gt; spark implicitly converts to an RDD. So this is the way we operated on the dataframe in spark 1.x.&lt;/p&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/DFMapExample.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;dataframe-abstraction-in-2x&quot;&gt;DataFrame abstraction in 2.x&lt;/h2&gt;
+
+&lt;p&gt;From spark 2.x, the dataframe abstraction has changed significantly. In 2.x, dataframe is alias of Dataset[Row].Dataset is combination of both dataframe and RDD like API’s. So not only dataset supports structured querying using dsl and sql, it also supports the functional API’s which are supported in RDD.&lt;/p&gt;
+
+&lt;p&gt;So whenever we call &lt;em&gt;map&lt;/em&gt; in 2.x, we no more get a RDD. Instead we get dataset. This change in the conversion will break your code if you are using the RDD based code showed earlier.&lt;/p&gt;
+
+&lt;h2 id=&quot;porting-dataframe-to-rdd-code-in-2x&quot;&gt;Porting DataFrame to RDD code in 2.x&lt;/h2&gt;
+
+&lt;p&gt;To port your existing code,you need to add extra, &lt;em&gt;.rdd&lt;/em&gt; before calling map method as shown in the code.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;amountRDD&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;row&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;⇒&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getDouble&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;amountRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;collect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;rdd-to-dataset-abstraction&quot;&gt;RDD to Dataset Abstraction&lt;/h2&gt;
+
+&lt;p&gt;The above code makes it easy to port but doesn’t provide good performance. Also converting rdd back to dataframe is a tedious work. So rather than using rdd functional API’s, you can use dataset functional API’s. Only constraint is that the return type of map should have a encoder. By default all primitive types and case classes are supported.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sparkSession.implicits._&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;amountDataSet&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;row&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;⇒&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getDouble&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;By importing &lt;em&gt;sparkSession.implicits._&lt;/em&gt; in to the scope, we are importing all default encoders. As we are returning a double value, there is a built in encoder for the same.&lt;/p&gt;
+
+&lt;p&gt;This code is more performant than the RDD code. So use dataset based functional API wherever you were using RDD before. Only fall back to RDD API, whenever dataset API doesn’t support that API.&lt;/p&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/DFMapExample.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In this post we learnt how to port RDD based functional API’s to more peformant dataset alternatives.&lt;/p&gt;
+
+</description>
+        <pubDate>Mon, 08 May 2017 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-3</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-3</guid>
+      </item>
+    
+      <item>
         <title>Scalable Spark Deployment using Kubernetes - Part 9 : Service Update and Rollback</title>
         <description>&lt;p&gt;In last few blog posts on kubernetes, we have discussed about how to build and scale spark cluster. Once services are deployed, we also
 need to update services time to time. When we update a service, we need to make sure that, it don’t interrupt the working of other
@@ -1244,79 +1310,6 @@ of an application. The major difference between VM and Containers is how they sh
         <pubDate>Fri, 17 Feb 2017 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-3</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-3</guid>
-      </item>
-    
-      <item>
-        <title>Scalable Spark Deployment using Kubernetes - Part 2 : Installing Kubernetes Locally using Minikube</title>
-        <description>&lt;p&gt;In last blog, we discussed about what is kubernetes and what are it’s advantages. In this second post of the series, we are going to discuss
-how to install the kubernetes locally on your machine.You can find all the posts in the series &lt;a href=&quot;/categories/kubernetes-series/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;installing-kubernetes-on-local-machine&quot;&gt;Installing Kubernetes on Local Machine&lt;/h2&gt;
-
-&lt;p&gt;One of the cool features of kubernetes that it can be installed and tried out in local. It behaves exactly as it will be on a cluster. To try out 
-kubernetes on local we need to install minikube and kubectl.&lt;/p&gt;
-
-&lt;p&gt;The below are the steps&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h4 id=&quot;step-1-pre-requisites&quot;&gt;Step 1 :Pre-Requisites&lt;/h4&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;To install the kubernetes on local machine, we install minikube. But minikube normally uses some kind of virtualization layer to install the
-needed software. So for our example, we will use virtualbox as our virtualization layer. For more pre-requisites refer &lt;a href=&quot;https://kubernetes.io/docs/getting-started-guides/minikube/#requirements&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Download and Install virtualbox from &lt;a href=&quot;http://www.virtualbox.org&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h4 id=&quot;step-2--install-minikube&quot;&gt;Step 2 : Install MiniKube&lt;/h4&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Run the below commands to install minikube on linux. For other operating system, refer &lt;a href=&quot;https://github.com/kubernetes/minikube/releases&quot;&gt;here&lt;/a&gt;.
-Latest version as of now is 0.16.0&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.16.0/minikube-linux-amd64 &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; chmod +x minikube &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; sudo mv minikube /usr/local/bin/&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;step-3--install-kubectl&quot;&gt;Step 3 : Install KubeCtl&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Kubectl is a command line utility which communicates to kubernetes over it’s REST API. We can install it using below command&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;curl -LO https://storage.googleapis.com/kubernetes-release/release/&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;/bin/linux/amd64/kubectl
-chmod +x ./kubectl
-sudo mv ./kubectl /usr/local/bin/kubectl&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;interacting-with-minikube&quot;&gt;Interacting With Minikube&lt;/h2&gt;
-
-&lt;p&gt;Once we installed the minikube and kubectl , we can start playing with kubernetes.&lt;/p&gt;
-
-&lt;p&gt;We can start minikube using below command. It downloads minikube iso and start a virtual machine in virtualbox.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;minikube start&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;We can open the kubernetes dashboard using below command&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;minikube dashboard&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;We can check is anything running or not, using below command&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl get po --all-namespaces&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;This command should show some kubernetes container running.&lt;/p&gt;
-
-&lt;p&gt;Now we have successfully installed and configured the kubernetes on our machine.&lt;/p&gt;
-
-&lt;p&gt;In our next post, we will discuss the different abstractions of kubernetes and how to use them in our applications.&lt;/p&gt;
-</description>
-        <pubDate>Wed, 15 Feb 2017 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-2</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-2</guid>
       </item>
     
   </channel>
