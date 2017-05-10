@@ -7,6 +7,79 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Migrating to Spark 2.0 - Part 4 : Cross Joins</title>
+        <description>&lt;p&gt;Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.&lt;/p&gt;
+
+&lt;p&gt;This is the forth post in this series.In this post we discuss about cross joins. You can access all the posts &lt;a href=&quot;/categories/spark-two-migration-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR You can access all the code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;joins-in-spark-sql&quot;&gt;Joins in Spark SQL&lt;/h2&gt;
+&lt;p&gt;Joins are one of the costliest operations in spark or big data in general. So whenever we program in spark we try to avoid joins or restrict the joins on limited data.There are various optimisations in spark , right from choosing right type of joins and using broadcast joins to improve the performance.&lt;/p&gt;
+
+&lt;h2 id=&quot;cross-joins&quot;&gt;Cross Joins&lt;/h2&gt;
+
+&lt;p&gt;Cross Join or cartesian product is one kind of join where each row of one dataset is joined with other. So if we have a dataset of size m and if we join with other dataset with of size n , we will getting a dataset with m*n number of rows.&lt;/p&gt;
+
+&lt;p&gt;Cross joins are one of the most time consuming joins and often should be avoided. But sometimes, we may accidentally do them without intending to do so. But we recognise performance issue only when they run on large data. So having ability to identify them at earliest will save lot of hassle.&lt;/p&gt;
+
+&lt;h2 id=&quot;cross-joins-in-1x&quot;&gt;Cross Joins in 1.x&lt;/h2&gt;
+
+&lt;p&gt;The below code is an example of cross join in 1.x. In this example, we are doing a self join without any condition.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;com.databricks.spark.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;../test_data/sales.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+ &lt;span class=&quot;c1&quot;&gt;//cross join the data&lt;/span&gt;
+ &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;crossJoinDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loadedDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// count the joined df&lt;/span&gt;
+ &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;crossJoinDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;explain&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
+ &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;crossJoinDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The plan looks as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;nc&quot;&gt;CartesianProduct&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;:-&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Scan&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CsvRelation&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;function0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;,&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Some&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(../&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test_data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sales&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;csv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;,,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;,null,#,PERMISSIVE,COMMONS,false,&lt;/span&gt;
+&lt;span class=&quot;s&quot;&gt;false,false,null,&lt;/span&gt;
+&lt;span class=&quot;s&quot;&gt;false,null,,null,100000)[transactionId#0,&lt;/span&gt;
+&lt;span class=&quot;s&quot;&gt;customerId#1,itemId#2,amountPaid#3]&lt;/span&gt;
+&lt;span class=&quot;s&quot;&gt;+- Scan CsvRelation(&amp;lt;function0&amp;gt;,Some(../test_data/sales.csv),&lt;/span&gt;
+&lt;span class=&quot;s&quot;&gt;true,,,&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,#,&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;PERMISSIVE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;COMMONS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,,&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100000&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;transactionId&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;#&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;9&lt;/span&gt;,&lt;span class=&quot;kt&quot;&gt;customerId&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;#&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;10&lt;/span&gt;,&lt;span class=&quot;kt&quot;&gt;itemId&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;#&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;11&lt;/span&gt;,&lt;span class=&quot;kt&quot;&gt;amountPaid&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;#&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;12&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;When you observe the plan, it indicates the cartesian product.&lt;/p&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/CrossJoin.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;cross-join-in-2x&quot;&gt;Cross Join in 2.x&lt;/h2&gt;
+
+&lt;p&gt;In 2.x, spark has &lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-17298&quot;&gt;added&lt;/a&gt; an expilict check for cartersian product. By default all the joins reject the cross product. So if you run the same code in 2.x, you will get below error.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;org.apache.spark.sql.AnalysisException: Detected cartesian product for INNER join between logical plans&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;So this makes sures that by accident we don’t introduce any cartesian products in our code.&lt;/p&gt;
+
+&lt;h2 id=&quot;explicit-cross-join-in-2x&quot;&gt;Explicit Cross Join in 2.x&lt;/h2&gt;
+
+&lt;p&gt;So if you really want to have cross join, you need to be explicit in the code&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;crossJoinDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;crossJoin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loadedDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;By explicitly specifying the cross join, spark will allow user to do cross join. This helps programmer to avoid introducing cross join accidentally.&lt;/p&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/CrossJoin.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Spark 2.x makes sure that we don’t introduce cross join accidentally. This smartness built into analyser helps to improve the performance of many workloads.&lt;/p&gt;
+</description>
+        <pubDate>Wed, 10 May 2017 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-4</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-4</guid>
+      </item>
+    
+      <item>
         <title>Migrating to Spark 2.0 - Part 3 : DataFrame to Dataset</title>
         <description>&lt;p&gt;Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.&lt;/p&gt;
 
@@ -1143,173 +1216,6 @@ Commercial support is available at
         <pubDate>Thu, 23 Feb 2017 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-4</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-4</guid>
-      </item>
-    
-      <item>
-        <title>Scalable Spark Deployment using Kubernetes - Part 3 : Kubernetes Abstractions</title>
-        <description>&lt;p&gt;In last blog of the series, we discussed about how to install kubernetes in our local machine.In this third blog, we will discuss what are the different abstractions
-provided by the kubernetes. You can access all the posts in the series &lt;a href=&quot;/categories/kubernetes-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;kubernetes-abstractions&quot;&gt;Kubernetes Abstractions&lt;/h2&gt;
-
-&lt;p&gt;Kubernetes is a production grade  container orchestration system. It follows an API driven approach to interact between different components. It has a vast API surface.We are not going to cover each of those API’s/abstractions here. We are only going to focus on few of the one which are used most of the times. For all the abstractions, refer to &lt;a href=&quot;https://kubernetes.io/docs/user-guide/&quot;&gt;user guide&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;The Kubernetes abstractions can be divided into following four major categories&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;Compute Abstractions - All the abstractions related to running a computing unit. Ex : Container, Pod etc.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Network Abstractions - All the abstractions related to expose the computing units on network ex: Container Port, Service etc.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Storage Abstractions - All the abstractions related to providing and managing storage for compute ex: Volume, VolumeClaim etc.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Metadata Abstractions - All the abstractions related to discovering compute, network and storage abstractions ex : labels&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;In the following sections, we will be discussing about important compute abstractions. The other abstractions will be covered in future posts.&lt;/p&gt;
-
-&lt;h2 id=&quot;a-brief-word-about-containers&quot;&gt;A Brief Word about Containers&lt;/h2&gt;
-
-&lt;p&gt;Kubernetes is a container orchestration framework. But what is a container? In simple terms, container is a light weight virtual machine which runs one of the services
-of an application. The major difference between VM and Containers is how they share operating system and underneath resources. In VM world, each VM has it’s own full copy of operating system. But in case of containers, all the containers share a common operating system kernel. So containers are much more light weight than the VM’s.&lt;/p&gt;
-
-&lt;p&gt;Even though containers are around more than a decade, docker made containers popular. You can get basics of docker or container in general by going through this &lt;a href=&quot;https://www.youtube.com/watch?v=Q5POuMHxW-0&quot;&gt;video&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;compute-abstractions&quot;&gt;Compute Abstractions&lt;/h2&gt;
-
-&lt;p&gt;Once we know what is a container, we can now start discussing about the different compute abstractions in kubernetes. Most of these abstractions discuss about how to create, manage and destroy the containers on scale.&lt;/p&gt;
-
-&lt;h3 id=&quot;pod-abstraction&quot;&gt;Pod Abstraction&lt;/h3&gt;
-
-&lt;p&gt;Pod is a collection of one or more containers. It’s smallest compute unit you can deploy on the kubernetes.&lt;/p&gt;
-
-&lt;p&gt;One of the important aspects of pods are, they run all the containers in the single node. This gives the locality to the containers which need low latency connection between them. Also since they run on same machine, kubernetes creates a networking scheme which allows each containers to address them each other by “localhost”&lt;/p&gt;
-
-&lt;h3 id=&quot;defining-the-pod&quot;&gt;Defining the Pod&lt;/h3&gt;
-
-&lt;p&gt;Kubernetes uses yaml as it’s configuration language for defining various resources.&lt;/p&gt;
-
-&lt;p&gt;In below configuration, we are defining a pod which runs a single container of nginx. Nginx is a popular web server.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-yaml&quot; data-lang=&quot;yaml&quot;&gt;&lt;span class=&quot;l-Scalar-Plain&quot;&gt;apiVersion&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;v1&lt;/span&gt;
-&lt;span class=&quot;l-Scalar-Plain&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;Pod&lt;/span&gt;
-&lt;span class=&quot;l-Scalar-Plain&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx-pod&lt;/span&gt;
-&lt;span class=&quot;l-Scalar-Plain&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;containers&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-   &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx&lt;/span&gt;
-     &lt;span class=&quot;l-Scalar-Plain&quot;&gt;image&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above yaml snippet defines the pod. The below are the different pieces.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;apiVersion&lt;/strong&gt; - parameter defines the  kubernetes API we are using. This versioning scheme allows kubernetes to support multiple versions of the API’s at same time.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;kind&lt;/strong&gt; - This parameter defines for which abstraction of kubernetes we are defining this configuration. Here we are defining for a pod.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;metadata&lt;/strong&gt; - Metadata of the pod. This allows kubernetes to locate the pod uniquely across the cluster.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;spec&lt;/strong&gt; - This defines the all the containers we want to run&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;For each container we define&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;name&lt;/strong&gt; - Name of the container. This will be also used as the host name of the container. So this has to be unique within the pod&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;image&lt;/strong&gt; - Docker image that needs to be used to create the container.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;You can read more about pod abstraction &lt;a href=&quot;https://kubernetes.io/docs/user-guide/pods/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;You can find the complete yaml file on &lt;a href=&quot;https://github.com/phatak-dev/blog/blob/master/code/KubernetesExamples/nginxpod.yaml&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;creating-pod-from-configuration&quot;&gt;Creating Pod from Configuration&lt;/h3&gt;
-
-&lt;p&gt;Once we define the pod, then we can use &lt;em&gt;kubectl create&lt;/em&gt; command to create a pod&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl create -f nginx.yaml&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;This will download the latest nginx image from dockerhub and starts the container inside the pod.&lt;/p&gt;
-
-&lt;p&gt;If you run the below command&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl get po&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You should see the results as below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;nginx-pod                          1/1       Running   0          37s&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Now you have successfully ran a pod on your kubernetes instance.&lt;/p&gt;
-
-&lt;h3 id=&quot;deployment-abstraction&quot;&gt;Deployment Abstraction&lt;/h3&gt;
-
-&lt;p&gt;In earlier section, we discussed about pod abstraction. Pod abstraction works well when we need to create single copy of the container. But in clustered use cases like spark, we may need multiple instance of same containers. For example, we need multiple instances of spark workers. Expressing them individually is tedious and doesn’t scale well.So in those cases using pod abstraction is not good enough.Also pod abstraction doesn’t allow us to update the code inside the pod without changing the configuration file. This will be challenging in cluster environment where we may want to dynamically update configs/ version of software.&lt;/p&gt;
-
-&lt;p&gt;So to overcome these challenges, kubernetes gives us another abstraction called deployments. As name suggest, this abstraction allows end to end deployment of a pod. This allows us to create, update and destroy pods with much cleaner abstractions than the bare bone pod abstraction. So kubernetes documentation prefers the deployment abstraction over simple pod abstraction.&lt;/p&gt;
-
-&lt;p&gt;So let’s rewrite our nginx pod example using deployment abstraction. The below is the yaml configuration for deployment&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-yaml&quot; data-lang=&quot;yaml&quot;&gt;&lt;span class=&quot;l-Scalar-Plain&quot;&gt;apiVersion&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;extensions/v1beta1&lt;/span&gt;
-&lt;span class=&quot;l-Scalar-Plain&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;Deployment&lt;/span&gt;
-&lt;span class=&quot;l-Scalar-Plain&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx-deployment&lt;/span&gt;
-&lt;span class=&quot;l-Scalar-Plain&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;replicas&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;1&lt;/span&gt;
-  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;template&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;metadata&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-     &lt;span class=&quot;l-Scalar-Plain&quot;&gt;labels&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-        &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx&lt;/span&gt;
-    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spec&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-      &lt;span class=&quot;l-Scalar-Plain&quot;&gt;containers&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-       &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx&lt;/span&gt;
-         &lt;span class=&quot;l-Scalar-Plain&quot;&gt;image&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;nginx&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The below are the major differences are&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;replicas&lt;/strong&gt; - We can create multiple instances of the pod using this. As we need only instance here we are specifying as the 1.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;strong&gt;template&lt;/strong&gt; - This holds the template for the pod. This information is same whatever we specified in the pod definition.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;You can access the complete file on &lt;a href=&quot;https://github.com/phatak-dev/blog/blob/master/code/KubernetesExamples/nginxdeployment.yaml&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;running-the-deployment&quot;&gt;Running the deployment&lt;/h3&gt;
-
-&lt;p&gt;Use the below command to run the deployment&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl create -f nginxdeployment.yaml&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You can see all running deployments using below command&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl get deployments&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Now you have successfully ran the deployment. You can run multiple copies of the container just by increasing the replicas count.&lt;/p&gt;
-
-&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h3&gt;
-&lt;p&gt;Now we know the major compute abstractions of the kubernetes. Use deployment abstraction even when you need single pod. It makes things much cleaner.&lt;/p&gt;
-
-&lt;h3 id=&quot;whats-next&quot;&gt;What’s Next?&lt;/h3&gt;
-
-&lt;p&gt;Even though we have run the pod, we have not accessed  anything from it. So you may be asking how to access the front-page of nginx. To understand that, we need to understand the network/service abstractions provided by the kubernetes. We will be discussing about them in the next blog.&lt;/p&gt;
-
-</description>
-        <pubDate>Fri, 17 Feb 2017 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-3</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-3</guid>
       </item>
     
   </channel>

@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Migrating to Spark 2.0 - Part 1 : Scala Version and Dependencies</title>
+    <title>Migrating to Spark 2.0 - Part 4 : Cross Joins</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/migrating-to-spark-two-part-1">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/migrating-to-spark-two-part-4">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,8 +45,8 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Migrating to Spark 2.0 - Part 1 : Scala Version and Dependencies</h1>
-  <p class="meta">Apr 13, 2017</p>
+  <h1>Migrating to Spark 2.0 - Part 4 : Cross Joins</h1>
+  <p class="meta">May 10, 2017</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
@@ -61,74 +61,69 @@
 <article class="post-content">
   <p>Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.</p>
 
-<p>This is the first post in this series. In this post, we will discuss how to upgrade our dependencies to add right support for spark 2.0. You can access all the posts <a href="/categories/spark-two-migration-series">here</a>.</p>
+<p>This is the forth post in this series.In this post we discuss about cross joins. You can access all the posts <a href="/categories/spark-two-migration-series">here</a>.</p>
 
-<h2 id="choosing-right-scala-version">Choosing Right Scala Version</h2>
+<p>TL;DR You can access all the code on <a href="https://github.com/phatak-dev/spark-two-migration">github</a>.</p>
 
-<p>When you want to upgrade from spark 1.x to spark 2.x, first task is to pick the right scala version. In spark 1.x, spark was built using scala version 2.10.6. But from spark 2.0, the default version is changed to 2.11.8. 2.10 version is still supported even though it’s not default.</p>
+<h2 id="joins-in-spark-sql">Joins in Spark SQL</h2>
+<p>Joins are one of the costliest operations in spark or big data in general. So whenever we program in spark we try to avoid joins or restrict the joins on limited data.There are various optimisations in spark , right from choosing right type of joins and using broadcast joins to improve the performance.</p>
 
-<p>Scala major versions are non binary compatible, i.e you cannot mix and match the libraries built using 2.10 and 2.11. So whenever you change the scala version of the project, you need to upgrade all the libraries of the project including non-spark ones. It’s a significant work as you need to comb through each and every dependency and make sure right version exist.</p>
+<h2 id="cross-joins">Cross Joins</h2>
 
-<p>Initially I started the upgrade using Scala 2.10 as it was least resistance path. All the other external libraries needed no change and it was smooth. But I soon realised the distribution at spark download page <a href="https://spark.apache.org/downloads.html">https://spark.apache.org/downloads.html</a> is only built using scala 2.11. So to support 2.10 I have to build my own distribution. Also I came across the <a href="https://issues.apache.org/jira/browse/SPARK-19810">jira</a> which discusses about removing scala 2.10 support altogether in 2.3.0. So this meant investing in 2.10 will be not good as it will be obsolete in next few versions.</p>
+<p>Cross Join or cartesian product is one kind of join where each row of one dataset is joined with other. So if we have a dataset of size m and if we join with other dataset with of size n , we will getting a dataset with m*n number of rows.</p>
 
-<p>So I chose <em>2.11.8</em> as my scala version for upgrade.</p>
+<p>Cross joins are one of the most time consuming joins and often should be avoided. But sometimes, we may accidentally do them without intending to do so. But we recognise performance issue only when they run on large data. So having ability to identify them at earliest will save lot of hassle.</p>
 
-<h2 id="choosing-right-java-version">Choosing Right Java Version</h2>
+<h2 id="cross-joins-in-1x">Cross Joins in 1.x</h2>
 
-<p>From Spark 2.1.0 version, support for Java 7 has been deprecated. So I started using Java 8 for building and deploying the code.</p>
+<p>The below code is an example of cross join in 1.x. In this example, we are doing a self join without any condition.</p>
 
-<h2 id="updating-external-dependencies">Updating External Dependencies</h2>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">loadedDf</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;com.databricks.spark.csv&quot;</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">).</span><span class="n">load</span><span class="o">(</span><span class="s">&quot;../test_data/sales.csv&quot;</span><span class="o">)</span>
 
-<p>One of the major challenges of changing scala version is to update all the project dependencies. My project had a fair bit of them and luckily all of those libraries had scala 2.11 version. So please make sure that all the libraries have 2.11 version before you make decision to change scala version.</p>
+ <span class="c1">//cross join the data</span>
+ <span class="k">val</span> <span class="n">crossJoinDf</span> <span class="k">=</span> <span class="n">loadedDf</span><span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">loadedDf</span><span class="o">)</span>
+<span class="c1">// count the joined df</span>
+ <span class="n">println</span><span class="o">(</span><span class="n">crossJoinDf</span><span class="o">.</span><span class="n">explain</span><span class="o">())</span>
+ <span class="n">println</span><span class="o">(</span><span class="n">crossJoinDf</span><span class="o">.</span><span class="n">count</span><span class="o">)</span></code></pre></div>
 
-<h2 id="updating-connectors">Updating Connectors</h2>
+<p>The plan looks as below</p>
 
-<p>There are major changes happened to the connector ecosystem in spark 2.0. So when you are upgrading to spark 2.0, you need to make sure that you use the right connectors.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="nc">CartesianProduct</span>
+<span class="o">:-</span> <span class="nc">Scan</span> <span class="nc">CsvRelation</span><span class="o">(&lt;</span><span class="n">function0</span><span class="o">&gt;,</span><span class="nc">Some</span><span class="o">(../</span><span class="n">test_data</span><span class="o">/</span><span class="n">sales</span><span class="o">.</span><span class="n">csv</span><span class="o">),</span><span class="kc">true</span><span class="o">,</span>
+<span class="o">,,</span><span class="s">&quot;,null,#,PERMISSIVE,COMMONS,false,</span>
+<span class="s">false,false,null,</span>
+<span class="s">false,null,,null,100000)[transactionId#0,</span>
+<span class="s">customerId#1,itemId#2,amountPaid#3]</span>
+<span class="s">+- Scan CsvRelation(&lt;function0&gt;,Some(../test_data/sales.csv),</span>
+<span class="s">true,,,&quot;</span><span class="o">,</span><span class="kc">null</span><span class="o">,#,</span><span class="nc">PERMISSIVE</span><span class="o">,</span><span class="nc">COMMONS</span><span class="o">,</span><span class="kc">false</span><span class="o">,</span>
+<span class="kc">false</span><span class="o">,</span><span class="kc">false</span><span class="o">,</span><span class="kc">null</span><span class="o">,</span><span class="kc">false</span><span class="o">,</span><span class="kc">null</span><span class="o">,,</span><span class="kc">null</span><span class="o">,</span><span class="mi">100000</span><span class="o">)</span>
+<span class="o">[</span><span class="kt">transactionId</span><span class="k">#</span><span class="err">9</span>,<span class="kt">customerId</span><span class="k">#</span><span class="err">10</span>,<span class="kt">itemId</span><span class="k">#</span><span class="err">11</span>,<span class="kt">amountPaid</span><span class="k">#</span><span class="err">12</span><span class="o">]</span></code></pre></div>
 
-<ul>
-  <li>
-    <h3 id="removal-of-built-in-streaming-connectors">Removal of Built in Streaming Connectors</h3>
-  </li>
-</ul>
+<p>When you observe the plan, it indicates the cartesian product.</p>
 
-<p>Earlier spark had support for zeromq, twitter as part of spark streaming code base. But in spark 2.x, they have removed <a href="https://issues.apache.org/jira/browse/SPARK-13843">it</a>. No more these connectors are part of spark-streaming. This is done mostly to develop these connectors independent of spark versions. So if you are using these connector code will break.</p>
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/CrossJoin.scala">github</a>.</p>
 
-<p>To fix this issue, you need to update the dependencies to point to <a href="https://github.com/apache/bahir">Apache Bahir</a>. Apache Bahir is new home to all of this deleted connectors. Follow the README of bahir repository to update the dependencies to bahir ones.</p>
+<h2 id="cross-join-in-2x">Cross Join in 2.x</h2>
 
-<ul>
-  <li>
-    <h3 id="spark-20-specific-connectors">Spark 2.0 specific connectors</h3>
-  </li>
-</ul>
+<p>In 2.x, spark has <a href="https://issues.apache.org/jira/browse/SPARK-17298">added</a> an expilict check for cartersian product. By default all the joins reject the cross product. So if you run the same code in 2.x, you will get below error.</p>
 
-<p>Many popular connectors now give spark 2.0 specific connectors to build with. These connectors provide both scala 2.10 and 2.11 version. Choose the right one depending upon the scala version you have chosen. As I have chosen 2.11, the below are the some of updated connectors for some sources</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">org.apache.spark.sql.AnalysisException: Detected cartesian product for INNER join between logical plans</code></pre></div>
 
-<ul>
-  <li>
-    <h4 id="elastic-search">Elastic Search</h4>
-  </li>
-</ul>
+<p>So this makes sures that by accident we don’t introduce any cartesian products in our code.</p>
 
-<p>Elastic search has a dedicated spark connector which was used to be called as elasticsearch-hadoop. You can access latest connector <a href="https://mvnrepository.com/artifact/org.elasticsearch/elasticsearch-spark-20_2.11/5.3.0">here</a>.</p>
+<h2 id="explicit-cross-join-in-2x">Explicit Cross Join in 2.x</h2>
 
-<ul>
-  <li>
-    <h4 id="csv-connector">Csv Connector</h4>
-  </li>
-</ul>
+<p>So if you really want to have cross join, you need to be explicit in the code</p>
 
-<p>From Spark 2.0, csv is built in source. Earlier we used to use <a href="https://github.com/databricks/spark-csv">spark-csv</a>.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">crossJoinDf</span> <span class="k">=</span> <span class="n">loadedDf</span><span class="o">.</span><span class="n">crossJoin</span><span class="o">(</span><span class="n">loadedDf</span><span class="o">)</span></code></pre></div>
 
-<p>If you are using any other connector, make sure they support 2.0. One thing to note that, if the connector is available in right scala version, it doesn’t need any code changes to support spark 2.x. Spark 2.x data source API is backward compatible with spark 1.x</p>
+<p>By explicitly specifying the cross join, spark will allow user to do cross join. This helps programmer to avoid introducing cross join accidentally.</p>
+
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/CrossJoin.scala">github</a>.</p>
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>So by updating scala version, java version and using right connectors you can update your project build to use spark 2.x.</p>
-
-<h2 id="whats-next">What’s Next?</h2>
-
-<p>In next blog, we will be discuss about major changes in spark csv connector.</p>
-
+<p>Spark 2.x makes sure that we don’t introduce cross join accidentally. This smartness built into analyser helps to improve the performance of many workloads.</p>
 
 </article>
 <div class="related">
@@ -136,12 +131,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">10 May 2017</span>
-     &raquo; <a href="/migrating-to-spark-two-part-4">Migrating to Spark 2.0 - Part 4 : Cross Joins</a>    
-   </li>           
-         
+          
 
             
     
@@ -162,12 +152,7 @@
    
    
              
-    
-    <li>    
-     <span class="post-date">10 May 2017</span>
-     &raquo; <a href="/migrating-to-spark-two-part-4">Migrating to Spark 2.0 - Part 4 : Cross Joins</a>    
-   </li>           
-         
+          
 
             
     
