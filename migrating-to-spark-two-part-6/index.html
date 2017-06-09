@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Migrating to Spark 2.0 - Part 2 : Built-in CSV Connector</title>
+    <title>Migrating to Spark 2.0 - Part 6 : Spark ML Transformer API</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/migrating-to-spark-two-part-2">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/migrating-to-spark-two-part-6">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,8 +45,8 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Migrating to Spark 2.0 - Part 2 : Built-in CSV Connector</h1>
-  <p class="meta">Apr 15, 2017</p>
+  <h1>Migrating to Spark 2.0 - Part 6 : Spark ML Transformer API</h1>
+  <p class="meta">Jun 9, 2017</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
@@ -61,114 +61,88 @@
 <article class="post-content">
   <p>Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.</p>
 
-<p>This is the second post in this series. In this post, we will discuss about built-in csv connector. You can access all the posts <a href="/categories/spark-two-migration-series">here</a>.</p>
+<p>This is the fifth post in this series.In this post we will discuss about spark ml transformer API. You can access all the posts <a href="/categories/spark-two-migration-series">here</a>.</p>
 
 <p>TL;DR You can access all the code on <a href="https://github.com/phatak-dev/spark-two-migration">github</a>.</p>
 
-<h2 id="csv-source-connector-in-spark">CSV Source Connector in Spark</h2>
+<h2 id="machine-learning-in-spark-20">Machine Learning in Spark 2.0</h2>
 
-<p>In spark 1.x, csv connector was provided using, <a href="/analysing-csv-data-in-spark">spark-csv</a>, a third party library  by databricks. But in spark 2.0, they have made csv a built-in source. This decision is primarily driven by the fact that csv is one of the major data formats used in enterprises.So when you are migrating to spark 2.0 you need to move your code to use the built in csv source rather than using third party one.</p>
+<p>In spark 1.x, MLLib was the library offered by spark for doing machine learning on large data. MLLib was based on rdd abstraction. So from 1.4, spark started to
+move to new library called Spark ML which implements machine learning algorithms using dataframe abstraction. As spark ML is new library compared to MLLib it was not feature complete and was in beta through the 1.x series. So MLLib was de facto library for machine learning.</p>
 
-<h2 id="migrating-to-new-connector">Migrating to New Connector</h2>
+<p>But from spark 2.0, spark ML becomes de facto machine library. mllib will be around for backward compatibility. So from 2.0, all the machine learning algorithms
+will be using newer abstractions like dataframe/dataset rather than rdd.</p>
 
-<p>The steps for migrating from old connector to new one are as below.</p>
+<h2 id="transformer-and-evaluator-api">Transformer and Evaluator API</h2>
 
-<ul>
-  <li>
-    <h3 id="removing-dependency">Removing Dependency</h3>
-  </li>
-</ul>
+<p>In spark ML, data preparation is represented using transformation API. The learning algorithm are represented using Evaluator API. These
+two form the basis of the spark ML API’s and abstractions. You can learn more about them in below link</p>
 
-<p>The first step to migrate code is to remove spark-csv dependency from the build. This makes sure that it doesn’t conflict with built in connector.</p>
+<p><a href="https://spark.apache.org/docs/latest/ml-pipeline.html#example-estimator-transformer-and-param">https://spark.apache.org/docs/latest/ml-pipeline.html#example-estimator-transformer-and-param</a></p>
 
-<ul>
-  <li>
-    <h3 id="migrating-code">Migrating Code</h3>
-  </li>
-</ul>
+<h2 id="changes-to-apis">Changes to API’s</h2>
 
-<p>The below code snippets show the changes need to migrate code. It’s relatively small change as built-in connector preserves all the same options
-that were available in spark-csv.</p>
+<p>In spark 1.x, transformer and evaluator API, used to operate on dataframe abstraction. But from spark 2.0, it’s changed to use Dataset API. As Dataset abstraction
+is more versatile than the dataframe this change makes library more powerful.</p>
 
-<p>If you have below code in spark 1.x</p>
+<p>If you are using built in transformers or evaluators , then you don’t have to worry. All code works without any change.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">loadedDF</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;com.databricks.spark.csv&quot;</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">).</span><span class="n">load</span><span class="o">(</span><span class="s">&quot;../test_data/sales.csv&quot;</span><span class="o">)</span></code></pre></div>
+<p>But if you have implemented you own custom transformer/ evaluator, then you need to change the code to accommodate this API change.</p>
 
-<p>Migrate the code to spark 2.0 as below</p>
+<h2 id="custom-transformer-in-1x">Custom Transformer in 1.x</h2>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">loadedDF</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;csv&quot;</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">).</span><span class="n">load</span><span class="o">(</span><span class="s">&quot;../test_data/sales.csv&quot;</span><span class="o">)</span></code></pre></div>
+<p>The below code shows a simple transformer in spark 1.x. It’s an identity transformer.</p>
 
-<p>As you can see from the code, you need to replace the source from <em>com.databricks.spark.csv</em> to <em>csv</em>. This will migrate your code to use built in spark connector.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">IdentityTransformer</span><span class="o">(</span><span class="k">override</span> <span class="k">val</span> <span class="n">uid</span><span class="k">:</span><span class="kt">String</span><span class="o">=</span><span class="nc">Identifiable</span><span class="o">.</span><span class="n">randomUID</span><span class="o">(</span><span class="s">&quot;identity&quot;</span><span class="o">))</span> <span class="k">extends</span> <span class="nc">Transformer</span> <span class="o">{</span>
+ <span class="k">override</span> <span class="k">def</span> <span class="n">transform</span><span class="o">(</span><span class="n">inputData</span><span class="k">:</span><span class="kt">DataFrame</span><span class="o">)</span><span class="k">:</span><span class="kt">DataFrame</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="n">inputData</span>
+ <span class="o">}</span>
 
-<p>You can access complete code on github for <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/CsvLoad.scala">1.x</a> and <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/CsvLoad.scala">2.x</a>.</p>
+ <span class="k">override</span> <span class="k">def</span> <span class="n">copy</span><span class="o">(</span><span class="n">paramMap</span><span class="k">:</span><span class="kt">ParamMap</span><span class="o">)</span> <span class="k">=</span> <span class="k">this</span>
+ <span class="k">override</span> <span class="k">def</span> <span class="n">transformSchema</span><span class="o">(</span><span class="n">schema</span><span class="k">:</span><span class="kt">StructType</span><span class="o">)</span><span class="k">=</span> <span class="n">schema</span>
+<span class="o">}</span></code></pre></div>
 
-<h2 id="advantages-of-built-in-csv-connector">Advantages of Built-in CSV Connector</h2>
+<p>In the above code, you can observe <em>transform</em> method takes a dataframe and returns a dataframe.</p>
 
-<p>Now, if both connector provides the same API, you may wonder what’s the advantage of the upgrading to built in source. The below are the some of the advantages.</p>
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/CustomMLTransformer.scala">github</a>.</p>
 
-<ul>
-  <li>
-    <h3 id="no-third-party-dependency">No third party dependency</h3>
-  </li>
-</ul>
+<h2 id="custom-transformer-in-2x">Custom Transformer in 2.x</h2>
 
-<p>As this connector is built in to spark, we don’t have to depend upon any third party library jars. This is makes playing with csv much easier in spark-shell or any
-other interactive tools. Also it simplifies the dependency graph of our projects.</p>
+<p>The below code shows modified version of the above transformer in 2.0</p>
 
-<ul>
-  <li>
-    <h3 id="better-performance-in-schema-inference">Better Performance in Schema Inference</h3>
-  </li>
-</ul>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">IdentityTransformer</span><span class="o">(</span><span class="k">override</span> <span class="k">val</span> <span class="n">uid</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="nc">Identifiable</span><span class="o">.</span><span class="n">randomUID</span><span class="o">(</span><span class="s">&quot;identity&quot;</span><span class="o">))</span> <span class="k">extends</span> <span class="nc">Transformer</span> <span class="o">{</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">transform</span><span class="o">(</span><span class="n">inputData</span><span class="k">:</span> <span class="kt">Dataset</span><span class="o">[</span><span class="k">_</span><span class="o">])</span><span class="k">:</span> <span class="kt">DataFrame</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="n">inputData</span><span class="o">.</span><span class="n">toDF</span><span class="o">()</span>
+  <span class="o">}</span>
 
-<p>Csv connector has an option to do schema inference. As third party library, earlier connector was pretty slow to do the schema inference. But
-now the connector is built in to the spark it can use some of the optimised internal API’s to do it much faster.</p>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">copy</span><span class="o">(</span><span class="n">paramMap</span><span class="k">:</span> <span class="kt">ParamMap</span><span class="o">)</span> <span class="k">=</span> <span class="k">this</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">transformSchema</span><span class="o">(</span><span class="n">schema</span><span class="k">:</span> <span class="kt">StructType</span><span class="o">)</span> <span class="k">=</span> <span class="n">schema</span>
+<span class="o">}</span></code></pre></div>
 
-<p>The below is the comparison for schema inference on 700mb data with 29 columns.I am using airlines data for year 2007 from <a href="http://stat-computing.org/dataexpo/2009/the-data.html">here</a>. It’s zipped. When you unzip, you get csv file on which the tests are done. Test is done on spark-shell with master as <em>local</em>.</p>
+<p>As you can observe from the code, transform now takes <em>Dataset</em> rather than dataframe. One thing to note that return type is still 
+remains to be dataframe.</p>
 
-<p>The results as below</p>
+<p>Also first line transform, we are calling <em>toDF</em> on dataset so we can port code easily.</p>
 
-<p><strong>Spark-Csv connector   51s</strong></p>
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/CustomMLTransformer.scala">github</a>.</p>
 
-<p><strong>Built-in  connector   20s</strong></p>
+<h2 id="advantage-of-dataset-over-dataframe">Advantage of Dataset over Dataframe.</h2>
 
-<p>As you can see from the results, built-in connector is almost twice as fast as earlier one.</p>
+<p>The API change may seem small and unnecessary. But there is very valid reason to move from dataframe to Dataset abstraction for spark ml.</p>
 
-<ul>
-  <li>
-    <h3 id="support-for-broadcast-join">Support For Broadcast Join</h3>
-  </li>
-</ul>
+<p>In mllib API’s, we were able to represent the data using case classes like <em>LabelPoint</em>. This made a compact way of representing data for given algorithm.
+But with moving to dataframe abstraction we lost that option. As we can’t represent custom structured data in dataframe, it’s not possible to do
+any validation at compile time. So we may be sending wrong dataframe to an algorithm which is expecting some other structure altogether. This made
+code more complicated and difficult to validate.</p>
 
-<p>Earlier spark-csv connector didn’t support broadcast join. So joins are very slow when we combine big dataframes with small ones for csv data. But
-now built-in connector supports the broadcast joins which vastly improves the performance of joins.</p>
+<p>Dataset alleviates all these problems. Dataset abstraction can represent custom structures very efficiently. As we represented in mllib  like RDD[LabelPoint]
+we can now represent it as Dataset[LablePoint]. This makes code compile time safe.</p>
 
-<p>So I have created another small file with first 10000 rows of 2007.csv which is around 1mb. When we join the data on <em>Year</em> column using below code</p>
-
-<h4 id="join-code">Join code</h4>
-
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">joinedDf</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">smalldf</span><span class="o">,</span> <span class="n">df</span><span class="o">.</span><span class="n">col</span><span class="o">(</span><span class="s">&quot;Year&quot;</span><span class="o">)</span> <span class="o">===</span> <span class="n">smalldf</span><span class="o">.</span><span class="n">col</span><span class="o">(</span><span class="s">&quot;Year&quot;</span><span class="o">))</span>
-
-<span class="n">joinedDf</span><span class="o">.</span><span class="n">count</span></code></pre></div>
-
-<p>Here <em>df</em> dataframe on 700mb data and <em>smalldf</em> on 1 mb. We are running count to force spark to do complete join.</p>
-
-<p>I observed below results.</p>
-
-<p><strong>Spark-Csv connector 52 min</strong></p>
-
-<p><strong>Built-in Connector 4.1 min</strong></p>
-
-<p>As you can see, there is huge difference between join performance. The difference comes as spark built-in connector uses BroadcastJoin where as spark-csv uses SortMergeJoin. So when you migrate to built-in connector you will observe a significant improvement in the join performance.</p>
+<p>You can read more in this <a href="https://issues.apache.org/jira/browse/SPARK-14500">jira</a>.</p>
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>So whenever you are moving to spark 2.0, use built in csv connector. It preserves the same API  and gives better performance than older connector.</p>
-
-<h2 id="whats-next">What’s Next?</h2>
-
-<p>In next blog, we will be discuss about migrating rdd based code in spark 2.0</p>
-
+<p>In this post, we have discussed about the change to spark ML API’s and how to migrate the code accommodate the same.</p>
 
 </article>
 <div class="related">
@@ -176,12 +150,7 @@ now built-in connector supports the broadcast joins which vastly improves the pe
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">09 Jun 2017</span>
-     &raquo; <a href="/migrating-to-spark-two-part-6">Migrating to Spark 2.0 - Part 6 : Spark ML Transformer API</a>    
-   </li>           
-         
+          
 
             
     
@@ -202,12 +171,7 @@ now built-in connector supports the broadcast joins which vastly improves the pe
    
    
              
-    
-    <li>    
-     <span class="post-date">09 Jun 2017</span>
-     &raquo; <a href="/migrating-to-spark-two-part-6">Migrating to Spark 2.0 - Part 6 : Spark ML Transformer API</a>    
-   </li>           
-         
+          
 
             
     
