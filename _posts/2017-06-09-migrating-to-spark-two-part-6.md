@@ -7,7 +7,7 @@ categories: scala spark spark-two-migration-series
 
 Spark 2.0 brings a significant changes to abstractions and API's of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.
 
-This is the fifth post in this series.In this post we will discuss about spark ml transformer API. You can access all the posts [here](/categories/spark-two-migration-series).
+This is the sixth post in this series.In this post we will discuss about spark ml transformer API. You can access all the posts [here](/categories/spark-two-migration-series).
 
 TL;DR You can access all the code on [github](https://github.com/phatak-dev/spark-two-migration).
 
