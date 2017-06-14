@@ -7,6 +7,108 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Migrating to Spark 2.0 - Part 7 : SubQueries</title>
+        <description>&lt;p&gt;Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.&lt;/p&gt;
+
+&lt;p&gt;This is the seventh post in this series.In this post we will discuss about subquery support in spark sql. You can access all the posts &lt;a href=&quot;/categories/spark-two-migration-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR You can access all the code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;spark-sql-in-spark-20&quot;&gt;Spark SQL in Spark 2.0&lt;/h2&gt;
+
+&lt;p&gt;Spark SQL has been greatly improved in 2.0 to run all &lt;a href=&quot;https://databricks.com/blog/2016/07/26/introducing-apache-spark-2-0.html&quot;&gt;99 queries of TPC-DS&lt;/a&gt;, a standard benchmark suit for popular sql implementations. To support this benchmark and to provide a complete OLAP sql engine, spark has added many features to it’s sql query language which were missing earlier. This makes spark sql more powerful than before.&lt;/p&gt;
+
+&lt;p&gt;One of the big feature they added was support for subqueries. Subquery is query inside the another query. It’s a powerful feature of SQL which makes writing multi level aggregation much easier and more performant.&lt;/p&gt;
+
+&lt;p&gt;In below sections, we will discuss how you can port your earlier complex 1.x sql queries into simpler and performant subqueries.&lt;/p&gt;
+
+&lt;h2 id=&quot;scalar-subqueries&quot;&gt;Scalar SubQueries&lt;/h2&gt;
+
+&lt;p&gt;There are different types of sub queries. One of those are scalar subqueries. They are called scalar as they return single result for query. There are two types
+of scalar queries&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Uncorrelated  Scalar SubQueries&lt;/li&gt;
+  &lt;li&gt;Correlated  Scalar SubQueries&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;uncorrelated-scalar-subqueries&quot;&gt;Uncorrelated Scalar SubQueries&lt;/h2&gt;
+
+&lt;p&gt;Let’s take an example. Let’s say we have loaded &lt;em&gt;sales&lt;/em&gt; data which we have used in earlier blogs. Now we want to figure out, how each item is doing
+compared to max sold item. For Ex: If our max value is 600, we want to compare how far is each of our sales to that figure. This kind of information
+is very valuable to understand the distribution of our sales.&lt;/p&gt;
+
+&lt;p&gt;So what we essential want to do is to add max amount to each row of the dataframe.&lt;/p&gt;
+
+&lt;h3 id=&quot;query-in-spark-1x&quot;&gt;Query in Spark 1.x&lt;/h3&gt;
+
+&lt;p&gt;In spark 1.x, there was no way to express this in one query. So we need to do as a two step. In first step we calculate the max &lt;em&gt;amountPaid&lt;/em&gt; and then 
+in second step we add that to each row as a literal. The code looks like below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;max_amount&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;select max(amountPaid) as max_amount from sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;first&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getDouble&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dfWithMaxAmount&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;select *, ($max_amount) as max_amount from sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Even though it works, it’s not elegant. If we want to add more aggregations, this doesn’t scale well.&lt;/p&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/SubQueries.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;query-in-2x&quot;&gt;Query in 2.x&lt;/h3&gt;
+
+&lt;p&gt;With uncorrelated scalar sub query support, the above code can be rewritten as below in 2.x&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dfWithMaxAmount&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;select *, (select max(amountPaid) from sales) max_amount from sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In this query, we write query inside query which calculates max value and adds to the dataframe. This code is much easier to write
+and maintain. The subquery is called uncorrelated because it returns same value for each row in the dataset.&lt;/p&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/SubQueries.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;correlated-sub-queries&quot;&gt;Correlated Sub Queries&lt;/h3&gt;
+
+&lt;p&gt;Let’s say we want to write same logic but per item. It becomes much more complicated in spark 1.x, because it’s no more single value for dataset. We need to calculate
+max for each group of items and append it to the group. So let’s see how sub queries help here.&lt;/p&gt;
+
+&lt;h3 id=&quot;query-in-1x&quot;&gt;Query in 1.x&lt;/h3&gt;
+
+&lt;p&gt;The logic for this problem involves a left join with group by operation. It can be written as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dfWithMaxPerItem&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;&amp;quot;&amp;quot;select A.itemId, B.max_amount  &lt;/span&gt;
+&lt;span class=&quot;s&quot;&gt;from sales A left outer join ( select itemId, max(amountPaid) max_amount&lt;/span&gt;
+&lt;span class=&quot;s&quot;&gt;from sales B group by itemId) B where A.itemId = B.itemId&amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Again it’s complicated and less maintainable.&lt;/p&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/SubQueries.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;query-in-2x-1&quot;&gt;Query in 2.x&lt;/h3&gt;
+&lt;p&gt;Now we can rewrite the above code without any joins in subquery as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dfWithMaxPerItem&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;select A.itemId, &lt;/span&gt;
+&lt;span class=&quot;s&quot;&gt;(select max(amountPaid) from sales where itemId=A.itemId) max_amount from sales A&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This looks much cleaner than above. Internally spark converts above code into a left outer join. But as a user, we don’t need to worry about it.&lt;/p&gt;
+
+&lt;p&gt;The query is called correlated because it depends on outer query for doing the where condition evaluation of inner query.&lt;/p&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/SubQueries.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Spark SQL is improved quite a lot in spark 2.0. We can rewrite many complicated spark 1.x queries using simple sql constructs like subqueries. This makes code 
+more readable and maintainable.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://databricks.com/blog/2016/06/17/sql-subqueries-in-apache-spark-2-0.html&quot;&gt;SQL Subqueries in Apache Spark 2.0&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Wed, 14 Jun 2017 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-7</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-7</guid>
+      </item>
+    
+      <item>
         <title>Migrating to Spark 2.0 - Part 6 : Spark ML Transformer API</title>
         <description>&lt;p&gt;Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.&lt;/p&gt;
 
@@ -696,241 +798,6 @@ and monitoring. In next blog, we will discuss about resource management on kuber
         <pubDate>Mon, 06 Mar 2017 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-7</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-7</guid>
-      </item>
-    
-      <item>
-        <title>Scalable Spark Deployment using Kubernetes - Part 6 : Building Spark 2.0 Two Node Cluster</title>
-        <description>&lt;p&gt;In last post, we have built spark 2.0 docker image. As a next step we will be building two node spark standalone cluster using that image. In the context of of kubernetes,  node analogues to a container. So in the sixth blog of the series, we will be building two node cluster containing single master and single worker.You can access all the posts in the series &lt;a href=&quot;/categories/kubernetes-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;TL;DR you can access all the source code on &lt;a href=&quot;https://github.com/phatak-dev/kubernetes-spark&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;spark-master-deployment&quot;&gt;Spark Master Deployment&lt;/h3&gt;
-
-&lt;p&gt;To start with we define our master using kubernetes deployment abstraction. As you can recall from &lt;a href=&quot;/scaling-spark-with-kubernetes-part-3&quot;&gt;earlier&lt;/a&gt; post, deployment abstraction is used for defining one or morepods. Even though we need single master in our cluster, we will use deployment abstraction over pod as it gives us more flexiblity.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-yaml&quot; data-lang=&quot;yaml&quot;&gt;&lt;span class=&quot;l-Scalar-Plain&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;extensions/v1beta1&lt;/span&gt;
-&lt;span class=&quot;l-Scalar-Plain&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;Deployment&lt;/span&gt;
-&lt;span class=&quot;l-Scalar-Plain&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;labels&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spark-master&lt;/span&gt;
-  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spark-master&lt;/span&gt;
-&lt;span class=&quot;l-Scalar-Plain&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;replicas&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;1&lt;/span&gt;
-  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;template&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-      &lt;span class=&quot;l-Scalar-Plain&quot;&gt;labels&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-        &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spark-master&lt;/span&gt;
-    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-      &lt;span class=&quot;l-Scalar-Plain&quot;&gt;containers&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-      &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spark-master&lt;/span&gt;
-        &lt;span class=&quot;l-Scalar-Plain&quot;&gt;image&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spark-2.1.0-bin-hadoop2.6&lt;/span&gt; 
-        &lt;span class=&quot;l-Scalar-Plain&quot;&gt;imagePullPolicy&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;IfNotPresent&amp;quot;&lt;/span&gt;
-        &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spark-master&lt;/span&gt;
-        &lt;span class=&quot;l-Scalar-Plain&quot;&gt;ports&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-        &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;containerPort&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;7077&lt;/span&gt;
-          &lt;span class=&quot;l-Scalar-Plain&quot;&gt;protocol&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;TCP&lt;/span&gt;
-        &lt;span class=&quot;l-Scalar-Plain&quot;&gt;command&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-         &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;/bin/bash&amp;quot;&lt;/span&gt;
-         &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;-c&amp;quot;&lt;/span&gt;
-         &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;--&amp;quot;&lt;/span&gt;
-        &lt;span class=&quot;l-Scalar-Plain&quot;&gt;args&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-         &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;./start-master.sh&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;sleep&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;infinity&amp;#39;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above yaml configuration shows the configuration for the master. The noteworthy pieces are&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;image - We are using the image we built in our last post. This is availble in local docker images.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;imagePullPolicy - By default kubernetes tries to pull the image from remote servers like dockerhub. But as our image is only available locally, we need to tell to kubernetes not to pull from remote. &lt;em&gt;imagePullPolicy&lt;/em&gt; property of configuration allows to us to control that. In our example, we say &lt;em&gt;IfNotPresent&lt;/em&gt; , which means pull only if there is no local copy. As we already have built the image, it will be avaialble and kubernetes will not try to pull from remote.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;ports - We are exposing port &lt;em&gt;7077&lt;/em&gt; on which spark master will listen.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;command - Command is the configuration which tells what command to run when container bootstraps. Here we are specifying it to run &lt;em&gt;start-master&lt;/em&gt; script&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;You can access complete configuration on &lt;a href=&quot;https://github.com/phatak-dev/kubernetes-spark/blob/master/spark-master.yaml&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;starting-spark-master&quot;&gt;Starting Spark Master&lt;/h3&gt;
-
-&lt;p&gt;Once we have our configuration ready, we can start the spark master pod using below command&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl create -f spark-master.yaml&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;spark-master-service&quot;&gt;Spark Master Service&lt;/h3&gt;
-
-&lt;p&gt;Once we have defined and ran the spark master, next step is to define the service for spark master. This service exposes the spark master on network and other workers can connect to it.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-yaml&quot; data-lang=&quot;yaml&quot;&gt;&lt;span class=&quot;l-Scalar-Plain&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;v1&lt;/span&gt;
-&lt;span class=&quot;l-Scalar-Plain&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;Service&lt;/span&gt;
-&lt;span class=&quot;l-Scalar-Plain&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spark-master&lt;/span&gt;
-  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;labels&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spark-master&lt;/span&gt;
-&lt;span class=&quot;l-Scalar-Plain&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;ports&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;# the port that this service should serve on&lt;/span&gt;
-  &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;webui&lt;/span&gt;
-    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;8080&lt;/span&gt;
-    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;targetPort&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;8080&lt;/span&gt;
-  &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spark&lt;/span&gt;
-    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;7077&lt;/span&gt;
-    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;targetPort&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;7077&lt;/span&gt;
-  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;selector&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spark-master&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above yaml configuration for spark master service. We are naming the our service also &lt;em&gt;spark-master&lt;/em&gt; which helps in resolving proper hosts on cluster.&lt;/p&gt;
-
-&lt;p&gt;We are also exposing the additional port 8080 for accessing spark web ui.&lt;/p&gt;
-
-&lt;p&gt;You can access complete configuration on &lt;a href=&quot;https://github.com/phatak-dev/kubernetes-spark/blob/master/spark-master-service.yaml&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;starting-spark-master-service&quot;&gt;Starting Spark Master Service&lt;/h3&gt;
-
-&lt;p&gt;Once we have defined the master service, we can now start the service using below command.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl create -f spark-master-service.yaml&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;spark-worker-configuration&quot;&gt;Spark Worker Configuration&lt;/h3&gt;
-
-&lt;p&gt;Once we have our spark master and it’s service started, we can define the worker configuration.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-yaml&quot; data-lang=&quot;yaml&quot;&gt;&lt;span class=&quot;l-Scalar-Plain&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;extensions/v1beta1&lt;/span&gt;
-&lt;span class=&quot;l-Scalar-Plain&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;Deployment&lt;/span&gt;
-&lt;span class=&quot;l-Scalar-Plain&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;labels&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spark-worker&lt;/span&gt;
-  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spark-worker&lt;/span&gt;
-&lt;span class=&quot;l-Scalar-Plain&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;replicas&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;1&lt;/span&gt;
-  &lt;span class=&quot;l-Scalar-Plain&quot;&gt;template&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-      &lt;span class=&quot;l-Scalar-Plain&quot;&gt;labels&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-        &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spark-worker&lt;/span&gt;
-    &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-      &lt;span class=&quot;l-Scalar-Plain&quot;&gt;containers&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-      &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;image&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spark-2.1.0-bin-hadoop2.6&lt;/span&gt; 
-        &lt;span class=&quot;l-Scalar-Plain&quot;&gt;imagePullPolicy&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;IfNotPresent&amp;quot;&lt;/span&gt;
-        &lt;span class=&quot;l-Scalar-Plain&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;spark-worker&lt;/span&gt;
-        &lt;span class=&quot;l-Scalar-Plain&quot;&gt;ports&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-        &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;containerPort&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;7078&lt;/span&gt;
-          &lt;span class=&quot;l-Scalar-Plain&quot;&gt;protocol&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;l-Scalar-Plain&quot;&gt;TCP&lt;/span&gt;
-        &lt;span class=&quot;l-Scalar-Plain&quot;&gt;command&lt;/span&gt;&lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-         &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;/bin/bash&amp;quot;&lt;/span&gt;
-         &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;-c&amp;quot;&lt;/span&gt;
-         &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;--&amp;quot;&lt;/span&gt;
-        &lt;span class=&quot;l-Scalar-Plain&quot;&gt;args&lt;/span&gt; &lt;span class=&quot;p-Indicator&quot;&gt;:&lt;/span&gt;
-         &lt;span class=&quot;p-Indicator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;./start-worker.sh&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;sleep&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;infinity&amp;#39;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As we are building two node cluster, we will be running only single worker as of now. Most of the configuration are same as master other than command which starts the worker.&lt;/p&gt;
-
-&lt;p&gt;You can access complete configuration on &lt;a href=&quot;https://github.com/phatak-dev/kubernetes-spark/blob/master/spark-worker.yaml&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;starting-worker&quot;&gt;Starting Worker&lt;/h3&gt;
-
-&lt;p&gt;You can start worker deployment using below command&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl create -f spark-worker.yaml&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Now we have all services are ready&lt;/p&gt;
-
-&lt;h3 id=&quot;verifying-the-setup&quot;&gt;Verifying the Setup&lt;/h3&gt;
-
-&lt;p&gt;Run below command to verify that both spark master and spark worker deployments are started.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl get po&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above command should two pods running as below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;NAME                            READY     STATUS    RESTARTS   AGE
-spark-master-498980536-6ljcw    1/1       Running   0          15h
-spark-worker-1887160080-nmpq5   1/1       Running   0          14h&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Please note that exact name of the pod will differ from machine to machine.&lt;/p&gt;
-
-&lt;p&gt;Once we verified the pods, verify the service using below command&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl describe svc spark-master&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above command should show result as below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;Name:                   spark-master
-Namespace:              default
-Labels:                 name=spark-master
-Selector:               name=spark-master
-Type:                   ClusterIP
-IP:                     10.0.0.147
-Port:                   webui   8080/TCP
-Endpoints:              172.17.0.3:8080
-Port:                   spark   7077/TCP
-Endpoints:              172.17.0.3:7077
-Session Affinity:       None&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;If both of the commands ran successfully, then we have spark cluster running successfully.&lt;/p&gt;
-
-&lt;h3 id=&quot;testing-our-spark-cluster&quot;&gt;Testing our spark cluster&lt;/h3&gt;
-
-&lt;p&gt;We can test our spark deployment using observing web ui and running some commands from spark shell.&lt;/p&gt;
-
-&lt;h4 id=&quot;accessing-web-ui&quot;&gt;Accessing Web UI&lt;/h4&gt;
-
-&lt;p&gt;In our configuration of spark master, we have exposed the UI port 8080. Normally it will be only available within spark cluster. But using the port forwarding, we can access the port on our local machine.&lt;/p&gt;
-
-&lt;p&gt;First let’s see the pods running on cluster using below command&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl get po&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;It should show the below result&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;NAME                           READY     STATUS    RESTARTS   AGE
-spark-master-498980536-kfgg8   1/1       Running   0          14m
-spark-worker-91608803-l22pw    1/1       Running   0          56s&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;We should port forward from master pod. Run below command. The exact name of the pod will differ from machine to machine.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl port-forward spark-master-498980536-kfgg8 8080:8080&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Port-forward takes two parameters. One is the pod name and then port pair. In port pair the first port is container port and next one is local.&lt;/p&gt;
-
-&lt;p&gt;Once port is forwarded, go to this link &lt;a href=&quot;http://localhost:8080&quot;&gt;http://localhost:8080&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;You should see the below image&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/spark-ui-kube.png&quot; alt=&quot;spark-ui-kube&quot; /&gt;&lt;/p&gt;
-
-&lt;h4 id=&quot;spark-shell&quot;&gt;Spark Shell&lt;/h4&gt;
-
-&lt;p&gt;Once we have spark ui, we can test the spark from shell. Let’s run the spark shell from master container.&lt;/p&gt;
-
-&lt;p&gt;First we need to login to our master pod. Run below command&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl &lt;span class=&quot;nb&quot;&gt;exec&lt;/span&gt; -it spark-master-498980536-kfgg8 bash&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Start the spark shell using below command&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;/opt/spark/bin/spark-shell --master spark://spark-master:7077&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Run below command to run some spark code&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;makeRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;If the code runs successfully, then our cluster setup is working.&lt;/p&gt;
-
-&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h3&gt;
-
-&lt;p&gt;In this blog, we have succesfully built two node spark cluster using kubernetes absttractions.&lt;/p&gt;
-
-&lt;h3 id=&quot;whats-next&quot;&gt;What’s Next?&lt;/h3&gt;
-
-&lt;p&gt;Now we have defined our barebone cluster. In next blog, we will how to scale the cluster using kubernetes tools. Also we will discuss how to do resource management in the cluster.&lt;/p&gt;
-</description>
-        <pubDate>Sun, 26 Feb 2017 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-6</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-6</guid>
       </item>
     
   </channel>

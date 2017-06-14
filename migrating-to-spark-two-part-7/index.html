@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Migrating to Spark 2.0 - Part 2 : Built-in CSV Connector</title>
+    <title>Migrating to Spark 2.0 - Part 7 : SubQueries</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/migrating-to-spark-two-part-2">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/migrating-to-spark-two-part-7">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,8 +45,8 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Migrating to Spark 2.0 - Part 2 : Built-in CSV Connector</h1>
-  <p class="meta">Apr 15, 2017</p>
+  <h1>Migrating to Spark 2.0 - Part 7 : SubQueries</h1>
+  <p class="meta">Jun 14, 2017</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
@@ -61,114 +61,98 @@
 <article class="post-content">
   <p>Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.</p>
 
-<p>This is the second post in this series. In this post, we will discuss about built-in csv connector. You can access all the posts <a href="/categories/spark-two-migration-series">here</a>.</p>
+<p>This is the seventh post in this series.In this post we will discuss about subquery support in spark sql. You can access all the posts <a href="/categories/spark-two-migration-series">here</a>.</p>
 
 <p>TL;DR You can access all the code on <a href="https://github.com/phatak-dev/spark-two-migration">github</a>.</p>
 
-<h2 id="csv-source-connector-in-spark">CSV Source Connector in Spark</h2>
+<h2 id="spark-sql-in-spark-20">Spark SQL in Spark 2.0</h2>
 
-<p>In spark 1.x, csv connector was provided using, <a href="/analysing-csv-data-in-spark">spark-csv</a>, a third party library  by databricks. But in spark 2.0, they have made csv a built-in source. This decision is primarily driven by the fact that csv is one of the major data formats used in enterprises.So when you are migrating to spark 2.0 you need to move your code to use the built in csv source rather than using third party one.</p>
+<p>Spark SQL has been greatly improved in 2.0 to run all <a href="https://databricks.com/blog/2016/07/26/introducing-apache-spark-2-0.html">99 queries of TPC-DS</a>, a standard benchmark suit for popular sql implementations. To support this benchmark and to provide a complete OLAP sql engine, spark has added many features to it’s sql query language which were missing earlier. This makes spark sql more powerful than before.</p>
 
-<h2 id="migrating-to-new-connector">Migrating to New Connector</h2>
+<p>One of the big feature they added was support for subqueries. Subquery is query inside the another query. It’s a powerful feature of SQL which makes writing multi level aggregation much easier and more performant.</p>
 
-<p>The steps for migrating from old connector to new one are as below.</p>
+<p>In below sections, we will discuss how you can port your earlier complex 1.x sql queries into simpler and performant subqueries.</p>
 
-<ul>
-  <li>
-    <h3 id="removing-dependency">Removing Dependency</h3>
-  </li>
-</ul>
+<h2 id="scalar-subqueries">Scalar SubQueries</h2>
 
-<p>The first step to migrate code is to remove spark-csv dependency from the build. This makes sure that it doesn’t conflict with built in connector.</p>
+<p>There are different types of sub queries. One of those are scalar subqueries. They are called scalar as they return single result for query. There are two types
+of scalar queries</p>
 
 <ul>
-  <li>
-    <h3 id="migrating-code">Migrating Code</h3>
-  </li>
+  <li>Uncorrelated  Scalar SubQueries</li>
+  <li>Correlated  Scalar SubQueries</li>
 </ul>
 
-<p>The below code snippets show the changes need to migrate code. It’s relatively small change as built-in connector preserves all the same options
-that were available in spark-csv.</p>
+<h2 id="uncorrelated-scalar-subqueries">Uncorrelated Scalar SubQueries</h2>
 
-<p>If you have below code in spark 1.x</p>
+<p>Let’s take an example. Let’s say we have loaded <em>sales</em> data which we have used in earlier blogs. Now we want to figure out, how each item is doing
+compared to max sold item. For Ex: If our max value is 600, we want to compare how far is each of our sales to that figure. This kind of information
+is very valuable to understand the distribution of our sales.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">loadedDF</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;com.databricks.spark.csv&quot;</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">).</span><span class="n">load</span><span class="o">(</span><span class="s">&quot;../test_data/sales.csv&quot;</span><span class="o">)</span></code></pre></div>
+<p>So what we essential want to do is to add max amount to each row of the dataframe.</p>
 
-<p>Migrate the code to spark 2.0 as below</p>
+<h3 id="query-in-spark-1x">Query in Spark 1.x</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">loadedDF</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;csv&quot;</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">).</span><span class="n">load</span><span class="o">(</span><span class="s">&quot;../test_data/sales.csv&quot;</span><span class="o">)</span></code></pre></div>
+<p>In spark 1.x, there was no way to express this in one query. So we need to do as a two step. In first step we calculate the max <em>amountPaid</em> and then 
+in second step we add that to each row as a literal. The code looks like below</p>
 
-<p>As you can see from the code, you need to replace the source from <em>com.databricks.spark.csv</em> to <em>csv</em>. This will migrate your code to use built in spark connector.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">max_amount</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="s">&quot;select max(amountPaid) as max_amount from sales&quot;</span><span class="o">).</span><span class="n">first</span><span class="o">.</span><span class="n">getDouble</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">dfWithMaxAmount</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;select *, ($max_amount) as max_amount from sales&quot;</span><span class="o">)</span></code></pre></div>
 
-<p>You can access complete code on github for <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/CsvLoad.scala">1.x</a> and <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/CsvLoad.scala">2.x</a>.</p>
+<p>Even though it works, it’s not elegant. If we want to add more aggregations, this doesn’t scale well.</p>
 
-<h2 id="advantages-of-built-in-csv-connector">Advantages of Built-in CSV Connector</h2>
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/SubQueries.scala">github</a>.</p>
 
-<p>Now, if both connector provides the same API, you may wonder what’s the advantage of the upgrading to built in source. The below are the some of the advantages.</p>
+<h3 id="query-in-2x">Query in 2.x</h3>
 
-<ul>
-  <li>
-    <h3 id="no-third-party-dependency">No third party dependency</h3>
-  </li>
-</ul>
+<p>With uncorrelated scalar sub query support, the above code can be rewritten as below in 2.x</p>
 
-<p>As this connector is built in to spark, we don’t have to depend upon any third party library jars. This is makes playing with csv much easier in spark-shell or any
-other interactive tools. Also it simplifies the dependency graph of our projects.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">dfWithMaxAmount</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="s">&quot;select *, (select max(amountPaid) from sales) max_amount from sales&quot;</span><span class="o">)</span></code></pre></div>
 
-<ul>
-  <li>
-    <h3 id="better-performance-in-schema-inference">Better Performance in Schema Inference</h3>
-  </li>
-</ul>
+<p>In this query, we write query inside query which calculates max value and adds to the dataframe. This code is much easier to write
+and maintain. The subquery is called uncorrelated because it returns same value for each row in the dataset.</p>
 
-<p>Csv connector has an option to do schema inference. As third party library, earlier connector was pretty slow to do the schema inference. But
-now the connector is built in to the spark it can use some of the optimised internal API’s to do it much faster.</p>
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/SubQueries.scala">github</a>.</p>
 
-<p>The below is the comparison for schema inference on 700mb data with 29 columns.I am using airlines data for year 2007 from <a href="http://stat-computing.org/dataexpo/2009/the-data.html">here</a>. It’s zipped. When you unzip, you get csv file on which the tests are done. Test is done on spark-shell with master as <em>local</em>.</p>
+<h3 id="correlated-sub-queries">Correlated Sub Queries</h3>
 
-<p>The results as below</p>
+<p>Let’s say we want to write same logic but per item. It becomes much more complicated in spark 1.x, because it’s no more single value for dataset. We need to calculate
+max for each group of items and append it to the group. So let’s see how sub queries help here.</p>
 
-<p><strong>Spark-Csv connector   51s</strong></p>
+<h3 id="query-in-1x">Query in 1.x</h3>
 
-<p><strong>Built-in  connector   20s</strong></p>
+<p>The logic for this problem involves a left join with group by operation. It can be written as below</p>
 
-<p>As you can see from the results, built-in connector is almost twice as fast as earlier one.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">dfWithMaxPerItem</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="s">&quot;&quot;&quot;select A.itemId, B.max_amount  </span>
+<span class="s">from sales A left outer join ( select itemId, max(amountPaid) max_amount</span>
+<span class="s">from sales B group by itemId) B where A.itemId = B.itemId&quot;&quot;&quot;</span><span class="o">)</span></code></pre></div>
 
-<ul>
-  <li>
-    <h3 id="support-for-broadcast-join">Support For Broadcast Join</h3>
-  </li>
-</ul>
+<p>Again it’s complicated and less maintainable.</p>
 
-<p>Earlier spark-csv connector didn’t support broadcast join. So joins are very slow when we combine big dataframes with small ones for csv data. But
-now built-in connector supports the broadcast joins which vastly improves the performance of joins.</p>
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/SubQueries.scala">github</a>.</p>
 
-<p>So I have created another small file with first 10000 rows of 2007.csv which is around 1mb. When we join the data on <em>Year</em> column using below code</p>
+<h3 id="query-in-2x-1">Query in 2.x</h3>
+<p>Now we can rewrite the above code without any joins in subquery as below</p>
 
-<h4 id="join-code">Join code</h4>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">dfWithMaxPerItem</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="s">&quot;select A.itemId, </span>
+<span class="s">(select max(amountPaid) from sales where itemId=A.itemId) max_amount from sales A&quot;</span><span class="o">)</span></code></pre></div>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">joinedDf</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">smalldf</span><span class="o">,</span> <span class="n">df</span><span class="o">.</span><span class="n">col</span><span class="o">(</span><span class="s">&quot;Year&quot;</span><span class="o">)</span> <span class="o">===</span> <span class="n">smalldf</span><span class="o">.</span><span class="n">col</span><span class="o">(</span><span class="s">&quot;Year&quot;</span><span class="o">))</span>
+<p>This looks much cleaner than above. Internally spark converts above code into a left outer join. But as a user, we don’t need to worry about it.</p>
 
-<span class="n">joinedDf</span><span class="o">.</span><span class="n">count</span></code></pre></div>
+<p>The query is called correlated because it depends on outer query for doing the where condition evaluation of inner query.</p>
 
-<p>Here <em>df</em> dataframe on 700mb data and <em>smalldf</em> on 1 mb. We are running count to force spark to do complete join.</p>
-
-<p>I observed below results.</p>
-
-<p><strong>Spark-Csv connector 52 min</strong></p>
-
-<p><strong>Built-in Connector 4.1 min</strong></p>
-
-<p>As you can see, there is huge difference between join performance. The difference comes as spark built-in connector uses BroadcastJoin where as spark-csv uses SortMergeJoin. So when you migrate to built-in connector you will observe a significant improvement in the join performance.</p>
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/SubQueries.scala">github</a>.</p>
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>So whenever you are moving to spark 2.0, use built in csv connector. It preserves the same API  and gives better performance than older connector.</p>
+<p>Spark SQL is improved quite a lot in spark 2.0. We can rewrite many complicated spark 1.x queries using simple sql constructs like subqueries. This makes code 
+more readable and maintainable.</p>
 
-<h2 id="whats-next">What’s Next?</h2>
+<h2 id="references">References</h2>
 
-<p>In next blog, we will be discuss about migrating rdd based code in spark 2.0</p>
-
+<ul>
+  <li><a href="https://databricks.com/blog/2016/06/17/sql-subqueries-in-apache-spark-2-0.html">SQL Subqueries in Apache Spark 2.0</a></li>
+</ul>
 
 </article>
 <div class="related">
@@ -176,12 +160,7 @@ now built-in connector supports the broadcast joins which vastly improves the pe
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">14 Jun 2017</span>
-     &raquo; <a href="/migrating-to-spark-two-part-7">Migrating to Spark 2.0 - Part 7 : SubQueries</a>    
-   </li>           
-         
+          
 
             
     
@@ -202,12 +181,7 @@ now built-in connector supports the broadcast joins which vastly improves the pe
    
    
              
-    
-    <li>    
-     <span class="post-date">14 Jun 2017</span>
-     &raquo; <a href="/migrating-to-spark-two-part-7">Migrating to Spark 2.0 - Part 7 : SubQueries</a>    
-   </li>           
-         
+          
 
             
     
