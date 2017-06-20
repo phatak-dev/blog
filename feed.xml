@@ -7,6 +7,187 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Migrating to Spark 2.0 - Part 8 : Catalog API</title>
+        <description>&lt;p&gt;Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.&lt;/p&gt;
+
+&lt;p&gt;This is the eighth post in this series.In this post we will discuss about catalog support in spark sql. You can access all the posts &lt;a href=&quot;/categories/spark-two-migration-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR You can access all the code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;catalog-api&quot;&gt;Catalog API&lt;/h2&gt;
+
+&lt;p&gt;In spark 1.x, spark heavily depended  on hive for all metastore related operations. Even though sqlContext supported few of the DDL operations, most of them
+were very basic and not complete. So spark documentation often recommended using HiveContext over SQLContext. Also whenever user uses HiveContext, spark
+support for interacting with hive metastore was limited. So most of the metastore operation’s often done as embedded hive queries.&lt;/p&gt;
+
+&lt;p&gt;Spark 2.x changes all of this. It has exposed a full fledged user facing catalog API which works for both spark SQL and hive. Not only it supports
+the spark 1.x operations, it has added many new ones to improve the interaction with metastore.&lt;/p&gt;
+
+&lt;p&gt;In below sections, we will be discussing about porting earlier metastore operations to new catalog API.&lt;/p&gt;
+
+&lt;h2 id=&quot;creating-table&quot;&gt;Creating Table&lt;/h2&gt;
+
+&lt;p&gt;Before we do any DDL operations, we need to create a table. For our example, we will use temporary tables.&lt;/p&gt;
+
+&lt;h3 id=&quot;spark-1x&quot;&gt;Spark 1.x&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;com.databricks.spark.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;../test_data/sales.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;loadedDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;registerTempTable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We use &lt;em&gt;registerTempTable&lt;/em&gt; API for creating table in in-memory catalog.&lt;/p&gt;
+
+&lt;h3 id=&quot;spark-2x&quot;&gt;Spark 2.x&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;../test_data/sales.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;loadedDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createOrReplaceTempView&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In 2.x, &lt;em&gt;registerTempTable&lt;/em&gt; API is deprecated. We should use &lt;em&gt;createOrReplaceTempView&lt;/em&gt; for the same.&lt;/p&gt;
+
+&lt;h2 id=&quot;list-tables&quot;&gt;List Tables&lt;/h2&gt;
+
+&lt;p&gt;Once we have table registered, first catalog operation is listing tables.&lt;/p&gt;
+
+&lt;h3 id=&quot;spark-1x-1&quot;&gt;Spark 1.x&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tables&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In spark 1.x, catalog API’s were added to context directly. The below is the output&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;+---------+-----------+
+|tableName|isTemporary|
++---------+-----------+
+|    sales|       true|
++---------+-----------+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In output, it specifies the name of the table and is it temporary or not. When we run same operation on hive metastore, &lt;em&gt;isTemporary&lt;/em&gt; will be false.&lt;/p&gt;
+
+&lt;h3 id=&quot;spark-2x-1&quot;&gt;Spark 2.x&lt;/h3&gt;
+
+&lt;p&gt;In spark 2.x, there is separate API called &lt;em&gt;catalog&lt;/em&gt; on spark session. It exposes all needed API’s.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;listTables&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The output looks like below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;+-----+--------+-----------+---------+-----------+
+| name|database|description|tableType|isTemporary|
++-----+--------+-----------+---------+-----------+
+|sales|    null|       null|TEMPORARY|       true|
++-----+--------+-----------+---------+-----------+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;From output it is apparent that output of new catalog API is more richer than old one. Also from spark 2.x, it has added database information as
+part of the catalog which was missing in earlier API’s.&lt;/p&gt;
+
+&lt;h3 id=&quot;list-table-names&quot;&gt;List Table Names&lt;/h3&gt;
+
+&lt;p&gt;In spark 1.x, there is a API for listing just the name of the tables. The code looks below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tableNames&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In spark 2.x, there is no separate API for getting database names. As listTables, returns a Dataset we can use normal spark sql API’s for getting the name.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;listTables&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;name&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;collect&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;caching&quot;&gt;Caching&lt;/h2&gt;
+
+&lt;p&gt;As part of the catalog API, we can check is given table is cached or not.&lt;/p&gt;
+
+&lt;h3 id=&quot;spark-1x-2&quot;&gt;Spark 1.x&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isCached&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;spark-2x-2&quot;&gt;Spark 2.x&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isCached&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;external-tables&quot;&gt;External Tables&lt;/h3&gt;
+
+&lt;p&gt;Till now, we worked with tables which we creating using dataframes. Let’s say we need to create table directly from a file without going through data source API. These often known as external tables.&lt;/p&gt;
+
+&lt;h3 id=&quot;spark-1x-3&quot;&gt;Spark 1.x&lt;/h3&gt;
+
+&lt;p&gt;In spark 1.x, SQLContext didn’t support creating external tables. So we need to use hivecontext for do that.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hiveContext&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;HiveContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sparkContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+ &lt;span class=&quot;n&quot;&gt;hiveContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setConf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;hive.metastore.warehouse.dir&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;/tmp&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+ &lt;span class=&quot;n&quot;&gt;hiveContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createExternalTable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales_external&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;com.databricks.spark.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+   &lt;span class=&quot;s&quot;&gt;&amp;quot;path&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;../test_data/sales.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+   &lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+ &lt;span class=&quot;n&quot;&gt;hiveContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales_external&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above code, first we create &lt;em&gt;HiveContext&lt;/em&gt;. Then we need to set the warehouse directory so hive context knows where to keep the data. Then we use
+&lt;em&gt;createExternalTable&lt;/em&gt; API to load the data to &lt;em&gt;sales_external&lt;/em&gt; table.&lt;/p&gt;
+
+&lt;h3 id=&quot;spark-2x-3&quot;&gt;Spark 2.x&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createExternalTable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales_external&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;com.databricks.spark.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+ &lt;span class=&quot;s&quot;&gt;&amp;quot;path&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;../test_data/sales.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+ &lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales_external&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In spark 2.x, creating external table is part of catalog API itself. We don’t need to enable hive for this functionality.&lt;/p&gt;
+
+&lt;h2 id=&quot;additional-apis&quot;&gt;Additional API’s&lt;/h2&gt;
+
+&lt;p&gt;The above examples showed the porting of spark 1.x code to spark 2.x. But there are additional API’s in spark 2.x catalog which are useful
+in day to day development. Below sections discusses few of them.&lt;/p&gt;
+
+&lt;h2 id=&quot;list-functions&quot;&gt;List Functions&lt;/h2&gt;
+
+&lt;p&gt;The below code list all the functions, built in and user defined. It helps us to know what are the Udfs, Udaf’s available in current session.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;listFunctions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The sample output looks as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;+--------------------+--------+-----------+--------------------+-----------+
+|                name|database|description|           className|isTemporary|
++--------------------+--------+-----------+--------------------+-----------+
+|                   !|    null|       null|org.apache.spark....|       true|
+|                   %|    null|       null|org.apache.spark....|       true|
+|                   &amp;amp;|    null|       null|org.apache.spark....|       true|
+|                acos|    null|       null|org.apache.spark....|       true|
+|          add_months|    null|       null|org.apache.spark....|       true|
+|                 and|    null|       null|org.apache.spark....|       true|
+|approx_count_dist...|    null|       null|org.apache.spark....|       true|
++--------------------+--------+-----------+--------------------+-----------+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;list-columns&quot;&gt;List Columns&lt;/h2&gt;
+
+&lt;p&gt;We can also list the columns of a table.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;listColumns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The below is the output for our &lt;em&gt;sales&lt;/em&gt; table.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;+-------------+-----------+--------+--------+-----------+--------+
+|         name|description|dataType|nullable|isPartition|isBucket|
++-------------+-----------+--------+--------+-----------+--------+
+|transactionId|       null|  string|    true|      false|   false|
+|   customerId|       null|  string|    true|      false|   false|
+|       itemId|       null|  string|    true|      false|   false|
+|   amountPaid|       null|  string|    true|      false|   false|
++-------------+-----------+--------+--------+-----------+--------+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;complete-code&quot;&gt;Complete code&lt;/h2&gt;
+
+&lt;p&gt;You can access complete code for spark 1.x &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/CatalogExample.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;You can access complete code for spark 2.x &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/CatalogExample.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In this blog we have discussed about improvements in catalog API. Using new catalog API, you can get information of tables much easier than before.&lt;/p&gt;
+</description>
+        <pubDate>Tue, 20 Jun 2017 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-8</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-8</guid>
+      </item>
+    
+      <item>
         <title>Migrating to Spark 2.0 - Part 7 : SubQueries</title>
         <description>&lt;p&gt;Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.&lt;/p&gt;
 
@@ -663,141 +844,6 @@ now built-in connector supports the broadcast joins which vastly improves the pe
         <pubDate>Thu, 13 Apr 2017 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-1</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-1</guid>
-      </item>
-    
-      <item>
-        <title>Scalable Spark Deployment using Kubernetes - Part 7 : Dynamic Scaling and Namespaces</title>
-        <description>&lt;p&gt;In our last post we created two node spark cluster using kubernetes. Once we have defined and created the cluster
-we can easily scale up or scale down using kubernetes. This elastic nature of kubernetes makes easy to scale
-the infrastructure as and when the demand increases rather than setting up everything upfront.&lt;/p&gt;
-
-&lt;p&gt;In this seventh blog of the series, we will discuss how to scale the spark cluster on kubernetes.
-You can access all the posts in the series &lt;a href=&quot;/categories/kubernetes-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;dynamic-scaling&quot;&gt;Dynamic Scaling&lt;/h2&gt;
-
-&lt;p&gt;When we discussed deployment abstraction in our previous blog, we talked about &lt;em&gt;replica&lt;/em&gt; factor. In deployment configuration, we can specify the number
-of replications we need for a given pod. This number is set to 1 in our current spark worker deployment.&lt;/p&gt;
-
-&lt;p&gt;One of the nice thing about deployment abstraction is, we can change replica size dynamically without changing configuration. This
-allows us to scale our spark cluster dynamically.&lt;/p&gt;
-
-&lt;h3 id=&quot;scale-up&quot;&gt;Scale Up&lt;/h3&gt;
-
-&lt;p&gt;Run below command to scale up workers from 1 to 2.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl scale deployment spark-worker --replicas 2&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above command takes deployment name as parameters and number of replicas. 
-You can check results using&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl get po&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;When you run the above command, kubernetes creates more pods using template specified in spark-worker. Whenever these
-pods come up they automatically connect to spark-master and scales the cluster.&lt;/p&gt;
-
-&lt;h3 id=&quot;scale-down&quot;&gt;Scale Down&lt;/h3&gt;
-
-&lt;p&gt;We can not only increase the workers, we can also scale down by setting lower replica numbers.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl scale deployment spark-worker --replicas 1&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;When above command executes, kubernetes will kill one of the worker to reduce the replica count to 1.&lt;/p&gt;
-
-&lt;p&gt;Kubernetes automatically manages all the service related changes. So whenever we scale workers spark will automatically scale.&lt;/p&gt;
-
-&lt;h2 id=&quot;multiple-clusters&quot;&gt;Multiple Clusters&lt;/h2&gt;
-
-&lt;p&gt;Till now, we have run single cluster. But sometime we may want to run multiple clusters on same kubernetes cluster. If we try to run
-same configurations twice like below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl create -f spark-master.yaml&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You will get below error&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;Error from server: error when creating &amp;quot;spark-master.yaml&amp;quot;: deployments.extensions &amp;quot;spark-master&amp;quot; already exists&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Kubernetes is rejecting the request as the spark-master named deployment is already exist. One of the way to solve this issue is to
-duplicate the configurations with different name. But it will be tedious and difficult to maintain.&lt;/p&gt;
-
-&lt;p&gt;Better way to solve this issue to use  namespace abstraction of kubernetes.&lt;/p&gt;
-
-&lt;h3 id=&quot;namespace-abstraction&quot;&gt;Namespace Abstraction&lt;/h3&gt;
-
-&lt;p&gt;Kubernetes allows users to create multiple virtual clusters on single physical cluster. These are called as namespaces.&lt;/p&gt;
-
-&lt;p&gt;Namespace abstraction is used for allowing multiple users to share the same physical cluster. This abstraction gives scopes for names. This makes us to have same named services in different namespace.&lt;/p&gt;
-
-&lt;p&gt;By default our cluster is running in a namespace called &lt;em&gt;default&lt;/em&gt;. In next section, we will create another namespace where we can run one more single node cluster.&lt;/p&gt;
-
-&lt;h3 id=&quot;creating-namespace&quot;&gt;Creating Namespace&lt;/h3&gt;
-
-&lt;p&gt;In order to create new cluster, first we need to cluster new namespace. Run below command to create namespace called &lt;em&gt;cluster2&lt;/em&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl create namespace cluster2&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You can list all the namespaces using below command&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl get namespaces&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You should see the below  result&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;NAME          STATUS    AGE
-cluster2      Active    16s
-default       Active    81d
-kube-system   Active    81d&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;em&gt;kube-system&lt;/em&gt; is the namespace in which all the kubernetes related pods run.&lt;/p&gt;
-
-&lt;h3 id=&quot;setting-context&quot;&gt;Setting Context&lt;/h3&gt;
-
-&lt;p&gt;By default, kubectl points to default namespace. We should change it to point to other one to create pods in our namespace. We can do it using changing the context variable.&lt;/p&gt;
-
-&lt;p&gt;Run below command to change the context&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;CONTEXT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;kubectl config view &lt;span class=&quot;p&quot;&gt;|&lt;/span&gt; awk &lt;span class=&quot;s1&quot;&gt;&amp;#39;/current-context/ {print $2}&amp;#39;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;
-kubectl config &lt;span class=&quot;nb&quot;&gt;set&lt;/span&gt;-context &lt;span class=&quot;nv&quot;&gt;$CONTEXT&lt;/span&gt; --namespace&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;cluster2&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In the first step, we get &lt;em&gt;CONTEXT&lt;/em&gt; variable. In the next command, we set namespace to &lt;em&gt;cluster2&lt;/em&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;creating-cluster-in-namespace&quot;&gt;Creating cluster in Namespace&lt;/h3&gt;
-
-&lt;p&gt;Once we set the context, we can use same commands to create cluster. Let’s run below the command&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl create -f .&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Now our second cluster is started. We can see all the pods across the namespaces using below command&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl get po --all-namespaces&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You should see some result something like below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;NAMESPACE     NAME                           READY     STATUS    RESTARTS   AGE
-cluster2      spark-master-498980536-bxda1   1/1       Running   0          1m
-cluster2      spark-worker-91608803-p1mfe    1/1       Running   0          1m
-default       spark-master-498980536-cfw97   1/1       Running   0          46m
-default       spark-worker-91608803-7pwhv    1/1       Running   0          46m
-kube-system   kube-addon-manager-minikube    1/1       Running   17         81d
-kube-system   kube-dns-v20-s0yyp             3/3       Running   80         81d
-kube-system   kubernetes-dashboard-rb46j     1/1       Running   17         81d&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As you can observe from the result, there are multiple spark-master running in different namespaces.&lt;/p&gt;
-
-&lt;p&gt;So using the namespace abstraction of kubernetes we can create multiple spark clusters on same kubernetes cluster.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;In this blog we discussed how to scale our clusters using kubernetes deployment abstraction. Also we discussed how to use 
-namespace abstraction to create multiple clusters.&lt;/p&gt;
-
-&lt;h2 id=&quot;whats-next&quot;&gt;What’s Next?&lt;/h2&gt;
-
-&lt;p&gt;Whenever we run services on kubernetes we may want to restrict their resource usage. This allows better infrastructure planning
-and monitoring. In next blog, we will discuss about resource management on kubernetes.&lt;/p&gt;
-</description>
-        <pubDate>Mon, 06 Mar 2017 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-7</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-7</guid>
       </item>
     
   </channel>
