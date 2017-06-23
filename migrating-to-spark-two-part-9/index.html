@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Migrating to Spark 2.0 - Part 6 : Spark ML Transformer API</title>
+    <title>Migrating to Spark 2.0 - Part 9 : Hive Integration</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/migrating-to-spark-two-part-6">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/migrating-to-spark-two-part-9">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,8 +45,8 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Migrating to Spark 2.0 - Part 6 : Spark ML Transformer API</h1>
-  <p class="meta">Jun 9, 2017</p>
+  <h1>Migrating to Spark 2.0 - Part 9 : Hive Integration</h1>
+  <p class="meta">Jun 23, 2017</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
@@ -61,88 +61,127 @@
 <article class="post-content">
   <p>Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.</p>
 
-<p>This is the sixth post in this series.In this post we will discuss about spark ml transformer API. You can access all the posts <a href="/categories/spark-two-migration-series">here</a>.</p>
+<p>This is the ninth post in this series.In this post we will discuss about hive integration in spark. You can access all the posts <a href="/categories/spark-two-migration-series">here</a>.</p>
 
 <p>TL;DR You can access all the code on <a href="https://github.com/phatak-dev/spark-two-migration">github</a>.</p>
 
-<h2 id="machine-learning-in-spark-20">Machine Learning in Spark 2.0</h2>
+<h2 id="hive-integration-in-spark">Hive Integration in Spark</h2>
 
-<p>In spark 1.x, MLLib was the library offered by spark for doing machine learning on large data. MLLib was based on rdd abstraction. So from 1.4, spark started to
-move to new library called Spark ML which implements machine learning algorithms using dataframe abstraction. As spark ML is new library compared to MLLib it was not feature complete and was in beta through the 1.x series. So MLLib was de facto library for machine learning.</p>
+<p>From very beginning for spark sql, spark had good integration with hive. Hive was primarily used for the sql parsing in 1.3 and for 
+metastore and catalog API’s in later versions. In spark 1.x, we needed to use HiveContext for accessing HiveQL and the hive metastore.</p>
 
-<p>But from spark 2.0, spark ML becomes de facto machine library. mllib will be around for backward compatibility. So from 2.0, all the machine learning algorithms
-will be using newer abstractions like dataframe/dataset rather than rdd.</p>
+<p>From spark 2.0, there is no more extra context to create. It integrates directly with the spark session. Also the catalog API, which we discussed in last <a href="/migrating-to-spark-two-part-8">post</a> will be available for hive metastore also.</p>
 
-<h2 id="transformer-and-evaluator-api">Transformer and Evaluator API</h2>
+<p>In below sections, we will discuss how to use hive using spark 2.0 API’s. This will help you to migrate your HiveContext code to the new code.</p>
 
-<p>In spark ML, data preparation is represented using transformation API. The learning algorithm are represented using Evaluator API. These
-two form the basis of the spark ML API’s and abstractions. You can learn more about them in below link</p>
+<h2 id="enabling-hive-support">Enabling Hive Support</h2>
 
-<p><a href="https://spark.apache.org/docs/latest/ml-pipeline.html#example-estimator-transformer-and-param">https://spark.apache.org/docs/latest/ml-pipeline.html#example-estimator-transformer-and-param</a></p>
+<p>By default spark session is not configured to connect to hive. We need to explicitley have to enable using <em>enableHiveSupport</em> at the time of
+session creation.</p>
 
-<h2 id="changes-to-apis">Changes to API’s</h2>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sparkSession</span> <span class="k">=</span> <span class="nc">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">master</span><span class="o">(</span><span class="s">&quot;local&quot;</span><span class="o">).</span><span class="n">appName</span><span class="o">(</span><span class="s">&quot;mapexample&quot;</span><span class="o">).</span>
+        <span class="n">enableHiveSupport</span><span class="o">().</span><span class="n">getOrCreate</span><span class="o">()</span></code></pre></div>
 
-<p>In spark 1.x, transformer and evaluator API, used to operate on dataframe abstraction. But from spark 2.0, it’s changed to use Dataset API. As Dataset abstraction
-is more versatile than the dataframe this change makes library more powerful.</p>
+<p>Spark session looks for <em>hive-site.xml</em> for connecting to hive metastore.</p>
 
-<p>If you are using built in transformers or evaluators , then you don’t have to worry. All code works without any change.</p>
+<h2 id="hive-state">Hive State</h2>
 
-<p>But if you have implemented you own custom transformer/ evaluator, then you need to change the code to accommodate this API change.</p>
+<p>Before we start running different operations on hive, make sure that you have hive installed and running. Also make sure you have <em>hive-site.xml</em> in the
+spark classpath.</p>
 
-<h2 id="custom-transformer-in-1x">Custom Transformer in 1.x</h2>
+<p>Currently my hive has single table <em>sales</em> which contains the <em>sales.csv</em> data which we have used in earlier posts. We can observe the same from hive command line
+as below.</p>
 
-<p>The below code shows a simple transformer in spark 1.x. It’s an identity transformer.</p>
+<div class="highlight"><pre><code class="language-sql" data-lang="sql"><span class="k">show</span> <span class="n">tables</span><span class="p">;</span></code></pre></div>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">IdentityTransformer</span><span class="o">(</span><span class="k">override</span> <span class="k">val</span> <span class="n">uid</span><span class="k">:</span><span class="kt">String</span><span class="o">=</span><span class="nc">Identifiable</span><span class="o">.</span><span class="n">randomUID</span><span class="o">(</span><span class="s">&quot;identity&quot;</span><span class="o">))</span> <span class="k">extends</span> <span class="nc">Transformer</span> <span class="o">{</span>
- <span class="k">override</span> <span class="k">def</span> <span class="n">transform</span><span class="o">(</span><span class="n">inputData</span><span class="k">:</span><span class="kt">DataFrame</span><span class="o">)</span><span class="k">:</span><span class="kt">DataFrame</span> <span class="o">=</span> <span class="o">{</span>
-  <span class="n">inputData</span>
- <span class="o">}</span>
+<div class="highlight"><pre><code class="language-text" data-lang="text">hive&gt; show tables;
+OK
+sales
+Time taken: 0.024 seconds, Fetched: 1 row(s)</code></pre></div>
 
- <span class="k">override</span> <span class="k">def</span> <span class="n">copy</span><span class="o">(</span><span class="n">paramMap</span><span class="k">:</span><span class="kt">ParamMap</span><span class="o">)</span> <span class="k">=</span> <span class="k">this</span>
- <span class="k">override</span> <span class="k">def</span> <span class="n">transformSchema</span><span class="o">(</span><span class="n">schema</span><span class="k">:</span><span class="kt">StructType</span><span class="o">)</span><span class="k">=</span> <span class="n">schema</span>
-<span class="o">}</span></code></pre></div>
+<h2 id="catalog-to-list-tables">Catalog to List Tables</h2>
 
-<p>In the above code, you can observe <em>transform</em> method takes a dataframe and returns a dataframe.</p>
+<p>The first operation is to list tables in hive. We can use spark catalog <em>listTables</em> for listing it from hive metastore.</p>
 
-<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/CustomMLTransformer.scala">github</a>.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">sparkSession</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">listTables</span><span class="o">.</span><span class="n">show</span><span class="o">()</span></code></pre></div>
 
-<h2 id="custom-transformer-in-2x">Custom Transformer in 2.x</h2>
+<p>Output</p>
 
-<p>The below code shows modified version of the above transformer in 2.0</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">+-----+--------+-----------+---------+-----------+
+| name|database|description|tableType|isTemporary|
++-----+--------+-----------+---------+-----------+
+|sales| default|       null|  MANAGED|      false|
++-----+--------+-----------+---------+-----------+</code></pre></div>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">IdentityTransformer</span><span class="o">(</span><span class="k">override</span> <span class="k">val</span> <span class="n">uid</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="nc">Identifiable</span><span class="o">.</span><span class="n">randomUID</span><span class="o">(</span><span class="s">&quot;identity&quot;</span><span class="o">))</span> <span class="k">extends</span> <span class="nc">Transformer</span> <span class="o">{</span>
-  <span class="k">override</span> <span class="k">def</span> <span class="n">transform</span><span class="o">(</span><span class="n">inputData</span><span class="k">:</span> <span class="kt">Dataset</span><span class="o">[</span><span class="k">_</span><span class="o">])</span><span class="k">:</span> <span class="kt">DataFrame</span> <span class="o">=</span> <span class="o">{</span>
-    <span class="n">inputData</span><span class="o">.</span><span class="n">toDF</span><span class="o">()</span>
-  <span class="o">}</span>
+<p>As you observe from the output it’s quite different than we observed we queried in memory tables in last post. When we connected to hive the below additional information is filled up</p>
 
-  <span class="k">override</span> <span class="k">def</span> <span class="n">copy</span><span class="o">(</span><span class="n">paramMap</span><span class="k">:</span> <span class="kt">ParamMap</span><span class="o">)</span> <span class="k">=</span> <span class="k">this</span>
-  <span class="k">override</span> <span class="k">def</span> <span class="n">transformSchema</span><span class="o">(</span><span class="n">schema</span><span class="k">:</span> <span class="kt">StructType</span><span class="o">)</span> <span class="k">=</span> <span class="n">schema</span>
-<span class="o">}</span></code></pre></div>
+<ul>
+  <li>database - Name of the database in Hive</li>
+  <li>tableType - MANAGED means it native hive table. It will be <em>EXTERNAL</em> for external tables.</li>
+  <li>isTemporary - For spark view it is set to true. Since table is loaded from the hive, it’s false.</li>
+</ul>
 
-<p>As you can observe from the code, transform now takes <em>Dataset</em> rather than dataframe. One thing to note that return type is still 
-remains to be dataframe.</p>
+<h2 id="loading-table">Loading Table</h2>
 
-<p>Also first line transform, we are calling <em>toDF</em> on dataset so we can port code easily.</p>
+<p>Once we queried the tables , we can now load the table from hive. We use <em>table</em> API on spark session to do the same.</p>
 
-<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/CustomMLTransformer.scala">github</a>.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">table</span><span class="o">(</span><span class="s">&quot;sales&quot;</span><span class="o">)</span>
+<span class="n">df</span><span class="o">.</span><span class="n">show</span><span class="o">()</span></code></pre></div>
 
-<h2 id="advantage-of-dataset-over-dataframe">Advantage of Dataset over Dataframe.</h2>
+<p>Output</p>
 
-<p>The API change may seem small and unnecessary. But there is very valid reason to move from dataframe to Dataset abstraction for spark ml.</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">+-------------+----------+------+----------+
+|transactionid|customerid|itemid|amountpaid|
++-------------+----------+------+----------+
+|          111|         1|     1|     100.0|
+|          112|         2|     2|     505.0|
+|          113|         3|     3|     510.0|
+|          114|         4|     4|     600.0|
+|          115|         1|     2|     500.0|
+|          116|         1|     2|     500.0|
+|          117|         1|     2|     500.0|
+|          118|         1|     2|     500.0|
+|          119|         2|     3|     500.0|
+|          120|         1|     2|     500.0|
+|          121|         1|     4|     500.0|
+|          122|         1|     2|     500.0|
+|          123|         1|     4|     500.0|
+|          124|         1|     2|     500.0|
++-------------+----------+------+----------+</code></pre></div>
 
-<p>In mllib API’s, we were able to represent the data using case classes like <em>LabelPoint</em>. This made a compact way of representing data for given algorithm.
-But with moving to dataframe abstraction we lost that option. As we can’t represent custom structured data in dataframe, it’s not possible to do
-any validation at compile time. So we may be sending wrong dataframe to an algorithm which is expecting some other structure altogether. This made
-code more complicated and difficult to validate.</p>
+<h2 id="saving-dataframe-as-hive-table">Saving Dataframe as Hive Table</h2>
 
-<p>Dataset alleviates all these problems. Dataset abstraction can represent custom structures very efficiently. As we represented in mllib  like RDD[LabelPoint]
-we can now represent it as Dataset[LablePoint]. This makes code compile time safe.</p>
+<p>We can also save the dataframe to hive as table. It will create table metadata in hive metastore and save data in parquet format.</p>
 
-<p>You can read more in this <a href="https://issues.apache.org/jira/browse/SPARK-14500">jira</a>.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">df</span><span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="n">saveAsTable</span><span class="o">(</span><span class="s">&quot;sales_saved&quot;</span><span class="o">)</span></code></pre></div>
+
+<p>Observe output in the hive</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">hive&gt; select * from sales_saved;
+OK
+111     1       1       100.0
+112     2       2       505.0
+113     3       3       510.0
+114     4       4       600.0
+115     1       2       500.0
+116     1       2       500.0
+117     1       2       500.0
+118     1       2       500.0
+119     2       3       500.0
+120     1       2       500.0
+121     1       4       500.0
+122     1       2       500.0
+123     1       4       500.0
+124     1       2       500.0
+Time taken: 0.051 seconds, Fetched: 14 row(s)</code></pre></div>
+
+<h2 id="complete-code">Complete Code</h2>
+
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/CatalogHiveExample.scala">github</a>.</p>
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>In this post, we have discussed about the change to spark ML API’s and how to migrate the code accommodate the same.</p>
+<p>Spark 2.0 unifies the hive integration with spark session and catalog API. We don’t need to create multiple contexts and use different API to access hive anymore.</p>
 
 </article>
 <div class="related">
@@ -150,12 +189,7 @@ we can now represent it as Dataset[LablePoint]. This makes code compile time saf
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">23 Jun 2017</span>
-     &raquo; <a href="/migrating-to-spark-two-part-9">Migrating to Spark 2.0 - Part 9 : Hive Integration</a>    
-   </li>           
-         
+          
 
             
     
@@ -176,12 +210,7 @@ we can now represent it as Dataset[LablePoint]. This makes code compile time saf
    
    
              
-    
-    <li>    
-     <span class="post-date">23 Jun 2017</span>
-     &raquo; <a href="/migrating-to-spark-two-part-9">Migrating to Spark 2.0 - Part 9 : Hive Integration</a>    
-   </li>           
-         
+          
 
             
     

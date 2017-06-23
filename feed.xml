@@ -7,6 +7,137 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Migrating to Spark 2.0 - Part 9 : Hive Integration</title>
+        <description>&lt;p&gt;Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.&lt;/p&gt;
+
+&lt;p&gt;This is the ninth post in this series.In this post we will discuss about hive integration in spark. You can access all the posts &lt;a href=&quot;/categories/spark-two-migration-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR You can access all the code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;hive-integration-in-spark&quot;&gt;Hive Integration in Spark&lt;/h2&gt;
+
+&lt;p&gt;From very beginning for spark sql, spark had good integration with hive. Hive was primarily used for the sql parsing in 1.3 and for 
+metastore and catalog API’s in later versions. In spark 1.x, we needed to use HiveContext for accessing HiveQL and the hive metastore.&lt;/p&gt;
+
+&lt;p&gt;From spark 2.0, there is no more extra context to create. It integrates directly with the spark session. Also the catalog API, which we discussed in last &lt;a href=&quot;/migrating-to-spark-two-part-8&quot;&gt;post&lt;/a&gt; will be available for hive metastore also.&lt;/p&gt;
+
+&lt;p&gt;In below sections, we will discuss how to use hive using spark 2.0 API’s. This will help you to migrate your HiveContext code to the new code.&lt;/p&gt;
+
+&lt;h2 id=&quot;enabling-hive-support&quot;&gt;Enabling Hive Support&lt;/h2&gt;
+
+&lt;p&gt;By default spark session is not configured to connect to hive. We need to explicitley have to enable using &lt;em&gt;enableHiveSupport&lt;/em&gt; at the time of
+session creation.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;master&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;local&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;appName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;mapexample&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;enableHiveSupport&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getOrCreate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Spark session looks for &lt;em&gt;hive-site.xml&lt;/em&gt; for connecting to hive metastore.&lt;/p&gt;
+
+&lt;h2 id=&quot;hive-state&quot;&gt;Hive State&lt;/h2&gt;
+
+&lt;p&gt;Before we start running different operations on hive, make sure that you have hive installed and running. Also make sure you have &lt;em&gt;hive-site.xml&lt;/em&gt; in the
+spark classpath.&lt;/p&gt;
+
+&lt;p&gt;Currently my hive has single table &lt;em&gt;sales&lt;/em&gt; which contains the &lt;em&gt;sales.csv&lt;/em&gt; data which we have used in earlier posts. We can observe the same from hive command line
+as below.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sql&quot; data-lang=&quot;sql&quot;&gt;&lt;span class=&quot;k&quot;&gt;show&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tables&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;hive&amp;gt; show tables;
+OK
+sales
+Time taken: 0.024 seconds, Fetched: 1 row(s)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;catalog-to-list-tables&quot;&gt;Catalog to List Tables&lt;/h2&gt;
+
+&lt;p&gt;The first operation is to list tables in hive. We can use spark catalog &lt;em&gt;listTables&lt;/em&gt; for listing it from hive metastore.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;listTables&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Output&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;+-----+--------+-----------+---------+-----------+
+| name|database|description|tableType|isTemporary|
++-----+--------+-----------+---------+-----------+
+|sales| default|       null|  MANAGED|      false|
++-----+--------+-----------+---------+-----------+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;As you observe from the output it’s quite different than we observed we queried in memory tables in last post. When we connected to hive the below additional information is filled up&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;database - Name of the database in Hive&lt;/li&gt;
+  &lt;li&gt;tableType - MANAGED means it native hive table. It will be &lt;em&gt;EXTERNAL&lt;/em&gt; for external tables.&lt;/li&gt;
+  &lt;li&gt;isTemporary - For spark view it is set to true. Since table is loaded from the hive, it’s false.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;loading-table&quot;&gt;Loading Table&lt;/h2&gt;
+
+&lt;p&gt;Once we queried the tables , we can now load the table from hive. We use &lt;em&gt;table&lt;/em&gt; API on spark session to do the same.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Output&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;+-------------+----------+------+----------+
+|transactionid|customerid|itemid|amountpaid|
++-------------+----------+------+----------+
+|          111|         1|     1|     100.0|
+|          112|         2|     2|     505.0|
+|          113|         3|     3|     510.0|
+|          114|         4|     4|     600.0|
+|          115|         1|     2|     500.0|
+|          116|         1|     2|     500.0|
+|          117|         1|     2|     500.0|
+|          118|         1|     2|     500.0|
+|          119|         2|     3|     500.0|
+|          120|         1|     2|     500.0|
+|          121|         1|     4|     500.0|
+|          122|         1|     2|     500.0|
+|          123|         1|     4|     500.0|
+|          124|         1|     2|     500.0|
++-------------+----------+------+----------+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;saving-dataframe-as-hive-table&quot;&gt;Saving Dataframe as Hive Table&lt;/h2&gt;
+
+&lt;p&gt;We can also save the dataframe to hive as table. It will create table metadata in hive metastore and save data in parquet format.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;saveAsTable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales_saved&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Observe output in the hive&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;hive&amp;gt; select * from sales_saved;
+OK
+111     1       1       100.0
+112     2       2       505.0
+113     3       3       510.0
+114     4       4       600.0
+115     1       2       500.0
+116     1       2       500.0
+117     1       2       500.0
+118     1       2       500.0
+119     2       3       500.0
+120     1       2       500.0
+121     1       4       500.0
+122     1       2       500.0
+123     1       4       500.0
+124     1       2       500.0
+Time taken: 0.051 seconds, Fetched: 14 row(s)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;complete-code&quot;&gt;Complete Code&lt;/h2&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/CatalogHiveExample.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Spark 2.0 unifies the hive integration with spark session and catalog API. We don’t need to create multiple contexts and use different API to access hive anymore.&lt;/p&gt;
+</description>
+        <pubDate>Fri, 23 Jun 2017 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-9</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-9</guid>
+      </item>
+    
+      <item>
         <title>Migrating to Spark 2.0 - Part 8 : Catalog API</title>
         <description>&lt;p&gt;Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.&lt;/p&gt;
 
@@ -766,84 +897,6 @@ now built-in connector supports the broadcast joins which vastly improves the pe
         <pubDate>Sat, 15 Apr 2017 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-2</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-2</guid>
-      </item>
-    
-      <item>
-        <title>Migrating to Spark 2.0 - Part 1 : Scala Version and Dependencies</title>
-        <description>&lt;p&gt;Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.&lt;/p&gt;
-
-&lt;p&gt;This is the first post in this series. In this post, we will discuss how to upgrade our dependencies to add right support for spark 2.0. You can access all the posts &lt;a href=&quot;/categories/spark-two-migration-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;choosing-right-scala-version&quot;&gt;Choosing Right Scala Version&lt;/h2&gt;
-
-&lt;p&gt;When you want to upgrade from spark 1.x to spark 2.x, first task is to pick the right scala version. In spark 1.x, spark was built using scala version 2.10.6. But from spark 2.0, the default version is changed to 2.11.8. 2.10 version is still supported even though it’s not default.&lt;/p&gt;
-
-&lt;p&gt;Scala major versions are non binary compatible, i.e you cannot mix and match the libraries built using 2.10 and 2.11. So whenever you change the scala version of the project, you need to upgrade all the libraries of the project including non-spark ones. It’s a significant work as you need to comb through each and every dependency and make sure right version exist.&lt;/p&gt;
-
-&lt;p&gt;Initially I started the upgrade using Scala 2.10 as it was least resistance path. All the other external libraries needed no change and it was smooth. But I soon realised the distribution at spark download page &lt;a href=&quot;https://spark.apache.org/downloads.html&quot;&gt;https://spark.apache.org/downloads.html&lt;/a&gt; is only built using scala 2.11. So to support 2.10 I have to build my own distribution. Also I came across the &lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-19810&quot;&gt;jira&lt;/a&gt; which discusses about removing scala 2.10 support altogether in 2.3.0. So this meant investing in 2.10 will be not good as it will be obsolete in next few versions.&lt;/p&gt;
-
-&lt;p&gt;So I chose &lt;em&gt;2.11.8&lt;/em&gt; as my scala version for upgrade.&lt;/p&gt;
-
-&lt;h2 id=&quot;choosing-right-java-version&quot;&gt;Choosing Right Java Version&lt;/h2&gt;
-
-&lt;p&gt;From Spark 2.1.0 version, support for Java 7 has been deprecated. So I started using Java 8 for building and deploying the code.&lt;/p&gt;
-
-&lt;h2 id=&quot;updating-external-dependencies&quot;&gt;Updating External Dependencies&lt;/h2&gt;
-
-&lt;p&gt;One of the major challenges of changing scala version is to update all the project dependencies. My project had a fair bit of them and luckily all of those libraries had scala 2.11 version. So please make sure that all the libraries have 2.11 version before you make decision to change scala version.&lt;/p&gt;
-
-&lt;h2 id=&quot;updating-connectors&quot;&gt;Updating Connectors&lt;/h2&gt;
-
-&lt;p&gt;There are major changes happened to the connector ecosystem in spark 2.0. So when you are upgrading to spark 2.0, you need to make sure that you use the right connectors.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;removal-of-built-in-streaming-connectors&quot;&gt;Removal of Built in Streaming Connectors&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Earlier spark had support for zeromq, twitter as part of spark streaming code base. But in spark 2.x, they have removed &lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-13843&quot;&gt;it&lt;/a&gt;. No more these connectors are part of spark-streaming. This is done mostly to develop these connectors independent of spark versions. So if you are using these connector code will break.&lt;/p&gt;
-
-&lt;p&gt;To fix this issue, you need to update the dependencies to point to &lt;a href=&quot;https://github.com/apache/bahir&quot;&gt;Apache Bahir&lt;/a&gt;. Apache Bahir is new home to all of this deleted connectors. Follow the README of bahir repository to update the dependencies to bahir ones.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;spark-20-specific-connectors&quot;&gt;Spark 2.0 specific connectors&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Many popular connectors now give spark 2.0 specific connectors to build with. These connectors provide both scala 2.10 and 2.11 version. Choose the right one depending upon the scala version you have chosen. As I have chosen 2.11, the below are the some of updated connectors for some sources&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h4 id=&quot;elastic-search&quot;&gt;Elastic Search&lt;/h4&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Elastic search has a dedicated spark connector which was used to be called as elasticsearch-hadoop. You can access latest connector &lt;a href=&quot;https://mvnrepository.com/artifact/org.elasticsearch/elasticsearch-spark-20_2.11/5.3.0&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h4 id=&quot;csv-connector&quot;&gt;Csv Connector&lt;/h4&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;From Spark 2.0, csv is built in source. Earlier we used to use &lt;a href=&quot;https://github.com/databricks/spark-csv&quot;&gt;spark-csv&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;If you are using any other connector, make sure they support 2.0. One thing to note that, if the connector is available in right scala version, it doesn’t need any code changes to support spark 2.x. Spark 2.x data source API is backward compatible with spark 1.x&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;So by updating scala version, java version and using right connectors you can update your project build to use spark 2.x.&lt;/p&gt;
-
-&lt;h2 id=&quot;whats-next&quot;&gt;What’s Next?&lt;/h2&gt;
-
-&lt;p&gt;In next blog, we will be discuss about major changes in spark csv connector.&lt;/p&gt;
-
-</description>
-        <pubDate>Thu, 13 Apr 2017 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-1</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-1</guid>
       </item>
     
   </channel>
