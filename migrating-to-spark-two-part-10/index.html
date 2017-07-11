@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Introduction to Spark 2.0 - Part 1 : Spark Session API</title>
+    <title>Migrating to Spark 2.0 - Part 10 : Second Meetup Talk</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-spark-two-part-1">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/migrating-to-spark-two-part-10">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,81 +45,30 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Introduction to Spark 2.0 - Part 1 : Spark Session API</h1>
-  <p class="meta">May 11, 2016</p>
+  <h1>Migrating to Spark 2.0 - Part 10 : Second Meetup Talk</h1>
+  <p class="meta">Jul 11, 2017</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
     <a href="/categories/spark"><span class="category">spark</span></a>
     
-    <a href="/categories/spark-two"><span class="category">spark-two</span></a>
+    <a href="/categories/spark-two-migration-series"><span class="category">spark-two-migration-series</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>Spark 2.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 2.0.</p>
+  <p>In last few blog posts we have discussed about different aspects of the migrating to spark 2.0. 
+Recently I gave a talk on these topics in a our spark <a href="https://www.meetup.com/Bangalore-Apache-Spark-Meetup/">meetup</a>. It was second part 
+of two part series.</p>
 
-<p>This is the first blog in series, where I will be discussing about new entry point in the framework. You can access all the posts in the series <a href="/categories/spark-two/">here</a>.</p>
+<p>In this tenth blog of the series, I will be sharing recording of that talk with slides and code.
+You can access all the posts in the series <a href="/categories/spark-two-migration-series">here</a>.</p>
 
-<p>TL;DR All code examples are available on <a href="https://github.com/phatak-dev/spark2.0-examples">github</a>.</p>
+<p>Find the slides on <a href="https://www.slideshare.net/datamantra/migrating-to-spark-20-part-2-77685413">slideshare</a> and code on <a href="https://github.com/phatak-dev/spark-two-migration">github</a>.</p>
 
-<h3 id="dataset---new-abstraction-of-spark">Dataset - New Abstraction of Spark</h3>
-
-<p>For long, RDD was the standard abstraction of Spark. But from Spark 2.0, Dataset will become the new abstraction layer for spark. Though RDD API will be available, it will become low level API, used mostly for runtime and library development. All user land code will be written against the Dataset abstraction and it’s subset Dataframe API.</p>
-
-<p>Dataset is a superset of Dataframe API which is released in Spark 1.3. Dataset together with Dataframe API brings better performance and flexibility to the platform compared to RDD API. Dataset will be also replacing RDD as an abstraction for streaming in future releases.</p>
-
-<h3 id="sparksession---new-entry-point-of-spark">SparkSession - New entry point of Spark</h3>
-
-<p>In earlier versions of spark, spark context was entry point for Spark. As RDD was main API, it was created and manipulated using context API’s. For every other API,we needed to use different contexts.For streaming, we needed StreamingContext, for SQL sqlContext and for hive HiveContext. But as DataSet and Dataframe API’s are becoming new standard API’s we need an entry point build for them. So in Spark 2.0, we have a new entry point for DataSet and Dataframe API’s called as Spark Session.</p>
-
-<p>SparkSession is essentially combination of SQLContext, HiveContext and future StreamingContext. All the API’s available on those contexts are available on spark session also. Spark session internally has a spark context for actual computation.</p>
-
-<p>So in rest of our post, we will discuss how to create and interact with Spark session.</p>
-
-<h3 id="creating-sparksession">Creating SparkSession</h3>
-
-<p>SparkSession follows builder factory design pattern. The below is the code to create a spark session.</p>
-
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sparkSession</span> <span class="k">=</span> <span class="nc">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span>
-      <span class="n">master</span><span class="o">(</span><span class="s">&quot;local&quot;</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">appName</span><span class="o">(</span><span class="s">&quot;spark session example&quot;</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">getOrCreate</span><span class="o">()</span></code></pre></div>
-
-<p>The above is similar to creating an SparkContext with local and creating an SQLContext wrapping it. If you need to create, hive context you can use below code to create spark session with hive support.</p>
-
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sparkSession</span> <span class="k">=</span> <span class="nc">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span>
-      <span class="n">master</span><span class="o">(</span><span class="s">&quot;local&quot;</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">appName</span><span class="o">(</span><span class="s">&quot;spark session example&quot;</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">enableHiveSupport</span><span class="o">()</span>
-      <span class="o">.</span><span class="n">getOrCreate</span><span class="o">()</span></code></pre></div>
-
-<p><strong>enableHiveSupport</strong> on factory enables hive support which is similiar to HiveContext.</p>
-
-<p>Once we have created spark session, we can use it to read the data.</p>
-
-<h2 id="read-data-using-spark-session">Read data using Spark Session</h2>
-
-<p>The below code is reading data from csv using spark session.</p>
-
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span><span class="s">&quot;true&quot;</span><span class="o">).</span>
-    <span class="n">csv</span><span class="o">(</span><span class="s">&quot;src/main/resources/sales.csv&quot;</span><span class="o">)</span></code></pre></div>
-
-<p>It looks like exactly like reading using SQLContext. You can easily replace all your code of SQLContext with SparkSession now.</p>
-
-<p>You can access complete code <a href="https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/SparkSessionExample.scala">here</a>.</p>
-
-<h3 id="is-sqlcontext-and-hivecontext-going-away">Is SQLContext and HiveContext going away?</h3>
-
-<p>Not really. Spark is big on backward compatibility. So these API’s are still available. Though from documentation it’s clear that they want developers to use SparkSession going forward.</p>
-
-<p>So in this post, we learnt about new spark API called SparkSession. This will be our new entry point of spark code in future.</p>
-
-<h2 id="references">References</h2>
-
-<p>Apache Spark 2.0 presented by Databricks co-founder Reynold Xin - <a href="https://www.brighttalk.com/webcast/12891/202021">https://www.brighttalk.com/webcast/12891/202021</a></p>
+<div class="video-container"> <iframe src="https://www.youtube.com/embed/9TsQU92B144" frameborder="0" width="560" height="315"></iframe> </div>
 
 
 </article>
@@ -128,12 +77,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">11 Jul 2017</span>
-     &raquo; <a href="/migrating-to-spark-two-part-10">Migrating to Spark 2.0 - Part 10 : Second Meetup Talk</a>    
-   </li>           
-         
+          
 
             
     
@@ -154,12 +98,7 @@
    
    
              
-    
-    <li>    
-     <span class="post-date">11 Jul 2017</span>
-     &raquo; <a href="/migrating-to-spark-two-part-10">Migrating to Spark 2.0 - Part 10 : Second Meetup Talk</a>    
-   </li>           
-         
+          
 
             
     

@@ -7,6 +7,25 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Migrating to Spark 2.0 - Part 10 : Second Meetup Talk</title>
+        <description>&lt;p&gt;In last few blog posts we have discussed about different aspects of the migrating to spark 2.0. 
+Recently I gave a talk on these topics in a our spark &lt;a href=&quot;https://www.meetup.com/Bangalore-Apache-Spark-Meetup/&quot;&gt;meetup&lt;/a&gt;. It was second part 
+of two part series.&lt;/p&gt;
+
+&lt;p&gt;In this tenth blog of the series, I will be sharing recording of that talk with slides and code.
+You can access all the posts in the series &lt;a href=&quot;/categories/spark-two-migration-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Find the slides on &lt;a href=&quot;https://www.slideshare.net/datamantra/migrating-to-spark-20-part-2-77685413&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/9TsQU92B144&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
+
+</description>
+        <pubDate>Tue, 11 Jul 2017 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-10</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-10</guid>
+      </item>
+    
+      <item>
         <title>Migrating to Spark 2.0 - Part 9 : Hive Integration</title>
         <description>&lt;p&gt;Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.&lt;/p&gt;
 
@@ -779,124 +798,6 @@ You can access all the posts in the series &lt;a href=&quot;/categories/kubernet
         <pubDate>Tue, 02 May 2017 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-8</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-8</guid>
-      </item>
-    
-      <item>
-        <title>Migrating to Spark 2.0 - Part 2 : Built-in CSV Connector</title>
-        <description>&lt;p&gt;Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.&lt;/p&gt;
-
-&lt;p&gt;This is the second post in this series. In this post, we will discuss about built-in csv connector. You can access all the posts &lt;a href=&quot;/categories/spark-two-migration-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;TL;DR You can access all the code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;csv-source-connector-in-spark&quot;&gt;CSV Source Connector in Spark&lt;/h2&gt;
-
-&lt;p&gt;In spark 1.x, csv connector was provided using, &lt;a href=&quot;/analysing-csv-data-in-spark&quot;&gt;spark-csv&lt;/a&gt;, a third party library  by databricks. But in spark 2.0, they have made csv a built-in source. This decision is primarily driven by the fact that csv is one of the major data formats used in enterprises.So when you are migrating to spark 2.0 you need to move your code to use the built in csv source rather than using third party one.&lt;/p&gt;
-
-&lt;h2 id=&quot;migrating-to-new-connector&quot;&gt;Migrating to New Connector&lt;/h2&gt;
-
-&lt;p&gt;The steps for migrating from old connector to new one are as below.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;removing-dependency&quot;&gt;Removing Dependency&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The first step to migrate code is to remove spark-csv dependency from the build. This makes sure that it doesn’t conflict with built in connector.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;migrating-code&quot;&gt;Migrating Code&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The below code snippets show the changes need to migrate code. It’s relatively small change as built-in connector preserves all the same options
-that were available in spark-csv.&lt;/p&gt;
-
-&lt;p&gt;If you have below code in spark 1.x&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDF&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;com.databricks.spark.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;../test_data/sales.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Migrate the code to spark 2.0 as below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDF&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;../test_data/sales.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As you can see from the code, you need to replace the source from &lt;em&gt;com.databricks.spark.csv&lt;/em&gt; to &lt;em&gt;csv&lt;/em&gt;. This will migrate your code to use built in spark connector.&lt;/p&gt;
-
-&lt;p&gt;You can access complete code on github for &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/CsvLoad.scala&quot;&gt;1.x&lt;/a&gt; and &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/CsvLoad.scala&quot;&gt;2.x&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;advantages-of-built-in-csv-connector&quot;&gt;Advantages of Built-in CSV Connector&lt;/h2&gt;
-
-&lt;p&gt;Now, if both connector provides the same API, you may wonder what’s the advantage of the upgrading to built in source. The below are the some of the advantages.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;no-third-party-dependency&quot;&gt;No third party dependency&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;As this connector is built in to spark, we don’t have to depend upon any third party library jars. This is makes playing with csv much easier in spark-shell or any
-other interactive tools. Also it simplifies the dependency graph of our projects.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;better-performance-in-schema-inference&quot;&gt;Better Performance in Schema Inference&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Csv connector has an option to do schema inference. As third party library, earlier connector was pretty slow to do the schema inference. But
-now the connector is built in to the spark it can use some of the optimised internal API’s to do it much faster.&lt;/p&gt;
-
-&lt;p&gt;The below is the comparison for schema inference on 700mb data with 29 columns.I am using airlines data for year 2007 from &lt;a href=&quot;http://stat-computing.org/dataexpo/2009/the-data.html&quot;&gt;here&lt;/a&gt;. It’s zipped. When you unzip, you get csv file on which the tests are done. Test is done on spark-shell with master as &lt;em&gt;local&lt;/em&gt;.&lt;/p&gt;
-
-&lt;p&gt;The results as below&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Spark-Csv connector   51s&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Built-in  connector   20s&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;As you can see from the results, built-in connector is almost twice as fast as earlier one.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;support-for-broadcast-join&quot;&gt;Support For Broadcast Join&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Earlier spark-csv connector didn’t support broadcast join. So joins are very slow when we combine big dataframes with small ones for csv data. But
-now built-in connector supports the broadcast joins which vastly improves the performance of joins.&lt;/p&gt;
-
-&lt;p&gt;So I have created another small file with first 10000 rows of 2007.csv which is around 1mb. When we join the data on &lt;em&gt;Year&lt;/em&gt; column using below code&lt;/p&gt;
-
-&lt;h4 id=&quot;join-code&quot;&gt;Join code&lt;/h4&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;joinedDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;smalldf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Year&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;smalldf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Year&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;joinedDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Here &lt;em&gt;df&lt;/em&gt; dataframe on 700mb data and &lt;em&gt;smalldf&lt;/em&gt; on 1 mb. We are running count to force spark to do complete join.&lt;/p&gt;
-
-&lt;p&gt;I observed below results.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Spark-Csv connector 52 min&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Built-in Connector 4.1 min&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;As you can see, there is huge difference between join performance. The difference comes as spark built-in connector uses BroadcastJoin where as spark-csv uses SortMergeJoin. So when you migrate to built-in connector you will observe a significant improvement in the join performance.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;So whenever you are moving to spark 2.0, use built in csv connector. It preserves the same API  and gives better performance than older connector.&lt;/p&gt;
-
-&lt;h2 id=&quot;whats-next&quot;&gt;What’s Next?&lt;/h2&gt;
-
-&lt;p&gt;In next blog, we will be discuss about migrating rdd based code in spark 2.0&lt;/p&gt;
-
-</description>
-        <pubDate>Sat, 15 Apr 2017 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-2</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-2</guid>
       </item>
     
   </channel>
