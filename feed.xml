@@ -1,10 +1,132 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Madhukar&#39;s Blog</title>
+    <title>Madhukar's Blog</title>
     <description>Thoughts on technology, life and everything else.</description>
     <link>http://blog.madhukaraphatak.com/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
+    
+      <item>
+        <title>Introduction to Spark Structured Streaming - Part 2 : Source and Sinks</title>
+        <description>&lt;p&gt;Structured Streaming is a new streaming API, introduced in spark 2.0, rethinks stream processing in spark land. It models stream
+as an infinite table, rather than discrete collection of data. It’s a radical departure from models of other stream processing frameworks like
+storm, beam, flink etc. Structured Streaming is the first API to build stream processing on top of SQL engine.&lt;/p&gt;
+
+&lt;p&gt;Structured Streaming was in alpha in 2.0 and 2.1. But with release 2.2 it has hit stable status. In next few releases,
+it’s going to be de facto way of doing stream processing in spark. So it will be right time to make ourselves familiarise
+with this new API.&lt;/p&gt;
+
+&lt;p&gt;In this series of posts, I will be discussing about the different aspects of the structured streaming API. I will be discussing about
+new API’s, patterns and abstractions to solve common stream processing tasks.&lt;/p&gt;
+
+&lt;p&gt;This is the second post in the series. In this post, we discuss about the source and sink abstractions. You 
+can read all the posts in the series &lt;a href=&quot;/categories/introduction-structured-streaming&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR You can access code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/tree/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;datasource-api&quot;&gt;Datasource API&lt;/h2&gt;
+&lt;p&gt;In spark 1.3, with introduction of DataFrame abstraction, spark has introduced an API to read structured data from variety of sources.
+This API is known as datasource API. Datasource API is an universal API to read structured data from different sources like databases, 
+csv files etc. The data read from datasource API is represented as DataFrame in the program. So data source API has become de facto way
+of creating dataframes in spark batch API.&lt;/p&gt;
+
+&lt;p&gt;You can read more about datasource API in my post &lt;a href=&quot;/introduction-to-spark-data-source-api-part-1&quot;&gt;Introduction to Spark Data Source API&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;extending-datasource-api-for-streams&quot;&gt;Extending Datasource API for streams&lt;/h2&gt;
+
+&lt;p&gt;With Structured Streaming, streaming is moving towards dataframe abstraction. So rather than creating
+a new API to create dataframe’s for streaming, spark has extended the datasource API to support stream. It has added a new method &lt;em&gt;readStream&lt;/em&gt;
+which is similar to &lt;em&gt;read&lt;/em&gt; method.&lt;/p&gt;
+
+&lt;p&gt;Having same abstraction for reading data in both batch and streaming makes code more consistent and easy to understand.&lt;/p&gt;
+
+&lt;h2 id=&quot;reading-from-socket-stream&quot;&gt;Reading from Socket Stream&lt;/h2&gt;
+
+&lt;p&gt;As an example to show case the datasource API, let’s read from socket stream. The below is the code to do that&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;socketStreamDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readStream&lt;/span&gt;
+   &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;socket&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+   &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;host&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;localhost&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+   &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;port&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;50050&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+   &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;As you can observe from above code, reading a stream has become very similar to reading static data. In the code, &lt;em&gt;readStream&lt;/em&gt; indicates
+we are reading continuous data rather than static data.&lt;/p&gt;
+
+&lt;p&gt;If you have done spark streaming before, you may have observed there is no mention of batch time. This is because in structured streaming,
+the rate of consumption of stream is determined by the sink not by the source. So when we create the source we don’t need to worry about the
+time information.&lt;/p&gt;
+
+&lt;p&gt;The result , &lt;em&gt;socketStreamDf&lt;/em&gt; is a dataframe containing data from socket.&lt;/p&gt;
+
+&lt;h2 id=&quot;schema-inference-in-structured-streaming&quot;&gt;Schema Inference in Structured Streaming&lt;/h2&gt;
+
+&lt;p&gt;One of the important feature of data source API is it’s support for the schema inference. This means it can go through the data 
+to automatically understand the schema and fill that in for dataframe. This is better than specifying the schema manually. But
+how that works for streams?&lt;/p&gt;
+
+&lt;p&gt;For streams, currently schema inference is not supported. The schema of the data has to be provided by the user or the
+data source connector. In our socket stream example, the schema is provided by the socket connector. The schema contains
+single column named &lt;em&gt;value&lt;/em&gt; of the type &lt;em&gt;string&lt;/em&gt;. This column contains the data from socket in string format.&lt;/p&gt;
+
+&lt;p&gt;So in structured streaming we will be specifying the schema explicitly contrast to schema inference of batch API.&lt;/p&gt;
+
+&lt;h2 id=&quot;writing-to-sink&quot;&gt;Writing to Sink&lt;/h2&gt;
+
+&lt;p&gt;To complete a stream processing, we need both source and sink. We have created dataframe from socket source. Let’s write
+that to a sink.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;consoleDataFrameWriter&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;socketStreamDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;writeStream&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;console&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;outputMode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;OutputMode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Append&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;To create a sink, we use &lt;em&gt;writeStream&lt;/em&gt;. In our example, we are using &lt;em&gt;console&lt;/em&gt; sink which just prints the data to the console. In the code,
+we have specified output mode, which is similar to save modes in batch API. We will talk more about them in future posts.&lt;/p&gt;
+
+&lt;p&gt;The result of &lt;em&gt;writeStream&lt;/em&gt; is a &lt;em&gt;DataStreamWriter&lt;/em&gt;. Now we have connected the source and sink.&lt;/p&gt;
+
+&lt;h2 id=&quot;streaming-query-abstraction&quot;&gt;Streaming Query Abstraction&lt;/h2&gt;
+
+&lt;p&gt;Once we have connected the source and sink, next step is to create a streaming query. &lt;em&gt;StreamingQuery&lt;/em&gt; is an abstraction for query that is executing continuously in the background as new data arrives. This abstraction is the entry point for starting the stream processing. All the steps before it was the setting up the stream computatiuons.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;query&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;consoleDataFrameWriter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Above code creates a streaming query from the dataframe writer. Once we have the query object, we can run &lt;em&gt;awaitTermination&lt;/em&gt; to keep it running.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;awaitTermination&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming/SocketReadExample.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;running-the-example&quot;&gt;Running the example&lt;/h2&gt;
+
+&lt;p&gt;Before we can run the example, we need to start the socket stream. You can do that by running below command&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;nc -lk localhost 50050&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now you can enter data in stdin, you can observe the result in the console.&lt;/p&gt;
+
+&lt;p&gt;We have successfully ran our first structured streaming example.&lt;/p&gt;
+
+&lt;h2 id=&quot;batch-time&quot;&gt;Batch Time&lt;/h2&gt;
+
+&lt;p&gt;After successfully running the example, one question immediately comes in to mind. How frequently socket data is processed?. Another way of asking question is,
+what’s the batch time and where we have specified in code?&lt;/p&gt;
+
+&lt;p&gt;In structured streaming, there is no batch time. Rather than batch time, we use trigger abstraction to indicate the frequency of processing. Triggers can be
+specified in variety of ways. One of the way of specifying is using processing time which is similar to batch time of earlier API.&lt;/p&gt;
+
+&lt;p&gt;By default, the trigger is &lt;em&gt;ProcessingTime(0)&lt;/em&gt;. Here 0 indicates asap. This means as and when data arrives from the source spark tries to process it. This is very
+similar to per message semantics of the other streaming systems like storm.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Structured Streaming defines source and sinks using data source API. This unification of API makes it easy to move from batch world to
+streaming world.&lt;/p&gt;
+</description>
+        <pubDate>Tue, 01 Aug 2017 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-2</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-2</guid>
+      </item>
     
       <item>
         <title>Introduction to Spark Structured Streaming - Part 1 : DataFrame Abstraction to Stream</title>
@@ -788,98 +910,6 @@ and rdd abstractions.&lt;/p&gt;
         <pubDate>Mon, 08 May 2017 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-3</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-3</guid>
-      </item>
-    
-      <item>
-        <title>Scalable Spark Deployment using Kubernetes - Part 9 : Service Update and Rollback</title>
-        <description>&lt;p&gt;In last few blog posts on kubernetes, we have discussed about how to build and scale spark cluster. Once services are deployed, we also
-need to update services time to time. When we update a service, we need to make sure that, it don’t interrupt the working of other
-services. Kubernetes has built in support for the service update and rollbacks. This makes changing services on kubernetes
-much easier than doing them manually in other platforms.&lt;/p&gt;
-
-&lt;p&gt;In this ninth blog of the series, I will be discussing about service update and rollback in kubernetes.
-You can access all the posts in the series &lt;a href=&quot;/categories/kubernetes-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;updating-service&quot;&gt;Updating Service&lt;/h2&gt;
-
-&lt;p&gt;In our discussion of deployment abstraction, I told that deployment helps us to handle life cycle of a service. Currently,
-we are running the spark version 2.1.0. Let’s say we want to change it to 1.6.3 without changing the 
-configuration. We can use deployment abstraction for achieving the same.&lt;/p&gt;
-
-&lt;p&gt;The below are the steps to change spark version from 2.1.0 to 1.6.3 using deployment abstraction.&lt;/p&gt;
-
-&lt;h3 id=&quot;generate-spark-image-for-163&quot;&gt;1. Generate Spark Image for 1.6.3&lt;/h3&gt;
-
-&lt;p&gt;As we did for spark 2.1.0, we first need to have an image of the spark 1.6.3. This can be easily done by changing docker file as below.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;ENV spark_ver 1.6.3&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Once we update the docker file, we need to build new image with below command.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;docker build -t spark-1.6.3-bin-hadoop2.6 .&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Now we have  our new spark image ready.&lt;/p&gt;
-
-&lt;h3 id=&quot;set-images-to-deployment&quot;&gt;2. Set Images to Deployment&lt;/h3&gt;
-
-&lt;p&gt;The below two commands sets new images to already running spark-master and spark-worker deployments&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;image deployment/spark-master spark-master&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;spark-1.6.3-bin-hadoop2.6
-
-kubectl &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;image deployment/spark-worker spark-worker&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;spark-1.6.3-bin-hadoop2.6&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In the command, we are setting the image for &lt;em&gt;spark-master&lt;/em&gt;  and &lt;em&gt;spark-worker&lt;/em&gt; container inside the deployment. This helps only update needed containers
-inside deployment rather than updating all.&lt;/p&gt;
-
-&lt;p&gt;This only sets new images. It has not updated the service yet. We need to use roll out command for that.&lt;/p&gt;
-
-&lt;h3 id=&quot;rollout-the-deployment&quot;&gt;3. Rollout the Deployment&lt;/h3&gt;
-
-&lt;p&gt;The below commands rolls out the changes to deployment.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl rollout status deployment/spark-master
-kubectl rollout status deployment/spark-worker&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;When you roll out changes, kubernetes first brings up new pods with 1.6.3 version. Then once they are running
-the old pods will be deleted.&lt;/p&gt;
-
-&lt;p&gt;This shown in the below output.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;NAME                               READY     STATUS        RESTARTS   AGE
-nginx-deployment-619952658-16z1h   1/1       Running       &lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;          11d
-spark-master-1095292607-mb0xh      1/1       Running       &lt;span class=&quot;m&quot;&gt;0&lt;/span&gt;          37s
-spark-worker-1610799992-4f701      0/1       Pending       &lt;span class=&quot;m&quot;&gt;0&lt;/span&gt;          25s
-spark-worker-671341425-xxlxn       1/1       Terminating   &lt;span class=&quot;m&quot;&gt;0&lt;/span&gt;          53s&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As part of the roll out, kubernetes will update all dns entries to point to new pods.&lt;/p&gt;
-
-&lt;p&gt;This graceful switch over from older version to new version of pods makes sures that service is least interrupted when we
-update services.&lt;/p&gt;
-
-&lt;p&gt;You can verify the spark version using &lt;em&gt;spark-ui&lt;/em&gt; or logging into one of the pods.&lt;/p&gt;
-
-&lt;h2 id=&quot;service-rollback&quot;&gt;Service Rollback&lt;/h2&gt;
-
-&lt;p&gt;As part of the service update, kubernetes remembers state of last two deployments. This helps us to roll back the changes
-we made it to deployment using &lt;em&gt;undo&lt;/em&gt; command.&lt;/p&gt;
-
-&lt;p&gt;If we want to undo our change of spark version, we can run the below commands&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl rollout undo deployment/spark-master
-kubectl rollout undo deployment/spark-worker&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above commands reverses the spark version back to 2.1.0. This ability to quickly undo the service is
-powerful. If something goes wrong, we can rollback the service to it’s previous state without much effort.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;Kubernetes has native support for service update and rollback. Using deployment abstraction we can easily roll out the changes to
-our services without effecting other services.&lt;/p&gt;
-
-</description>
-        <pubDate>Wed, 03 May 2017 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-9</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-9</guid>
       </item>
     
   </channel>
