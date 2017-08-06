@@ -7,6 +7,134 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Spark Structured Streaming - Part 3 : Stateful WordCount</title>
+        <description>&lt;p&gt;Structured Streaming is a new streaming API, introduced in spark 2.0, rethinks stream processing in spark land. It models stream
+as an infinite table, rather than discrete collection of data. It’s a radical departure from models of other stream processing frameworks like
+storm, beam, flink etc. Structured Streaming is the first API to build stream processing on top of SQL engine.&lt;/p&gt;
+
+&lt;p&gt;Structured Streaming was in alpha in 2.0 and 2.1. But with release 2.2 it has hit stable status. In next few releases,
+it’s going to be de facto way of doing stream processing in spark. So it will be right time to make ourselves familiarise
+with this new API.&lt;/p&gt;
+
+&lt;p&gt;In this series of posts, I will be discussing about the different aspects of the structured streaming API. I will be discussing about
+new API’s, patterns and abstractions to solve common stream processing tasks.&lt;/p&gt;
+
+&lt;p&gt;This is the third post in the series. In this post, we discuss about the aggregation on stream using word count example. You 
+can read all the posts in the series &lt;a href=&quot;/categories/introduction-structured-streaming&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR You can access code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/tree/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;word-count&quot;&gt;Word Count&lt;/h2&gt;
+
+&lt;p&gt;Word count is a hello world example of big data. Whenever we learn new API’s, we start with simple example which shows important aspects of the API. Word count is unique in that sense, it shows how API handles single row and multi row operations. Using this simple example, we can understand many different aspects of the structured streaming API.&lt;/p&gt;
+
+&lt;h2 id=&quot;reading-data&quot;&gt;Reading data&lt;/h2&gt;
+
+&lt;p&gt;As we did in last post, we will read our data from socket stream. The below is the code to read from socket and create a dataframe.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;socketStreamDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readStream&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;socket&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;host&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;localhost&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;port&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;50050&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;dataframe-to-dataset&quot;&gt;Dataframe to Dataset&lt;/h2&gt;
+
+&lt;p&gt;In the above code, &lt;em&gt;socketStreamDf&lt;/em&gt; is a dataframe. Each row of the dataframe will be each line of the socket. To implement the word count, first
+we need split the whole line to multiple words. Doing that in dataframe dsl or sql is tricky. The logic is easy to implement in functional API like &lt;em&gt;flatMap&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;So rather than working with dataframe abstraction, we can work with dataset abstraction which gives us good functional API’s. We know the dataframe
+has single column &lt;em&gt;value&lt;/em&gt; of type string. So we can represent it using &lt;em&gt;Dataset[String]&lt;/em&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sparkSession.implicits._&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;socketDs&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;socketStreamDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;as&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above code creates a dataset &lt;em&gt;socketDs&lt;/em&gt;. The implicit import makes sure we have right encoders for string to convert to dataset.&lt;/p&gt;
+
+&lt;h2 id=&quot;words&quot;&gt;Words&lt;/h2&gt;
+
+&lt;p&gt;Once we have the dataset, we can use flatMap to get words.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wordsDs&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;socketDs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot; &amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;group-by-and-aggregation&quot;&gt;Group By and Aggregation&lt;/h2&gt;
+
+&lt;p&gt;Once we have words, next step is to group by words and aggregate. As structured streaming is based on dataframe abstraction, we can
+use sql group by and aggregation function on stream. This is one of the strength of moving to dataframe abstraction. We can use all
+the batch API’s on stream seamlessly.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;countDs&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wordsDs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;value&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;run-using-query&quot;&gt;Run using Query&lt;/h2&gt;
+
+&lt;p&gt;Once we have the logic implemented, next step is to connect to a sink and create query. We will be using console sink as last post.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;query&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;countDs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;writeStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;console&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;outputMode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;OutputMode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Complete&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;awaitTermination&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming/SocketWordCount.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;output-mode&quot;&gt;Output Mode&lt;/h2&gt;
+
+&lt;p&gt;In the above code, we have used output mode complete. In last post, we used we used &lt;em&gt;append&lt;/em&gt; mode. What are these signify?.&lt;/p&gt;
+
+&lt;p&gt;In structured streaming, output of the stream processing is a dataframe or table. The output modes of the query signify how
+this infinite output table is written to the sink, in our example to console.&lt;/p&gt;
+
+&lt;p&gt;There are three output modes, they are&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Append&lt;/strong&gt;  - In this mode, the only records which arrive in the last trigger(batch) will be written to sink.
+This is supported for simple transformations like select, filter etc. As these transformations don’t change the rows
+which are calculated for earlier batches, appending the new rows work fine.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Complete&lt;/strong&gt; - In this mode, every time complete resulting table will be written to sink. Typically used with 
+aggregation queries. In case of aggregations, the output of the result will be keep on changing as and when
+the new data arrives.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Update&lt;/strong&gt; - In this mode, the only records that are changed from last trigger will be written to sink. We
+will talk about this mode in future posts.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Depending upon the queries we use , we need to select appropriate output mode. Choosing wrong one result in
+run time exception as below.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;org&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;apache&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;spark&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;AnalysisException&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Append&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;output&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;mode&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;supported&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;when&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;there&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;are&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;streaming&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;aggregations&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;on&lt;/span&gt; 
+&lt;span class=&quot;n&quot;&gt;streaming&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DataFrames&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;DataSets&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;without&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;watermark&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You can read more about compatibility of different queries with different output modes &lt;a href=&quot;https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html#output-modes&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;state-management&quot;&gt;State Management&lt;/h2&gt;
+
+&lt;p&gt;Once you run the program, you can observe that whenever we enter new lines it updates the global wordcount. So every time
+spark processes the data, it gives complete wordcount from the beginning of the program. This indicates spark is keeping
+track of the state of us. So it’s a stateful wordcount.&lt;/p&gt;
+
+&lt;p&gt;In structured streaming, all aggregation by default stateful. All the complexities involved in keeping state across the stream
+and failures is hidden from the user. User just writes the simple dataframe based code and spark figures out the intricacies  of the
+state management.&lt;/p&gt;
+
+&lt;p&gt;It’s different from the earlier DStream API. In that API, by default everything was stateless and it’s user responsibility to
+handle the state. But it was tedious to handle state and it became one of the pain point of the API. So in structured streaming
+spark has made sure that most of the common work is done at the framework level itself. This makes writing stateful stream
+processing much more simpler.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;We have written a stateful wordcount example using dataframe API’s. We also learnt about output types and state management.&lt;/p&gt;
+</description>
+        <pubDate>Sun, 06 Aug 2017 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-3</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-3</guid>
+      </item>
+    
+      <item>
         <title>Introduction to Spark Structured Streaming - Part 2 : Source and Sinks</title>
         <description>&lt;p&gt;Structured Streaming is a new streaming API, introduced in spark 2.0, rethinks stream processing in spark land. It models stream
 as an infinite table, rather than discrete collection of data. It’s a radical departure from models of other stream processing frameworks like
@@ -844,72 +972,6 @@ You can access all the posts in the series &lt;a href=&quot;/categories/spark-tw
         <pubDate>Wed, 10 May 2017 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-4</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-4</guid>
-      </item>
-    
-      <item>
-        <title>Migrating to Spark 2.0 - Part 3 : DataFrame to Dataset</title>
-        <description>&lt;p&gt;Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.&lt;/p&gt;
-
-&lt;p&gt;This is the third post in this series.In this post we discuss about migrating  dataframe based API’s to dataset based once. You can access all the posts &lt;a href=&quot;/categories/spark-two-migration-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;TL;DR You can access all the code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;dataframe-abstraction-in-spark-1x&quot;&gt;DataFrame Abstraction in Spark 1.x&lt;/h2&gt;
-
-&lt;p&gt;In 1.x series of spark, dataframe was a structured abstraction over native RDD abstraction. Dataframe 
-was built to support the structured transformation of data, using dataframe dsl or spark sql query language.
-Where as rdd abstraction was there to provide the functional API’s for manipulating the data.&lt;/p&gt;
-
-&lt;p&gt;So whenever we wanted to use functional API’s on dataframe, we would be converting dataframe into a
-RDD and then manipulated as RDD abstraction. This kind of conversion made it’s easy to move between dataframe 
-and rdd abstractions.&lt;/p&gt;
-
-&lt;h2 id=&quot;dataframe-to-rdd-example&quot;&gt;DataFrame to RDD Example&lt;/h2&gt;
-
-&lt;p&gt;The below code shows, how to use functional &lt;em&gt;map&lt;/em&gt; API on dataframe abstraction&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDF&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;com.databricks.spark.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;inferSchema&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;../test_data/sales.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;amountRDD&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;row&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;⇒&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getDouble&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above code, whenever we call &lt;em&gt;map&lt;/em&gt; spark implicitly converts to an RDD. So this is the way we operated on the dataframe in spark 1.x.&lt;/p&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/DFMapExample.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;dataframe-abstraction-in-2x&quot;&gt;DataFrame abstraction in 2.x&lt;/h2&gt;
-
-&lt;p&gt;From spark 2.x, the dataframe abstraction has changed significantly. In 2.x, dataframe is alias of Dataset[Row].Dataset is combination of both dataframe and RDD like API’s. So not only dataset supports structured querying using dsl and sql, it also supports the functional API’s which are supported in RDD.&lt;/p&gt;
-
-&lt;p&gt;So whenever we call &lt;em&gt;map&lt;/em&gt; in 2.x, we no more get a RDD. Instead we get dataset. This change in the conversion will break your code if you are using the RDD based code showed earlier.&lt;/p&gt;
-
-&lt;h2 id=&quot;porting-dataframe-to-rdd-code-in-2x&quot;&gt;Porting DataFrame to RDD code in 2.x&lt;/h2&gt;
-
-&lt;p&gt;To port your existing code,you need to add extra, &lt;em&gt;.rdd&lt;/em&gt; before calling map method as shown in the code.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;amountRDD&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;row&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;⇒&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getDouble&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;amountRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;collect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;rdd-to-dataset-abstraction&quot;&gt;RDD to Dataset Abstraction&lt;/h2&gt;
-
-&lt;p&gt;The above code makes it easy to port but doesn’t provide good performance. Also converting rdd back to dataframe is a tedious work. So rather than using rdd functional API’s, you can use dataset functional API’s. Only constraint is that the return type of map should have a encoder. By default all primitive types and case classes are supported.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sparkSession.implicits._&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;amountDataSet&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;row&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;⇒&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getDouble&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;By importing &lt;em&gt;sparkSession.implicits._&lt;/em&gt; in to the scope, we are importing all default encoders. As we are returning a double value, there is a built in encoder for the same.&lt;/p&gt;
-
-&lt;p&gt;This code is more performant than the RDD code. So use dataset based functional API wherever you were using RDD before. Only fall back to RDD API, whenever dataset API doesn’t support that API.&lt;/p&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/DFMapExample.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;In this post we learnt how to port RDD based functional API’s to more peformant dataset alternatives.&lt;/p&gt;
-
-</description>
-        <pubDate>Mon, 08 May 2017 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-3</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-3</guid>
       </item>
     
   </channel>
