@@ -1,10 +1,98 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Madhukar's Blog</title>
+    <title>Madhukar&#39;s Blog</title>
     <description>Thoughts on technology, life and everything else.</description>
     <link>http://blog.madhukaraphatak.com/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
+    
+      <item>
+        <title>Introduction to Spark Structured Streaming - Part 4 : Stateless Aggregations</title>
+        <description>&lt;p&gt;Structured Streaming is a new streaming API, introduced in spark 2.0, rethinks stream processing in spark land. It models stream
+as an infinite table, rather than discrete collection of data. It’s a radical departure from models of other stream processing frameworks like
+storm, beam, flink etc. Structured Streaming is the first API to build stream processing on top of SQL engine.&lt;/p&gt;
+
+&lt;p&gt;Structured Streaming was in alpha in 2.0 and 2.1. But with release 2.2 it has hit stable status. In next few releases,
+it’s going to be de facto way of doing stream processing in spark. So it will be right time to make ourselves familiarise
+with this new API.&lt;/p&gt;
+
+&lt;p&gt;In this series of posts, I will be discussing about the different aspects of the structured streaming API. I will be discussing about
+new API’s, patterns and abstractions to solve common stream processing tasks.&lt;/p&gt;
+
+&lt;p&gt;This is the fourth post in the series. In this post, we discuss about the stateless aggregations. You 
+can read all the posts in the series &lt;a href=&quot;/categories/introduction-structured-streaming&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR You can access code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/tree/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;stateful-aggregations&quot;&gt;Stateful Aggregations&lt;/h2&gt;
+&lt;p&gt;In structured streaming, all aggregations are stateful by default. As we saw in last &lt;a href=&quot;/introduction-to-spark-structured-streaming-part-3&quot;&gt;post&lt;/a&gt; when we do groupBy and count on dataframe, spark remembers the state from the beginning. Also we write the complete output every time when we receive the data as state keeps on changing.&lt;/p&gt;
+
+&lt;h2 id=&quot;need-of-stateless-aggregations&quot;&gt;Need of Stateless Aggregations&lt;/h2&gt;
+
+&lt;p&gt;Though most of the time scenarios of stream processing need code to be stateful, it comes with the cost of state management and state recovery in the case of failures. So if we are doing simple ETL processing on stream, we may not need state to be kept across the stream. Sometime we want to keep
+the state just for small batch and then reset.&lt;/p&gt;
+
+&lt;p&gt;For example, let’s take wordcount. Let’s say we want to count the words for every 10 seconds. Here the aggregation is done on the data which
+is collected for last 10 seconds. The state is only kept for those 10 seconds and the forgotten. So in case of failure, we need to recover data only for last 10 seconds. Though this example looks simple, it’s applicable to many real world scenarios.&lt;/p&gt;
+
+&lt;p&gt;In the following part of the post we will be discussing about how to implement the stateless wordcount using structured streaming API.&lt;/p&gt;
+
+&lt;h2 id=&quot;reading-data-and-creating-words&quot;&gt;Reading Data and Creating Words&lt;/h2&gt;
+
+&lt;p&gt;As in last post, we will read from the socket and create words&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;socketStreamDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readStream&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;socket&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;host&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;localhost&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;port&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;50050&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sparkSession.implicits._&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;socketDs&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;socketStreamDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;as&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wordsDs&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;socketDs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;⇒&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot; &amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;flatmapgroups-api&quot;&gt;flatMapGroups API&lt;/h2&gt;
+
+&lt;p&gt;In last post we used dataframe groupBy and count API’s to do word count. But they are stateful. So rather than using those we will use dataset
+groupByKey and flatMapGroups API to do the aggregation as below.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;countDs&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wordsDs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupByKey&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;⇒&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flatMapGroups&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;iter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;⇒&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Iterator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;iter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toDF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;value&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;count&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Rather than using &lt;em&gt;groupBy&lt;/em&gt; API of dataframe, we use &lt;em&gt;groupByKey&lt;/em&gt; from the dataset. As we need to group on words, we just pass the same
+value to grouping function. If you have complex object, then you can choose which column you want to treat as the key.&lt;/p&gt;
+
+&lt;p&gt;flatMapGroups is an aggregation API which applies a function to each group in the dataset. It’s only available on grouped dataset. This
+function is very similar to &lt;em&gt;reduceByKey&lt;/em&gt; of RDD world which allows us to do arbitrary aggregation on groups.&lt;/p&gt;
+
+&lt;p&gt;In our example, we apply a function for every group of words, we do the count for that group.&lt;/p&gt;
+
+&lt;p&gt;One thing to remember is flatMapGroups is slower than count API. The reason being flatMapGroups doesn’t support the partial aggregations which increase shuffle overhead. So use this API only to do small batch aggregations. If you are doing aggregation across the stream, use the stateful operations.&lt;/p&gt;
+
+&lt;h2 id=&quot;specifying-the-trigger&quot;&gt;Specifying the Trigger&lt;/h2&gt;
+
+&lt;p&gt;As we want to aggregate for every 10 seconds, we need to pass that information to query using trigger API. Trigger API is used to specify the frequency of computation. This separation of frequency from the stream processing is one of the most important part of structured streaming. This separation allows us to be flexible in computing different results in different speed.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;query&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt;
+ &lt;span class=&quot;n&quot;&gt;countDs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;writeStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;console&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;outputMode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;OutputMode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Append&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()).&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;trigger&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Trigger&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;ProcessingTime&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;5 seconds&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In the above code, we have specified the trigger using processing time. This analogous to the batch time of DStream API. Also observe that, we have specified output mode as &lt;em&gt;append&lt;/em&gt;. This means we are doing only batch wise aggregations rather than full stream aggregations.&lt;/p&gt;
+
+&lt;p&gt;When you run this example, you will observe that the aggregation will be running on data entered in last 10 seconds.&lt;/p&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming/StatelessWordCount.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;You can run stateless aggregations on stream using &lt;em&gt;flatMapGroups&lt;/em&gt; API.&lt;/p&gt;
+
+</description>
+        <pubDate>Tue, 08 Aug 2017 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-4</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-4</guid>
+      </item>
     
       <item>
         <title>Introduction to Spark Structured Streaming - Part 3 : Stateful WordCount</title>
@@ -899,79 +987,6 @@ You can access all the posts in the series &lt;a href=&quot;/categories/spark-tw
         <pubDate>Wed, 07 Jun 2017 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-5</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-5</guid>
-      </item>
-    
-      <item>
-        <title>Migrating to Spark 2.0 - Part 4 : Cross Joins</title>
-        <description>&lt;p&gt;Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.&lt;/p&gt;
-
-&lt;p&gt;This is the forth post in this series.In this post we discuss about cross joins. You can access all the posts &lt;a href=&quot;/categories/spark-two-migration-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;TL;DR You can access all the code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;joins-in-spark-sql&quot;&gt;Joins in Spark SQL&lt;/h2&gt;
-&lt;p&gt;Joins are one of the costliest operations in spark or big data in general. So whenever we program in spark we try to avoid joins or restrict the joins on limited data.There are various optimisations in spark , right from choosing right type of joins and using broadcast joins to improve the performance.&lt;/p&gt;
-
-&lt;h2 id=&quot;cross-joins&quot;&gt;Cross Joins&lt;/h2&gt;
-
-&lt;p&gt;Cross Join or cartesian product is one kind of join where each row of one dataset is joined with other. So if we have a dataset of size m and if we join with other dataset with of size n , we will getting a dataset with m*n number of rows.&lt;/p&gt;
-
-&lt;p&gt;Cross joins are one of the most time consuming joins and often should be avoided. But sometimes, we may accidentally do them without intending to do so. But we recognise performance issue only when they run on large data. So having ability to identify them at earliest will save lot of hassle.&lt;/p&gt;
-
-&lt;h2 id=&quot;cross-joins-in-1x&quot;&gt;Cross Joins in 1.x&lt;/h2&gt;
-
-&lt;p&gt;The below code is an example of cross join in 1.x. In this example, we are doing a self join without any condition.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;com.databricks.spark.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;../test_data/sales.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
- &lt;span class=&quot;c1&quot;&gt;//cross join the data&lt;/span&gt;
- &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;crossJoinDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loadedDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;// count the joined df&lt;/span&gt;
- &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;crossJoinDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;explain&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
- &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;crossJoinDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The plan looks as below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;nc&quot;&gt;CartesianProduct&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;:-&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Scan&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CsvRelation&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;function0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;,&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Some&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(../&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test_data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sales&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;csv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;,,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;,null,#,PERMISSIVE,COMMONS,false,&lt;/span&gt;
-&lt;span class=&quot;s&quot;&gt;false,false,null,&lt;/span&gt;
-&lt;span class=&quot;s&quot;&gt;false,null,,null,100000)[transactionId#0,&lt;/span&gt;
-&lt;span class=&quot;s&quot;&gt;customerId#1,itemId#2,amountPaid#3]&lt;/span&gt;
-&lt;span class=&quot;s&quot;&gt;+- Scan CsvRelation(&amp;lt;function0&amp;gt;,Some(../test_data/sales.csv),&lt;/span&gt;
-&lt;span class=&quot;s&quot;&gt;true,,,&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,#,&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;PERMISSIVE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;COMMONS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-&lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,,&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100000&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;transactionId&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;#&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;9&lt;/span&gt;,&lt;span class=&quot;kt&quot;&gt;customerId&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;#&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;10&lt;/span&gt;,&lt;span class=&quot;kt&quot;&gt;itemId&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;#&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;11&lt;/span&gt;,&lt;span class=&quot;kt&quot;&gt;amountPaid&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;#&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;12&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;When you observe the plan, it indicates the cartesian product.&lt;/p&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/CrossJoin.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;cross-join-in-2x&quot;&gt;Cross Join in 2.x&lt;/h2&gt;
-
-&lt;p&gt;In 2.x, spark has &lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-17298&quot;&gt;added&lt;/a&gt; an expilict check for cartersian product. By default all the joins reject the cross product. So if you run the same code in 2.x, you will get below error.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;org.apache.spark.sql.AnalysisException: Detected cartesian product for INNER join between logical plans&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;So this makes sures that by accident we don’t introduce any cartesian products in our code.&lt;/p&gt;
-
-&lt;h2 id=&quot;explicit-cross-join-in-2x&quot;&gt;Explicit Cross Join in 2.x&lt;/h2&gt;
-
-&lt;p&gt;So if you really want to have cross join, you need to be explicit in the code&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;crossJoinDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;crossJoin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loadedDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;By explicitly specifying the cross join, spark will allow user to do cross join. This helps programmer to avoid introducing cross join accidentally.&lt;/p&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/CrossJoin.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;Spark 2.x makes sure that we don’t introduce cross join accidentally. This smartness built into analyser helps to improve the performance of many workloads.&lt;/p&gt;
-</description>
-        <pubDate>Wed, 10 May 2017 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-4</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-4</guid>
       </item>
     
   </channel>
