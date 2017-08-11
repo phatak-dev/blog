@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Scalable Spark Deployment using Kubernetes - Part 9 : Service Update and Rollback</title>
+    <title>Introduction to Spark Structured Streaming - Part 5 : File Streams</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-9">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-5">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,103 +45,106 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Scalable Spark Deployment using Kubernetes - Part 9 : Service Update and Rollback</h1>
-  <p class="meta">May 3, 2017</p>
+  <h1>Introduction to Spark Structured Streaming - Part 5 : File Streams</h1>
+  <p class="meta">Aug 11, 2017</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
     <a href="/categories/spark"><span class="category">spark</span></a>
     
-    <a href="/categories/kubernetes-series"><span class="category">kubernetes-series</span></a>
+    <a href="/categories/introduction-structured-streaming"><span class="category">introduction-structured-streaming</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>In last few blog posts on kubernetes, we have discussed about how to build and scale spark cluster. Once services are deployed, we also
-need to update services time to time. When we update a service, we need to make sure that, it don’t interrupt the working of other
-services. Kubernetes has built in support for the service update and rollbacks. This makes changing services on kubernetes
-much easier than doing them manually in other platforms.</p>
+  <p>Structured Streaming is a new streaming API, introduced in spark 2.0, rethinks stream processing in spark land. It models stream
+as an infinite table, rather than discrete collection of data. It’s a radical departure from models of other stream processing frameworks like
+storm, beam, flink etc. Structured Streaming is the first API to build stream processing on top of SQL engine.</p>
 
-<p>In this ninth blog of the series, I will be discussing about service update and rollback in kubernetes.
-You can access all the posts in the series <a href="/categories/kubernetes-series">here</a>.</p>
+<p>Structured Streaming was in alpha in 2.0 and 2.1. But with release 2.2 it has hit stable status. In next few releases,
+it’s going to be de facto way of doing stream processing in spark. So it will be right time to make ourselves familiarise
+with this new API.</p>
 
-<h2 id="updating-service">Updating Service</h2>
+<p>In this series of posts, I will be discussing about the different aspects of the structured streaming API. I will be discussing about
+new API’s, patterns and abstractions to solve common stream processing tasks.</p>
 
-<p>In our discussion of deployment abstraction, I told that deployment helps us to handle life cycle of a service. Currently,
-we are running the spark version 2.1.0. Let’s say we want to change it to 1.6.3 without changing the 
-configuration. We can use deployment abstraction for achieving the same.</p>
+<p>This is the fifth post in the series. In this post, we discuss about working with file streams. You 
+can read all the posts in the series <a href="/categories/introduction-structured-streaming">here</a>.</p>
 
-<p>The below are the steps to change spark version from 2.1.0 to 1.6.3 using deployment abstraction.</p>
+<p>TL;DR You can access code on <a href="https://github.com/phatak-dev/spark2.0-examples/tree/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming">github</a>.</p>
 
-<h3 id="generate-spark-image-for-163">1. Generate Spark Image for 1.6.3</h3>
+<h2 id="file-streams">File Streams</h2>
 
-<p>As we did for spark 2.1.0, we first need to have an image of the spark 1.6.3. This can be easily done by changing docker file as below.</p>
+<p>In last few posts, we worked with the socket stream. In this post, we will discuss about another common type of stream called file stream. File stream is
+a stream of files that are read from a folder. Usually it’s useful in scenarios where we have tools like flume dumping the logs from a source to HDFS folder continuously. We can treat that folder as stream and read that data into spark structured streaming.</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">ENV spark_ver 1.6.3</code></pre></div>
+<h2 id="support-for-file-types">Support for File Types</h2>
 
-<p>Once we update the docker file, we need to build new image with below command.</p>
+<p>One of the strength of batch data source API is it’s support for reading wide variety of structured data. It has support for reading csv, json, parquet natively. As structured streaming extends the same API, all those files can be read in  the streaming also. You can extend the support for the other files using third party libraries.</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">docker build -t spark-1.6.3-bin-hadoop2.6 .</code></pre></div>
+<h2 id="csv-file-stream">Csv File Stream</h2>
 
-<p>Now we have  our new spark image ready.</p>
+<p>In our example, we will be reading data from csv source. The spark supports the csv as built in source. The below is the sample data from a file</p>
 
-<h3 id="set-images-to-deployment">2. Set Images to Deployment</h3>
+<div class="highlight"><pre><code class="language-text" data-lang="text">+-------------+----------+------+----------+
+|transactionid|customerid|itemid|amountpaid|
++-------------+----------+------+----------+
+|          111|         1|     1|     100.0|
+|          112|         2|     2|     505.0|
+|          113|         3|     3|     510.0|
+|          114|         4|     4|     600.0|
+|          115|         1|     2|     500.0|
++-------------+----------+------+----------+</code></pre></div>
 
-<p>The below two commands sets new images to already running spark-master and spark-worker deployments</p>
+<p>The below are the steps to create a csv file stream and process the data.</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl <span class="nb">set </span>image deployment/spark-master spark-master<span class="o">=</span>spark-1.6.3-bin-hadoop2.6
+<h3 id="defining-the-schema">1. Defining the Schema</h3>
+<p>As we discussed in our earlier posts, structured streaming doesn’t support schema inference. So if we are reading data from csv or other sources, we need to explicitly define the schema in our program.</p>
 
-kubectl <span class="nb">set </span>image deployment/spark-worker spark-worker<span class="o">=</span>spark-1.6.3-bin-hadoop2.6</code></pre></div>
+<p>The below code defines a schema for csv file which we saw earlier. It uses standard dataframe schema API to do so.</p>
 
-<p>In the command, we are setting the image for <em>spark-master</em>  and <em>spark-worker</em> container inside the deployment. This helps only update needed containers
-inside deployment rather than updating all.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">schema</span> <span class="k">=</span> <span class="nc">StructType</span><span class="o">(</span>
+  <span class="nc">Array</span><span class="o">(</span><span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;transactionId&quot;</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
+        <span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;customerId&quot;</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
+        <span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;itemId&quot;</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
+        <span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;amountPaid&quot;</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">)))</span></code></pre></div>
 
-<p>This only sets new images. It has not updated the service yet. We need to use roll out command for that.</p>
+<h3 id="creating-the-source-dataframe">2. Creating the Source Dataframe</h3>
 
-<h3 id="rollout-the-deployment">3. Rollout the Deployment</h3>
+<p>Once we have schema defined, we can now define the source using <em>readStream</em> API.</p>
 
-<p>The below commands rolls out the changes to deployment.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">fileStreamDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">readStream</span>
+  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">schema</span><span class="o">(</span><span class="n">schema</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">csv</span><span class="o">(</span><span class="s">&quot;/tmp/input&quot;</span><span class="o">)</span></code></pre></div>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl rollout status deployment/spark-master
-kubectl rollout status deployment/spark-worker</code></pre></div>
+<p>The above code looks very similar to reading csv data in batch API. Also it supports the same options like header.</p>
 
-<p>When you roll out changes, kubernetes first brings up new pods with 1.6.3 version. Then once they are running
-the old pods will be deleted.</p>
+<p>Using <em>schema</em> method on API, we pass user defined schema. Then in <em>csv</em> method we pass the folder from which we will be reading the file.</p>
 
-<p>This shown in the below output.</p>
+<h3 id="creating-query">3. Creating Query</h3>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">NAME                               READY     STATUS        RESTARTS   AGE
-nginx-deployment-619952658-16z1h   1/1       Running       <span class="m">1</span>          11d
-spark-master-1095292607-mb0xh      1/1       Running       <span class="m">0</span>          37s
-spark-worker-1610799992-4f701      0/1       Pending       <span class="m">0</span>          25s
-spark-worker-671341425-xxlxn       1/1       Terminating   <span class="m">0</span>          53s</code></pre></div>
+<p>Once we have source defined, we will print the data to console.</p>
 
-<p>As part of the roll out, kubernetes will update all dns entries to point to new pods.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">query</span> <span class="k">=</span> <span class="n">fileStreamDf</span><span class="o">.</span><span class="n">writeStream</span>
+      <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;console&quot;</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">outputMode</span><span class="o">(</span><span class="nc">OutputMode</span><span class="o">.</span><span class="nc">Append</span><span class="o">()).</span><span class="n">start</span><span class="o">()</span></code></pre></div>
 
-<p>This graceful switch over from older version to new version of pods makes sures that service is least interrupted when we
-update services.</p>
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming/FileStreamExample.scala">github</a>.</p>
 
-<p>You can verify the spark version using <em>spark-ui</em> or logging into one of the pods.</p>
+<h2 id="running-the-example">Running the example</h2>
 
-<h2 id="service-rollback">Service Rollback</h2>
+<p>Create folder at ‘/tmp/input’ in local or hdfs. Then start putting the csv files. As and when you put a file, you can observe that it’s getting processed by the program.</p>
 
-<p>As part of the service update, kubernetes remembers state of last two deployments. This helps us to roll back the changes
-we made it to deployment using <em>undo</em> command.</p>
+<h2 id="frequency-of-collection">Frequency of Collection</h2>
 
-<p>If we want to undo our change of spark version, we can run the below commands</p>
-
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl rollout undo deployment/spark-master
-kubectl rollout undo deployment/spark-worker</code></pre></div>
-
-<p>The above commands reverses the spark version back to 2.1.0. This ability to quickly undo the service is
-powerful. If something goes wrong, we can rollback the service to it’s previous state without much effort.</p>
+<p>As we have not specified any trigger, as and when new file appears in the folder, the processing will start. You can limit number of files per trigger using option <em>maxFilesPerTrigger</em>.</p>
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>Kubernetes has native support for service update and rollback. Using deployment abstraction we can easily roll out the changes to
-our services without effecting other services.</p>
+<p>Reading a collection of files as a stream in the structured streaming is straight forward. It supports all the file types supported by batch data source API.</p>
 
 
 </article>
@@ -150,12 +153,7 @@ our services without effecting other services.</p>
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">11 Aug 2017</span>
-     &raquo; <a href="/introduction-to-spark-structured-streaming-part-5">Introduction to Spark Structured Streaming - Part 5 : File Streams</a>    
-   </li>           
-         
+          
 
             
     
@@ -176,12 +174,7 @@ our services without effecting other services.</p>
    
    
              
-    
-    <li>    
-     <span class="post-date">11 Aug 2017</span>
-     &raquo; <a href="/introduction-to-spark-structured-streaming-part-5">Introduction to Spark Structured Streaming - Part 5 : File Streams</a>    
-   </li>           
-         
+          
 
             
     
