@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Introduction to Spark Structured Streaming - Part 5 : Working with File Streams"
-date : 2017-08-08
+title: "Introduction to Spark Structured Streaming - Part 5 : File Streams"
+date : 2017-08-11
 categories: scala spark introduction-structured-streaming
 ---
 Structured Streaming is a new streaming API, introduced in spark 2.0, rethinks stream processing in spark land. It models stream
@@ -23,10 +23,11 @@ TL;DR You can access code on [github](https://github.com/phatak-dev/spark2.0-exa
 ## File Streams
 
 In last few posts, we worked with the socket stream. In this post, we will discuss about another common type of stream called file stream. File stream is
-a stream of files that are read from a folder. Usually it's useful in scenarios where we have tools like flume dumping the logs from a source to HDFS folder continously. We can treat that folder as stream and read that data into spark structured streaming.
+a stream of files that are read from a folder. Usually it's useful in scenarios where we have tools like flume dumping the logs from a source to HDFS folder continuously. We can treat that folder as stream and read that data into spark structured streaming.
 
 ## Support for File Types
-One of the strength of batch data source API was support for reading wide variety of structured data. It has support for reading csv, json, parquet natively. As structured streaming extends the same API, all those files can be read in  the streaming also. You can extend the support for the other files using third pparty libraries
+
+One of the strength of batch data source API is it's support for reading wide variety of structured data. It has support for reading csv, json, parquet natively. As structured streaming extends the same API, all those files can be read in  the streaming also. You can extend the support for the other files using third party libraries.
 
 ## Csv File Stream
 
@@ -48,7 +49,7 @@ In our example, we will be reading data from csv source. The spark supports the 
 The below are the steps to create a csv file stream and process the data.
 
 ### 1. Defining the Schema
-As we discussed in our earlier posts, structured streaming doesn't support schema inference. So if we are reading data from csv or other sources, we need to explicitley define the schema in our program.
+As we discussed in our earlier posts, structured streaming doesn't support schema inference. So if we are reading data from csv or other sources, we need to explicitly define the schema in our program.
 
 The below code defines a schema for csv file which we saw earlier. It uses standard dataframe schema API to do so.
 
@@ -75,7 +76,7 @@ val fileStreamDf = sparkSession.readStream
 
 {% endhighlight %}
 
-The above code looks very similiar to reading csv data in batch API. Also it supports the same options like header. The reason for similiarity is both batch and stream use same datasource underneath. 
+The above code looks very similar to reading csv data in batch API. Also it supports the same options like header.
 
 Using *schema* method on API, we pass user defined schema. Then in *csv* method we pass the folder from which we will be reading the file.
 
@@ -100,7 +101,7 @@ Create folder at '/tmp/input' in local or hdfs. Then start putting the csv files
 
 ## Frequency of Collection
 
-As we have not specified any trigger, as and when new file appears in the folder, the processing will start. You can limit number of files per trigger using ooption *maxFilesPerTrigger*.
+As we have not specified any trigger, as and when new file appears in the folder, the processing will start. You can limit number of files per trigger using option *maxFilesPerTrigger*.
 
 ## Conclusion
 
