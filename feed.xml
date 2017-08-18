@@ -7,6 +7,88 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Spark Structured Streaming - Part 7 : Checkpointing State</title>
+        <description>&lt;p&gt;Structured Streaming is a new streaming API, introduced in spark 2.0, rethinks stream processing in spark land. It models stream
+as an infinite table, rather than discrete collection of data. It’s a radical departure from models of other stream processing frameworks like
+storm, beam, flink etc. Structured Streaming is the first API to build stream processing on top of SQL engine.&lt;/p&gt;
+
+&lt;p&gt;Structured Streaming was in alpha in 2.0 and 2.1. But with release 2.2 it has hit stable status. In next few releases,
+it’s going to be de facto way of doing stream processing in spark. So it will be right time to make ourselves familiarise
+with this new API.&lt;/p&gt;
+
+&lt;p&gt;In this series of posts, I will be discussing about the different aspects of the structured streaming API. I will be discussing about
+new API’s, patterns and abstractions to solve common stream processing tasks.&lt;/p&gt;
+
+&lt;p&gt;This is the seventh post in the series. In this post, we discuss about checkpointing the state for recovery. You 
+can read all the posts in the series &lt;a href=&quot;/categories/introduction-structured-streaming&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR You can access code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/tree/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;need-of-checkpointing&quot;&gt;Need of Checkpointing&lt;/h2&gt;
+
+&lt;p&gt;Many stream processing applications are stateful in nature. With built in support for stateful aggregations in structured streaming, it has become easier to build them.But whenever we build stateful applications, we need to be careful about preserving the state across restarts or failures. We don’t want to loose our valuable state if processing units went down for some reason.&lt;/p&gt;
+
+&lt;p&gt;Checkpointing is one of the mechanism to preserve the state of the application across the restart of driver or executors. In spark, checkpointing is achieved using writing the state of the query to a HDFS folder. In this post, we will explore how to enable checkpointing and use it.&lt;/p&gt;
+
+&lt;h2 id=&quot;source-support&quot;&gt;Source Support&lt;/h2&gt;
+
+&lt;p&gt;To enable the checkpointing, the source from which we read the data need to support it. Not all the sources in structured streaming support checkpointing. One of the example of is socket streams. Checkpointing sometime may need to replay some of the data from source in order to recover the state. In those cases we need a source which supports that kind of functionality. Socket doesn’t support that.&lt;/p&gt;
+
+&lt;p&gt;Sources like file stream, kafka have ability to replay messages on offset. So they support checkpointing.&lt;/p&gt;
+
+&lt;h2 id=&quot;sales-aggregation&quot;&gt;Sales Aggregation&lt;/h2&gt;
+
+&lt;p&gt;For this example, we take sales data from a file stream and do some aggregation on it. The below is the code&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;schema&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StructType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+  &lt;span class=&quot;nc&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;StructField&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;transactionId&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StringType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;
+        &lt;span class=&quot;nc&quot;&gt;StructField&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;customerId&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StringType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;
+        &lt;span class=&quot;nc&quot;&gt;StructField&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;itemId&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StringType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;
+        &lt;span class=&quot;nc&quot;&gt;StructField&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;amountPaid&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DoubleType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)))&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;//create stream from folder&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fileStreamDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readStream&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;schema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;schema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;csv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;/tmp/input&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;countDs&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fileStreamDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;customerId&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;amountPaid&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In this example, we are aggregating the amount for a given customer. We like to checkpoint this state. It makes sure that amount doesn’t start from zero whenever there is failure.&lt;/p&gt;
+
+&lt;h2 id=&quot;check-point-directory-in-query&quot;&gt;Check Point Directory in Query&lt;/h2&gt;
+
+&lt;p&gt;In structured streaming, checkpoint directory is specific to a query. We can have multiple queries writing state to multiple different directories. This makes easy
+to scale checkpointing across multiple different processing.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;query&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;countDs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;writeStream&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;console&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;checkPoint&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;/tmp/checkpoint&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;outputMode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;OutputMode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Complete&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above code, we specify the checkpointing directory using &lt;em&gt;checkPoint&lt;/em&gt; option on &lt;em&gt;writeStream&lt;/em&gt;. This makes sure that the state is written the directory.&lt;/p&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming/RecoverableAggregation.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;recovering-state&quot;&gt;Recovering State&lt;/h2&gt;
+
+&lt;p&gt;Whenever there is checkpoint directory attached to query, spark goes through the content of the directory before it accepts any new data. This makes sure that spark recovers the old state before it starts processing new data. So whenever there is restart, spark first recovers the old state and then start processing new data from the stream.&lt;/p&gt;
+
+&lt;h2 id=&quot;running&quot;&gt;Running&lt;/h2&gt;
+
+&lt;p&gt;Input the files to &lt;em&gt;/tmp/input&lt;/em&gt; in local or hdfs folder. After sometime, restart the driver. You should observe the recovery of state.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;With checkpointing support, we can build robust stateful stream processing applications in structured streaming.&lt;/p&gt;
+</description>
+        <pubDate>Fri, 18 Aug 2017 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-7</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-7</guid>
+      </item>
+    
+      <item>
         <title>Introduction to Spark Structured Streaming - Part 6 : Stream Enrichment using Static Data Join</title>
         <description>&lt;p&gt;Structured Streaming is a new streaming API, introduced in spark 2.0, rethinks stream processing in spark land. It models stream
 as an infinite table, rather than discrete collection of data. It’s a radical departure from models of other stream processing frameworks like
@@ -988,108 +1070,6 @@ in day to day development. Below sections discusses few of them.&lt;/p&gt;
         <pubDate>Tue, 20 Jun 2017 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-8</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-8</guid>
-      </item>
-    
-      <item>
-        <title>Migrating to Spark 2.0 - Part 7 : SubQueries</title>
-        <description>&lt;p&gt;Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.&lt;/p&gt;
-
-&lt;p&gt;This is the seventh post in this series.In this post we will discuss about subquery support in spark sql. You can access all the posts &lt;a href=&quot;/categories/spark-two-migration-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;TL;DR You can access all the code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;spark-sql-in-spark-20&quot;&gt;Spark SQL in Spark 2.0&lt;/h2&gt;
-
-&lt;p&gt;Spark SQL has been greatly improved in 2.0 to run all &lt;a href=&quot;https://databricks.com/blog/2016/07/26/introducing-apache-spark-2-0.html&quot;&gt;99 queries of TPC-DS&lt;/a&gt;, a standard benchmark suit for popular sql implementations. To support this benchmark and to provide a complete OLAP sql engine, spark has added many features to it’s sql query language which were missing earlier. This makes spark sql more powerful than before.&lt;/p&gt;
-
-&lt;p&gt;One of the big feature they added was support for subqueries. Subquery is query inside the another query. It’s a powerful feature of SQL which makes writing multi level aggregation much easier and more performant.&lt;/p&gt;
-
-&lt;p&gt;In below sections, we will discuss how you can port your earlier complex 1.x sql queries into simpler and performant subqueries.&lt;/p&gt;
-
-&lt;h2 id=&quot;scalar-subqueries&quot;&gt;Scalar SubQueries&lt;/h2&gt;
-
-&lt;p&gt;There are different types of sub queries. One of those are scalar subqueries. They are called scalar as they return single result for query. There are two types
-of scalar queries&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Uncorrelated  Scalar SubQueries&lt;/li&gt;
-  &lt;li&gt;Correlated  Scalar SubQueries&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;uncorrelated-scalar-subqueries&quot;&gt;Uncorrelated Scalar SubQueries&lt;/h2&gt;
-
-&lt;p&gt;Let’s take an example. Let’s say we have loaded &lt;em&gt;sales&lt;/em&gt; data which we have used in earlier blogs. Now we want to figure out, how each item is doing
-compared to max sold item. For Ex: If our max value is 600, we want to compare how far is each of our sales to that figure. This kind of information
-is very valuable to understand the distribution of our sales.&lt;/p&gt;
-
-&lt;p&gt;So what we essential want to do is to add max amount to each row of the dataframe.&lt;/p&gt;
-
-&lt;h3 id=&quot;query-in-spark-1x&quot;&gt;Query in Spark 1.x&lt;/h3&gt;
-
-&lt;p&gt;In spark 1.x, there was no way to express this in one query. So we need to do as a two step. In first step we calculate the max &lt;em&gt;amountPaid&lt;/em&gt; and then 
-in second step we add that to each row as a literal. The code looks like below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;max_amount&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;select max(amountPaid) as max_amount from sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;first&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getDouble&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dfWithMaxAmount&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;select *, ($max_amount) as max_amount from sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Even though it works, it’s not elegant. If we want to add more aggregations, this doesn’t scale well.&lt;/p&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/SubQueries.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;query-in-2x&quot;&gt;Query in 2.x&lt;/h3&gt;
-
-&lt;p&gt;With uncorrelated scalar sub query support, the above code can be rewritten as below in 2.x&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dfWithMaxAmount&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;select *, (select max(amountPaid) from sales) max_amount from sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In this query, we write query inside query which calculates max value and adds to the dataframe. This code is much easier to write
-and maintain. The subquery is called uncorrelated because it returns same value for each row in the dataset.&lt;/p&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/SubQueries.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;correlated-sub-queries&quot;&gt;Correlated Sub Queries&lt;/h3&gt;
-
-&lt;p&gt;Let’s say we want to write same logic but per item. It becomes much more complicated in spark 1.x, because it’s no more single value for dataset. We need to calculate
-max for each group of items and append it to the group. So let’s see how sub queries help here.&lt;/p&gt;
-
-&lt;h3 id=&quot;query-in-1x&quot;&gt;Query in 1.x&lt;/h3&gt;
-
-&lt;p&gt;The logic for this problem involves a left join with group by operation. It can be written as below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dfWithMaxPerItem&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;&amp;quot;&amp;quot;select A.itemId, B.max_amount  &lt;/span&gt;
-&lt;span class=&quot;s&quot;&gt;from sales A left outer join ( select itemId, max(amountPaid) max_amount&lt;/span&gt;
-&lt;span class=&quot;s&quot;&gt;from sales B group by itemId) B where A.itemId = B.itemId&amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Again it’s complicated and less maintainable.&lt;/p&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/SubQueries.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;query-in-2x-1&quot;&gt;Query in 2.x&lt;/h3&gt;
-&lt;p&gt;Now we can rewrite the above code without any joins in subquery as below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dfWithMaxPerItem&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;select A.itemId, &lt;/span&gt;
-&lt;span class=&quot;s&quot;&gt;(select max(amountPaid) from sales where itemId=A.itemId) max_amount from sales A&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;This looks much cleaner than above. Internally spark converts above code into a left outer join. But as a user, we don’t need to worry about it.&lt;/p&gt;
-
-&lt;p&gt;The query is called correlated because it depends on outer query for doing the where condition evaluation of inner query.&lt;/p&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/SubQueries.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;Spark SQL is improved quite a lot in spark 2.0. We can rewrite many complicated spark 1.x queries using simple sql constructs like subqueries. This makes code 
-more readable and maintainable.&lt;/p&gt;
-
-&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://databricks.com/blog/2016/06/17/sql-subqueries-in-apache-spark-2-0.html&quot;&gt;SQL Subqueries in Apache Spark 2.0&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-        <pubDate>Wed, 14 Jun 2017 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-7</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-7</guid>
       </item>
     
   </channel>

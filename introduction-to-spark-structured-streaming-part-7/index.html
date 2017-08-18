@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Migrating to Spark 2.0 - Part 1 : Scala Version and Dependencies</title>
+    <title>Introduction to Spark Structured Streaming - Part 7 : Checkpointing State</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/migrating-to-spark-two-part-1">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-7">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,90 +45,94 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Migrating to Spark 2.0 - Part 1 : Scala Version and Dependencies</h1>
-  <p class="meta">Apr 13, 2017</p>
+  <h1>Introduction to Spark Structured Streaming - Part 7 : Checkpointing State</h1>
+  <p class="meta">Aug 18, 2017</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
     <a href="/categories/spark"><span class="category">spark</span></a>
     
-    <a href="/categories/spark-two-migration-series"><span class="category">spark-two-migration-series</span></a>
+    <a href="/categories/introduction-structured-streaming"><span class="category">introduction-structured-streaming</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.</p>
+  <p>Structured Streaming is a new streaming API, introduced in spark 2.0, rethinks stream processing in spark land. It models stream
+as an infinite table, rather than discrete collection of data. It’s a radical departure from models of other stream processing frameworks like
+storm, beam, flink etc. Structured Streaming is the first API to build stream processing on top of SQL engine.</p>
 
-<p>This is the first post in this series. In this post, we will discuss how to upgrade our dependencies to add right support for spark 2.0. You can access all the posts <a href="/categories/spark-two-migration-series">here</a>.</p>
+<p>Structured Streaming was in alpha in 2.0 and 2.1. But with release 2.2 it has hit stable status. In next few releases,
+it’s going to be de facto way of doing stream processing in spark. So it will be right time to make ourselves familiarise
+with this new API.</p>
 
-<h2 id="choosing-right-scala-version">Choosing Right Scala Version</h2>
+<p>In this series of posts, I will be discussing about the different aspects of the structured streaming API. I will be discussing about
+new API’s, patterns and abstractions to solve common stream processing tasks.</p>
 
-<p>When you want to upgrade from spark 1.x to spark 2.x, first task is to pick the right scala version. In spark 1.x, spark was built using scala version 2.10.6. But from spark 2.0, the default version is changed to 2.11.8. 2.10 version is still supported even though it’s not default.</p>
+<p>This is the seventh post in the series. In this post, we discuss about checkpointing the state for recovery. You 
+can read all the posts in the series <a href="/categories/introduction-structured-streaming">here</a>.</p>
 
-<p>Scala major versions are non binary compatible, i.e you cannot mix and match the libraries built using 2.10 and 2.11. So whenever you change the scala version of the project, you need to upgrade all the libraries of the project including non-spark ones. It’s a significant work as you need to comb through each and every dependency and make sure right version exist.</p>
+<p>TL;DR You can access code on <a href="https://github.com/phatak-dev/spark2.0-examples/tree/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming">github</a>.</p>
 
-<p>Initially I started the upgrade using Scala 2.10 as it was least resistance path. All the other external libraries needed no change and it was smooth. But I soon realised the distribution at spark download page <a href="https://spark.apache.org/downloads.html">https://spark.apache.org/downloads.html</a> is only built using scala 2.11. So to support 2.10 I have to build my own distribution. Also I came across the <a href="https://issues.apache.org/jira/browse/SPARK-19810">jira</a> which discusses about removing scala 2.10 support altogether in 2.3.0. So this meant investing in 2.10 will be not good as it will be obsolete in next few versions.</p>
+<h2 id="need-of-checkpointing">Need of Checkpointing</h2>
 
-<p>So I chose <em>2.11.8</em> as my scala version for upgrade.</p>
+<p>Many stream processing applications are stateful in nature. With built in support for stateful aggregations in structured streaming, it has become easier to build them.But whenever we build stateful applications, we need to be careful about preserving the state across restarts or failures. We don’t want to loose our valuable state if processing units went down for some reason.</p>
 
-<h2 id="choosing-right-java-version">Choosing Right Java Version</h2>
+<p>Checkpointing is one of the mechanism to preserve the state of the application across the restart of driver or executors. In spark, checkpointing is achieved using writing the state of the query to a HDFS folder. In this post, we will explore how to enable checkpointing and use it.</p>
 
-<p>From Spark 2.1.0 version, support for Java 7 has been deprecated. So I started using Java 8 for building and deploying the code.</p>
+<h2 id="source-support">Source Support</h2>
 
-<h2 id="updating-external-dependencies">Updating External Dependencies</h2>
+<p>To enable the checkpointing, the source from which we read the data need to support it. Not all the sources in structured streaming support checkpointing. One of the example of is socket streams. Checkpointing sometime may need to replay some of the data from source in order to recover the state. In those cases we need a source which supports that kind of functionality. Socket doesn’t support that.</p>
 
-<p>One of the major challenges of changing scala version is to update all the project dependencies. My project had a fair bit of them and luckily all of those libraries had scala 2.11 version. So please make sure that all the libraries have 2.11 version before you make decision to change scala version.</p>
+<p>Sources like file stream, kafka have ability to replay messages on offset. So they support checkpointing.</p>
 
-<h2 id="updating-connectors">Updating Connectors</h2>
+<h2 id="sales-aggregation">Sales Aggregation</h2>
 
-<p>There are major changes happened to the connector ecosystem in spark 2.0. So when you are upgrading to spark 2.0, you need to make sure that you use the right connectors.</p>
+<p>For this example, we take sales data from a file stream and do some aggregation on it. The below is the code</p>
 
-<ul>
-  <li>
-    <h3 id="removal-of-built-in-streaming-connectors">Removal of Built in Streaming Connectors</h3>
-  </li>
-</ul>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">schema</span> <span class="k">=</span> <span class="nc">StructType</span><span class="o">(</span>
+  <span class="nc">Array</span><span class="o">(</span><span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;transactionId&quot;</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
+        <span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;customerId&quot;</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
+        <span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;itemId&quot;</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
+        <span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;amountPaid&quot;</span><span class="o">,</span> <span class="nc">DoubleType</span><span class="o">)))</span>
 
-<p>Earlier spark had support for zeromq, twitter as part of spark streaming code base. But in spark 2.x, they have removed <a href="https://issues.apache.org/jira/browse/SPARK-13843">it</a>. No more these connectors are part of spark-streaming. This is done mostly to develop these connectors independent of spark versions. So if you are using these connector code will break.</p>
+<span class="c1">//create stream from folder</span>
+<span class="k">val</span> <span class="n">fileStreamDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">readStream</span>
+  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">schema</span><span class="o">(</span><span class="n">schema</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">csv</span><span class="o">(</span><span class="s">&quot;/tmp/input&quot;</span><span class="o">)</span>
 
-<p>To fix this issue, you need to update the dependencies to point to <a href="https://github.com/apache/bahir">Apache Bahir</a>. Apache Bahir is new home to all of this deleted connectors. Follow the README of bahir repository to update the dependencies to bahir ones.</p>
+<span class="k">val</span> <span class="n">countDs</span> <span class="k">=</span> <span class="n">fileStreamDf</span><span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="s">&quot;customerId&quot;</span><span class="o">).</span><span class="n">sum</span><span class="o">(</span><span class="s">&quot;amountPaid&quot;</span><span class="o">)</span></code></pre></div>
 
-<ul>
-  <li>
-    <h3 id="spark-20-specific-connectors">Spark 2.0 specific connectors</h3>
-  </li>
-</ul>
+<p>In this example, we are aggregating the amount for a given customer. We like to checkpoint this state. It makes sure that amount doesn’t start from zero whenever there is failure.</p>
 
-<p>Many popular connectors now give spark 2.0 specific connectors to build with. These connectors provide both scala 2.10 and 2.11 version. Choose the right one depending upon the scala version you have chosen. As I have chosen 2.11, the below are the some of updated connectors for some sources</p>
+<h2 id="check-point-directory-in-query">Check Point Directory in Query</h2>
 
-<ul>
-  <li>
-    <h4 id="elastic-search">Elastic Search</h4>
-  </li>
-</ul>
+<p>In structured streaming, checkpoint directory is specific to a query. We can have multiple queries writing state to multiple different directories. This makes easy
+to scale checkpointing across multiple different processing.</p>
 
-<p>Elastic search has a dedicated spark connector which was used to be called as elasticsearch-hadoop. You can access latest connector <a href="https://mvnrepository.com/artifact/org.elasticsearch/elasticsearch-spark-20_2.11/5.3.0">here</a>.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">query</span> <span class="k">=</span>
+  <span class="n">countDs</span><span class="o">.</span><span class="n">writeStream</span>
+    <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;console&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;checkPoint&quot;</span><span class="o">,</span> <span class="s">&quot;/tmp/checkpoint&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">outputMode</span><span class="o">(</span><span class="nc">OutputMode</span><span class="o">.</span><span class="nc">Complete</span><span class="o">())</span></code></pre></div>
 
-<ul>
-  <li>
-    <h4 id="csv-connector">Csv Connector</h4>
-  </li>
-</ul>
+<p>In above code, we specify the checkpointing directory using <em>checkPoint</em> option on <em>writeStream</em>. This makes sure that the state is written the directory.</p>
 
-<p>From Spark 2.0, csv is built in source. Earlier we used to use <a href="https://github.com/databricks/spark-csv">spark-csv</a>.</p>
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming/RecoverableAggregation.scala">github</a>.</p>
 
-<p>If you are using any other connector, make sure they support 2.0. One thing to note that, if the connector is available in right scala version, it doesn’t need any code changes to support spark 2.x. Spark 2.x data source API is backward compatible with spark 1.x</p>
+<h2 id="recovering-state">Recovering State</h2>
+
+<p>Whenever there is checkpoint directory attached to query, spark goes through the content of the directory before it accepts any new data. This makes sure that spark recovers the old state before it starts processing new data. So whenever there is restart, spark first recovers the old state and then start processing new data from the stream.</p>
+
+<h2 id="running">Running</h2>
+
+<p>Input the files to <em>/tmp/input</em> in local or hdfs folder. After sometime, restart the driver. You should observe the recovery of state.</p>
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>So by updating scala version, java version and using right connectors you can update your project build to use spark 2.x.</p>
-
-<h2 id="whats-next">What’s Next?</h2>
-
-<p>In next blog, we will be discuss about major changes in spark csv connector.</p>
-
+<p>With checkpointing support, we can build robust stateful stream processing applications in structured streaming.</p>
 
 </article>
 <div class="related">
@@ -136,12 +140,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">18 Aug 2017</span>
-     &raquo; <a href="/introduction-to-spark-structured-streaming-part-7">Introduction to Spark Structured Streaming - Part 7 : Checkpointing State</a>    
-   </li>           
-         
+          
 
             
     
@@ -162,12 +161,7 @@
    
    
              
-    
-    <li>    
-     <span class="post-date">18 Aug 2017</span>
-     &raquo; <a href="/introduction-to-spark-structured-streaming-part-7">Introduction to Spark Structured Streaming - Part 7 : Checkpointing State</a>    
-   </li>           
-         
+          
 
             
     
