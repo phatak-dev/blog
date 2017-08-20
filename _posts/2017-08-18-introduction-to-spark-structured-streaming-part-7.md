@@ -66,12 +66,12 @@ to scale checkpointing across multiple different processing.
 val query =
   countDs.writeStream
     .format("console")
-    .option("checkPoint", "/tmp/checkpoint")
+    .option("checkpointLocation", "/tmp/checkpoint")
     .outputMode(OutputMode.Complete())
 
 {%endhighlight %}
 
-In above code, we specify the checkpointing directory using *checkPoint* option on *writeStream*. This makes sure that the state is written the directory.
+In above code, we specify the checkpointing directory using *checkpointLocation* option on *writeStream*. This makes sure that the state is written the directory.
 
 You can access complete code on [github](https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming/RecoverableAggregation.scala).
 
@@ -86,3 +86,4 @@ Input the files to */tmp/input* in local or hdfs folder. After sometime, restart
 ## Conclusion
 
 With checkpointing support, we can build robust stateful stream processing applications in structured streaming.
+
