@@ -115,10 +115,10 @@ to scale checkpointing across multiple different processing.</p>
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">query</span> <span class="k">=</span>
   <span class="n">countDs</span><span class="o">.</span><span class="n">writeStream</span>
     <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;console&quot;</span><span class="o">)</span>
-    <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;checkPoint&quot;</span><span class="o">,</span> <span class="s">&quot;/tmp/checkpoint&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;checkpointLocation&quot;</span><span class="o">,</span> <span class="s">&quot;/tmp/checkpoint&quot;</span><span class="o">)</span>
     <span class="o">.</span><span class="n">outputMode</span><span class="o">(</span><span class="nc">OutputMode</span><span class="o">.</span><span class="nc">Complete</span><span class="o">())</span></code></pre></div>
 
-<p>In above code, we specify the checkpointing directory using <em>checkPoint</em> option on <em>writeStream</em>. This makes sure that the state is written the directory.</p>
+<p>In above code, we specify the checkpointing directory using <em>checkpointLocation</em> option on <em>writeStream</em>. This makes sure that the state is written the directory.</p>
 
 <p>You can access complete code on <a href="https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming/RecoverableAggregation.scala">github</a>.</p>
 
@@ -133,6 +133,7 @@ to scale checkpointing across multiple different processing.</p>
 <h2 id="conclusion">Conclusion</h2>
 
 <p>With checkpointing support, we can build robust stateful stream processing applications in structured streaming.</p>
+
 
 </article>
 <div class="related">
