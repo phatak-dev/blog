@@ -28,8 +28,8 @@ In structured streaming, all aggregations are stateful by default. As we saw in 
 Though most of the time scenarios of stream processing need code to be stateful, it comes with the cost of state management and state recovery in the case of failures. So if we are doing simple ETL processing on stream, we may not need state to be kept across the stream. Sometime we want to keep
 the state just for small batch and then reset.
 
-For example, let's take wordcount. Let's say we want to count the words for every 10 seconds. Here the aggregation is done on the data which
-is collected for last 10 seconds. The state is only kept for those 10 seconds and the forgotten. So in case of failure, we need to recover data only for last 10 seconds. Though this example looks simple, it's applicable to many real world scenarios.
+For example, let's take wordcount. Let's say we want to count the words for every 5 seconds. Here the aggregation is done on the data which
+is collected for last 5 seconds. The state is only kept for those 5 seconds and the forgotten. So in case of failure, we need to recover data only for last 5 seconds. Though this example looks simple, it's applicable to many real world scenarios.
 
 In the following part of the post we will be discussing about how to implement the stateless wordcount using structured streaming API.
 
@@ -76,7 +76,7 @@ One thing to remember is flatMapGroups is slower than count API. The reason bein
 
 ## Specifying the Trigger
 
-As we want to aggregate for every 10 seconds, we need to pass that information to query using trigger API. Trigger API is used to specify the frequency of computation. This separation of frequency from the stream processing is one of the most important part of structured streaming. This separation allows us to be flexible in computing different results in different speed.
+As we want to aggregate for every 5 seconds, we need to pass that information to query using trigger API. Trigger API is used to specify the frequency of computation. This separation of frequency from the stream processing is one of the most important part of structured streaming. This separation allows us to be flexible in computing different results in different speed.
 
 {% highlight scala %}
 
@@ -88,7 +88,7 @@ val query =
 
 In the above code, we have specified the trigger using processing time. This analogous to the batch time of DStream API. Also observe that, we have specified output mode as *append*. This means we are doing only batch wise aggregations rather than full stream aggregations.
 
-When you run this example, you will observe that the aggregation will be running on data entered in last 10 seconds.
+When you run this example, you will observe that the aggregation will be running on data entered in last 5 seconds.
 
 You can access complete code on [github](https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming/StatelessWordCount.scala).
 
