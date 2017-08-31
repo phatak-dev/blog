@@ -1,10 +1,82 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Madhukar&#39;s Blog</title>
+    <title>Madhukar's Blog</title>
     <description>Thoughts on technology, life and everything else.</description>
     <link>http://blog.madhukaraphatak.com/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
+    
+      <item>
+        <title>Introduction to Spark Structured Streaming - Part 8 : Time Abstraction</title>
+        <description>&lt;p&gt;Structured Streaming is a new streaming API, introduced in spark 2.0, rethinks stream processing in spark land. It models stream
+as an infinite table, rather than discrete collection of data. It’s a radical departure from models of other stream processing frameworks like
+storm, beam, flink etc. Structured Streaming is the first API to build stream processing on top of SQL engine.&lt;/p&gt;
+
+&lt;p&gt;Structured Streaming was in alpha in 2.0 and 2.1. But with release 2.2 it has hit stable status. In next few releases,
+it’s going to be de facto way of doing stream processing in spark. So it will be right time to make ourselves familiarise
+with this new API.&lt;/p&gt;
+
+&lt;p&gt;In this series of posts, I will be discussing about the different aspects of the structured streaming API. I will be discussing about
+new API’s, patterns and abstractions to solve common stream processing tasks.&lt;/p&gt;
+
+&lt;p&gt;This is the eighth post in the series. In this post, we discuss about time abstraction in structured streaming. You 
+can read all the posts in the series &lt;a href=&quot;/categories/introduction-structured-streaming&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR You can access code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/tree/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;concept-of-time-in-streaming-application&quot;&gt;Concept of Time in Streaming Application&lt;/h2&gt;
+
+&lt;p&gt;A streaming application is an always running application. So in order to understand the behavior of the application over time, we need to take snapshots of the stream in various points. Normally these various points are defined using a time component.&lt;/p&gt;
+
+&lt;p&gt;Time in streaming application is way to correlate different events in the stream to extract some meaningful insights. For example, when we say count of words in a word count example for last 10 seconds, we normally mean to collect all the records arrived in that point of time and run a word count on it.&lt;/p&gt;
+
+&lt;p&gt;In DStream API,spark supported one concept of time. But structured streaming API support multiple different ones.&lt;/p&gt;
+
+&lt;h2 id=&quot;time-in-structured-streaming&quot;&gt;Time in Structured Streaming&lt;/h2&gt;
+
+&lt;p&gt;When we say, last 10 seconds what it means in structured streaming? it depends. It can be one of three following&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;processing-time&quot;&gt;Processing Time&lt;/h3&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This concept of time is very familiar to most of the users. In this, time is tracked using a clock run by the processing engine. So in this time, last 10 seconds means the records arrived in last 10 seconds for the processing. Here we only use the semantics of when the records came for processing. DStream supported this abstraction of time in it’s API.&lt;/p&gt;
+
+&lt;p&gt;Though processing time is good time measure to have,it’s not always enough. For example, if we want to calculate state of sensors at given point of time, we want to collect events that happened in that time range. But if the events arrive lately to processing system due to various reasons, we may miss some of the events as processing clock does not care about the actual time of events. To address this, structured streaming support another kind of time called event time.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;event-time&quot;&gt;Event Time&lt;/h3&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Event time is the time embed in the data that is coming into the system. So here 10 seconds means, all the records generated in those 10 seconds at the source. These may come out of order to processing. This time is independent of the clock that is kept by the processing engine.Event time is extremely useful for handling the late arrival events.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;ingestion-time&quot;&gt;Ingestion Time&lt;/h3&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Ingestion time is the time when events ingested into the system. This time is in between of the event time and processing time. Normally in processing time, each machine in cluster is used to assign the time stamp to track events. This may result in little inconsistent view of the data, as there may be delays in time across the cluster. But ingestion time, time stamp is assigned in ingestion so that all the machines in the cluster have exact same view. These are useful to calculate results on data that arrive in order at the level of ingestion.&lt;/p&gt;
+
+&lt;h2 id=&quot;watermarks&quot;&gt;WaterMarks&lt;/h2&gt;
+
+&lt;p&gt;As structured streaming supports multiple concept of time, how it keep tracks of time?. Because in the normal processing time, a system clock can be used. But you cannot use the system clock in case of the event time and ingestion time. So there has to be a generic mechanism to handle this.&lt;/p&gt;
+
+&lt;p&gt;Watermarks is the mechanism used by the structured streaming in order to signify the passing of time in stream. Watermarks are implemented using partial aggregations and the update output mode. Watermarks allow us to implement both tracking time and handle late events.We will discuss more about water marks in upcoming posts.&lt;/p&gt;
+
+&lt;p&gt;Now we understand different time abstractions supported by structured streaming. In upcoming blogs, we will discuss how to work with these different abstractions.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;Structured streaming has a rich time abstractions which makes modeling different stream processing applications much easier than earlier API.&lt;/p&gt;
+</description>
+        <pubDate>Thu, 31 Aug 2017 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-8</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-8</guid>
+      </item>
     
       <item>
         <title>Introduction to Spark Structured Streaming - Part 7 : Checkpointing State</title>
@@ -890,187 +962,6 @@ Time taken: 0.051 seconds, Fetched: 14 row(s)&lt;/code&gt;&lt;/pre&gt;&lt;/div&g
         <pubDate>Fri, 23 Jun 2017 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-9</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-9</guid>
-      </item>
-    
-      <item>
-        <title>Migrating to Spark 2.0 - Part 8 : Catalog API</title>
-        <description>&lt;p&gt;Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.&lt;/p&gt;
-
-&lt;p&gt;This is the eighth post in this series.In this post we will discuss about catalog support in spark sql. You can access all the posts &lt;a href=&quot;/categories/spark-two-migration-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;TL;DR You can access all the code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;catalog-api&quot;&gt;Catalog API&lt;/h2&gt;
-
-&lt;p&gt;In spark 1.x, spark heavily depended  on hive for all metastore related operations. Even though sqlContext supported few of the DDL operations, most of them
-were very basic and not complete. So spark documentation often recommended using HiveContext over SQLContext. Also whenever user uses HiveContext, spark
-support for interacting with hive metastore was limited. So most of the metastore operation’s often done as embedded hive queries.&lt;/p&gt;
-
-&lt;p&gt;Spark 2.x changes all of this. It has exposed a full fledged user facing catalog API which works for both spark SQL and hive. Not only it supports
-the spark 1.x operations, it has added many new ones to improve the interaction with metastore.&lt;/p&gt;
-
-&lt;p&gt;In below sections, we will be discussing about porting earlier metastore operations to new catalog API.&lt;/p&gt;
-
-&lt;h2 id=&quot;creating-table&quot;&gt;Creating Table&lt;/h2&gt;
-
-&lt;p&gt;Before we do any DDL operations, we need to create a table. For our example, we will use temporary tables.&lt;/p&gt;
-
-&lt;h3 id=&quot;spark-1x&quot;&gt;Spark 1.x&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;com.databricks.spark.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;../test_data/sales.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;loadedDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;registerTempTable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;We use &lt;em&gt;registerTempTable&lt;/em&gt; API for creating table in in-memory catalog.&lt;/p&gt;
-
-&lt;h3 id=&quot;spark-2x&quot;&gt;Spark 2.x&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadedDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;../test_data/sales.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;loadedDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createOrReplaceTempView&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In 2.x, &lt;em&gt;registerTempTable&lt;/em&gt; API is deprecated. We should use &lt;em&gt;createOrReplaceTempView&lt;/em&gt; for the same.&lt;/p&gt;
-
-&lt;h2 id=&quot;list-tables&quot;&gt;List Tables&lt;/h2&gt;
-
-&lt;p&gt;Once we have table registered, first catalog operation is listing tables.&lt;/p&gt;
-
-&lt;h3 id=&quot;spark-1x-1&quot;&gt;Spark 1.x&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tables&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In spark 1.x, catalog API’s were added to context directly. The below is the output&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;+---------+-----------+
-|tableName|isTemporary|
-+---------+-----------+
-|    sales|       true|
-+---------+-----------+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In output, it specifies the name of the table and is it temporary or not. When we run same operation on hive metastore, &lt;em&gt;isTemporary&lt;/em&gt; will be false.&lt;/p&gt;
-
-&lt;h3 id=&quot;spark-2x-1&quot;&gt;Spark 2.x&lt;/h3&gt;
-
-&lt;p&gt;In spark 2.x, there is separate API called &lt;em&gt;catalog&lt;/em&gt; on spark session. It exposes all needed API’s.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;listTables&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The output looks like below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;+-----+--------+-----------+---------+-----------+
-| name|database|description|tableType|isTemporary|
-+-----+--------+-----------+---------+-----------+
-|sales|    null|       null|TEMPORARY|       true|
-+-----+--------+-----------+---------+-----------+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;From output it is apparent that output of new catalog API is more richer than old one. Also from spark 2.x, it has added database information as
-part of the catalog which was missing in earlier API’s.&lt;/p&gt;
-
-&lt;h3 id=&quot;list-table-names&quot;&gt;List Table Names&lt;/h3&gt;
-
-&lt;p&gt;In spark 1.x, there is a API for listing just the name of the tables. The code looks below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tableNames&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In spark 2.x, there is no separate API for getting database names. As listTables, returns a Dataset we can use normal spark sql API’s for getting the name.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;listTables&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;name&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;collect&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;caching&quot;&gt;Caching&lt;/h2&gt;
-
-&lt;p&gt;As part of the catalog API, we can check is given table is cached or not.&lt;/p&gt;
-
-&lt;h3 id=&quot;spark-1x-2&quot;&gt;Spark 1.x&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isCached&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;spark-2x-2&quot;&gt;Spark 2.x&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isCached&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;external-tables&quot;&gt;External Tables&lt;/h3&gt;
-
-&lt;p&gt;Till now, we worked with tables which we creating using dataframes. Let’s say we need to create table directly from a file without going through data source API. These often known as external tables.&lt;/p&gt;
-
-&lt;h3 id=&quot;spark-1x-3&quot;&gt;Spark 1.x&lt;/h3&gt;
-
-&lt;p&gt;In spark 1.x, SQLContext didn’t support creating external tables. So we need to use hivecontext for do that.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hiveContext&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;HiveContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sparkContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
- &lt;span class=&quot;n&quot;&gt;hiveContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setConf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;hive.metastore.warehouse.dir&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;/tmp&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
- &lt;span class=&quot;n&quot;&gt;hiveContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createExternalTable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales_external&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;com.databricks.spark.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
-   &lt;span class=&quot;s&quot;&gt;&amp;quot;path&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;../test_data/sales.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-   &lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
- &lt;span class=&quot;n&quot;&gt;hiveContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales_external&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above code, first we create &lt;em&gt;HiveContext&lt;/em&gt;. Then we need to set the warehouse directory so hive context knows where to keep the data. Then we use
-&lt;em&gt;createExternalTable&lt;/em&gt; API to load the data to &lt;em&gt;sales_external&lt;/em&gt; table.&lt;/p&gt;
-
-&lt;h3 id=&quot;spark-2x-3&quot;&gt;Spark 2.x&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createExternalTable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales_external&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;com.databricks.spark.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
- &lt;span class=&quot;s&quot;&gt;&amp;quot;path&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;../test_data/sales.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
- &lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales_external&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In spark 2.x, creating external table is part of catalog API itself. We don’t need to enable hive for this functionality.&lt;/p&gt;
-
-&lt;h2 id=&quot;additional-apis&quot;&gt;Additional API’s&lt;/h2&gt;
-
-&lt;p&gt;The above examples showed the porting of spark 1.x code to spark 2.x. But there are additional API’s in spark 2.x catalog which are useful
-in day to day development. Below sections discusses few of them.&lt;/p&gt;
-
-&lt;h2 id=&quot;list-functions&quot;&gt;List Functions&lt;/h2&gt;
-
-&lt;p&gt;The below code list all the functions, built in and user defined. It helps us to know what are the Udfs, Udaf’s available in current session.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;listFunctions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The sample output looks as below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;+--------------------+--------+-----------+--------------------+-----------+
-|                name|database|description|           className|isTemporary|
-+--------------------+--------+-----------+--------------------+-----------+
-|                   !|    null|       null|org.apache.spark....|       true|
-|                   %|    null|       null|org.apache.spark....|       true|
-|                   &amp;amp;|    null|       null|org.apache.spark....|       true|
-|                acos|    null|       null|org.apache.spark....|       true|
-|          add_months|    null|       null|org.apache.spark....|       true|
-|                 and|    null|       null|org.apache.spark....|       true|
-|approx_count_dist...|    null|       null|org.apache.spark....|       true|
-+--------------------+--------+-----------+--------------------+-----------+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;list-columns&quot;&gt;List Columns&lt;/h2&gt;
-
-&lt;p&gt;We can also list the columns of a table.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;catalog&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;listColumns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;sales&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The below is the output for our &lt;em&gt;sales&lt;/em&gt; table.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;+-------------+-----------+--------+--------+-----------+--------+
-|         name|description|dataType|nullable|isPartition|isBucket|
-+-------------+-----------+--------+--------+-----------+--------+
-|transactionId|       null|  string|    true|      false|   false|
-|   customerId|       null|  string|    true|      false|   false|
-|       itemId|       null|  string|    true|      false|   false|
-|   amountPaid|       null|  string|    true|      false|   false|
-+-------------+-----------+--------+--------+-----------+--------+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;complete-code&quot;&gt;Complete code&lt;/h2&gt;
-
-&lt;p&gt;You can access complete code for spark 1.x &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/CatalogExample.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;You can access complete code for spark 2.x &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/CatalogExample.scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;In this blog we have discussed about improvements in catalog API. Using new catalog API, you can get information of tables much easier than before.&lt;/p&gt;
-</description>
-        <pubDate>Tue, 20 Jun 2017 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-8</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-8</guid>
       </item>
     
   </channel>
