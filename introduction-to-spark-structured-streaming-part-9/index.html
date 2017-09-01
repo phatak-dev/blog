@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Introduction to Spark Structured Streaming - Part 1 : DataFrame Abstraction to Stream</title>
+    <title>Introduction to Spark Structured Streaming - Part 9 : Processing Time Window</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-1">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-9">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,8 +45,8 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Introduction to Spark Structured Streaming - Part 1 : DataFrame Abstraction to Stream</h1>
-  <p class="meta">Jul 25, 2017</p>
+  <h1>Introduction to Spark Structured Streaming - Part 9 : Processing Time Window</h1>
+  <p class="meta">Sep 1, 2017</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
@@ -70,88 +70,107 @@ with this new API.</p>
 <p>In this series of posts, I will be discussing about the different aspects of the structured streaming API. I will be discussing about
 new API’s, patterns and abstractions to solve common stream processing tasks.</p>
 
-<p>This is the first post in the series. In this post, we discuss about the structured streaming abstractions. You
+<p>This is the ninth post in the series. In this post, we discuss about processing time abstraction. You 
 can read all the posts in the series <a href="/categories/introduction-structured-streaming">here</a>.</p>
 
-<h2 id="unified-dataset-abstraction-in-spark-20">Unified Dataset Abstraction in Spark 2.0</h2>
+<p>TL;DR You can access code on <a href="https://github.com/phatak-dev/spark2.0-examples/tree/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming">github</a>.</p>
 
-<p>In Spark 2.0, spark has replaced RDD with Dataset as single abstraction for all user facing API’s. Dataset is an abstraction for structured 
-world which combines best of both RDD and Dataframe world.Dataset has already replaced batch, machine learning and graph processing RDD API’s.</p>
+<h2 id="processing-time-abstraction">Processing Time Abstraction</h2>
 
-<p>With structured streaming, dataset abstractions are coming to streaming API’s also. It’s going to be replacing RDD based
-streaming API of 1.x</p>
+<p>In last <a href="/introduction-to-spark-structured-streaming-part-8/">post</a> we discussed about the different time abstractions. One of those abstractions were processing time. As name signifies, processing time is the time tracked by processing engine regarding when data was arrived for processing. This is same as time definition of older DStream API. In this abstraction of time, time passed is signified by the central clock maintained at the driver.</p>
 
-<h2 id="stream-as-datasetdataframe">Stream as Dataset/Dataframe</h2>
+<p>In this post, we will discuss how to define a window on processing time. This allows us to see how we can mimic the DStream window API functionality in structured streaming API.</p>
 
-<p>In spark 1.x, a stream is viewed as collection of RDD, where each RDD is created for minibatch. It worked well initially, as it allowed
-users of spark to reuse rdd abstractions for streaming also. But over time developers started noticing the limitations of this approach.</p>
+<h2 id="windowed-wordcount-using-processing-time">Windowed WordCount using Processing Time</h2>
 
-<h2 id="limitations-of-dstream-api">Limitations of DStream API</h2>
+<p>The below are the steps to implement windowed word count using processing time abstraction.</p>
 
-<h3 id="batch-time-constraint">Batch Time Constraint</h3>
+<h3 id="reading-data-from-socket">Reading Data From Socket</h3>
 
-<p>As stream is represented as faster batch processing, batch time become critical component of stream design. If you have coded in Dstream API,
-you know that you need to specify the batch time at the time of StreamingContext creation. This application level batch time becomes an issue,
-when different streams  have different speeds. So often users resorted to window functions to normalise the streams which often lead to poor 
-performance.</p>
+<p>The below code is to read the data from socket.</p>
 
-<h3 id="no-support-for-event-time">No Support for Event Time</h3>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">socketStreamDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">readStream</span>
+  <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;socket&quot;</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;host&quot;</span><span class="o">,</span> <span class="s">&quot;localhost&quot;</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;port&quot;</span><span class="o">,</span> <span class="mi">50050</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">load</span><span class="o">()</span></code></pre></div>
 
-<p>As batch time dictates the central clock for stream, we cannot change it from stream to stream. So this means we can’t use time embedded in the stream
-, known as event time, for processing. Often in stream processing, we will be interested more in event time than process time i.e time of event generation at source rather than time at which event has reached the processing system. So it was not possible to expose the event time capability with Dstream API’s.</p>
+<h3 id="adding-the-time-column">Adding the Time Column</h3>
 
-<h3 id="weak-support-for-datasetdataframe-abstractions">Weak Support for Dataset/DataFrame abstractions</h3>
+<p>To define a window in structured streaming, we need to have a column in dataframe of the type <em>Timestamp</em>. As we are working with processing time,
+we will use <em>current_timestamp()</em> function of spark SQL to add processing time to our data.</p>
 
-<p>As more and more code in spark moved to Dataframe/Dataset abstractions, it was desirable to do the same for streaming also. Often dataset based code
-resulted in performant code due to catalyst and code generations than RDD based ones.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">currentTimeDf</span> <span class="k">=</span> <span class="n">socketStreamDf</span><span class="o">.</span><span class="n">withColumn</span><span class="o">(</span><span class="s">&quot;processingTime&quot;</span><span class="o">,</span><span class="n">current_timestamp</span><span class="o">())</span></code></pre></div>
 
-<p>It’s possible to create a dataset from RDD. But that doesn’t work well with streaming API’s. So users often stuck with RDD API’s for streaming where rest of
-libraries enjoyed better abstractions.</p>
+<p>In above code, we are adding a column named <em>processingTime</em> which captures the current time of the processing engine.</p>
 
-<h3 id="no-custom-triggers">No Custom Triggers</h3>
+<h3 id="extracting-words">Extracting Words</h3>
 
-<p>As stream processing becomes complex, it’s often desirable to define custom triggers to track interesting behaviours. One of the typical use case for custom
-triggers are user sessions. Typically a user session is part of stream where user has logged in and using the services till he logged out or login expired. Many stream processing tasks like to define a window which captures this information.</p>
+<p>The below code extracts the words from socket and creates words with timestamp.</p>
 
-<p>One of the challenge of session is, it’s not bounded by time. Some sessions can be small but some may go for long. So we can’t use processing time
-or even event time to define this. As dstream API’s was only capable of defining window using time, user were not able define session based processing
-easily in existing API’s.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">import</span> <span class="nn">sparkSession.implicits._</span>
+<span class="k">val</span> <span class="n">socketDs</span> <span class="k">=</span> <span class="n">currentTimeDf</span><span class="o">.</span><span class="n">as</span><span class="o">[(</span><span class="kt">String</span>, <span class="kt">Timestamp</span><span class="o">)]</span>
+<span class="k">val</span> <span class="n">wordsDs</span> <span class="k">=</span> <span class="n">socketDs</span>
+  <span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">line</span> <span class="k">=&gt;</span> <span class="n">line</span><span class="o">.</span><span class="n">_1</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="n">word</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">word</span><span class="o">,</span> <span class="n">line</span><span class="o">.</span><span class="n">_2</span><span class="o">)))</span>
+  <span class="o">.</span><span class="n">toDF</span><span class="o">(</span><span class="s">&quot;word&quot;</span><span class="o">,</span> <span class="s">&quot;processingTime&quot;</span><span class="o">)</span></code></pre></div>
 
-<h3 id="updates">Updates</h3>
+<h3 id="defining-window">Defining Window</h3>
 
-<p>DStream API models stream as a continuous new events. It treats each event atomically and when we write the result of any batch, it doesn’t remember
-the state of earlier batches. This works well for simple ETL workloads. But often there are scenarios, where there is an event which indicates the update
-to the event which was already processed by the system. In that scenarios, it’s often desirable to update the sink ( a place to which we write the output 
-of the stream processing), rather than adding new records. But Dstream API, doesn’t expose any of those semantics.</p>
+<p>Once we have words, we define a tumbling window which aggregates data for last 15 seconds.</p>
 
-<h2 id="advantages-of-representing-stream-as-dataframe">Advantages of Representing Stream as DataFrame</h2>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">windowedCount</span> <span class="k">=</span> <span class="n">wordsDs</span>
+  <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span>
+    <span class="n">window</span><span class="o">(</span><span class="n">$</span><span class="s">&quot;processingTime&quot;</span><span class="o">,</span> <span class="s">&quot;15 seconds&quot;</span><span class="o">)</span>
+  <span class="o">)</span>
+  <span class="o">.</span><span class="n">count</span><span class="o">()</span>
+  <span class="o">.</span><span class="n">orderBy</span><span class="o">(</span><span class="s">&quot;window&quot;</span><span class="o">)</span></code></pre></div>
 
-<p>To solve the issues mentioned above, spark has remodeled the stream as infinite dataset, rather than a collection of RDD’s. This makes a quite
-departure from the mini batch model employed in earlier API. Using this model, we can address issues of earlier API’s.</p>
+<p>In above code, we define window as part of groupby. We group the records that we received in last 15 seconds.</p>
 
-<h3 id="trigger-is-specific-to-stream">Trigger is specific to Stream</h3>
+<p>Window API takes below parameters</p>
 
-<p>In structured streaming, there is no batch time. It’s replaced with triggers which can be both time based and non-time based. Also
-trigger is specific to stream, which makes modeling event time and implementing sessionization straight forward in this new API.</p>
+<ul>
+  <li>
+    <p>Time Column - Name of the time column. In our example it’s <em>processingTime</em>.</p>
+  </li>
+  <li>
+    <p>Window Time - How long is the window. In our example it’s <em>15 seconds</em> .</p>
+  </li>
+  <li>
+    <p>Slide Time - An optional parameter to specify the sliding time. As we are implementing tumbling window, we have skipped it.</p>
+  </li>
+</ul>
 
-<h3 id="supports-event-time">Supports event time</h3>
+<p>Once we do groupBy, we do the count and sort by <em>window</em> to observe the results.</p>
 
-<p>As triggers are specific stream, new API has native support for event time.</p>
+<h3 id="query">Query</h3>
 
-<h3 id="dataset-is-native-abstraction">Dataset is native abstraction</h3>
+<p>Once we have defined the window, we can setup the execution using query.</p>
 
-<p>No more conversion from RDD to Dataframes. It’s native abstraction in structured streaming. Now we can leverage rest of dataset based
-libraries for better performance. It also brings the complete SQL support for the stream processing.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">query</span> <span class="k">=</span>
+  <span class="n">windowedCount</span><span class="o">.</span><span class="n">writeStream</span>
+    <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;console&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;truncate&quot;</span><span class="o">,</span><span class="s">&quot;false&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">outputMode</span><span class="o">(</span><span class="nc">OutputMode</span><span class="o">.</span><span class="nc">Complete</span><span class="o">())</span>
 
-<h3 id="supports-different-output-modes">Supports different output modes</h3>
+<span class="n">query</span><span class="o">.</span><span class="n">start</span><span class="o">().</span><span class="n">awaitTermination</span><span class="o">()</span></code></pre></div>
 
-<p>In structured streaming, there is concept of output modes. This allows streams to make decision on how to output whenever there is updates
-in stream.</p>
+<p>You access complete code on <a href="https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming/ProcessingTimeWindow.scala">github</a>.</p>
 
-<h2 id="conclusion">Conclusion</h2>
+<h2 id="output">Output</h2>
 
-<p>Structured Streaming is a complete rethinking of stream processing in spark. It replaces earlier fast batch processing model with true
-stream processing abstraction.</p>
+<p>When we run the example, we will observe the below results</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">+---------------------------------------------+-----+
+|window                                       |count|
++---------------------------------------------+-----+
+|[2017-09-01 12:44:00.0,2017-09-01 12:44:15.0]|2    |
+|[2017-09-01 12:44:15.0,2017-09-01 12:44:30.0]|8    |
++---------------------------------------------+-----+</code></pre></div>
+
+<p>As you can observe from the above output, we have count for each fifteen second interval. This makes sure that our window function is working.</p>
+
+<p>In upcoming posts, we will discuss about other time abstractions.</p>
 
 </article>
 <div class="related">
@@ -159,12 +178,7 @@ stream processing abstraction.</p>
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">01 Sep 2017</span>
-     &raquo; <a href="/introduction-to-spark-structured-streaming-part-9">Introduction to Spark Structured Streaming - Part 9 : Processing Time Window</a>    
-   </li>           
-         
+          
 
             
     
@@ -185,12 +199,7 @@ stream processing abstraction.</p>
    
    
              
-    
-    <li>    
-     <span class="post-date">01 Sep 2017</span>
-     &raquo; <a href="/introduction-to-spark-structured-streaming-part-9">Introduction to Spark Structured Streaming - Part 9 : Processing Time Window</a>    
-   </li>           
-         
+          
 
             
     
