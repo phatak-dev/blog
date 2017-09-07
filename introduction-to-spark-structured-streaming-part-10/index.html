@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Introduction to Spark Structured Streaming - Part 7 : Checkpointing State</title>
+    <title>Introduction to Spark Structured Streaming - Part 10 : Ingestion Time</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-7">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-10">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,8 +45,8 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Introduction to Spark Structured Streaming - Part 7 : Checkpointing State</h1>
-  <p class="meta">Aug 18, 2017</p>
+  <h1>Introduction to Spark Structured Streaming - Part 10 : Ingestion Time</h1>
+  <p class="meta">Sep 7, 2017</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
@@ -70,70 +70,116 @@ with this new API.</p>
 <p>In this series of posts, I will be discussing about the different aspects of the structured streaming API. I will be discussing about
 new API’s, patterns and abstractions to solve common stream processing tasks.</p>
 
-<p>This is the seventh post in the series. In this post, we discuss about checkpointing the state for recovery. You 
+<p>This is the tenth post in the series. In this post, we discuss about ingestion time abstraction. You 
 can read all the posts in the series <a href="/categories/introduction-structured-streaming">here</a>.</p>
 
 <p>TL;DR You can access code on <a href="https://github.com/phatak-dev/spark2.0-examples/tree/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming">github</a>.</p>
 
-<h2 id="need-of-checkpointing">Need of Checkpointing</h2>
+<h2 id="ingestion-time-abstraction">Ingestion Time Abstraction</h2>
 
-<p>Many stream processing applications are stateful in nature. With built in support for stateful aggregations in structured streaming, it has become easier to build them.But whenever we build stateful applications, we need to be careful about preserving the state across restarts or failures. We don’t want to loose our valuable state if processing units went down for some reason.</p>
+<p>In last <a href="/introduction-to-spark-structured-streaming-part-9/">post</a> we discussed about the processing time abstraction. In this post, we will discuss about ingestion time abstraction.</p>
 
-<p>Checkpointing is one of the mechanism to preserve the state of the application across the restart of driver or executors. In spark, checkpointing is achieved using writing the state of the query to a HDFS folder. In this post, we will explore how to enable checkpointing and use it.</p>
+<p>Ingestion time, as name indicates, is a time captured at the ingestion of data. Sources like kafka, file stream capture the time of ingestion to provide the ordering guarantees. We can use this time captured at the source as mechanism for the processing data.</p>
 
-<h2 id="source-support">Source Support</h2>
+<p>Ingestion time abstraction is useful when each batch of data takes considerable amount to process and we still want to capture the matrices depending upon time of capture. Let’s say we have some sensor data coming in and we want to know what happened in last 10 seconds. If our source captures the data as soon as it’s sent from sensors, ingestion time will be closer to the real time. For some reason, stream processing took more time than usual. If we have used processing time abstraction, we would have lost some records for our metric calculation. But in the ingestion time abstraction we will still get all the right records.</p>
 
-<p>To enable the checkpointing, the source from which we read the data need to support it. Not all the sources in structured streaming support checkpointing. One of the example of is socket streams. Checkpointing sometime may need to replay some of the data from source in order to recover the state. In those cases we need a source which supports that kind of functionality. Socket doesn’t support that.</p>
+<p>In this post, we will discuss how to define a window on ingestion time with simple wordcount example.</p>
 
-<p>Sources like file stream, kafka have ability to replay messages on offset. So they support checkpointing.</p>
+<h2 id="windowed-wordcount-using-ingestion-time">Windowed WordCount using Ingestion Time</h2>
 
-<h2 id="sales-aggregation">Sales Aggregation</h2>
+<p>The below are the steps to implement windowed word count using ingestion time abstraction.</p>
 
-<p>For this example, we take sales data from a file stream and do some aggregation on it. The below is the code</p>
+<h3 id="reading-data-from-socket-with-ingestion-time">Reading Data From Socket with Ingestion Time</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">schema</span> <span class="k">=</span> <span class="nc">StructType</span><span class="o">(</span>
-  <span class="nc">Array</span><span class="o">(</span><span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;transactionId&quot;</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
-        <span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;customerId&quot;</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
-        <span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;itemId&quot;</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
-        <span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;amountPaid&quot;</span><span class="o">,</span> <span class="nc">DoubleType</span><span class="o">)))</span>
+<p>The below code is to read the data from socket.</p>
 
-<span class="c1">//create stream from folder</span>
-<span class="k">val</span> <span class="n">fileStreamDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">readStream</span>
-  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">)</span>
-  <span class="o">.</span><span class="n">schema</span><span class="o">(</span><span class="n">schema</span><span class="o">)</span>
-  <span class="o">.</span><span class="n">csv</span><span class="o">(</span><span class="s">&quot;/tmp/input&quot;</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">socketStreamDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">readStream</span>
+  <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;socket&quot;</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;host&quot;</span><span class="o">,</span> <span class="s">&quot;localhost&quot;</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;port&quot;</span><span class="o">,</span> <span class="mi">50050</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;includeTimestamp&quot;</span><span class="o">,</span> <span class="kc">true</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">load</span><span class="o">()</span></code></pre></div>
 
-<span class="k">val</span> <span class="n">countDs</span> <span class="k">=</span> <span class="n">fileStreamDf</span><span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="s">&quot;customerId&quot;</span><span class="o">).</span><span class="n">sum</span><span class="o">(</span><span class="s">&quot;amountPaid&quot;</span><span class="o">)</span></code></pre></div>
+<p>In the above code, we have specified we need to access to ingestion time from source using <em>includeTimestamp</em> option. Ingestion time depends on source, as it needs to capture it and expose it.</p>
 
-<p>In this example, we are aggregating the amount for a given customer. We like to checkpoint this state. It makes sure that amount doesn’t start from zero whenever there is failure.</p>
+<h3 id="data-with-time-column">Data with Time Column</h3>
 
-<h2 id="check-point-directory-in-query">Check Point Directory in Query</h2>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">socketDs</span> <span class="k">=</span> <span class="n">socketStreamDf</span><span class="o">.</span><span class="n">as</span><span class="o">[(</span><span class="kt">String</span>, <span class="kt">Timestamp</span><span class="o">)]</span></code></pre></div>
 
-<p>In structured streaming, checkpoint directory is specific to a query. We can have multiple queries writing state to multiple different directories. This makes easy
-to scale checkpointing across multiple different processing.</p>
+<p>As we specified the we wanted access to ingestion time, it’s no more single column. We will get two columns, one indicating the value and one indicating the time at which it’s ingested.</p>
+
+<h3 id="extracting-words-with-delay">Extracting Words with Delay</h3>
+
+<p>The below code extracts the words from socket and creates words with timestamp.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">wordsDs</span> <span class="k">=</span> <span class="n">socketDs</span>
+  <span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">line</span> <span class="k">=&gt;</span> <span class="n">line</span><span class="o">.</span><span class="n">_1</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="n">word</span> <span class="k">=&gt;</span> <span class="o">{</span>
+     <span class="nc">Thread</span><span class="o">.</span><span class="n">sleep</span><span class="o">(</span><span class="mi">15000</span><span class="o">)</span>
+    <span class="o">(</span><span class="n">word</span><span class="o">,</span> <span class="n">line</span><span class="o">.</span><span class="n">_2</span><span class="o">)</span>
+  <span class="o">}))</span>
+  <span class="o">.</span><span class="n">toDF</span><span class="o">(</span><span class="s">&quot;word&quot;</span><span class="o">,</span> <span class="s">&quot;timestamp&quot;</span><span class="o">)</span></code></pre></div>
+
+<p>In the code, we introduced a sleep of <em>15 seconds</em> to simulate the long processing. This means for every records it takes minimum 15 seconds.</p>
+
+<h3 id="defining-window">Defining Window</h3>
+
+<p>Once we have words, we define a tumbling window which aggregates data for last 15 seconds.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">windowedCount</span> <span class="k">=</span> <span class="n">wordsDs</span>
+  <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span>
+    <span class="n">window</span><span class="o">(</span><span class="n">$</span><span class="s">&quot;timestamp&quot;</span><span class="o">,</span> <span class="s">&quot;15 seconds&quot;</span><span class="o">)</span>
+  <span class="o">)</span>
+  <span class="o">.</span><span class="n">count</span><span class="o">()</span>
+  <span class="o">.</span><span class="n">orderBy</span><span class="o">(</span><span class="s">&quot;window&quot;</span><span class="o">)</span></code></pre></div>
+
+<p>In above code, we define window as part of groupby. It looks exactly same as we saw in processing time example in last post. Only the difference is that this groups the data depending upon when it’s ingested whereas earlier example groups the data upon when it’s received for processing.</p>
+
+<p>Once we do groupBy, we do the count and sort by <em>window</em> to observe the results.</p>
+
+<h3 id="query">Query</h3>
+
+<p>Once we have defined the window, we can setup the execution using query.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">query</span> <span class="k">=</span>
-  <span class="n">countDs</span><span class="o">.</span><span class="n">writeStream</span>
+  <span class="n">windowedCount</span><span class="o">.</span><span class="n">writeStream</span>
     <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;console&quot;</span><span class="o">)</span>
-    <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;checkpointLocation&quot;</span><span class="o">,</span> <span class="s">&quot;/tmp/checkpoint&quot;</span><span class="o">)</span>
-    <span class="o">.</span><span class="n">outputMode</span><span class="o">(</span><span class="nc">OutputMode</span><span class="o">.</span><span class="nc">Complete</span><span class="o">())</span></code></pre></div>
+    <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;truncate&quot;</span><span class="o">,</span><span class="s">&quot;false&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">outputMode</span><span class="o">(</span><span class="nc">OutputMode</span><span class="o">.</span><span class="nc">Complete</span><span class="o">())</span>
 
-<p>In above code, we specify the checkpointing directory using <em>checkpointLocation</em> option on <em>writeStream</em>. This makes sure that the state is written the directory.</p>
+<span class="n">query</span><span class="o">.</span><span class="n">start</span><span class="o">().</span><span class="n">awaitTermination</span><span class="o">()</span></code></pre></div>
 
-<p>You can access complete code on <a href="https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming/RecoverableAggregation.scala">github</a>.</p>
+<p>You access complete code on <a href="https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming/IngestionTimeWindow.scala">github</a>.</p>
 
-<h2 id="recovering-state">Recovering State</h2>
+<h2 id="output">Output</h2>
 
-<p>Whenever there is checkpoint directory attached to query, spark goes through the content of the directory before it accepts any new data. This makes sure that spark recovers the old state before it starts processing new data. So whenever there is restart, spark first recovers the old state and then start processing new data from the stream.</p>
+<p>Let’s input the below data to socket</p>
 
-<h2 id="running">Running</h2>
+<div class="highlight"><pre><code class="language-text" data-lang="text">hello world
+hello world</code></pre></div>
 
-<p>Input the files to <em>/tmp/input</em> in local or hdfs folder. After sometime, restart the driver. You should observe the recovery of state.</p>
+<p>We will observe the below results</p>
 
-<h2 id="conclusion">Conclusion</h2>
+<div class="highlight"><pre><code class="language-text" data-lang="text">-------------------------------------------
+Batch: 0
+-------------------------------------------
++---------------------------------------------+-----+
+|window                                       |count|
++---------------------------------------------+-----+
+|[2017-09-07 18:52:45.0,2017-09-07 18:53:00.0]|2    |
++---------------------------------------------+-----+
 
-<p>With checkpointing support, we can build robust stateful stream processing applications in structured streaming.</p>
+-------------------------------------------
+Batch: 1
+-------------------------------------------
++---------------------------------------------+-----+
+|window                                       |count|
++---------------------------------------------+-----+
+|[2017-09-07 18:52:45.0,2017-09-07 18:53:00.0]|4    |
++---------------------------------------------+-----+</code></pre></div>
 
+<p>As you can observe from the above output, we have counted both records in same window, even though processing may have taken more than 30 seconds. This shows that spark is using ingested time for grouping than the time at which it has received data.</p>
+
+<p>In upcoming posts, we will discuss about other time abstractions.</p>
 
 </article>
 <div class="related">
@@ -141,12 +187,7 @@ to scale checkpointing across multiple different processing.</p>
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">07 Sep 2017</span>
-     &raquo; <a href="/introduction-to-spark-structured-streaming-part-10">Introduction to Spark Structured Streaming - Part 10 : Ingestion Time</a>    
-   </li>           
-         
+          
 
             
     
@@ -167,12 +208,7 @@ to scale checkpointing across multiple different processing.</p>
    
    
              
-    
-    <li>    
-     <span class="post-date">07 Sep 2017</span>
-     &raquo; <a href="/introduction-to-spark-structured-streaming-part-10">Introduction to Spark Structured Streaming - Part 10 : Ingestion Time</a>    
-   </li>           
-         
+          
 
             
     

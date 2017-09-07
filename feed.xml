@@ -7,6 +7,135 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Spark Structured Streaming - Part 10 : Ingestion Time</title>
+        <description>&lt;p&gt;Structured Streaming is a new streaming API, introduced in spark 2.0, rethinks stream processing in spark land. It models stream
+as an infinite table, rather than discrete collection of data. It’s a radical departure from models of other stream processing frameworks like
+storm, beam, flink etc. Structured Streaming is the first API to build stream processing on top of SQL engine.&lt;/p&gt;
+
+&lt;p&gt;Structured Streaming was in alpha in 2.0 and 2.1. But with release 2.2 it has hit stable status. In next few releases,
+it’s going to be de facto way of doing stream processing in spark. So it will be right time to make ourselves familiarise
+with this new API.&lt;/p&gt;
+
+&lt;p&gt;In this series of posts, I will be discussing about the different aspects of the structured streaming API. I will be discussing about
+new API’s, patterns and abstractions to solve common stream processing tasks.&lt;/p&gt;
+
+&lt;p&gt;This is the tenth post in the series. In this post, we discuss about ingestion time abstraction. You 
+can read all the posts in the series &lt;a href=&quot;/categories/introduction-structured-streaming&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR You can access code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/tree/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;ingestion-time-abstraction&quot;&gt;Ingestion Time Abstraction&lt;/h2&gt;
+
+&lt;p&gt;In last &lt;a href=&quot;/introduction-to-spark-structured-streaming-part-9/&quot;&gt;post&lt;/a&gt; we discussed about the processing time abstraction. In this post, we will discuss about ingestion time abstraction.&lt;/p&gt;
+
+&lt;p&gt;Ingestion time, as name indicates, is a time captured at the ingestion of data. Sources like kafka, file stream capture the time of ingestion to provide the ordering guarantees. We can use this time captured at the source as mechanism for the processing data.&lt;/p&gt;
+
+&lt;p&gt;Ingestion time abstraction is useful when each batch of data takes considerable amount to process and we still want to capture the matrices depending upon time of capture. Let’s say we have some sensor data coming in and we want to know what happened in last 10 seconds. If our source captures the data as soon as it’s sent from sensors, ingestion time will be closer to the real time. For some reason, stream processing took more time than usual. If we have used processing time abstraction, we would have lost some records for our metric calculation. But in the ingestion time abstraction we will still get all the right records.&lt;/p&gt;
+
+&lt;p&gt;In this post, we will discuss how to define a window on ingestion time with simple wordcount example.&lt;/p&gt;
+
+&lt;h2 id=&quot;windowed-wordcount-using-ingestion-time&quot;&gt;Windowed WordCount using Ingestion Time&lt;/h2&gt;
+
+&lt;p&gt;The below are the steps to implement windowed word count using ingestion time abstraction.&lt;/p&gt;
+
+&lt;h3 id=&quot;reading-data-from-socket-with-ingestion-time&quot;&gt;Reading Data From Socket with Ingestion Time&lt;/h3&gt;
+
+&lt;p&gt;The below code is to read the data from socket.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;socketStreamDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readStream&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;socket&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;host&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;localhost&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;port&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;50050&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;includeTimestamp&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In the above code, we have specified we need to access to ingestion time from source using &lt;em&gt;includeTimestamp&lt;/em&gt; option. Ingestion time depends on source, as it needs to capture it and expose it.&lt;/p&gt;
+
+&lt;h3 id=&quot;data-with-time-column&quot;&gt;Data with Time Column&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;socketDs&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;socketStreamDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;as&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;Timestamp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;As we specified the we wanted access to ingestion time, it’s no more single column. We will get two columns, one indicating the value and one indicating the time at which it’s ingested.&lt;/p&gt;
+
+&lt;h3 id=&quot;extracting-words-with-delay&quot;&gt;Extracting Words with Delay&lt;/h3&gt;
+
+&lt;p&gt;The below code extracts the words from socket and creates words with timestamp.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wordsDs&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;socketDs&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;line&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;line&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot; &amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;word&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+     &lt;span class=&quot;nc&quot;&gt;Thread&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sleep&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;15000&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;word&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;line&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}))&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toDF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;word&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;timestamp&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In the code, we introduced a sleep of &lt;em&gt;15 seconds&lt;/em&gt; to simulate the long processing. This means for every records it takes minimum 15 seconds.&lt;/p&gt;
+
+&lt;h3 id=&quot;defining-window&quot;&gt;Defining Window&lt;/h3&gt;
+
+&lt;p&gt;Once we have words, we define a tumbling window which aggregates data for last 15 seconds.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;windowedCount&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wordsDs&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;window&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;timestamp&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;15 seconds&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;orderBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;window&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above code, we define window as part of groupby. It looks exactly same as we saw in processing time example in last post. Only the difference is that this groups the data depending upon when it’s ingested whereas earlier example groups the data upon when it’s received for processing.&lt;/p&gt;
+
+&lt;p&gt;Once we do groupBy, we do the count and sort by &lt;em&gt;window&lt;/em&gt; to observe the results.&lt;/p&gt;
+
+&lt;h3 id=&quot;query&quot;&gt;Query&lt;/h3&gt;
+
+&lt;p&gt;Once we have defined the window, we can setup the execution using query.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;query&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;windowedCount&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;writeStream&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;console&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;truncate&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;false&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;outputMode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;OutputMode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Complete&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;awaitTermination&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming/IngestionTimeWindow.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;output&quot;&gt;Output&lt;/h2&gt;
+
+&lt;p&gt;Let’s input the below data to socket&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;hello world
+hello world&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We will observe the below results&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;-------------------------------------------
+Batch: 0
+-------------------------------------------
++---------------------------------------------+-----+
+|window                                       |count|
++---------------------------------------------+-----+
+|[2017-09-07 18:52:45.0,2017-09-07 18:53:00.0]|2    |
++---------------------------------------------+-----+
+
+-------------------------------------------
+Batch: 1
+-------------------------------------------
++---------------------------------------------+-----+
+|window                                       |count|
++---------------------------------------------+-----+
+|[2017-09-07 18:52:45.0,2017-09-07 18:53:00.0]|4    |
++---------------------------------------------+-----+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;As you can observe from the above output, we have counted both records in same window, even though processing may have taken more than 30 seconds. This shows that spark is using ingested time for grouping than the time at which it has received data.&lt;/p&gt;
+
+&lt;p&gt;In upcoming posts, we will discuss about other time abstractions.&lt;/p&gt;
+</description>
+        <pubDate>Thu, 07 Sep 2017 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-10</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-10</guid>
+      </item>
+    
+      <item>
         <title>Introduction to Spark Structured Streaming - Part 9 : Processing Time Window</title>
         <description>&lt;p&gt;Structured Streaming is a new streaming API, introduced in spark 2.0, rethinks stream processing in spark land. It models stream
 as an infinite table, rather than discrete collection of data. It’s a radical departure from models of other stream processing frameworks like
@@ -932,25 +1061,6 @@ stream processing abstraction.&lt;/p&gt;
         <pubDate>Tue, 25 Jul 2017 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-1</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-1</guid>
-      </item>
-    
-      <item>
-        <title>Migrating to Spark 2.0 - Part 10 : Second Meetup Talk</title>
-        <description>&lt;p&gt;In last few blog posts we have discussed about different aspects of the migrating to spark 2.0. 
-Recently I gave a talk on these topics in a our spark &lt;a href=&quot;https://www.meetup.com/Bangalore-Apache-Spark-Meetup/&quot;&gt;meetup&lt;/a&gt;. It was second part 
-of two part series.&lt;/p&gt;
-
-&lt;p&gt;In this tenth blog of the series, I will be sharing recording of that talk with slides and code.
-You can access all the posts in the series &lt;a href=&quot;/categories/spark-two-migration-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Find the slides on &lt;a href=&quot;https://www.slideshare.net/datamantra/migrating-to-spark-20-part-2-77685413&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/spark-two-migration&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/9TsQU92B144&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
-
-</description>
-        <pubDate>Tue, 11 Jul 2017 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/migrating-to-spark-two-part-10</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrating-to-spark-two-part-10</guid>
       </item>
     
   </channel>
