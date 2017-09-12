@@ -7,6 +7,174 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Spark Structured Streaming - Part 11 : Event Time</title>
+        <description>&lt;p&gt;Structured Streaming is a new streaming API, introduced in spark 2.0, rethinks stream processing in spark land. It models stream
+as an infinite table, rather than discrete collection of data. It’s a radical departure from models of other stream processing frameworks like
+storm, beam, flink etc. Structured Streaming is the first API to build stream processing on top of SQL engine.&lt;/p&gt;
+
+&lt;p&gt;Structured Streaming was in alpha in 2.0 and 2.1. But with release 2.2 it has hit stable status. In next few releases,
+it’s going to be de facto way of doing stream processing in spark. So it will be right time to make ourselves familiarise
+with this new API.&lt;/p&gt;
+
+&lt;p&gt;In this series of posts, I will be discussing about the different aspects of the structured streaming API. I will be discussing about
+new API’s, patterns and abstractions to solve common stream processing tasks.&lt;/p&gt;
+
+&lt;p&gt;This is the eleventh post in the series. In this post, we discuss about event time abstraction. You 
+can read all the posts in the series &lt;a href=&quot;/categories/introduction-structured-streaming&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR You can access code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/tree/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;event-time-abstraction&quot;&gt;Event Time Abstraction&lt;/h2&gt;
+
+&lt;p&gt;In last &lt;a href=&quot;/introduction-to-spark-structured-streaming-part-10/&quot;&gt;post&lt;/a&gt; we discussed about the ingestion time abstraction. In this post, we will discuss about event time abstraction.&lt;/p&gt;
+
+&lt;p&gt;Event time, as name suggests, is the time when event is generated. Normally the data which we collect from sources like sensors, logs have a time embedded in them. This time signifies when a given event is generated at the source. Structured streaming allows us to work with this time, with event time support in the framework level.&lt;/p&gt;
+
+&lt;p&gt;Whenever we talk about time, normally we need to address two different components of it. They are&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;When a given event is generated?&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;How long ago a given event is generated?&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The first question is about where a given event fits in event time line. The second question deals about tracking  of passing of time. Answering these two questions helps us to define how event time works in structured streaming.&lt;/p&gt;
+
+&lt;h2 id=&quot;analysing-stock-data-using-event-time&quot;&gt;Analysing Stock Data using Event Time&lt;/h2&gt;
+
+&lt;p&gt;In this example, we analyse the stock data using event time abstraction. As each stock event comes with a timestamp, we can use that time to define aggregations. We will be using socket stream as our source.&lt;/p&gt;
+
+&lt;h3 id=&quot;reading-data-from-socket&quot;&gt;Reading Data From Socket&lt;/h3&gt;
+
+&lt;p&gt;The below code is to read the data from socket.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;socketStreamDs&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readStream&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;socket&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;host&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;localhost&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;port&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;50050&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;as&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;extracting-time-from-stream&quot;&gt;Extracting Time from Stream&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Stock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;symbol&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stockDs&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;socketStreamDs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;columns&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;,&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;nc&quot;&gt;Stock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Timestamp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;columns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toLong&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;columns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;columns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toDouble&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;})&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above code, we declared a model which tracks stock price in a given point of time. The first field is timestamp of stock, then second is the symbol and third one is the value of the stock at that point of given time. Normally stock price analysis depends on event time rather than processing time as they want to correlate the change in stock prices when they happened in the market rather than they ended up in our processing engine.&lt;/p&gt;
+
+&lt;p&gt;So once we define the model, we convert of string network stream into model which we want to use. So the time in the model, signifies when this stock reading is done.&lt;/p&gt;
+
+&lt;h3 id=&quot;defining-window-on-event-time&quot;&gt;Defining Window on Event Time&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;windowedCount&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stockDs&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;window&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;time&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;10 seconds&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;value&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above code defines the window which aggregates the stock value for last 10 seconds.&lt;/p&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming/EventTimeExample.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;passing-of-time&quot;&gt;Passing of time&lt;/h2&gt;
+
+&lt;p&gt;Whenever we say, we want to calculate max of a stock in last 10 seconds, how spark knows all the records for that 10 seconds are reached? It’s the way of saying how spark knows the passage of time in the source? We cannot use system clocks because there will be delay between these two systems.&lt;/p&gt;
+
+&lt;p&gt;As we discussed in previous post, watermarks are the solution to this problem. Watermark signify the passage of time in source which will help to spark to understand flow in time.&lt;/p&gt;
+
+&lt;p&gt;By default spark uses the window time column to track the passing of time with option of infinite delay. So in this model all windows are remembered as state,so that even if the event delays long time, spark will calculate the right value.But this creates an issue.As time goes number of windows increases and they use more and more resources. We can limit the state, number of windows to be remembered, using custom watermarks. We will discuss more about it in next post.&lt;/p&gt;
+
+&lt;h2 id=&quot;running-the-example&quot;&gt;Running the Example&lt;/h2&gt;
+
+&lt;p&gt;Enter the below records in socket console. These are records for AAPL with time stamps.&lt;/p&gt;
+
+&lt;h3 id=&quot;first-event&quot;&gt;First Event&lt;/h3&gt;
+
+&lt;p&gt;The first records is for time Wed, 27 Apr 2016 11:34:22 GMT.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;1461756862000,&amp;quot;aapl&amp;quot;,500.0&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Spark outputs below results which indicates start of window&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;-------------------------------------------
+Batch: 0
+-------------------------------------------
++---------------------------------------------+----------+
+|window                                       |sum(value)|
++---------------------------------------------+----------+
+|[2016-04-27 17:04:20.0,2016-04-27 17:04:30.0]|500.0     |
++---------------------------------------------+----------+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;event-after-5-seconds&quot;&gt;Event after 5 seconds&lt;/h3&gt;
+
+&lt;p&gt;Now we send the next record, which is after 5 seconds. This signifies to spark that, 5 seconds have passed in source. So spark will be updating the same window. This event is for time Wed, 27 Apr 2016 11:34:27 GMT&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;1461756867001,&amp;quot;aapl&amp;quot;,600.0&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The output of the spark will be as below. You can observe from output, spark is updating same window.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;-------------------------------------------
+Batch: 1
+-------------------------------------------
++---------------------------------------------+----------+
+|window                                       |sum(value)|
++---------------------------------------------+----------+
+|[2016-04-27 17:04:20.0,2016-04-27 17:04:30.0]|1100.0    |
++---------------------------------------------+----------+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;event-after-11-seconds&quot;&gt;Event after 11 seconds&lt;/h3&gt;
+
+&lt;p&gt;Now we send another event, which is after 6 seconds from this time. Now spark understands 11 seconds have been passed. This event is for Wed, 27 Apr 2016 11:34:32 GMT&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;1461756872000,&amp;quot;aapl&amp;quot;,400.0&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now spark completes the first window and add the above event to next window.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;-------------------------------------------
+Batch: 2
+-------------------------------------------
++---------------------------------------------+----------+
+|window                                       |sum(value)|
++---------------------------------------------+----------+
+|[2016-04-27 17:04:20.0,2016-04-27 17:04:30.0]|1100.0    |
+|[2016-04-27 17:04:30.0,2016-04-27 17:04:40.0]|400.0     |
++---------------------------------------------+----------+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;late-event&quot;&gt;Late Event&lt;/h3&gt;
+
+&lt;p&gt;Let’s say we get an event which got delayed. It’s an event is for Wed, 27 Apr 2016 11:34:27 which is 5 seconds before the last event.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;1461756867001,&amp;quot;aapl&amp;quot;,200.0&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;If you observe the spark result now, you can observe that it’s added it to right window.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;-------------------------------------------
+Batch: 3
+-------------------------------------------
++---------------------------------------------+----------+
+|window                                       |sum(value)|
++---------------------------------------------+----------+
+|[2016-04-27 17:04:20.0,2016-04-27 17:04:30.0]|1300.0    |
+|[2016-04-27 17:04:30.0,2016-04-27 17:04:40.0]|400.0     |
++---------------------------------------------+----------+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In this post we understood how to use event time abstraction in structured streaming.&lt;/p&gt;
+</description>
+        <pubDate>Tue, 12 Sep 2017 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-11</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-11</guid>
+      </item>
+    
+      <item>
         <title>Introduction to Spark Structured Streaming - Part 10 : Ingestion Time</title>
         <description>&lt;p&gt;Structured Streaming is a new streaming API, introduced in spark 2.0, rethinks stream processing in spark land. It models stream
 as an infinite table, rather than discrete collection of data. It’s a radical departure from models of other stream processing frameworks like
@@ -960,107 +1128,6 @@ streaming world.&lt;/p&gt;
         <pubDate>Tue, 01 Aug 2017 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-2</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-2</guid>
-      </item>
-    
-      <item>
-        <title>Introduction to Spark Structured Streaming - Part 1 : DataFrame Abstraction to Stream</title>
-        <description>&lt;p&gt;Structured Streaming is a new streaming API, introduced in spark 2.0, rethinks stream processing in spark land. It models stream
-as an infinite table, rather than discrete collection of data. It’s a radical departure from models of other stream processing frameworks like
-storm, beam, flink etc. Structured Streaming is the first API to build stream processing on top of SQL engine.&lt;/p&gt;
-
-&lt;p&gt;Structured Streaming was in alpha in 2.0 and 2.1. But with release 2.2 it has hit stable status. In next few releases,
-it’s going to be de facto way of doing stream processing in spark. So it will be right time to make ourselves familiarise
-with this new API.&lt;/p&gt;
-
-&lt;p&gt;In this series of posts, I will be discussing about the different aspects of the structured streaming API. I will be discussing about
-new API’s, patterns and abstractions to solve common stream processing tasks.&lt;/p&gt;
-
-&lt;p&gt;This is the first post in the series. In this post, we discuss about the structured streaming abstractions. You
-can read all the posts in the series &lt;a href=&quot;/categories/introduction-structured-streaming&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;unified-dataset-abstraction-in-spark-20&quot;&gt;Unified Dataset Abstraction in Spark 2.0&lt;/h2&gt;
-
-&lt;p&gt;In Spark 2.0, spark has replaced RDD with Dataset as single abstraction for all user facing API’s. Dataset is an abstraction for structured 
-world which combines best of both RDD and Dataframe world.Dataset has already replaced batch, machine learning and graph processing RDD API’s.&lt;/p&gt;
-
-&lt;p&gt;With structured streaming, dataset abstractions are coming to streaming API’s also. It’s going to be replacing RDD based
-streaming API of 1.x&lt;/p&gt;
-
-&lt;h2 id=&quot;stream-as-datasetdataframe&quot;&gt;Stream as Dataset/Dataframe&lt;/h2&gt;
-
-&lt;p&gt;In spark 1.x, a stream is viewed as collection of RDD, where each RDD is created for minibatch. It worked well initially, as it allowed
-users of spark to reuse rdd abstractions for streaming also. But over time developers started noticing the limitations of this approach.&lt;/p&gt;
-
-&lt;h2 id=&quot;limitations-of-dstream-api&quot;&gt;Limitations of DStream API&lt;/h2&gt;
-
-&lt;h3 id=&quot;batch-time-constraint&quot;&gt;Batch Time Constraint&lt;/h3&gt;
-
-&lt;p&gt;As stream is represented as faster batch processing, batch time become critical component of stream design. If you have coded in Dstream API,
-you know that you need to specify the batch time at the time of StreamingContext creation. This application level batch time becomes an issue,
-when different streams  have different speeds. So often users resorted to window functions to normalise the streams which often lead to poor 
-performance.&lt;/p&gt;
-
-&lt;h3 id=&quot;no-support-for-event-time&quot;&gt;No Support for Event Time&lt;/h3&gt;
-
-&lt;p&gt;As batch time dictates the central clock for stream, we cannot change it from stream to stream. So this means we can’t use time embedded in the stream
-, known as event time, for processing. Often in stream processing, we will be interested more in event time than process time i.e time of event generation at source rather than time at which event has reached the processing system. So it was not possible to expose the event time capability with Dstream API’s.&lt;/p&gt;
-
-&lt;h3 id=&quot;weak-support-for-datasetdataframe-abstractions&quot;&gt;Weak Support for Dataset/DataFrame abstractions&lt;/h3&gt;
-
-&lt;p&gt;As more and more code in spark moved to Dataframe/Dataset abstractions, it was desirable to do the same for streaming also. Often dataset based code
-resulted in performant code due to catalyst and code generations than RDD based ones.&lt;/p&gt;
-
-&lt;p&gt;It’s possible to create a dataset from RDD. But that doesn’t work well with streaming API’s. So users often stuck with RDD API’s for streaming where rest of
-libraries enjoyed better abstractions.&lt;/p&gt;
-
-&lt;h3 id=&quot;no-custom-triggers&quot;&gt;No Custom Triggers&lt;/h3&gt;
-
-&lt;p&gt;As stream processing becomes complex, it’s often desirable to define custom triggers to track interesting behaviours. One of the typical use case for custom
-triggers are user sessions. Typically a user session is part of stream where user has logged in and using the services till he logged out or login expired. Many stream processing tasks like to define a window which captures this information.&lt;/p&gt;
-
-&lt;p&gt;One of the challenge of session is, it’s not bounded by time. Some sessions can be small but some may go for long. So we can’t use processing time
-or even event time to define this. As dstream API’s was only capable of defining window using time, user were not able define session based processing
-easily in existing API’s.&lt;/p&gt;
-
-&lt;h3 id=&quot;updates&quot;&gt;Updates&lt;/h3&gt;
-
-&lt;p&gt;DStream API models stream as a continuous new events. It treats each event atomically and when we write the result of any batch, it doesn’t remember
-the state of earlier batches. This works well for simple ETL workloads. But often there are scenarios, where there is an event which indicates the update
-to the event which was already processed by the system. In that scenarios, it’s often desirable to update the sink ( a place to which we write the output 
-of the stream processing), rather than adding new records. But Dstream API, doesn’t expose any of those semantics.&lt;/p&gt;
-
-&lt;h2 id=&quot;advantages-of-representing-stream-as-dataframe&quot;&gt;Advantages of Representing Stream as DataFrame&lt;/h2&gt;
-
-&lt;p&gt;To solve the issues mentioned above, spark has remodeled the stream as infinite dataset, rather than a collection of RDD’s. This makes a quite
-departure from the mini batch model employed in earlier API. Using this model, we can address issues of earlier API’s.&lt;/p&gt;
-
-&lt;h3 id=&quot;trigger-is-specific-to-stream&quot;&gt;Trigger is specific to Stream&lt;/h3&gt;
-
-&lt;p&gt;In structured streaming, there is no batch time. It’s replaced with triggers which can be both time based and non-time based. Also
-trigger is specific to stream, which makes modeling event time and implementing sessionization straight forward in this new API.&lt;/p&gt;
-
-&lt;h3 id=&quot;supports-event-time&quot;&gt;Supports event time&lt;/h3&gt;
-
-&lt;p&gt;As triggers are specific stream, new API has native support for event time.&lt;/p&gt;
-
-&lt;h3 id=&quot;dataset-is-native-abstraction&quot;&gt;Dataset is native abstraction&lt;/h3&gt;
-
-&lt;p&gt;No more conversion from RDD to Dataframes. It’s native abstraction in structured streaming. Now we can leverage rest of dataset based
-libraries for better performance. It also brings the complete SQL support for the stream processing.&lt;/p&gt;
-
-&lt;h3 id=&quot;supports-different-output-modes&quot;&gt;Supports different output modes&lt;/h3&gt;
-
-&lt;p&gt;In structured streaming, there is concept of output modes. This allows streams to make decision on how to output whenever there is updates
-in stream.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;Structured Streaming is a complete rethinking of stream processing in spark. It replaces earlier fast batch processing model with true
-stream processing abstraction.&lt;/p&gt;
-</description>
-        <pubDate>Tue, 25 Jul 2017 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-1</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-1</guid>
       </item>
     
   </channel>
