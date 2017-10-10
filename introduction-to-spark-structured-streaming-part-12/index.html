@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Introduction to Spark Structured Streaming - Part 8 : Time Abstraction</title>
+    <title>Introduction to Spark Structured Streaming - Part 12 : Watermarks</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-8">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-12">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,8 +45,8 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Introduction to Spark Structured Streaming - Part 8 : Time Abstraction</h1>
-  <p class="meta">Aug 31, 2017</p>
+  <h1>Introduction to Spark Structured Streaming - Part 12 : Watermarks</h1>
+  <p class="meta">Oct 10, 2017</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
@@ -70,59 +70,112 @@ with this new API.</p>
 <p>In this series of posts, I will be discussing about the different aspects of the structured streaming API. I will be discussing about
 new API’s, patterns and abstractions to solve common stream processing tasks.</p>
 
-<p>This is the eighth post in the series. In this post, we discuss about time abstraction in structured streaming. You 
+<p>This is the twelfth post in the series. In this post, we discuss about watermarks. You 
 can read all the posts in the series <a href="/categories/introduction-structured-streaming">here</a>.</p>
 
 <p>TL;DR You can access code on <a href="https://github.com/phatak-dev/spark2.0-examples/tree/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming">github</a>.</p>
 
-<h2 id="concept-of-time-in-streaming-application">Concept of Time in Streaming Application</h2>
+<h2 id="unbounded-state-for-late-events">Unbounded State for Late Events</h2>
 
-<p>A streaming application is an always running application. So in order to understand the behavior of the application over time, we need to take snapshots of the stream in various points. Normally these various points are defined using a time component.</p>
+<p>In last <a href="/introduction-to-spark-structured-streaming-part-11/">post</a> we discussed about the event time abstraction. By default, spark remembers all the windows forever and waits for the late events forever. This may be good for the small volume data, but as volume increases keeping around all the state becomes problematic. As the time goes, the number of windows increases and resource usage will shoot upward. So we need a mechanism which allows us to control state in bounded way. Watermarks are one of those mechanisms.</p>
 
-<p>Time in streaming application is way to correlate different events in the stream to extract some meaningful insights. For example, when we say count of words in a word count example for last 10 seconds, we normally mean to collect all the records arrived in that point of time and run a word count on it.</p>
+<h2 id="watermarks">Watermarks</h2>
+<p>Watermarks is a threshold , which defines the how long we wait for the late events. Combining watermarks with automatic source time tracking ( event time) spark can automatically drop the state and keep it in bounded way. When you enable watermarks, for a specific window starting at time T, spark will maintain state and allow late data to update the state until <strong>(max event time seen by the engine - late threshold &gt; T)</strong>. In other words, late data within the threshold will be aggregated, but data later than the threshold will be dropped.</p>
 
-<p>In DStream API,spark supported one concept of time. But structured streaming API support multiple different ones.</p>
+<h2 id="analysing-stock-data">Analysing Stock Data</h2>
 
-<h2 id="time-in-structured-streaming">Time in Structured Streaming</h2>
+<p>In this example, we analyse the stock data using event time abstraction as last post. As each stock event comes with a timestamp, we can use that time to define aggregations. We will be using socket stream as our source.</p>
 
-<p>When we say, last 10 seconds what it means in structured streaming? it depends. It can be one of three following</p>
+<h3 id="specifying-the-watermark">Specifying the Watermark</h3>
 
-<ul>
-  <li>
-    <h3 id="processing-time">Processing Time</h3>
-  </li>
-</ul>
+<p>The below code is to define watermark on stream.</p>
 
-<p>This concept of time is very familiar to most of the users. In this, time is tracked using a clock run by the processing engine. So in this time, last 10 seconds means the records arrived in last 10 seconds for the processing. Here we only use the semantics of when the records came for processing. DStream supported this abstraction of time in it’s API.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">windowedCount</span> <span class="k">=</span> <span class="n">stockDs</span>
+  <span class="o">.</span><span class="n">withWatermark</span><span class="o">(</span><span class="s">&quot;time&quot;</span><span class="o">,</span> <span class="s">&quot;500 milliseconds&quot;</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span>
+    <span class="n">window</span><span class="o">(</span><span class="n">$</span><span class="s">&quot;time&quot;</span><span class="o">,</span> <span class="s">&quot;10 seconds&quot;</span><span class="o">)</span>
+  <span class="o">)</span>
+  <span class="o">.</span><span class="n">sum</span><span class="o">(</span><span class="s">&quot;value&quot;</span><span class="o">)</span></code></pre></div>
 
-<p>Though processing time is good time measure to have,it’s not always enough. For example, if we want to calculate state of sensors at given point of time, we want to collect events that happened in that time range. But if the events arrive lately to processing system due to various reasons, we may miss some of the events as processing clock does not care about the actual time of events. To address this, structured streaming support another kind of time called event time.</p>
+<p>In above example, whenever we create window on event time, we can specify the watermark with <em>withWatermark</em>. In our example, we specified watermark as <em>500 
+milliseconds</em>. So spark will wait for that time for late events. Make sure to use update output mode. Complete mode doesn’t honor watermarks.</p>
 
-<ul>
-  <li>
-    <h3 id="event-time">Event Time</h3>
-  </li>
-</ul>
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming/WaterMarkExample.scala">github</a>.</p>
 
-<p>Event time is the time embed in the data that is coming into the system. So here 10 seconds means, all the records generated in those 10 seconds at the source. These may come out of order to processing. This time is independent of the clock that is kept by the processing engine.Event time is extremely useful for handling the late arrival events.</p>
+<h2 id="running-the-example">Running the Example</h2>
 
-<ul>
-  <li>
-    <h3 id="ingestion-time">Ingestion Time</h3>
-  </li>
-</ul>
+<p>Enter the below records in socket console. These are records for AAPL with time stamps. As we are using update output mode, result will only show changed windows.</p>
 
-<p>Ingestion time is the time when events ingested into the system. This time is in between of the event time and processing time. Normally in processing time, each machine in cluster is used to assign the time stamp to track events. This may result in little inconsistent view of the data, as there may be delays in time across the cluster. But ingestion time, time stamp is assigned in ingestion so that all the machines in the cluster have exact same view. These are useful to calculate results on data that arrive in order at the level of ingestion.</p>
+<h3 id="first-event">First Event</h3>
 
-<h2 id="watermarks">WaterMarks</h2>
+<p>The first records is for time Wed, 27 Apr 2016 11:34:22 GMT.</p>
 
-<p>As structured streaming supports multiple concept of time, how it keep tracks of time?. Because in the normal processing time, a system clock can be used. But you cannot use the system clock in case of the event time and ingestion time. So there has to be a generic mechanism to handle this.</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">1461756862000,&quot;aapl&quot;,500.0</code></pre></div>
 
-<p>Watermarks is the mechanism used by the structured streaming in order to signify the passing of time in stream. Watermarks are implemented using partial aggregations and the update output mode. Watermarks allow us to implement both tracking time and handle late events.We will discuss more about water marks in upcoming posts.</p>
+<p>Spark outputs below results which indicates start of window</p>
 
-<p>Now we understand different time abstractions supported by structured streaming. In upcoming blogs, we will discuss how to work with these different abstractions.</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">-------------------------------------------
+Batch: 0
+-------------------------------------------
++---------------------------------------------+----------+
+|window                                       |sum(value)|
++---------------------------------------------+----------+
+|[2016-04-27 17:04:20.0,2016-04-27 17:04:30.0]|500.0     |
++---------------------------------------------+----------+</code></pre></div>
+
+<h3 id="event-after-5-seconds">Event after 5 seconds</h3>
+
+<p>Now we send the next record, which is after 5 seconds. This signifies to spark that, 5 seconds have passed in source. So spark will be updating the same window. This event is for time Wed, 27 Apr 2016 11:34:27 GMT</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">1461756867001,&quot;aapl&quot;,600.0</code></pre></div>
+
+<p>The output of the spark will be as below. You can observe from output, spark is updating same window.</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">-------------------------------------------
+Batch: 1
+-------------------------------------------
++---------------------------------------------+----------+
+|window                                       |sum(value)|
++---------------------------------------------+----------+
+|[2016-04-27 17:04:20.0,2016-04-27 17:04:30.0]|1100.0    |
++---------------------------------------------+----------+</code></pre></div>
+
+<h3 id="event-after-11-seconds">Event after 11 seconds</h3>
+
+<p>Now we send another event, which is after 6 seconds from this time. Now spark understands 11 seconds have been passed. This event is for Wed, 27 Apr 2016 11:34:32 GMT</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">1461756872000,&quot;aapl&quot;,400.0</code></pre></div>
+
+<p>Now spark completes the first window and add the above event to next window.</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">-------------------------------------------
+Batch: 2
+-------------------------------------------
++---------------------------------------------+----------+
+|window                                       |sum(value)|
++---------------------------------------------+----------+
+|[2016-04-27 17:04:30.0,2016-04-27 17:04:40.0]|400.0     |
++---------------------------------------------+----------+</code></pre></div>
+
+<h3 id="late-event">Late Event</h3>
+
+<p>Let’s say we get an event which got delayed. It’s an event is for Wed, 27 Apr 2016 11:34:27 which is 5 seconds before the last event.</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">1461756867001,&quot;aapl&quot;,200.0</code></pre></div>
+
+<p>If you observe the spark result now, there are no updated window. This signifies that late event is dropped.</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">-------------------------------------------
+Batch: 3
+-------------------------------------------
++---------------------------------------------+----------+
+|window                                       |sum(value)|
++---------------------------------------------+----------+
++---------------------------------------------+----------+</code></pre></div>
 
 <h2 id="conclusion">Conclusion</h2>
-<p>Structured streaming has a rich time abstractions which makes modeling different stream processing applications much easier than earlier API.</p>
+
+<p>In this post we understood how watermarks help us to define bounded state and handle late events efficiently.</p>
 
 </article>
 <div class="related">
@@ -130,12 +183,7 @@ can read all the posts in the series <a href="/categories/introduction-structure
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">10 Oct 2017</span>
-     &raquo; <a href="/introduction-to-spark-structured-streaming-part-12">Introduction to Spark Structured Streaming - Part 12 : Watermarks</a>    
-   </li>           
-         
+          
 
             
     
@@ -156,12 +204,7 @@ can read all the posts in the series <a href="/categories/introduction-structure
    
    
              
-    
-    <li>    
-     <span class="post-date">10 Oct 2017</span>
-     &raquo; <a href="/introduction-to-spark-structured-streaming-part-12">Introduction to Spark Structured Streaming - Part 12 : Watermarks</a>    
-   </li>           
-         
+          
 
             
     
