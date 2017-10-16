@@ -7,7 +7,7 @@ categories: scala spark introduction-structured-streaming
 In last few blog posts we have discussed about different aspects of the spark structured streaming API. 
 Recently I gave a talk on these topics in a our spark [meetup](https://www.meetup.com/Bangalore-Apache-Spark-Meetup/).
 
-In this tenth blog of the series, I will be sharing recording of that talk with slides and code.
+In this thirteenth blog of the series, I will be sharing recording of that talk with slides and code.
 You can access all the posts in the series [here](/categories/introduction-structured-streaming).
 
 
