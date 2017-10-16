@@ -11,7 +11,7 @@
         <description>&lt;p&gt;In last few blog posts we have discussed about different aspects of the spark structured streaming API. 
 Recently I gave a talk on these topics in a our spark &lt;a href=&quot;https://www.meetup.com/Bangalore-Apache-Spark-Meetup/&quot;&gt;meetup&lt;/a&gt;.&lt;/p&gt;
 
-&lt;p&gt;In this tenth blog of the series, I will be sharing recording of that talk with slides and code.
+&lt;p&gt;In this thirteenth blog of the series, I will be sharing recording of that talk with slides and code.
 You can access all the posts in the series &lt;a href=&quot;/categories/introduction-structured-streaming&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;Find the slides on &lt;a href=&quot;https://www.slideshare.net/datamantra/introduction-to-structured-streaming-80809652&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/tree/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
