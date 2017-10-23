@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Introduction to Spark Structured Streaming - Part 13 : Session Windows"
-date : 2017-10-10
+title: "Introduction to Spark Structured Streaming - Part 14 : Session Windows using Custom State"
+date : 2017-10-23
 categories: scala spark introduction-structured-streaming
 ---
 Structured Streaming is a new streaming API, introduced in spark 2.0, rethinks stream processing in spark land. It models stream
@@ -15,7 +15,7 @@ with this new API.
 In this series of posts, I will be discussing about the different aspects of the structured streaming API. I will be discussing about
 new API's, patterns and abstractions to solve common stream processing tasks. 
 
-This is the thirteenth post in the series. In this post, we discuss about session windows. You 
+This is the fourteenth post in the series. In this post, we discuss about session windows. You 
 can read all the posts in the series [here](/categories/introduction-structured-streaming).
 
 TL;DR You can access code on [github](https://github.com/phatak-dev/spark2.0-examples/tree/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming).
@@ -31,7 +31,7 @@ A session window, is a window which allows us to group different records from th
 
 Session windows are often used to analyze user behavior across multiple interactions bounded by session.
 
-In structured streaming, we only have built in windows for time based evaluation. But our session window doesn't soley depend upon time. So we need to create a custom window which can satisfy our requirement.
+In structured streaming, we only have built in windows for time based evaluation. But our session window doesn't solely depend upon time. So we need to create a custom window which can satisfy our requirement.
 
 ## Modeling user session
 Once we understood about the session and session window, we need to model the session in our code. I have a simple representation of session for explaining the example. Most of the real world session information will much more complicated than it.
@@ -56,14 +56,15 @@ It's an optional value in record. This signifies end of the session from the app
 
 ## Custom State Management
 
-As session window is not tied to time, it needs to do custom state management. To create a session window, we will use *mapGroupWithState* API of structured streaming, which allows to work with state indepent of the time restriction. 
+As session window is not tied to time, it needs to do custom state management. To create a session window, we will use *mapGroupWithState* API of structured streaming, which allows to work with state independent of the time restriction. 
 
 ## Session Window Example
 
 The below are the steps for defining a session based window on socket stream.
 
-
 ### Read from the socket
+
+As earlier examples, we will be reading the data from socket source.
 
 {% highlight scala %}
     val socketStreamDf = sparkSession.readStream
@@ -76,22 +77,25 @@ The below are the steps for defining a session based window on socket stream.
 
 ### Convert to Session Event
 
+The data coming from socket is represented as single string in which values are separated by comma. So in below code,
+we will be parsing given input to session case class.
+
 {% highlight scala %}
-
-    import sparkSession.implicits._
-    val socketDs = socketStreamDf.as[String]
-
-    // events
-    val events = socketDs.map(line => {
-      val columns = line.split(",")
-      val endSignal = Try(Some(columns(2))).getOrElse(None)
-      Session(columns(0), columns(1).toDouble, endSignal)
-    })
+import sparkSession.implicits._
+val socketDs = socketStreamDf.as[String]
+// events
+val events = socketDs.map(line => {
+  val columns = line.split(",")
+  val endSignal = Try(Some(columns(2))).getOrElse(None)
+  Session(columns(0), columns(1).toDouble, endSignal)
+})
 
 {% endhighlight %}
 
 
 ### Define Custom State Management Models
+
+Once we have parsed the input stream as session, we need to define models to track and output the session state.
 
 {% highlight scala %}
 
@@ -104,8 +108,19 @@ case class SessionUpdate(
                           expired: Boolean)
 {% endhighlight %}
 
+In above code, *SessionInfo* is a case class which tracks the information we store for a given session. In our example, we just keep a single value called *totalSum*. It tracks the total value seen in the session till it's expired.
+
+*SessionUpdate* is a case class used to output the update for a given session for every batch. We output below details
+
+  * id - Id of the session
+  * totalSum - Total value of the session till that batch
+  * expired - Is session expired or not
+
+Using above models, we can track session in structured streaming API.
 
 ### Group Sessions by Session Id
+
+Once we have defined the models, we group sessions using *sessionId*.
 
 {% highlight scala %}
 
@@ -115,45 +130,66 @@ val sessionUpdates = events.groupByKey(_.sessionId)
 
 ### Define mapGroupWithState
 
+*mapGroupState* as name indicates an API to map state for a given grouped input. In our case, we have sessions grouped by sessionId.
+
 {% highlight scala %}
 
 mapGroupsWithState[SessionInfo, SessionUpdate](GroupStateTimeout.NoTimeout()) {
 
 {% endhighlight%}
 
+From above code, API takes two models. One indicating the state we are tracking, *SessionInfo* and another indicating the return value of the function which is *SessionUpdate*. API also allows user to give a default time out, which allows user to close the state after timeout. In our example, we want the session to close after explicit user input. So we are specifying no timeout using *GroupStateTimeout.NoTimeout*.
+
 ### Update State for Events
+
+As first part of implementing the map, we update the state for new events.
 
 {% highlight scala %}
 case (sessionId: String, eventsIter: Iterator[Session], state: GroupState[SessionInfo]) =>
- val events = eventsIter.toSeq
-        val updatedSession = if (state.exists) {
-          val existingState = state.get
-          val updatedEvents = SessionInfo(existingState.totalSum + events.map(event => event.value).reduce(_ + _))
-          updatedEvents
-        }
-        else {
-          SessionInfo(events.length)
-        }
+val events = eventsIter.toSeq
+val updatedSession = if (state.exists) {
+  val existingState = state.get
+  val updatedEvents = SessionInfo(existingState.totalSum + events.map(event => event.value).reduce(_ + _))
+  updatedEvents
+}
+else {
+  SessionInfo(events.map(event => event.value).reduce(_+_))
+}
         
 state.update(updatedSession)
 {% endhighlight %}
 
+In above code, the map takes below parameters
+
+* sessionId - Column on which the group is created. In our example, it's sessionId
+
+* eventsIter - All the events for this backs
+
+* state - Current State
+
+In the code, we check is any state exist for the session. If so , we add new events sum to existing one . Otherwise create new entries. We update the state using *state.update* API.
+
 ### Handle Completion of the Session
+
+Once we handled the update, we need to handle the sessions which are complete.
 
 {% highlight scala %}
 
 val isEndSignal = events.filter(value => value.endSignal.isDefined).length > 0
-        if (isEndSignal) {
-          state.remove()
-          SessionUpdate(sessionId, updatedSession.totalSum, true)
-        }
-        else {
-          SessionUpdate(sessionId, updatedSession.totalSum, false)
-        }
+if (isEndSignal) {
+  state.remove()
+  SessionUpdate(sessionId, updatedSession.totalSum, true)
+}
+else {
+  SessionUpdate(sessionId, updatedSession.totalSum, false)
+}
 {% endhighlight %}
 
+In above code, we check for endSignal. If there is endSignal we use *state.remove* to remove the state for that session id. Then we output the right session update.
 
 ### Output to Console Sink
+
+All the session updates are printed to console sink.
 
 {% highlight scala %}
     val query = sessionUpdates
@@ -164,100 +200,101 @@ val isEndSignal = events.filter(value => value.endSignal.isDefined).length > 0
 
 {% endhighlight %}
 
+You can access complete example on [github](https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming/SessionisationExample.scala).
 
 ## Running the Example
 
-Enter the below records in socket console. These are records for AAPL with time stamps. As we are using update output mode, result will only show changed windows.
+Enter the below records in socket console.
 
-### First Event
+### First sessions
 
-The first records is for time Wed, 27 Apr 2016 11:34:22 GMT.
+We start two sessions with id session1 and sessions2 using below input
 
 {% highlight text %}
-1461756862000,"aapl",500.0
+session1,100
+session2,200
 {%endhighlight %}
 
-Spark outputs below results which indicates start of window 
+Spark outputs below results which indicates start of windows 
 
 {% highlight text %}
-
 -------------------------------------------
 Batch: 0
 -------------------------------------------
-+---------------------------------------------+----------+
-|window                                       |sum(value)|
-+---------------------------------------------+----------+
-|[2016-04-27 17:04:20.0,2016-04-27 17:04:30.0]|500.0     |
-+---------------------------------------------+----------+
++--------+--------+-------+
+|      id|totalSum|expired|
++--------+--------+-------+
+|session1|   100.0|  false|
+|session2|   200.0|  false|
++--------+--------+-------+
 
 {% endhighlight %}
 
-### Event after 5 seconds
-
-Now we send the next record, which is after 5 seconds. This signifies to spark that, 5 seconds have passed in source. So spark will be updating the same window. This event is for time Wed, 27 Apr 2016 11:34:27 GMT 
+### Additional Event for Session 1
 
 {% highlight text %}
-1461756867001,"aapl",600.0
+session1,200
 {%endhighlight %}
 
-The output of the spark will be as below. You can observe from output, spark is updating same window.
+The output of the spark will be as below. You can observe from output, window for session1 is changed.
 
 {% highlight text %}
-
 -------------------------------------------
 Batch: 1
 -------------------------------------------
-+---------------------------------------------+----------+
-|window                                       |sum(value)|
-+---------------------------------------------+----------+
-|[2016-04-27 17:04:20.0,2016-04-27 17:04:30.0]|1100.0    |
-+---------------------------------------------+----------+
-
++--------+--------+-------+
+|      id|totalSum|expired|
++--------+--------+-------+
+|session1|   300.0|  false|
++--------+--------+-------+
 {% endhighlight %}
 
-### Event after 11 seconds
-
-Now we send another event, which is after 6 seconds from this time. Now spark understands 11 seconds have been passed. This event is for Wed, 27 Apr 2016 11:34:32 GMT
+### End Session 1 
+Below message will end session 1.
 
 {% highlight text %}
-1461756872000,"aapl",400.0
+session1,200,end
 {%endhighlight %}
 
-Now spark completes the first window and add the above event to next window.
+Now spark completes the first session.
 
 {% highlight text %}
 -------------------------------------------
 Batch: 2
 -------------------------------------------
-+---------------------------------------------+----------+
-|window                                       |sum(value)|
-+---------------------------------------------+----------+
-|[2016-04-27 17:04:30.0,2016-04-27 17:04:40.0]|400.0     |
-+---------------------------------------------+----------+
++--------+--------+-------+
+|      id|totalSum|expired|
++--------+--------+-------+
+|session1|   500.0|   true|
++--------+--------+-------+
 {%endhighlight %}
 
-### Late Event
-
-Let's say we get an event which got delayed. It's an event is for Wed, 27 Apr 2016 11:34:27 which is 5 seconds before the last event.
+### Starting new session1 and updating existing session 2
+The below inputs will start new session1 as it was already completed and update existing session2.
 
 {% highlight text %}
-1461756867001,"aapl",200.0
+session1,100
+session2,200
 {%endhighlight %}
 
-If you observe the spark result now, there are no updated window. This signifies that late event is dropped.
+The below is spark output
 
 {% highlight text %}
+
 -------------------------------------------
 Batch: 3
 -------------------------------------------
-+---------------------------------------------+----------+
-|window                                       |sum(value)|
-+---------------------------------------------+----------+
-+---------------------------------------------+----------+
++--------+--------+-------+
+|      id|totalSum|expired|
++--------+--------+-------+
+|session1|   100.0|  false|
+|session2|   400.0|  false|
++--------+--------+-------+
 
 {% endhighlight %}
 
+From the output you can observe that session1 is started from scratch and session2 is updated.
 
 ## Conclusion
 
-In this post we understood how watermarks help us to define bounded state and handle late events efficiently. 
+In this post we understood how to use custom state management to implement session windows in structured streaming.
