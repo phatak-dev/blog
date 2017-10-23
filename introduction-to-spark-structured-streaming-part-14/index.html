@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Introduction to Spark Structured Streaming - Part 14 : Session Windows using Custom State</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Thoughts on technology, life and everything else.">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-14">
+     <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/app.css">
+       
+</head>
+
+
+    <body>
+
+    <header >
+  <div class="wrap">
+    <a class="site-title" href="/">Madhukar's Blog</a>  
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+           viewBox="0 0 18 15" enable-background="new 0 0 18 15" xml:space="preserve">
+          <path fill="#505050" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0
+            h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#505050" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484
+            h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#505050" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0
+            c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+      <div class="trigger">        
+          <a class="page-link" href="http://www.madhukaraphatak.com">About me</a>                  
+      </div>
+    </nav>  
+  </div>
+</header>
+
+
+    <div class="page-content">
+      <div class="wrap">
+      <div class="post">
+ <header class="post-header">
+  <h1>Introduction to Spark Structured Streaming - Part 14 : Session Windows using Custom State</h1>
+  <p class="meta">Oct 23, 2017</p>
+  <div class="catagories">
+    
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
+    <a href="/categories/spark"><span class="category">spark</span></a>
+    
+    <a href="/categories/introduction-structured-streaming"><span class="category">introduction-structured-streaming</span></a>
+    
+  </div>
+</header> 
+
+<article class="post-content">
+  <p>Structured Streaming is a new streaming API, introduced in spark 2.0, rethinks stream processing in spark land. It models stream
+as an infinite table, rather than discrete collection of data. It’s a radical departure from models of other stream processing frameworks like
+storm, beam, flink etc. Structured Streaming is the first API to build stream processing on top of SQL engine.</p>
+
+<p>Structured Streaming was in alpha in 2.0 and 2.1. But with release 2.2 it has hit stable status. In next few releases,
+it’s going to be de facto way of doing stream processing in spark. So it will be right time to make ourselves familiarise
+with this new API.</p>
+
+<p>In this series of posts, I will be discussing about the different aspects of the structured streaming API. I will be discussing about
+new API’s, patterns and abstractions to solve common stream processing tasks.</p>
+
+<p>This is the fourteenth post in the series. In this post, we discuss about session windows. You 
+can read all the posts in the series <a href="/categories/introduction-structured-streaming">here</a>.</p>
+
+<p>TL;DR You can access code on <a href="https://github.com/phatak-dev/spark2.0-examples/tree/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming">github</a>.</p>
+
+<h2 id="user-session">User session</h2>
+<p>A session is often period of time that capture different interactions with an application from user. A session is set up or established at a certain point in time, and then torn down at some later point.</p>
+
+<p>As an example, in an online portal session normally starts when user logs into the application. All the purchases made in this point of time are captured in this session. Session will be torn down when user logged out or it expires when there is no activity for some time.</p>
+
+<h2 id="session-window">Session window</h2>
+
+<p>A session window, is a window which allows us to group different records from the stream for a specific session. This window will start when the session starts and evaluated when session is ended. This window also will support tracking multiple sessions at a same time.</p>
+
+<p>Session windows are often used to analyze user behavior across multiple interactions bounded by session.</p>
+
+<p>In structured streaming, we only have built in windows for time based evaluation. But our session window doesn’t solely depend upon time. So we need to create a custom window which can satisfy our requirement.</p>
+
+<h2 id="modeling-user-session">Modeling user session</h2>
+<p>Once we understood about the session and session window, we need to model the session in our code. I have a simple representation of session for explaining the example. Most of the real world session information will much more complicated than it.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">case</span> <span class="k">class</span> <span class="nc">Session</span><span class="o">(</span><span class="n">sessionId</span><span class="k">:</span><span class="kt">String</span><span class="o">,</span> <span class="n">value</span><span class="k">:</span><span class="kt">Double</span><span class="o">,</span> <span class="n">endSignal</span><span class="k">:</span><span class="kt">Option</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span></code></pre></div>
+
+<p>The above case class is model of our session. It has following three components</p>
+
+<ul>
+  <li>
+    <h3 id="sessionid">sessionId</h3>
+    <p>An identifier which uniquely identifies a session. There can be multiple sessions active at same time. Each of these sessions will have unique session id.</p>
+  </li>
+  <li>
+    <h3 id="value">value</h3>
+  </li>
+</ul>
+
+<p>It’s a value associated each interaction in the session. This signifies the information we want to track with in the session. In real world scenarios, it will be user interactions with the system. As an example, in a online store it may be the product user added to the cart. In our example, it’s a simple double value.</p>
+
+<ul>
+  <li>
+    <h3 id="endsignal">endSignal</h3>
+  </li>
+</ul>
+
+<p>It’s an optional value in record. This signifies end of the session from the application side. It may be risen because user has logged out or may the session expired. It depends on the application to generate these signals.</p>
+
+<h2 id="custom-state-management">Custom State Management</h2>
+
+<p>As session window is not tied to time, it needs to do custom state management. To create a session window, we will use <em>mapGroupWithState</em> API of structured streaming, which allows to work with state independent of the time restriction.</p>
+
+<h2 id="session-window-example">Session Window Example</h2>
+
+<p>The below are the steps for defining a session based window on socket stream.</p>
+
+<h3 id="read-from-the-socket">Read from the socket</h3>
+
+<p>As earlier examples, we will be reading the data from socket source.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">socketStreamDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">readStream</span>
+      <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;socket&quot;</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;host&quot;</span><span class="o">,</span> <span class="s">&quot;localhost&quot;</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;port&quot;</span><span class="o">,</span> <span class="mi">50050</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">load</span><span class="o">()</span></code></pre></div>
+
+<h3 id="convert-to-session-event">Convert to Session Event</h3>
+
+<p>The data coming from socket is represented as single string in which values are separated by comma. So in below code,
+we will be parsing given input to session case class.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">import</span> <span class="nn">sparkSession.implicits._</span>
+<span class="k">val</span> <span class="n">socketDs</span> <span class="k">=</span> <span class="n">socketStreamDf</span><span class="o">.</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>
+<span class="c1">// events</span>
+<span class="k">val</span> <span class="n">events</span> <span class="k">=</span> <span class="n">socketDs</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">line</span> <span class="k">=&gt;</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">columns</span> <span class="k">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;,&quot;</span><span class="o">)</span>
+  <span class="k">val</span> <span class="n">endSignal</span> <span class="k">=</span> <span class="nc">Try</span><span class="o">(</span><span class="nc">Some</span><span class="o">(</span><span class="n">columns</span><span class="o">(</span><span class="mi">2</span><span class="o">))).</span><span class="n">getOrElse</span><span class="o">(</span><span class="nc">None</span><span class="o">)</span>
+  <span class="nc">Session</span><span class="o">(</span><span class="n">columns</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="n">columns</span><span class="o">(</span><span class="mi">1</span><span class="o">).</span><span class="n">toDouble</span><span class="o">,</span> <span class="n">endSignal</span><span class="o">)</span>
+<span class="o">})</span></code></pre></div>
+
+<h3 id="define-custom-state-management-models">Define Custom State Management Models</h3>
+
+<p>Once we have parsed the input stream as session, we need to define models to track and output the session state.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">case</span> <span class="k">class</span> <span class="nc">SessionInfo</span><span class="o">(</span>
+                        <span class="n">totalSum</span><span class="k">:</span> <span class="kt">Double</span><span class="o">)</span>
+
+<span class="k">case</span> <span class="k">class</span> <span class="nc">SessionUpdate</span><span class="o">(</span>
+                          <span class="n">id</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span>
+                          <span class="n">totalSum</span><span class="k">:</span> <span class="kt">Double</span><span class="o">,</span>
+                          <span class="n">expired</span><span class="k">:</span> <span class="kt">Boolean</span><span class="o">)</span></code></pre></div>
+
+<p>In above code, <em>SessionInfo</em> is a case class which tracks the information we store for a given session. In our example, we just keep a single value called <em>totalSum</em>. It tracks the total value seen in the session till it’s expired.</p>
+
+<p><em>SessionUpdate</em> is a case class used to output the update for a given session for every batch. We output below details</p>
+
+<ul>
+  <li>id - Id of the session</li>
+  <li>totalSum - Total value of the session till that batch</li>
+  <li>expired - Is session expired or not</li>
+</ul>
+
+<p>Using above models, we can track session in structured streaming API.</p>
+
+<h3 id="group-sessions-by-session-id">Group Sessions by Session Id</h3>
+
+<p>Once we have defined the models, we group sessions using <em>sessionId</em>.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sessionUpdates</span> <span class="k">=</span> <span class="n">events</span><span class="o">.</span><span class="n">groupByKey</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">sessionId</span><span class="o">)</span></code></pre></div>
+
+<h3 id="define-mapgroupwithstate">Define mapGroupWithState</h3>
+
+<p><em>mapGroupState</em> as name indicates an API to map state for a given grouped input. In our case, we have sessions grouped by sessionId.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">mapGroupsWithState</span><span class="o">[</span><span class="kt">SessionInfo</span>, <span class="kt">SessionUpdate</span><span class="o">](</span><span class="nc">GroupStateTimeout</span><span class="o">.</span><span class="nc">NoTimeout</span><span class="o">())</span> <span class="o">{</span></code></pre></div>
+
+<p>From above code, API takes two models. One indicating the state we are tracking, <em>SessionInfo</em> and another indicating the return value of the function which is <em>SessionUpdate</em>. API also allows user to give a default time out, which allows user to close the state after timeout. In our example, we want the session to close after explicit user input. So we are specifying no timeout using <em>GroupStateTimeout.NoTimeout</em>.</p>
+
+<h3 id="update-state-for-events">Update State for Events</h3>
+
+<p>As first part of implementing the map, we update the state for new events.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">case</span> <span class="o">(</span><span class="n">sessionId</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">eventsIter</span><span class="k">:</span> <span class="kt">Iterator</span><span class="o">[</span><span class="kt">Session</span><span class="o">],</span> <span class="n">state</span><span class="k">:</span> <span class="kt">GroupState</span><span class="o">[</span><span class="kt">SessionInfo</span><span class="o">])</span> <span class="k">=&gt;</span>
+<span class="k">val</span> <span class="n">events</span> <span class="k">=</span> <span class="n">eventsIter</span><span class="o">.</span><span class="n">toSeq</span>
+<span class="k">val</span> <span class="n">updatedSession</span> <span class="k">=</span> <span class="k">if</span> <span class="o">(</span><span class="n">state</span><span class="o">.</span><span class="n">exists</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">existingState</span> <span class="k">=</span> <span class="n">state</span><span class="o">.</span><span class="n">get</span>
+  <span class="k">val</span> <span class="n">updatedEvents</span> <span class="k">=</span> <span class="nc">SessionInfo</span><span class="o">(</span><span class="n">existingState</span><span class="o">.</span><span class="n">totalSum</span> <span class="o">+</span> <span class="n">events</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">event</span> <span class="k">=&gt;</span> <span class="n">event</span><span class="o">.</span><span class="n">value</span><span class="o">).</span><span class="n">reduce</span><span class="o">(</span><span class="k">_</span> <span class="o">+</span> <span class="k">_</span><span class="o">))</span>
+  <span class="n">updatedEvents</span>
+<span class="o">}</span>
+<span class="k">else</span> <span class="o">{</span>
+  <span class="nc">SessionInfo</span><span class="o">(</span><span class="n">events</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">event</span> <span class="k">=&gt;</span> <span class="n">event</span><span class="o">.</span><span class="n">value</span><span class="o">).</span><span class="n">reduce</span><span class="o">(</span><span class="k">_</span><span class="o">+</span><span class="k">_</span><span class="o">))</span>
+<span class="o">}</span>
+        
+<span class="n">state</span><span class="o">.</span><span class="n">update</span><span class="o">(</span><span class="n">updatedSession</span><span class="o">)</span></code></pre></div>
+
+<p>In above code, the map takes below parameters</p>
+
+<ul>
+  <li>
+    <p>sessionId - Column on which the group is created. In our example, it’s sessionId</p>
+  </li>
+  <li>
+    <p>eventsIter - All the events for this backs</p>
+  </li>
+  <li>
+    <p>state - Current State</p>
+  </li>
+</ul>
+
+<p>In the code, we check is any state exist for the session. If so , we add new events sum to existing one . Otherwise create new entries. We update the state using <em>state.update</em> API.</p>
+
+<h3 id="handle-completion-of-the-session">Handle Completion of the Session</h3>
+
+<p>Once we handled the update, we need to handle the sessions which are complete.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">isEndSignal</span> <span class="k">=</span> <span class="n">events</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">endSignal</span><span class="o">.</span><span class="n">isDefined</span><span class="o">).</span><span class="n">length</span> <span class="o">&gt;</span> <span class="mi">0</span>
+<span class="k">if</span> <span class="o">(</span><span class="n">isEndSignal</span><span class="o">)</span> <span class="o">{</span>
+  <span class="n">state</span><span class="o">.</span><span class="n">remove</span><span class="o">()</span>
+  <span class="nc">SessionUpdate</span><span class="o">(</span><span class="n">sessionId</span><span class="o">,</span> <span class="n">updatedSession</span><span class="o">.</span><span class="n">totalSum</span><span class="o">,</span> <span class="kc">true</span><span class="o">)</span>
+<span class="o">}</span>
+<span class="k">else</span> <span class="o">{</span>
+  <span class="nc">SessionUpdate</span><span class="o">(</span><span class="n">sessionId</span><span class="o">,</span> <span class="n">updatedSession</span><span class="o">.</span><span class="n">totalSum</span><span class="o">,</span> <span class="kc">false</span><span class="o">)</span>
+<span class="o">}</span></code></pre></div>
+
+<p>In above code, we check for endSignal. If there is endSignal we use <em>state.remove</em> to remove the state for that session id. Then we output the right session update.</p>
+
+<h3 id="output-to-console-sink">Output to Console Sink</h3>
+
+<p>All the session updates are printed to console sink.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">query</span> <span class="k">=</span> <span class="n">sessionUpdates</span>
+      <span class="o">.</span><span class="n">writeStream</span>
+      <span class="o">.</span><span class="n">outputMode</span><span class="o">(</span><span class="s">&quot;update&quot;</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;console&quot;</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">start</span><span class="o">()</span></code></pre></div>
+
+<p>You can access complete example on <a href="https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming/SessionisationExample.scala">github</a>.</p>
+
+<h2 id="running-the-example">Running the Example</h2>
+
+<p>Enter the below records in socket console.</p>
+
+<h3 id="first-sessions">First sessions</h3>
+
+<p>We start two sessions with id session1 and sessions2 using below input</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">session1,100
+session2,200</code></pre></div>
+
+<p>Spark outputs below results which indicates start of windows</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">-------------------------------------------
+Batch: 0
+-------------------------------------------
++--------+--------+-------+
+|      id|totalSum|expired|
++--------+--------+-------+
+|session1|   100.0|  false|
+|session2|   200.0|  false|
++--------+--------+-------+</code></pre></div>
+
+<h3 id="additional-event-for-session-1">Additional Event for Session 1</h3>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">session1,200</code></pre></div>
+
+<p>The output of the spark will be as below. You can observe from output, window for session1 is changed.</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">-------------------------------------------
+Batch: 1
+-------------------------------------------
++--------+--------+-------+
+|      id|totalSum|expired|
++--------+--------+-------+
+|session1|   300.0|  false|
++--------+--------+-------+</code></pre></div>
+
+<h3 id="end-session-1">End Session 1</h3>
+<p>Below message will end session 1.</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">session1,200,end</code></pre></div>
+
+<p>Now spark completes the first session.</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">-------------------------------------------
+Batch: 2
+-------------------------------------------
++--------+--------+-------+
+|      id|totalSum|expired|
++--------+--------+-------+
+|session1|   500.0|   true|
++--------+--------+-------+</code></pre></div>
+
+<h3 id="starting-new-session1-and-updating-existing-session-2">Starting new session1 and updating existing session 2</h3>
+<p>The below inputs will start new session1 as it was already completed and update existing session2.</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">session1,100
+session2,200</code></pre></div>
+
+<p>The below is spark output</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">-------------------------------------------
+Batch: 3
+-------------------------------------------
++--------+--------+-------+
+|      id|totalSum|expired|
++--------+--------+-------+
+|session1|   100.0|  false|
+|session2|   400.0|  false|
++--------+--------+-------+</code></pre></div>
+
+<p>From the output you can observe that session1 is started from scratch and session2 is updated.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this post we understood how to use custom state management to implement session windows in structured streaming.</p>
+
+</article>
+<div class="related">
+  <h2>Related posts</h2>
+  <ul>
+    
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">16 Oct 2017</span>
+     &raquo; <a href="/introduction-to-spark-structured-streaming-part-13">Introduction to Spark Structured Streaming - Part 13: Meetup Talk</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">10 Oct 2017</span>
+     &raquo; <a href="/introduction-to-spark-structured-streaming-part-12">Introduction to Spark Structured Streaming - Part 12 : Watermarks</a>    
+   </li>           
+         
+
+   
+   
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">16 Oct 2017</span>
+     &raquo; <a href="/introduction-to-spark-structured-streaming-part-13">Introduction to Spark Structured Streaming - Part 13: Meetup Talk</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">10 Oct 2017</span>
+     &raquo; <a href="/introduction-to-spark-structured-streaming-part-12">Introduction to Spark Structured Streaming - Part 12 : Watermarks</a>    
+   </li>           
+         
+
+   
+   
+ </ul>
+
+
+ 
+     
+    <div id="disqus_thread" style="padding-top:4%;"></div>
+     <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'personalblogmadhukar'; // required: replace example with your forum shortname
+        var disqus_developer = 1;
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+   
+</div>
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrap">   
+    <div class="footer-col-1 column">
+      <ul>
+        <li>
+          <a href="https://github.com/phatak-dev">
+            <span class="icon github">
+              <svg version="1.1" class="github-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill-rule="evenodd" clip-rule="evenodd" fill="#C2C2C2" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761
+                c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32
+                c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472
+                c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037
+                C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65
+                c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261
+                c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082
+                c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129
+                c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+              </svg>
+            </span>
+            <span class="username">phatak-dev</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://twitter.com/madhukaraphatak">
+            <span class="icon twitter">
+              <svg version="1.1" class="twitter-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill="#C2C2C2" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809
+                c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27
+                c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767
+                c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206
+                C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271
+                c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469
+                c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/>
+              </svg>
+            </span>
+            <span class="username">madhukaraphatak</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer-col-3 column">
+      <p class="text">Thoughts on technology, life and everything else.</p>
+    </div>
+
+    <div style="float:right;">
+      <a href="/feed.xml"><img src="/images/rss.png">
+    </div>
+
+
+
+  </div>
+
+</footer>
+
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52311191-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+    </body>
+</html>
