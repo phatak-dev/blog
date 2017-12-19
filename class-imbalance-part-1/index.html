@@ -71,7 +71,7 @@
 
 <h2 id="data">Data</h2>
 
-<p>For our example, we will use credit card fraud data. This data has more than 30 variable about transaction and target column <strong>Class</strong> which signifies given transaction is fraud or not. You can learn more about data in <a href="https://www.kaggle.com/dalpozz/creditcardfraud">kaggle</a>.</p>
+<p>For our example, we will use credit card fraud data. This data has more than 30 variable about transaction and target column Class which signifies given transaction is fraud or not. You can learn more about data in <a href="https://www.kaggle.com/dalpozz/creditcardfraud">kaggle</a>.</p>
 
 <h2 id="class-imbalance">Class Imbalance</h2>
 
@@ -79,9 +79,7 @@
 
 <div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">sns</span><span class="o">.</span><span class="n">countplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s">&#39;Class&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">df</span><span class="p">)</span></code></pre></div>
 
-<p>The distribution looks as below</p>
-
-<p><img src="/images/credit_card_class_plot.png" alt="Distribution image" /></p>
+<p><img src="/images/credit_card_class_plot.png" alt="Imbalance Plot" /></p>
 
 <p>As you can observe from the plot, we have so many 0 (non-fraud) compared to 1 (fraud). This kind of imbalance in the target variable is known as class imbalance.</p>
 
@@ -91,7 +89,7 @@
 
 <h3 id="data-preparation">Data Preparation</h3>
 
-<p>Before running algorithm, we need normalise <em>Amount</em> column and then drop <em>Time</em> column.</p>
+<p>Before running algorithm, we need normalise Amount column and then drop Time column.</p>
 
 <div class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">StandardScaler</span>
 <span class="kn">from</span> <span class="nn">sklearn.cross_validation</span> <span class="kn">import</span> <span class="n">train_test_split</span>
@@ -103,11 +101,8 @@
 
 <h3 id="logistic-regression">Logistic Regression</h3>
 
-<p>Now we will run logistic regression</p>
-
 <div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">test_size</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">random_state</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
-
-<span class="c"># Calculate the recall score for logistic Regression on Skewed data</span>
+<span class="c">#Calculate the recall score for logistic Regression on Skewed data</span>
 <span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">LogisticRegression</span>
 <span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">recall_score</span><span class="p">,</span><span class="n">accuracy_score</span>
 <span class="n">lr</span> <span class="o">=</span> <span class="n">LogisticRegression</span><span class="p">()</span>
@@ -119,16 +114,15 @@
 
 <div class="highlight"><pre><code class="language-text" data-lang="text">0.999204147794</code></pre></div>
 
-<p>From the above result, you may be happy that algorithm is performing extremely well . But it’s not true. As most of the labels 0, even random
-guess gives you 99% accuracy. So we need a better measure to understand the performance of the model.</p>
+<p>From the above result, you may be happy that algorithm is performing extremely well . But it’s not true. As most of the labels 0, even random guess gives you 99% accuracy. So we need a better measure to understand the performance of the model.</p>
 
 <h3 id="recall">Recall</h3>
 
-<p>Recall is a measure which measures the ability of model to predict right for a given label. In our case, we want to test the model how accurately it can recall fraud cases as we are interested in that. We can calculate it using <em>recall_score</em>.</p>
+<p>Recall is a measure which measures the ability of model to predict right for a given label. In our case, we want to test the model how accurately it can recall fraud cases as we are interested in that. We can calculate it using recall_score.</p>
 
 <div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">print</span><span class="p">(</span><span class="n">recall_score</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span><span class="n">y_pred</span><span class="p">,</span><span class="n">average</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span></code></pre></div>
 
-<p>In above code, we are calculating recall. <em>average</em> parameter makes sure that recall is returned individually for each label. The output will be</p>
+<p>In above code, we are calculating recall. average parameter makes sure that recall is returned individually for each label. The output will be</p>
 
 <div class="highlight"><pre><code class="language-text" data-lang="text">[ 0.99985931  0.61904762]</code></pre></div>
 

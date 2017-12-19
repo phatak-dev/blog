@@ -16,7 +16,7 @@
 
 &lt;h2 id=&quot;data&quot;&gt;Data&lt;/h2&gt;
 
-&lt;p&gt;For our example, we will use credit card fraud data. This data has more than 30 variable about transaction and target column &lt;strong&gt;Class&lt;/strong&gt; which signifies given transaction is fraud or not. You can learn more about data in &lt;a href=&quot;https://www.kaggle.com/dalpozz/creditcardfraud&quot;&gt;kaggle&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;For our example, we will use credit card fraud data. This data has more than 30 variable about transaction and target column Class which signifies given transaction is fraud or not. You can learn more about data in &lt;a href=&quot;https://www.kaggle.com/dalpozz/creditcardfraud&quot;&gt;kaggle&lt;/a&gt;.&lt;/p&gt;
 
 &lt;h2 id=&quot;class-imbalance&quot;&gt;Class Imbalance&lt;/h2&gt;
 
@@ -24,9 +24,7 @@
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;sns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;countplot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;Class&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;The distribution looks as below&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/credit_card_class_plot.png&quot; alt=&quot;Distribution image&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/images/credit_card_class_plot.png&quot; alt=&quot;Imbalance Plot&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;As you can observe from the plot, we have so many 0 (non-fraud) compared to 1 (fraud). This kind of imbalance in the target variable is known as class imbalance.&lt;/p&gt;
 
@@ -36,7 +34,7 @@
 
 &lt;h3 id=&quot;data-preparation&quot;&gt;Data Preparation&lt;/h3&gt;
 
-&lt;p&gt;Before running algorithm, we need normalise &lt;em&gt;Amount&lt;/em&gt; column and then drop &lt;em&gt;Time&lt;/em&gt; column.&lt;/p&gt;
+&lt;p&gt;Before running algorithm, we need normalise Amount column and then drop Time column.&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sklearn.preprocessing&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StandardScaler&lt;/span&gt;
 &lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sklearn.cross_validation&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;train_test_split&lt;/span&gt;
@@ -48,11 +46,8 @@
 
 &lt;h3 id=&quot;logistic-regression&quot;&gt;Logistic Regression&lt;/h3&gt;
 
-&lt;p&gt;Now we will run logistic regression&lt;/p&gt;
-
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;X_train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y_train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y_test&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;train_test_split&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test_size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;random_state&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;c&quot;&gt;# Calculate the recall score for logistic Regression on Skewed data&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;#Calculate the recall score for logistic Regression on Skewed data&lt;/span&gt;
 &lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sklearn.linear_model&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LogisticRegression&lt;/span&gt;
 &lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sklearn.metrics&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;recall_score&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;accuracy_score&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;lr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LogisticRegression&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
@@ -64,16 +59,15 @@
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;0.999204147794&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;From the above result, you may be happy that algorithm is performing extremely well . But it’s not true. As most of the labels 0, even random
-guess gives you 99% accuracy. So we need a better measure to understand the performance of the model.&lt;/p&gt;
+&lt;p&gt;From the above result, you may be happy that algorithm is performing extremely well . But it’s not true. As most of the labels 0, even random guess gives you 99% accuracy. So we need a better measure to understand the performance of the model.&lt;/p&gt;
 
 &lt;h3 id=&quot;recall&quot;&gt;Recall&lt;/h3&gt;
 
-&lt;p&gt;Recall is a measure which measures the ability of model to predict right for a given label. In our case, we want to test the model how accurately it can recall fraud cases as we are interested in that. We can calculate it using &lt;em&gt;recall_score&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;Recall is a measure which measures the ability of model to predict right for a given label. In our case, we want to test the model how accurately it can recall fraud cases as we are interested in that. We can calculate it using recall_score.&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;recall_score&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y_pred&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;average&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;In above code, we are calculating recall. &lt;em&gt;average&lt;/em&gt; parameter makes sure that recall is returned individually for each label. The output will be&lt;/p&gt;
+&lt;p&gt;In above code, we are calculating recall. average parameter makes sure that recall is returned individually for each label. The output will be&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;[ 0.99985931  0.61904762]&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
