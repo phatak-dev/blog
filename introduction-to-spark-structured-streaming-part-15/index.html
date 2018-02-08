@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Scalable Spark Deployment using Kubernetes - Part 2 : Installing Kubernetes Locally using Minikube</title>
+    <title>Introduction to Spark Structured Streaming - Part 15: Meetup Talk on Time and Window API</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-2">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-15">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,85 +45,30 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Scalable Spark Deployment using Kubernetes - Part 2 : Installing Kubernetes Locally using Minikube</h1>
-  <p class="meta">Feb 15, 2017</p>
+  <h1>Introduction to Spark Structured Streaming - Part 15: Meetup Talk on Time and Window API</h1>
+  <p class="meta">Feb 8, 2018</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
     <a href="/categories/spark"><span class="category">spark</span></a>
     
-    <a href="/categories/kubernetes-series"><span class="category">kubernetes-series</span></a>
+    <a href="/categories/introduction-structured-streaming"><span class="category">introduction-structured-streaming</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>In last blog, we discussed about what is kubernetes and what are it’s advantages. In this second post of the series, we are going to discuss
-how to install the kubernetes locally on your machine.You can find all the posts in the series <a href="/categories/kubernetes-series/">here</a>.</p>
+  <p>In last few blog posts we have discussed about different aspects of time in spark structured streaming API. 
+Recently I gave a talk on these topics in a our spark <a href="https://www.meetup.com/Bangalore-Apache-Spark-Meetup/">meetup</a>.</p>
 
-<h2 id="installing-kubernetes-on-local-machine">Installing Kubernetes on Local Machine</h2>
+<p>In this fifteenth blog of the series, I will be sharing recording of that talk with slides and code.
+You can access all the posts in the series <a href="/categories/introduction-structured-streaming">here</a>.</p>
 
-<p>One of the cool features of kubernetes that it can be installed and tried out in local. It behaves exactly as it will be on a cluster. To try out 
-kubernetes on local we need to install minikube and kubectl.</p>
+<p>Find the slides on <a href="https://www.slideshare.net/datamantra/understanding-time-in-structured-streaming">slideshare</a> and code on <a href="https://github.com/phatak-dev/spark2.0-examples/tree/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming">github</a>.</p>
 
-<p>The below are the steps</p>
+<div class="video-container"> <iframe src="https://www.youtube.com/embed/bWkjsj-M7i4" frameborder="0" width="560" height="315"></iframe> </div>
 
-<ul>
-  <li>
-    <h4 id="step-1-pre-requisites">Step 1 :Pre-Requisites</h4>
-  </li>
-</ul>
-
-<p>To install the kubernetes on local machine, we install minikube. But minikube normally uses some kind of virtualization layer to install the
-needed software. So for our example, we will use virtualbox as our virtualization layer. For more pre-requisites refer <a href="https://kubernetes.io/docs/getting-started-guides/minikube/#requirements">here</a>.</p>
-
-<p>Download and Install virtualbox from <a href="http://www.virtualbox.org">here</a>.</p>
-
-<ul>
-  <li>
-    <h4 id="step-2--install-minikube">Step 2 : Install MiniKube</h4>
-  </li>
-</ul>
-
-<p>Run the below commands to install minikube on linux. For other operating system, refer <a href="https://github.com/kubernetes/minikube/releases">here</a>.
-Latest version as of now is 0.16.0</p>
-
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.16.0/minikube-linux-amd64 <span class="o">&amp;&amp;</span> chmod +x minikube <span class="o">&amp;&amp;</span> sudo mv minikube /usr/local/bin/</code></pre></div>
-
-<ul>
-  <li>
-    <h3 id="step-3--install-kubectl">Step 3 : Install KubeCtl</h3>
-  </li>
-</ul>
-
-<p>Kubectl is a command line utility which communicates to kubernetes over it’s REST API. We can install it using below command</p>
-
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">curl -LO https://storage.googleapis.com/kubernetes-release/release/<span class="k">$(</span>curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt<span class="k">)</span>/bin/linux/amd64/kubectl
-chmod +x ./kubectl
-sudo mv ./kubectl /usr/local/bin/kubectl</code></pre></div>
-
-<h2 id="interacting-with-minikube">Interacting With Minikube</h2>
-
-<p>Once we installed the minikube and kubectl , we can start playing with kubernetes.</p>
-
-<p>We can start minikube using below command. It downloads minikube iso and start a virtual machine in virtualbox.</p>
-
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">minikube start</code></pre></div>
-
-<p>We can open the kubernetes dashboard using below command</p>
-
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">minikube dashboard</code></pre></div>
-
-<p>We can check is anything running or not, using below command</p>
-
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl get po --all-namespaces</code></pre></div>
-
-<p>This command should show some kubernetes container running.</p>
-
-<p>Now we have successfully installed and configured the kubernetes on our machine.</p>
-
-<p>In our next post, we will discuss the different abstractions of kubernetes and how to use them in our applications.</p>
 
 </article>
 <div class="related">
@@ -131,12 +76,7 @@ sudo mv ./kubectl /usr/local/bin/kubectl</code></pre></div>
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">08 Feb 2018</span>
-     &raquo; <a href="/introduction-to-spark-structured-streaming-part-15">Introduction to Spark Structured Streaming - Part 15: Meetup Talk on Time and Window API</a>    
-   </li>           
-         
+          
 
             
     
@@ -157,12 +97,7 @@ sudo mv ./kubectl /usr/local/bin/kubectl</code></pre></div>
    
    
              
-    
-    <li>    
-     <span class="post-date">08 Feb 2018</span>
-     &raquo; <a href="/introduction-to-spark-structured-streaming-part-15">Introduction to Spark Structured Streaming - Part 15: Meetup Talk on Time and Window API</a>    
-   </li>           
-         
+          
 
             
     
