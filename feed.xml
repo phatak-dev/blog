@@ -7,195 +7,163 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
-        <title>Converting Spark ML Vector to Numpy Array</title>
-        <description>&lt;p&gt;Pyspark is a python interface for the spark API. One of the advantage of using it over Scala API is ability to use rich data science ecosystem of the python. Spark Dataframe can be easily converted to python Panda’s dataframe which allows us to use various python libraries like scikit-learn etc.&lt;/p&gt;
+        <title>Exploring Spark DataSource V2 - Part 2  : Anatomy of V2 Read API</title>
+        <description>&lt;p&gt;In spark, data source is one of the foundational API for structured data analysis. Combined with dataframe and spark SQL abstractions, it makes spark one of the most complete structured data engine out there. You can read more about structured data analysis in spark &lt;a href=&quot;/categories/datasource-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
-&lt;p&gt;One of challenge with this integration is impedance mismatch between spark data representation vs python data representation. For example, in python ecosystem, we typically use Numpy arrays for representing data for machine learning algorithms, where as in spark has it’s own sparse and dense vector representation.&lt;/p&gt;
+&lt;p&gt;Data source API was introduced in spark 1.3 along with dataframe abstraction. After that release, spark has undergone tremendous change. Spark has moved to custom memory management and with 2.0 we got Dataset , a better dataframe, abstraction. With these tremendous changes data source API needed to revisited.&lt;/p&gt;
 
-&lt;p&gt;So in this post we will discuss how this data representation mismatch is an issue and how to handle it.&lt;/p&gt;
+&lt;p&gt;So in 2.3 version, spark has released new version of data source API known as as data source V2. This API reflects all the learning spark developers learnt in last few releases. This API will be foundation for next few years of spark data source connectivity.&lt;/p&gt;
 
-&lt;h2 id=&quot;spark-dataframe-with-sparse-vector&quot;&gt;Spark Dataframe with Sparse Vector&lt;/h2&gt;
+&lt;p&gt;In this series of posts, I will be discussing about different parts of the API. We will be learning API by building data sources for different sources like flat file, relational databases etc.&lt;/p&gt;
 
-&lt;p&gt;Spark ML represents the feature vector as a sparse vector. So in this section, we will load sample adult salary data take from &lt;a href=&quot;https://archive.ics.uci.edu/ml/datasets/adult&quot;&gt;here&lt;/a&gt; and create spark dataframe.&lt;/p&gt;
+&lt;p&gt;This is second blog in the series where we discuss about different interfaces to read data in V2 API.Understanding these interfaces helps us to understand the design and motivation of v2 API.You can read all the post in the series &lt;a href=&quot;/categories/datasource-v2-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;load-data-as-spark-dataframe&quot;&gt;Load Data as Spark Dataframe&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
+&lt;h2 id=&quot;java-interfaces&quot;&gt;Java Interfaces&lt;/h2&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pyspark.sql&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SparkSession&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pandas&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pd&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;np&lt;/span&gt;
+&lt;p&gt;One of the characteristics of V2 API’s is it’s exposed in terms of Java interfaces rather than scala traits. The primary reason for this is better interop with java.&lt;/p&gt;
 
-&lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt; \
-       &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;master&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;local&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; \
-       &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;appName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Spark ML&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; \
-       &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getOrCreate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;p&gt;The below are the basic interfaces to read the data in V2 API.&lt;/p&gt;
 
-&lt;span class=&quot;n&quot;&gt;sparkDf&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt; \
-&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;inferSchema&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;true&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;adult_salary_100rows.csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id=&quot;datasourcev2&quot;&gt;DataSourceV2&lt;/h2&gt;
 
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;spark-ml-pipeline&quot;&gt;Spark ML Pipeline&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
+&lt;p&gt;DataSourceV2 is a marker interface. It doesn’t have any methods to override. Extending this interface we indicate that we are implementing support for V2 datasource.&lt;/p&gt;
 
-&lt;p&gt;In spark ML, we use pipeline API’s to build data processing pipeline. As part of pipeline, we pre process the data.&lt;/p&gt;
+&lt;h2 id=&quot;readersupport&quot;&gt;ReaderSupport&lt;/h2&gt;
 
-&lt;p&gt;For our analysis we will be using salary column as label. age and workclass as input features. As &lt;em&gt;salary&lt;/em&gt; and &lt;em&gt;workclass&lt;/em&gt; are string column we need to convert them to one hot encoded values. The below code does it using spark pipeline.&lt;/p&gt;
+&lt;p&gt;ReaderSupport is interface which indicates that datasource supports reading that. There is similar interface for write also. In this post we only focus on the reading.&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# Create String Indexer for workclass and salary&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pyspark.ml.feature&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StringIndexer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;VectorAssembler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;OneHotEncoder&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pyspark.ml&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Pipeline&lt;/span&gt;
+&lt;p&gt;It has single method with below signature&lt;/p&gt;
 
-&lt;span class=&quot;n&quot;&gt;workClassIndexer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StringIndexer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-	&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setInputCol&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;workclass&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-	&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setOutputCol&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;workclass_indexed&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createReader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;DataSourceOptions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;DataSourceReader&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;span class=&quot;n&quot;&gt;workClassOneHot&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;OneHotEncoder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;
-	&lt;span class=&quot;n&quot;&gt;setInputCol&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;workclass_indexed&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-	&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setOutputCol&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;workclass_onehot&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;p&gt;From the above signature it’s clear that,it’s an entry point method for data source. &lt;em&gt;DataSourceOptions&lt;/em&gt; is a map which contains all the options specified by the  user to this data source. This method creates &lt;em&gt;DataSourceReader&lt;/em&gt;.&lt;/p&gt;
 
-&lt;span class=&quot;n&quot;&gt;salaryIndexer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StringIndexer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-	&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setInputCol&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;salary&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-	&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setOutputCol&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;label&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;h2 id=&quot;datasourcereader&quot;&gt;DataSourceReader&lt;/h2&gt;
 
-&lt;span class=&quot;n&quot;&gt;vectorAssembler&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VectorAssembler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-	&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setInputCols&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;workclass_onehot&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;age&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
-	&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setOutputCol&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;features&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;# create pipeline&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;pipeline&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Pipeline&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setStages&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;workClassIndexer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;workClassOneHot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;salaryIndexer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vectorAssembler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above code, we used vector assembler to convert multiple columns into single features array.&lt;/p&gt;
+&lt;p&gt;DataSourceReader is the primary interface for actually responsible for two things of reading. They are&lt;/p&gt;
 
 &lt;ul&gt;
   &lt;li&gt;
-    &lt;h3 id=&quot;transform&quot;&gt;Transform&lt;/h3&gt;
+    &lt;h3 id=&quot;schema-inference&quot;&gt;Schema Inference&lt;/h3&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;Once we have the pipeline, we can use it to transform our input dataframe to desired form.&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;readSchema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;StructType&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;transformedDf&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pipeline&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sparkDf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;transform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sparkDf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;features&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;label&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;transformedDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;printSchema&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Output of the schema will looks as below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;root
- |-- features: vector (nullable = true)
- |-- label: double (nullable = true)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;From above result, you can observe that feature array is represented as a vector. Also if you look at the data inside , it will look as below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;+--------------------+-----+
-|            features|label|
-+--------------------+-----+
-|(7,[5,6],[1.0,39.0])|  0.0|
-|(7,[1,6],[1.0,50.0])|  0.0|
-+--------------------+-----+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The structure of features indicate it’s a sparse vector.&lt;/p&gt;
-
-&lt;h2 id=&quot;converting-to-pandas-dataframe&quot;&gt;Converting to Panda’s dataframe&lt;/h2&gt;
-
-&lt;p&gt;Now we have data preprocessed. In order to use scikit-learn algorithms, we need to convert the dataframe into panda’s one.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;pandaDf&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;transformedDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toPandas&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Let’s print schema of panda’s dataframe.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;pandaDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;info&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;&amp;lt;class &amp;#39;pandas.core.frame.DataFrame&amp;#39;&amp;gt;
-RangeIndex: 101 entries, 0 to 100
-Data columns (total 2 columns):
-features    101 non-null object
-label       101 non-null float64
-dtypes: float64(1), object(1)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;From the above output, we can observe that features is represented as an object rather than as sequence.&lt;/p&gt;
-
-&lt;h2 id=&quot;impedance-mismatch&quot;&gt;Impedance Mismatch&lt;/h2&gt;
-
-&lt;p&gt;Let’s try to train logistic regression on data.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sklearn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;linear_model&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;LogisticRegression&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pandaDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&amp;#39;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;features&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pandaDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&amp;#39;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;].&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reshape&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;lr&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;LogisticRegression&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;lr&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fit&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above code fails with below error&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;setting an array element with a sequence.&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;The error message is little cryptic. Let’s see what’s going on&lt;/p&gt;
-
-&lt;h2 id=&quot;features-representation&quot;&gt;Features Representation&lt;/h2&gt;
-
-&lt;p&gt;Let’s see how feature array is represented. The below code show the same&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;nb&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;lambda&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pandaDf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;features&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;[SparseVector(7, {5: 1.0, 6: 39.0})]&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;From the output, we can observe that it’s represented as a python object named &lt;em&gt;SparseVector&lt;/em&gt;. This is why in the panda’s dataframe info it was shown as object.&lt;/p&gt;
-
-&lt;h2 id=&quot;converting-to-numpy-array&quot;&gt;Converting to NumPy Array&lt;/h2&gt;
-
-&lt;p&gt;As we cannot directly use Sparse Vector with scikit-learn, we need to convert the sparse vector to a numpy data structure. In our example, we need a two dimensional numpy array which represents the features data.&lt;/p&gt;
-
-&lt;p&gt;The below are the steps&lt;/p&gt;
+&lt;p&gt;The above method is responsible for schema inference.&lt;/p&gt;
 
 &lt;ul&gt;
   &lt;li&gt;
-    &lt;h3 id=&quot;convert-sparse-vector-to-matrix&quot;&gt;Convert Sparse Vector to Matrix&lt;/h3&gt;
+    &lt;h3 id=&quot;datareader-factory&quot;&gt;DataReader Factory&lt;/h3&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;series&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pandaDf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;features&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;lambda&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toArray&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()))&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;as_matrix&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reshape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createDataReaderFactories&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;DataReaderFactory&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;In above code, we convert sparse vector to a python array by calling &lt;em&gt;toArray&lt;/em&gt; method. Then we use numpy &lt;em&gt;as_matrix&lt;/em&gt; method to convert to the two dimensional arrays.&lt;/p&gt;
+&lt;p&gt;DataReaderFactory is a factory class to create actual data readers. Number of data factories determines the number of partitions in the resulting DataFrame.&lt;/p&gt;
 
-&lt;p&gt;If you observe the shape of series, it looks as below&lt;/p&gt;
+&lt;h2 id=&quot;datareaderfactory&quot;&gt;DataReaderFactory&lt;/h2&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;array([[array([ 0.,  0.,  0.,  0.,  0.,  1., 39.])]&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;It’s a factory class to create actual data readers. The data reader creation happens on the individual machines. It exposes single method.&lt;/p&gt;
 
-&lt;p&gt;From the result, it can be seen that there three dimensional array , where as we only need two-dimensional. This is happening because when we call apply and if it returns a sequence, python treat it as single value.&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createDataReader&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;DataReader&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;flatten-using-applyalongaxis&quot;&gt;Flatten using apply_along_axis&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
+&lt;p&gt;As the name suggest, it creates data reader.&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;features&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;apply_along_axis&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;lambda&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;series&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id=&quot;datareader&quot;&gt;DataReader&lt;/h2&gt;
 
-&lt;p&gt;In above code, we are flattening the innermost array. The result looks as below&lt;/p&gt;
+&lt;p&gt;Finally we have the interface which actually reads the data. The below are methods&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;array([[ 0.,  0.,  0.,  0.,  0.,  1., 39.]&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;next&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Boolean&lt;/span&gt;
 
-&lt;p&gt;Now we got two dimensional array as we needed.&lt;/p&gt;
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;get&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;T&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;h2 id=&quot;scikit-learn-logistic-regression&quot;&gt;Scikit Learn Logistic Regression&lt;/h2&gt;
+&lt;p&gt;As you can see from interface, it looks as simple iterator based reader. Currently T can be only Row.&lt;/p&gt;
 
-&lt;p&gt;Once we have our data in right shape, we can apply scikit-learn algorithm as below.&lt;/p&gt;
+&lt;h2 id=&quot;no-depednecies-on-high-level-api&quot;&gt;No Depednecies on High Level API&lt;/h2&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;lr&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;features&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;One of the observation from above the API’s, there is no more dependency on RDD, DataFrame etc. This means these API’s can be easily evolved independent of change in user facing abstractions.This is one of the design goals of the API to overcome limitation of earlier API.&lt;/p&gt;
 
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/blog/blob/master/code/python/vectortonumpy.py&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-15689&quot;&gt;Spark Jira For Data Source V2&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://databricks.com/blog/2018/02/28/introducing-apache-spark-2-3.html&quot;&gt;DataBricks blog on 2.3&lt;/a&gt;.&lt;/p&gt;
 
 &lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
 
-&lt;p&gt;In this post, we discussed how to integrate between spark ML data structures to python libraries like scikit-learn.&lt;/p&gt;
+&lt;p&gt;In this post we discussed some of the important interfaces from datasource V2 API for reading data. You can see how this API is much different than earlier API.&lt;/p&gt;
 </description>
-        <pubDate>Tue, 13 Mar 2018 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-vector-to-numpy</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-vector-to-numpy</guid>
+        <pubDate>Wed, 11 Apr 2018 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/spark-datasource-v2-part-2</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-datasource-v2-part-2</guid>
+      </item>
+    
+      <item>
+        <title>Exploring Spark Data Source V2 - Part 1  : Limitations of Data Source V1 API</title>
+        <description>&lt;p&gt;In spark, data source is one of the foundational API for structured data analysis. Combined with dataframe and spark SQL abstractions, it makes spark one of the most complete structured data engine out there. You can read more about structured data analysis in spark &lt;a href=&quot;/categories/datasource-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Data source API was introduced in spark 1.3 along with dataframe abstraction. After that release, spark has undergone tremendous change. Spark has moved to custom memory management and with 2.0 we got Dataset , a better dataframe, abstraction. With these tremendous changes data source API needed to revisited.&lt;/p&gt;
+
+&lt;p&gt;So in 2.3 version, spark has released new version of data source API known as as data source V2. This API reflects all the learning spark developers learnt in last few releases. This API will be foundation for next few years of spark data source connectivity.&lt;/p&gt;
+
+&lt;p&gt;In this series of posts, I will be discussing about different parts of the API. We will be learning API by building data sources for different sources like flat file, relational databases etc.&lt;/p&gt;
+
+&lt;p&gt;This is first blog in the series where we discuss about the limitations of existing data source API. It will helps us to understand the motivation for new API.You can read all the post in the series &lt;a href=&quot;/categories/datasource-v2-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;limitations-of-data-source-v1-api&quot;&gt;Limitations of Data Source V1 API&lt;/h2&gt;
+
+&lt;h3 id=&quot;dependence-on-sql-context-and-dataframe&quot;&gt;1. Dependence on SQL Context and DataFrame&lt;/h3&gt;
+
+&lt;p&gt;Typically data sources are lowest level abstractions in a data analysis stack. In data source v1, this layer depended upon higher level API likes SQLContext , Dataframes and RDD.&lt;/p&gt;
+
+&lt;p&gt;The below are few of the interfaces of v1 API.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createRelation&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sqlContext&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;SQLContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;parameters&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;])&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;BaseRelation&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;buildScan&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;RDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;As you can see in the above code, these API’s are using higher level user facing API’s.&lt;/p&gt;
+
+&lt;p&gt;In spark 2.0 SQLContext got deprecated. It got replaced by SparkSession. Also DataFrame superseded by Dataset API. But spark has not able to update data source API to reflect these changes.&lt;/p&gt;
+
+&lt;p&gt;So as we can see high level API’s evolve over time. Having data source , which is a lower layer abstraction, depending upon the higher level abstractions is not a good idea.&lt;/p&gt;
+
+&lt;h3 id=&quot;lack-of-support-for-columnar-read&quot;&gt;2. Lack of Support for Columnar Read&lt;/h3&gt;
+
+&lt;p&gt;As you can see from above &lt;em&gt;buildScan&lt;/em&gt; API, spark data source reads data in Row format. Even though internal spark engine supports columnar data representation it’s not exposed to data sources. But many data sources used for analytics are columnar by nature. So there is unnecessary translation of columnar data source to row in connector and back to columnar in spark engine.&lt;/p&gt;
+
+&lt;p&gt;To avoid this in internal columnar format like parquet spark uses internal API’s. But it’s not possible for third party libraries.This impacts their performance.&lt;/p&gt;
+
+&lt;h3 id=&quot;lack-of-partitioning-and-sorting-info&quot;&gt;3. Lack of Partitioning and Sorting Info&lt;/h3&gt;
+
+&lt;p&gt;In data source v1 API, a data source cannot pass the partition information to spark engine. This is not good for databases like Hbase/ Cassandra which have optimised for partition access. In data source V1 API , when spark reads data from these sources it will not try to co locate the processing with partitions which will result in poor performance.&lt;/p&gt;
+
+&lt;p&gt;Spark built in sources overcome this limitation using the internal API’s. That’s why spark inbuilt sources much more performant than third party ones&lt;/p&gt;
+
+&lt;h3 id=&quot;no-transaction-support-in-write-interface&quot;&gt;4. No transaction support in Write Interface&lt;/h3&gt;
+
+&lt;p&gt;Current write interface is very generic. It was built primarily to support to store data in systems like HDFS. But more sophisticated sinks like databases needed more control over data write. For example, when data is written to partially to database and job aborts, it will not cleanup those rows. It’s not an issue in HDFS because it will track non successful writes using &lt;em&gt;_successful&lt;/em&gt; file . But those facilities are not there in databases. So in this scenario, database will be in inconsistent state. Databases handle these scenarios using transactions which is not supported in current data source API’s.&lt;/p&gt;
+
+&lt;h3 id=&quot;limited-extendability&quot;&gt;5. Limited Extendability&lt;/h3&gt;
+
+&lt;p&gt;Current data source API only supports filter push down and column pruning. But many smart sources, data sources with processing power, do more capabilities than that. Currently data source API doesn’t good mechanism to push more catalyst expressions to underneath source.&lt;/p&gt;
+
+&lt;p&gt;As we can see from above points, current data source API is not adequate for these new generation data sources.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-15689&quot;&gt;Spark Jira For Data Source V2&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://databricks.com/blog/2018/02/28/introducing-apache-spark-2-3.html&quot;&gt;DataBricks blog on 2.3&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Data source API is one of the foundation API of spark. It need to be evolved to support new territory spark is going with 2.0 . In this post we discussed about different limitations of current data source API which will be motivation for new API.&lt;/p&gt;
+</description>
+        <pubDate>Wed, 11 Apr 2018 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/spark-datasource-v2-part-1</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-datasource-v2-part-1</guid>
       </item>
     
       <item>
@@ -1130,174 +1098,6 @@ Batch: 3
         <pubDate>Tue, 10 Oct 2017 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-12</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-12</guid>
-      </item>
-    
-      <item>
-        <title>Introduction to Spark Structured Streaming - Part 11 : Event Time</title>
-        <description>&lt;p&gt;Structured Streaming is a new streaming API, introduced in spark 2.0, rethinks stream processing in spark land. It models stream
-as an infinite table, rather than discrete collection of data. It’s a radical departure from models of other stream processing frameworks like
-storm, beam, flink etc. Structured Streaming is the first API to build stream processing on top of SQL engine.&lt;/p&gt;
-
-&lt;p&gt;Structured Streaming was in alpha in 2.0 and 2.1. But with release 2.2 it has hit stable status. In next few releases,
-it’s going to be de facto way of doing stream processing in spark. So it will be right time to make ourselves familiarise
-with this new API.&lt;/p&gt;
-
-&lt;p&gt;In this series of posts, I will be discussing about the different aspects of the structured streaming API. I will be discussing about
-new API’s, patterns and abstractions to solve common stream processing tasks.&lt;/p&gt;
-
-&lt;p&gt;This is the eleventh post in the series. In this post, we discuss about event time abstraction. You 
-can read all the posts in the series &lt;a href=&quot;/categories/introduction-structured-streaming&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;TL;DR You can access code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/tree/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;event-time-abstraction&quot;&gt;Event Time Abstraction&lt;/h2&gt;
-
-&lt;p&gt;In last &lt;a href=&quot;/introduction-to-spark-structured-streaming-part-10/&quot;&gt;post&lt;/a&gt; we discussed about the ingestion time abstraction. In this post, we will discuss about event time abstraction.&lt;/p&gt;
-
-&lt;p&gt;Event time, as name suggests, is the time when event is generated. Normally the data which we collect from sources like sensors, logs have a time embedded in them. This time signifies when a given event is generated at the source. Structured streaming allows us to work with this time, with event time support in the framework level.&lt;/p&gt;
-
-&lt;p&gt;Whenever we talk about time, normally we need to address two different components of it. They are&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;When a given event is generated?&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;How long ago a given event is generated?&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The first question is about where a given event fits in event time line. The second question deals about tracking  of passing of time. Answering these two questions helps us to define how event time works in structured streaming.&lt;/p&gt;
-
-&lt;h2 id=&quot;analysing-stock-data-using-event-time&quot;&gt;Analysing Stock Data using Event Time&lt;/h2&gt;
-
-&lt;p&gt;In this example, we analyse the stock data using event time abstraction. As each stock event comes with a timestamp, we can use that time to define aggregations. We will be using socket stream as our source.&lt;/p&gt;
-
-&lt;h3 id=&quot;reading-data-from-socket&quot;&gt;Reading Data From Socket&lt;/h3&gt;
-
-&lt;p&gt;The below code is to read the data from socket.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;socketStreamDs&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readStream&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;socket&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;host&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;localhost&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;port&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;50050&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;as&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;extracting-time-from-stream&quot;&gt;Extracting Time from Stream&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Stock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;symbol&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Double&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stockDs&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;socketStreamDs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;columns&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;,&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;nc&quot;&gt;Stock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Timestamp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;columns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toLong&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;columns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;columns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toDouble&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;})&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above code, we declared a model which tracks stock price in a given point of time. The first field is timestamp of stock, then second is the symbol and third one is the value of the stock at that point of given time. Normally stock price analysis depends on event time rather than processing time as they want to correlate the change in stock prices when they happened in the market rather than they ended up in our processing engine.&lt;/p&gt;
-
-&lt;p&gt;So once we define the model, we convert of string network stream into model which we want to use. So the time in the model, signifies when this stock reading is done.&lt;/p&gt;
-
-&lt;h3 id=&quot;defining-window-on-event-time&quot;&gt;Defining Window on Event Time&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;windowedCount&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stockDs&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;window&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;time&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;10 seconds&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;value&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above code defines the window which aggregates the stock value for last 10 seconds.&lt;/p&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming/EventTimeExample.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;passing-of-time&quot;&gt;Passing of time&lt;/h2&gt;
-
-&lt;p&gt;Whenever we say, we want to calculate max of a stock in last 10 seconds, how spark knows all the records for that 10 seconds are reached? It’s the way of saying how spark knows the passage of time in the source? We cannot use system clocks because there will be delay between these two systems.&lt;/p&gt;
-
-&lt;p&gt;As we discussed in previous post, watermarks are the solution to this problem. Watermark signify the passage of time in source which will help to spark to understand flow in time.&lt;/p&gt;
-
-&lt;p&gt;By default spark uses the window time column to track the passing of time with option of infinite delay. So in this model all windows are remembered as state,so that even if the event delays long time, spark will calculate the right value.But this creates an issue.As time goes number of windows increases and they use more and more resources. We can limit the state, number of windows to be remembered, using custom watermarks. We will discuss more about it in next post.&lt;/p&gt;
-
-&lt;h2 id=&quot;running-the-example&quot;&gt;Running the Example&lt;/h2&gt;
-
-&lt;p&gt;Enter the below records in socket console. These are records for AAPL with time stamps.&lt;/p&gt;
-
-&lt;h3 id=&quot;first-event&quot;&gt;First Event&lt;/h3&gt;
-
-&lt;p&gt;The first records is for time Wed, 27 Apr 2016 11:34:22 GMT.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;1461756862000,&amp;quot;aapl&amp;quot;,500.0&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Spark outputs below results which indicates start of window&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;-------------------------------------------
-Batch: 0
--------------------------------------------
-+---------------------------------------------+----------+
-|window                                       |sum(value)|
-+---------------------------------------------+----------+
-|[2016-04-27 17:04:20.0,2016-04-27 17:04:30.0]|500.0     |
-+---------------------------------------------+----------+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;event-after-5-seconds&quot;&gt;Event after 5 seconds&lt;/h3&gt;
-
-&lt;p&gt;Now we send the next record, which is after 5 seconds. This signifies to spark that, 5 seconds have passed in source. So spark will be updating the same window. This event is for time Wed, 27 Apr 2016 11:34:27 GMT&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;1461756867001,&amp;quot;aapl&amp;quot;,600.0&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The output of the spark will be as below. You can observe from output, spark is updating same window.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;-------------------------------------------
-Batch: 1
--------------------------------------------
-+---------------------------------------------+----------+
-|window                                       |sum(value)|
-+---------------------------------------------+----------+
-|[2016-04-27 17:04:20.0,2016-04-27 17:04:30.0]|1100.0    |
-+---------------------------------------------+----------+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;event-after-11-seconds&quot;&gt;Event after 11 seconds&lt;/h3&gt;
-
-&lt;p&gt;Now we send another event, which is after 6 seconds from this time. Now spark understands 11 seconds have been passed. This event is for Wed, 27 Apr 2016 11:34:32 GMT&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;1461756872000,&amp;quot;aapl&amp;quot;,400.0&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Now spark completes the first window and add the above event to next window.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;-------------------------------------------
-Batch: 2
--------------------------------------------
-+---------------------------------------------+----------+
-|window                                       |sum(value)|
-+---------------------------------------------+----------+
-|[2016-04-27 17:04:20.0,2016-04-27 17:04:30.0]|1100.0    |
-|[2016-04-27 17:04:30.0,2016-04-27 17:04:40.0]|400.0     |
-+---------------------------------------------+----------+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;late-event&quot;&gt;Late Event&lt;/h3&gt;
-
-&lt;p&gt;Let’s say we get an event which got delayed. It’s an event is for Wed, 27 Apr 2016 11:34:27 which is 5 seconds before the last event.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;1461756867001,&amp;quot;aapl&amp;quot;,200.0&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;If you observe the spark result now, you can observe that it’s added it to right window.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;-------------------------------------------
-Batch: 3
--------------------------------------------
-+---------------------------------------------+----------+
-|window                                       |sum(value)|
-+---------------------------------------------+----------+
-|[2016-04-27 17:04:20.0,2016-04-27 17:04:30.0]|1300.0    |
-|[2016-04-27 17:04:30.0,2016-04-27 17:04:40.0]|400.0     |
-+---------------------------------------------+----------+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;In this post we understood how to use event time abstraction in structured streaming.&lt;/p&gt;
-</description>
-        <pubDate>Tue, 12 Sep 2017 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-11</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-11</guid>
       </item>
     
   </channel>
