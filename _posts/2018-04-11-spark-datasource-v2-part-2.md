@@ -2,7 +2,7 @@
 layout: post
 title: "Exploring Spark DataSource V2 - Part 2  : Anatomy of V2 Read API"
 date : 2018-04-11
-categories: scala spark datasource-series datasource-v2-series
+categories: scala spark  datasource-v2-series
 ---
 In spark, data source is one of the foundational API for structured data analysis. Combined with dataframe and spark SQL abstractions, it makes spark one of the most complete structured data engine out there. You can read more about structured data analysis in spark [here](/categories/datasource-series).
 
