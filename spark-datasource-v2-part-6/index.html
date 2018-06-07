@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Exploring Spark DataSource V2 - Part 3  : In-Memory DataSource</title>
+    <title>Exploring Spark DataSource V2 - Part 6  : Anatomy of V2 Write API</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-datasource-v2-part-3">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-datasource-v2-part-6">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,8 +45,8 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Exploring Spark DataSource V2 - Part 3  : In-Memory DataSource</h1>
-  <p class="meta">Apr 13, 2018</p>
+  <h1>Exploring Spark DataSource V2 - Part 6  : Anatomy of V2 Write API</h1>
+  <p class="meta">Jun 7, 2018</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
@@ -67,89 +67,125 @@
 
 <p>In this series of posts, I will be discussing about different parts of the API. We will be learning API by building data sources for different sources like flat file, relational databases etc.</p>
 
-<p>This is third blog in the series where we discuss about building simple in-memory datasource. You can read all the posts in the series <a href="/categories/datasource-v2-series">here</a>.</p>
+<p>This is sixth blog in the series where we discuss about different interfaces to write data in V2 API.You can read all the post in the series <a href="/categories/datasource-v2-series">here</a>.</p>
 
-<h2 id="in-memory-datasource">In-Memory DataSource</h2>
+<h2 id="write-api--with-transactions">Write API  with Transactions</h2>
 
-<p>In this post we are going to build a datasource which reads the data from an array. It will have single partition. This simple example helps us to understand how to implement all interfaces we discussed in last blog.</p>
+<p>One of the shortcoming of the data source V1 API was bare bone write API. It was not built to support complex down stream systems like databases. Also the interface has not exposed any transactional support. So it was all left to user to do all the complex handling of failures and cleanup.</p>
 
-<p>The below are the steps to implement a simple in memory data source.</p>
+<p>Datasource V2 API addresses this shortcoming. It has transactional support in API level. This makes building more powerful connectors much easier.</p>
 
-<h2 id="create-unique-package">Create Unique Package</h2>
+<h2 id="write-api-interfaces">Write API Interfaces</h2>
 
-<p>All the datasources in spark are discovered using their packages. So as the first step we create a package for our datasource.</p>
+<p>Write API interfaces mimics the read interfaces which we saw in last few posts. The below are the different interfaces.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">package</span> <span class="nn">com.madhukaraphatak.examples.sparktwo.datasourcev2.simple</span></code></pre></div>
+<h2 id="datasourcev2">DataSourceV2</h2>
 
-<h2 id="defaultsource">DefaultSource</h2>
+<p>DataSourceV2 is a marker interface. It doesn’t have any methods to override. Extending this interface we indicate that we are implementing support for V2 datasource.</p>
 
-<p>Spark searches for a class named <em>DefaultSource</em> in a given data source package. So we create <em>DefaultSource</em> class in the package. It should extend <em>DatasourceV2</em> and <em>ReaderSupport</em> interfaces.</p>
+<h2 id="writersupport">WriterSupport</h2>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">DefaultSource</span> <span class="k">extends</span> <span class="nc">DataSourceV2</span> <span class="k">with</span> <span class="nc">ReadSupport</span> <span class="o">{</span>
+<p>WriterSupport is interface which indicates that data source supports write.</p>
 
-  <span class="k">def</span> <span class="n">createReader</span><span class="o">(</span><span class="n">options</span><span class="k">:</span> <span class="kt">DataSourceOptions</span><span class="o">)</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SimpleDataSourceReader</span><span class="o">()</span>  
-<span class="o">}</span></code></pre></div>
+<p>It has single method with below signature</p>
 
-<h2 id="simpledatasourcereader">SimpleDataSourceReader</h2>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">createWriter</span><span class="o">(</span><span class="n">jobId</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">schema</span><span class="k">:</span> <span class="kt">StructType</span><span class="o">,</span> <span class="n">mode</span><span class="k">:</span> <span class="kt">SaveMode</span><span class="o">,</span> 
+<span class="n">options</span><span class="k">:</span> <span class="kt">DataSourceOptions</span><span class="o">)</span><span class="k">:</span> <span class="kt">Optional</span><span class="o">[</span><span class="kt">DataSourceWriter</span><span class="o">]</span></code></pre></div>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">SimpleDataSourceReader</span> <span class="k">extends</span> <span class="nc">DataSourceReader</span> <span class="o">{</span>
+<p>From the above signature it’s clear that,it’s an entry point method for data source. The below are different options</p>
 
-  <span class="k">def</span> <span class="n">readSchema</span><span class="o">()</span> <span class="k">=</span> <span class="nc">StructType</span><span class="o">(</span><span class="nc">Array</span><span class="o">(</span><span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;value&quot;</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">)))</span>
-                                        
-  <span class="k">def</span> <span class="n">createDataReaderFactories</span> <span class="k">=</span> <span class="o">{</span>
-    <span class="k">val</span> <span class="n">factoryList</span> <span class="k">=</span> <span class="k">new</span> <span class="n">java</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="nc">ArrayList</span><span class="o">[</span><span class="kt">DataReaderFactory</span><span class="o">[</span><span class="kt">Row</span><span class="o">]]</span>
-    <span class="n">factoryList</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="k">new</span> <span class="nc">SimpleDataSourceReaderFactory</span><span class="o">())</span>
-    <span class="n">factoryList</span> 
-   <span class="o">}</span>
-<span class="o">}</span></code></pre></div>
+<ul>
+  <li>
+    <p>jobId - Id of the job in which this write is happening.</p>
+  </li>
+  <li>
+    <p>schema - Schema of DataFrame/Dataset that need to be written</p>
+  </li>
+  <li>
+    <p>SaveMode - Different modes of write like overwrite, update etc. This is same as earlier API</p>
+  </li>
+  <li>
+    <p>options - Map containing all the options passed to connect to the underneath source.</p>
+  </li>
+</ul>
 
-<p>In above code, we are hard coding the schema. Our data will have single column called <em>value</em>. Also <em>createDataReaderFactories</em> return single data factory which signifies that, there is single partition.</p>
+<p>The method returns an optional <em>DataSourceWriter</em>. <em>Optional</em> type is a Java 8 equivalent of scala <em>Option</em>. The return type is optional here, because data source can decide not to do anything depending upon the <em>SaveMode</em>.</p>
 
-<h2 id="simpledatasourcereaderfactory">SimpleDataSourceReaderFactory</h2>
+<h2 id="datasourcewriter">DataSourceWriter</h2>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">SimpleDataSourceReaderFactory</span> <span class="k">extends</span> 
-         <span class="nc">DataReaderFactory</span><span class="o">[</span><span class="kt">Row</span><span class="o">]</span> <span class="k">with</span> <span class="nc">DataReader</span><span class="o">[</span><span class="kt">Row</span><span class="o">]</span> <span class="o">{</span>
-  <span class="k">def</span> <span class="n">createDataReader</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SimpleDataSourceReaderFactory</span><span class="o">()</span>
-  <span class="k">val</span> <span class="n">values</span> <span class="k">=</span> <span class="nc">Array</span><span class="o">(</span><span class="s">&quot;1&quot;</span><span class="o">,</span> <span class="s">&quot;2&quot;</span><span class="o">,</span> <span class="s">&quot;3&quot;</span><span class="o">,</span> <span class="s">&quot;4&quot;</span><span class="o">,</span> <span class="s">&quot;5&quot;</span><span class="o">)</span>
+<p>DataSourceWriter is the primary interface for actually responsible for writing. It exposes below methods</p>
 
-  <span class="k">var</span> <span class="n">index</span> <span class="k">=</span> <span class="mi">0</span>
+<ul>
+  <li>
+    <h3 id="datawriterfactory">DataWriterFactory</h3>
+  </li>
+</ul>
 
-  <span class="k">def</span> <span class="n">next</span> <span class="k">=</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="n">values</span><span class="o">.</span><span class="n">length</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">createWriterFactory</span><span class="k">:</span><span class="kt">DataWriterFactory</span><span class="o">[</span><span class="kt">Row</span><span class="o">]</span></code></pre></div>
 
-  <span class="k">def</span> <span class="n">get</span> <span class="k">=</span> <span class="o">{</span>
-    <span class="k">val</span> <span class="n">row</span> <span class="k">=</span> <span class="nc">Row</span><span class="o">(</span><span class="n">values</span><span class="o">(</span><span class="n">index</span><span class="o">))</span>
-    <span class="n">index</span> <span class="k">=</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span>
-    <span class="n">row</span>
-  <span class="o">}</span>
+<p>DataWriterFactory is a factory class to create actual data writers. For each partition of data it is created and sent to executors.</p>
 
-  <span class="k">def</span> <span class="n">close</span><span class="o">()</span> <span class="k">=</span> <span class="nc">Unit</span>
-<span class="o">}</span></code></pre></div>
+<p>It’s little bit different compared to read path. In read, data source returned a list of factory objects. The reason for that is, the list indicated how many partitions needs to be created. But in case of write, spark already knows number of partitions. So no need to of list here.</p>
 
-<p>In above code, <em>SimpleDataSourceReaderFactory</em> implements both factory and data reader interfaces. The data for the datasource comes from <em>values</em> array.</p>
+<ul>
+  <li>
+    <h3 id="commit">Commit</h3>
+  </li>
+</ul>
 
-<p>DataReader tracks the reading using <em>index</em> variable. In get method, we create <em>Row</em> object with single value from the array.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">commit</span><span class="o">(</span><span class="n">messages</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">WriterCommitMessage</span><span class="o">])</span><span class="k">:</span> <span class="kt">Unit</span></code></pre></div>
 
-<h2 id="using-datasource">Using DataSource</h2>
+<p>As we discussed before, the above method is part of transaction support in the writer. When all the writing is done, this method is called to commit. This is overall commit. Individual partition commit will be there in DataWriter interface which we will discuss below.</p>
 
-<p>The below is the code to read the data from this source</p>
+<p>WriterCommitMessage is a message interface, that should be used by data source to define their own messages to indicate the status of each partition write.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">simpleDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span>
-               <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;com.madhukaraphatak.examples.</span>
-<span class="s">                       sparktwo.datasourcev2.simple&quot;</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">load</span><span class="o">()</span></code></pre></div>
+<ul>
+  <li>
+    <h3 id="abort">Abort</h3>
+  </li>
+</ul>
 
-<p>From above code it’s apparent that reading from v2 source is exactly same as v1 source. So for user of these connectors it will be transparent.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">abort</span><span class="o">(</span><span class="n">messages</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">WriterCommitMessage</span><span class="o">])</span><span class="k">:</span> <span class="kt">Unit</span></code></pre></div>
 
-<p>We can print the data and number partitions with below code</p>
+<p>It’s a mirror interface to commit. This is called whenever there is complete failure of job. This is used to cleanup the partially written data.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">simpleDf</span><span class="o">.</span><span class="n">show</span><span class="o">()</span>
-    <span class="n">println</span><span class="o">(</span><span class="s">&quot;number of partitions in simple source is &quot;</span><span class="o">+</span><span class="n">simpleDf</span><span class="o">.</span><span class="n">rdd</span><span class="o">.</span><span class="n">getNumPartitions</span><span class="o">)</span></code></pre></div>
+<h2 id="datawriterfactory-1">DataWriterFactory</h2>
 
-<p>You can access complete code on <a href="https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/datasourcev2/SimpleDataSource.scala">github</a>.</p>
+<p>It’s a factory class to create actual data writer. This code executes in each executor.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">createDataWriter</span><span class="o">(</span><span class="n">partitionId</span><span class="k">:</span><span class="kt">Int</span><span class="o">,</span> <span class="n">attemptNumber</span><span class="k">:</span><span class="kt">Int</span><span class="o">)</span><span class="k">:</span> <span class="kt">DataWriter</span><span class="o">[</span><span class="kt">T</span><span class="o">]</span></code></pre></div>
+
+<p>As the name suggest, it creates data writers. The parameters are</p>
+
+<ul>
+  <li>
+    <p>partitionId - Id of partition. This helps writer to understand which partition it’s writing</p>
+  </li>
+  <li>
+    <p>attemptNumber - In case of writing, there can be multiple attempts. These attempts can be due to speculative run or because
+of failures</p>
+  </li>
+</ul>
+
+<p>Method returns DataWriter. As of now, T can be Row only.</p>
+
+<h2 id="datawriter">DataWriter</h2>
+
+<p>Finally we have the interface which actually writes data. The below are methods</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">write</span><span class="o">(</span><span class="n">record</span><span class="k">:</span> <span class="kt">T</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span>
+
+<span class="k">def</span> <span class="n">commit</span><span class="o">()</span><span class="k">:</span> <span class="kt">WriterCommitMessage</span>
+
+<span class="k">def</span> <span class="n">abort</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span></code></pre></div>
+
+<p><em>write</em> method is the one which responsible for actual write. Other two methods are same as <em>DataSourceWriter</em> but now they work at the level of partition. These methods are responsible committing or handling write failures at partition level.</p>
+
+<p>The <em>WriterCommitMessage</em> sent by commit method in this interface are the one which are sent to <em>DataSourceWriter</em>. This helps data source to understand status of each partition.</p>
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>In this post we discussed how to implement a simple in memory data source using datasource V2 API’s.</p>
+<p>Datasource V2 brings transaction support to data source writes. This makes API more powerful and flexible.</p>
 
 </article>
 <div class="related">
@@ -157,12 +193,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">07 Jun 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-6">Exploring Spark DataSource V2 - Part 6  : Anatomy of V2 Write API</a>    
-   </li>           
-         
+          
 
             
     
@@ -183,12 +214,7 @@
    
    
              
-    
-    <li>    
-     <span class="post-date">07 Jun 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-6">Exploring Spark DataSource V2 - Part 6  : Anatomy of V2 Write API</a>    
-   </li>           
-         
+          
 
             
     
