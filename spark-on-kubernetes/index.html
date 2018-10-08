@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Glom in spark</title>
+    <title>Spark on Kubernetes : Native Kubernetes Integration for Spark</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/glom-in-spark">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-on-kubernetes">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,66 +45,25 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Glom in spark</h1>
-  <p class="meta">Jun 27, 2014</p>
+  <h1>Spark on Kubernetes : Native Kubernetes Integration for Spark</h1>
+  <p class="meta">Jul 12, 2018</p>
   <div class="catagories">
     
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
     <a href="/categories/spark"><span class="category">spark</span></a>
+    
+    <a href="/categories/kubernetes"><span class="category">kubernetes</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>Today I am going to discuss about a operation called “glom” on spark rdd which allows you to treat a partition as an array rather as single row at time. This allows you speed up some operations with some  increased memory usage.</p>
+  <p>The below video is a recording of my talk <em>Spark on Kubernetes</em> in recent spark meetup. In this talk, I discuss about native kubernetes for spark that got introduced in spark 2.3.</p>
 
-<p>Let’s say you want to find out maximum in a given RDD.</p>
+<p>Find the slides on <a href="https://www.slideshare.net/datamantra/spark-on-kubernetes">slideshare</a> and code on <a href="https://github.com/phatak-dev/kubernetes-spark">github</a>.</p>
 
-<p>Now you can do it using map and reduce operations as below.</p>
-
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">// create rdd</span>
- <span class="k">val</span> <span class="n">dataList</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="mf">50.0</span><span class="o">,</span><span class="mf">40.0</span><span class="o">,</span><span class="mf">40.0</span><span class="o">,</span><span class="mf">70.0</span><span class="o">)</span>   
- <span class="k">val</span> <span class="n">dataRDD</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">makeRDD</span><span class="o">(</span><span class="n">dataList</span><span class="o">)</span>  
- <span class="k">val</span> <span class="n">maxValue</span> <span class="k">=</span>  <span class="n">dataRDD</span><span class="o">.</span><span class="n">reduce</span> <span class="o">(</span><span class="k">_</span> <span class="n">max</span> <span class="k">_</span><span class="o">)</span></code></pre></div>
-
-<p>Though it works, there will be lot of shuffles between partitions for comparisons.Thats not good, particularly for large data.</p>
-
-<p>Let’s rephrase our solution like as follows. 
-Rather than comparing all the values, we can</p>
-
-<ol>
-  <li>First find maximum in each partition</li>
-  <li>Compare maximum value between partitions to get the final max value</li>
-</ol>
-
-<p>Now we need a way to compare all values in a given partition. This can be easily done using glom as follows.</p>
-
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">maxValue</span> <span class="k">=</span> <span class="n">dataRDD</span><span class="o">.</span><span class="n">glom</span><span class="o">().</span><span class="n">map</span><span class="o">((</span><span class="n">value</span><span class="k">:</span><span class="kt">Array</span><span class="o">[</span><span class="kt">Double</span><span class="o">])</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">max</span><span class="o">)</span>
- <span class="o">.</span><span class="n">reduce</span><span class="o">(</span><span class="k">_</span> <span class="n">max</span> <span class="k">_</span><span class="o">)</span></code></pre></div>
-
-<p>As you can see here, only maximum of each partition are shuffled rather than all the values.</p>
-
-<h3 id="using-glom-for-calculating-weighted-matrix">Using glom for calculating weighted matrix</h3>
-<p>Glom is highly useful when you want to represent rdd operations as matrix manipulations. In many machine learning algorithms you will be needed to find weighted value of rows , i.e multiplying each row by a given weight vector. Doing this row by row, using map operation will be very costly as you will be not able to use matrix libraries optimization.</p>
-
-<p>But with glom, you can multiply with whole partition at a time so that your computation will speed up significantly.Code listing for same is below</p>
-
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">// Weighted sum using glom</span>
-  <span class="k">import</span> <span class="nn">org.jblas.DoubleMatrix</span>
-  <span class="k">val</span> <span class="n">rowsList</span> <span class="k">=</span> <span class="nc">List</span><span class="o">[</span><span class="kt">List</span><span class="o">[</span><span class="kt">Double</span><span class="o">]](</span>
-      <span class="nc">List</span><span class="o">(</span><span class="mf">50.0</span><span class="o">,</span><span class="mf">40.0</span><span class="o">,</span><span class="mf">44.0</span><span class="o">),</span>
-      <span class="nc">List</span><span class="o">(</span><span class="mi">88</span><span class="o">,</span><span class="mf">44.0</span><span class="o">,</span><span class="mf">44.0</span><span class="o">),</span>
-      <span class="nc">List</span><span class="o">(</span><span class="mi">855</span><span class="o">,</span><span class="mi">0</span><span class="o">,</span><span class="mf">55.0</span><span class="o">,</span><span class="mf">44.0</span><span class="o">),</span>
-      <span class="nc">List</span><span class="o">(</span><span class="mi">855</span><span class="o">,</span><span class="mi">0</span><span class="o">,</span><span class="mf">55.0</span><span class="o">,</span><span class="mf">70.0</span><span class="o">)</span>
-    <span class="o">)</span>
-  <span class="k">val</span> <span class="n">weights</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="mf">1.0</span><span class="o">,</span><span class="mf">0.5</span><span class="o">,</span><span class="mi">3</span><span class="o">)</span>
-  <span class="k">val</span> <span class="n">rowRDD</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">makeRDD</span><span class="o">(</span><span class="n">rowsList</span><span class="o">)</span>
-  <span class="k">val</span> <span class="n">result</span> <span class="k">=</span> <span class="n">rowRDD</span><span class="o">.</span><span class="n">glom</span><span class="o">().</span><span class="n">map</span><span class="o">(</span> <span class="n">value</span> <span class="o">=&gt;{</span>
-    <span class="k">val</span> <span class="n">doubleMatrix</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">DoubleMatrix</span><span class="o">(</span> <span class="n">value</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">toArray</span><span class="o">))</span>
-    <span class="k">val</span> <span class="n">weightMatrix</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">DoubleMatrix</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="n">weights</span><span class="o">.</span><span class="n">length</span><span class="o">,</span><span class="n">weights</span><span class="o">.</span><span class="n">toArray</span><span class="k">:_</span><span class="kt">*</span><span class="o">)</span>
-    <span class="n">doubleMatrix</span><span class="o">.</span><span class="n">mmul</span><span class="o">(</span> <span class="n">weightMatrix</span><span class="o">.</span><span class="n">transpose</span><span class="o">())</span>
-
-  <span class="o">})</span></code></pre></div>
-
+<div class="video-container"> <iframe src="https://www.youtube.com/embed/jtfcSsLX6SE" frameborder="0" width="560" height="315"></iframe> </div>
 
 </article>
 <div class="related">
@@ -112,12 +71,28 @@ Rather than comparing all the values, we can</p>
   <ul>
     
              
+          
+
+            
     
     <li>    
      <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-7">Exploring Spark DataSource V2 - Part 7  : Meetup Talk</a>    
+   </li>           
+         
+
+   
+   
+             
+          
 
             
     
