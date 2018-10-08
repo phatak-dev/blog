@@ -2,7 +2,7 @@
 layout: post
 title: "Spark on Kubernetes : Native Kubernetes Integration for Spark"
 date : 2018-07-12
-categories: scala spark  datasource-v2-series
+categories: scala spark  kubernetes
 ---
 The below video is a recording of my talk *Spark on Kubernetes* in recent spark meetup. In this talk, I discuss about native kubernetes for spark that got introduced in spark 2.3.
 
