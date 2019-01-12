@@ -219,7 +219,7 @@
 &lt;p&gt;Refer to &lt;a href=&quot;/distributing-third-party-libraries-in-mesos/#running&quot;&gt;this&lt;/a&gt; post for building and running instructions.&lt;/p&gt;
 
 </description>
-        <pubDate>Mon, 15 Dec 2014 00:00:00 -0800</pubDate>
+        <pubDate>Mon, 15 Dec 2014 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/implementing-shuffle-in-mesos</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/implementing-shuffle-in-mesos</guid>
       </item>
@@ -433,7 +433,7 @@
 &lt;p&gt;If everything goes right you should be able to see “successfully loaded” message in the logs.&lt;/p&gt;
 
 </description>
-        <pubDate>Mon, 15 Dec 2014 00:00:00 -0800</pubDate>
+        <pubDate>Mon, 15 Dec 2014 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/distributing-third-party-libraries-in-mesos</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/distributing-third-party-libraries-in-mesos</guid>
       </item>
@@ -579,7 +579,7 @@ java -cp &amp;lt;project-path&amp;gt;/target/mesoscustomexecutor-1.0-SNAPSHOT.ja
 &lt;p&gt;The output should be available in mesos logs as specified &lt;a href=&quot;/mesos-helloworld-scala#output&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
 </description>
-        <pubDate>Tue, 11 Nov 2014 00:00:00 -0800</pubDate>
+        <pubDate>Tue, 11 Nov 2014 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/custom-mesos-executor-scala</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/custom-mesos-executor-scala</guid>
       </item>
@@ -646,7 +646,7 @@ mkdir -p &lt;span class=&quot;nv&quot;&gt;$HOME&lt;/span&gt;/mesos_slave_work/sl
 &lt;p&gt;Now you have a multi node cluster of mesos on your machine.&lt;/p&gt;
 
 </description>
-        <pubDate>Tue, 04 Nov 2014 00:00:00 -0800</pubDate>
+        <pubDate>Tue, 04 Nov 2014 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/granular-resource-management-mesos</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/granular-resource-management-mesos</guid>
       </item>
@@ -837,7 +837,7 @@ to &lt;a href=&quot;http://localhost:5050&quot;&gt;localhost:5050&lt;/a&gt;&lt;/
 &lt;p&gt;If you have ran multiple commands, then you will see multiple tasks.&lt;/p&gt;
 
 </description>
-        <pubDate>Sun, 26 Oct 2014 00:00:00 -0700</pubDate>
+        <pubDate>Sun, 26 Oct 2014 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/mesos-helloworld-scala</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/mesos-helloworld-scala</guid>
       </item>
@@ -910,7 +910,7 @@ API’s.&lt;/p&gt;
 &lt;p&gt;If the test framework is able to run all the tasks successfully you have the mesos single node cluster working.&lt;/p&gt;
 
 </description>
-        <pubDate>Fri, 24 Oct 2014 00:00:00 -0700</pubDate>
+        <pubDate>Fri, 24 Oct 2014 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/mesos-single-node-setup-ubuntu</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/mesos-single-node-setup-ubuntu</guid>
       </item>
