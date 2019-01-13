@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Anatomy of RDD : Deep dive into spark RDD abstraction - Meetup video</title>
+    <title>Scala Developer Journey into Rust - Part 1 : Introduction</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/anatomy-of-rdd">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/rust-scala-part-1">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,25 +45,61 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Anatomy of RDD : Deep dive into spark RDD abstraction - Meetup video</h1>
-  <p class="meta">Mar 31, 2015</p>
+  <h1>Scala Developer Journey into Rust - Part 1 : Introduction</h1>
+  <p class="meta">Jan 13, 2019</p>
   <div class="catagories">
     
-    <a href="/categories/spark"><span class="category">spark</span></a>
+    <a href="/categories/rust"><span class="category">rust</span></a>
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
-    <a href="/categories/talks"><span class="category">talks</span></a>
+    <a href="/categories/rust-scala"><span class="category">rust-scala</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>The below video is a recording of my talk on <em>Anatomy of RDD: Deep dive in to Apache Spark RDD abstraction</em> in recent spark meetup. In this talk, I discuss about how RDD is constructed from ground up. This gives a depth understanding of spark API.</p>
+  <p>Rust is one of the major programming languages that’s been getting popular in recent years. It has promised bringing the flexibility and expressiveness of high level language like Scala, Java to the performance critical system programming. So I have been curious about Rust from last 2 years and kept a constant eye on the it’s evolution.I had briefly dabbled with language 2 years back from functional programming point of view and had written few entries in this blog. But I had never seriously spent more time after that.</p>
 
-<p>Find the slides on <a href="http://www.slideshare.net/datamantra/anatomy-of-rdd">slideshare</a> and code on <a href="https://github.com/phatak-dev/anatomy-of-rdd">github</a>.</p>
+<p>Recently I had started again learning Rust. This time I had an excellent learning companion in the form of a book. <a href="https://www.goodreads.com/book/show/25550614-programming-rust">Programming  Rust</a> is one of the best Rust book out there. It makes learning concepts a joy.</p>
 
-<div class="video-container"> <iframe src="https://www.youtube.com/embed/WVdyuVwWcBc" frameborder="0" width="560" height="315"></iframe> </div>
+<h2 id="scala-connection">Scala Connection</h2>
+
+<p>As I was reading book it became obvious that lot of Scala concepts are in Rust. But most parts of the book was written for people who come from C/C++ or even from Java. As the Rust being the system programming language, that’s the typical crowd. But as a Scala developer, I was able to appreciate some of the advanced parts of the language more. This connection became more obvious when recently <a href="https://www.youtube.com/watch?v=2wZ1pCpJUIM">Bryan Cantrill gave a Rust talk in Scala conference</a>.</p>
+
+<p>There are not too many blogs or people talk about Rust from a Scala point of view. So I thought it would become very interesting way to approach the language rather in traditional way.</p>
+
+<p>So in this next series of blogs I will share my experience with rust from a Scala developer point of view. I would like to explore how these two language approach things. I would like to explore the similarities and their differences.</p>
+
+<h2 id="topics-of-discussion">Topics of Discussion</h2>
+
+<p>Both Rust and Scala are huge languages. So discussing everything inside the language is impossible. But below are the some of the topics which are of the interest for me.</p>
+
+<ul>
+  <li>
+    <p>Approach to Type Inference</p>
+  </li>
+  <li>
+    <p>Enums and Algebric Types</p>
+  </li>
+  <li>
+    <p>Functional Programming</p>
+  </li>
+  <li>
+    <p>Expression based language</p>
+  </li>
+  <li>
+    <p>Safe Concurrency</p>
+  </li>
+</ul>
+
+<h2 id="memory-management">Memory Management</h2>
+
+<p>Many resources in Rust focus a quite a bit on memory management and borrowing model. It’s very important part of the Rust which makes the language what it is. But in my series of blog, I will be not going to focus on too much on it. Whenever I need those ideas I will mention. There are other excellent resources to learn about the same.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Rust is one of most fascinating new programming language out there. It brings many ideas of advanced languages like Scala to machine level system programming. So if you are a Scala developer and like to how rust stacks up to the same , follow along me in this journey in next set of blogs.</p>
 
 </article>
 <div class="related">
@@ -71,38 +107,28 @@
   <ul>
     
              
+          
+
+            
     
     <li>    
-     <span class="post-date">08 Sep 2018</span>
-     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+     <span class="post-date">25 Aug 2016</span>
+     &raquo; <a href="/functional-programming-in-rust-part-2">Functional Programming in Rust - Part 2 : Functional Combinators</a>    
    </li>           
          
 
             
     
     <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-7">Exploring Spark DataSource V2 - Part 7  : Meetup Talk</a>    
+     <span class="post-date">24 Aug 2016</span>
+     &raquo; <a href="/functional-programming-in-rust-part-1">Functional Programming in Rust - Part 1 : Function Abstraction</a>    
    </li>           
          
 
    
    
              
-    
-    <li>    
-     <span class="post-date">13 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
-   </li>           
-         
+          
 
             
     
