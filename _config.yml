@@ -9,6 +9,8 @@ username : phatak-dev
 twitter : madhukaraphatak
 paginate: 10
 exclude : [code]
+highlighter: rouge
+
 
 # Build settings
 markdown: kramdown
