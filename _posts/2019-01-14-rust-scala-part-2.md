@@ -6,7 +6,7 @@ categories: rust scala rust-scala
 ---
 Rust is one of the major programming languages that's been getting popular in recent years. It has many advanced high level language features like Scala.This made me interested to learn Rust. So in this next series of blogs I will share my experience with Rust from a Scala developer point of view. I would like to explore how these two language approach things. I would like to explore the similarities and their differences.
 
-This is second post in the series. In this post, I will be talking about type inference. You can find all the other posts in the series [here](/categories/Rust-scala).
+This is second post in the series. In this post, I will be talking about type inference. You can find all the other posts in the series [here](/categories/rust-scala).
 
 
 ## Type System
