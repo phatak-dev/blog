@@ -92,11 +92,11 @@ that were available in spark-csv.</p>
 
 <p>If you have below code in spark 1.x</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">loadedDF</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;com.databricks.spark.csv&quot;</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">).</span><span class="n">load</span><span class="o">(</span><span class="s">&quot;../test_data/sales.csv&quot;</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">loadedDF</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">"com.databricks.spark.csv"</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">"header"</span><span class="o">,</span> <span class="s">"true"</span><span class="o">).</span><span class="n">load</span><span class="o">(</span><span class="s">"../test_data/sales.csv"</span><span class="o">)</span></code></pre></div>
 
 <p>Migrate the code to spark 2.0 as below</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">loadedDF</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;csv&quot;</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">).</span><span class="n">load</span><span class="o">(</span><span class="s">&quot;../test_data/sales.csv&quot;</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">loadedDF</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">"csv"</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">"header"</span><span class="o">,</span> <span class="s">"true"</span><span class="o">).</span><span class="n">load</span><span class="o">(</span><span class="s">"../test_data/sales.csv"</span><span class="o">)</span></code></pre></div>
 
 <p>As you can see from the code, you need to replace the source from <em>com.databricks.spark.csv</em> to <em>csv</em>. This will migrate your code to use built in spark connector.</p>
 
@@ -147,7 +147,7 @@ now built-in connector supports the broadcast joins which vastly improves the pe
 
 <h4 id="join-code">Join code</h4>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">joinedDf</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">smalldf</span><span class="o">,</span> <span class="n">df</span><span class="o">.</span><span class="n">col</span><span class="o">(</span><span class="s">&quot;Year&quot;</span><span class="o">)</span> <span class="o">===</span> <span class="n">smalldf</span><span class="o">.</span><span class="n">col</span><span class="o">(</span><span class="s">&quot;Year&quot;</span><span class="o">))</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">joinedDf</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">smalldf</span><span class="o">,</span> <span class="n">df</span><span class="o">.</span><span class="n">col</span><span class="o">(</span><span class="s">"Year"</span><span class="o">)</span> <span class="o">===</span> <span class="n">smalldf</span><span class="o">.</span><span class="n">col</span><span class="o">(</span><span class="s">"Year"</span><span class="o">))</span>
 
 <span class="n">joinedDf</span><span class="o">.</span><span class="n">count</span></code></pre></div>
 
@@ -178,6 +178,14 @@ now built-in connector supports the broadcast joins which vastly improves the pe
              
     
     <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
    </li>           
@@ -188,14 +196,6 @@ now built-in connector supports the broadcast joins which vastly improves the pe
     <li>    
      <span class="post-date">08 Sep 2018</span>
      &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

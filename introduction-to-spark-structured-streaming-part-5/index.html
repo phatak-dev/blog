@@ -106,19 +106,19 @@ a stream of files that are read from a folder. Usually it’s useful in scenario
 <p>The below code defines a schema for csv file which we saw earlier. It uses standard dataframe schema API to do so.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">schema</span> <span class="k">=</span> <span class="nc">StructType</span><span class="o">(</span>
-  <span class="nc">Array</span><span class="o">(</span><span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;transactionId&quot;</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
-        <span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;customerId&quot;</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
-        <span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;itemId&quot;</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
-        <span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;amountPaid&quot;</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">)))</span></code></pre></div>
+  <span class="nc">Array</span><span class="o">(</span><span class="nc">StructField</span><span class="o">(</span><span class="s">"transactionId"</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
+        <span class="nc">StructField</span><span class="o">(</span><span class="s">"customerId"</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
+        <span class="nc">StructField</span><span class="o">(</span><span class="s">"itemId"</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
+        <span class="nc">StructField</span><span class="o">(</span><span class="s">"amountPaid"</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">)))</span></code></pre></div>
 
 <h3 id="creating-the-source-dataframe">2. Creating the Source Dataframe</h3>
 
 <p>Once we have schema defined, we can now define the source using <em>readStream</em> API.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">fileStreamDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">readStream</span>
-  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"header"</span><span class="o">,</span> <span class="s">"true"</span><span class="o">)</span>
   <span class="o">.</span><span class="n">schema</span><span class="o">(</span><span class="n">schema</span><span class="o">)</span>
-  <span class="o">.</span><span class="n">csv</span><span class="o">(</span><span class="s">&quot;/tmp/input&quot;</span><span class="o">)</span></code></pre></div>
+  <span class="o">.</span><span class="n">csv</span><span class="o">(</span><span class="s">"/tmp/input"</span><span class="o">)</span></code></pre></div>
 
 <p>The above code looks very similar to reading csv data in batch API. Also it supports the same options like header.</p>
 
@@ -129,7 +129,7 @@ a stream of files that are read from a folder. Usually it’s useful in scenario
 <p>Once we have source defined, we will print the data to console.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">query</span> <span class="k">=</span> <span class="n">fileStreamDf</span><span class="o">.</span><span class="n">writeStream</span>
-      <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;console&quot;</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">"console"</span><span class="o">)</span>
       <span class="o">.</span><span class="n">outputMode</span><span class="o">(</span><span class="nc">OutputMode</span><span class="o">.</span><span class="nc">Append</span><span class="o">()).</span><span class="n">start</span><span class="o">()</span></code></pre></div>
 
 <p>You can access complete code on <a href="https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming/FileStreamExample.scala">github</a>.</p>
@@ -155,6 +155,14 @@ a stream of files that are read from a folder. Usually it’s useful in scenario
              
     
     <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
    </li>           
@@ -165,14 +173,6 @@ a stream of files that are read from a folder. Usually it’s useful in scenario
     <li>    
      <span class="post-date">08 Sep 2018</span>
      &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

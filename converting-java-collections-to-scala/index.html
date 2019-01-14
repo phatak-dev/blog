@@ -76,9 +76,9 @@
     <span class="n">javaList</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="mf">20.0</span><span class="o">)</span>
     <span class="n">javaList</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="mf">40.0</span><span class="o">)</span>
 
-    <span class="c1">//with the above import you can use all </span>
-    <span class="c1">//scala collection api directly on javaList</span>
-    <span class="n">javaList</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">*</span><span class="mi">10</span><span class="o">)</span></code></pre></div>
+    <span class="c1">//with the above import you can use all 
+</span>    <span class="c1">//scala collection api directly on javaList
+</span>    <span class="n">javaList</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">*</span><span class="mi">10</span><span class="o">)</span></code></pre></div>
 
 <p>Though it looks simple, there is one caveat with this code. The person who reads this code may assume that methods like map are available on Java collections itself. He will be not aware of behind the scene implicit conversions.That will be bad for maintenance. Also, if there are many Java collections in the code, there will unnecessary performance penalties for these automatic conversions.</p>
 
@@ -99,21 +99,21 @@
     <span class="n">javaList</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="mf">20.0</span><span class="o">)</span>
     <span class="n">javaList</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="mf">40.0</span><span class="o">)</span>
 
- <span class="c1">// use asScala to convert</span>
- <span class="k">val</span> <span class="n">scalaList</span> <span class="k">=</span> <span class="n">javaList</span><span class="o">.</span><span class="n">asScala</span>
+ <span class="c1">// use asScala to convert
+</span> <span class="k">val</span> <span class="n">scalaList</span> <span class="k">=</span> <span class="n">javaList</span><span class="o">.</span><span class="n">asScala</span>
  <span class="k">val</span> <span class="n">sum</span> <span class="k">=</span> <span class="n">scalaList</span><span class="o">.</span><span class="n">sum</span>
  <span class="k">val</span> <span class="n">squareList</span> <span class="k">=</span> <span class="n">scalaList</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">*</span><span class="n">value</span><span class="o">)</span>
- <span class="n">println</span><span class="o">(</span><span class="s">&quot;sum is &quot;</span><span class="o">+</span> <span class="n">sum</span><span class="o">)</span>
- <span class="n">println</span><span class="o">(</span><span class="s">&quot;square list is&quot;</span> <span class="o">+</span> <span class="n">squareList</span><span class="o">)</span></code></pre></div>
+ <span class="n">println</span><span class="o">(</span><span class="s">"sum is "</span><span class="o">+</span> <span class="n">sum</span><span class="o">)</span>
+ <span class="n">println</span><span class="o">(</span><span class="s">"square list is"</span> <span class="o">+</span> <span class="n">squareList</span><span class="o">)</span></code></pre></div>
 
 <p>Converting Java map to Scala map</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">javaHashMap</span> <span class="k">=</span> <span class="k">new</span> <span class="n">java</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="nc">HashMap</span><span class="o">[</span><span class="kt">String</span>,<span class="kt">Double</span><span class="o">]()</span>
-    <span class="n">javaHashMap</span><span class="o">.</span><span class="n">put</span><span class="o">(</span><span class="s">&quot;jack&quot;</span><span class="o">,</span><span class="mi">1000</span><span class="o">)</span>
-    <span class="n">javaHashMap</span><span class="o">.</span><span class="n">put</span><span class="o">(</span><span class="s">&quot;bob&quot;</span><span class="o">,</span><span class="mi">2000</span><span class="o">)</span>
+    <span class="n">javaHashMap</span><span class="o">.</span><span class="n">put</span><span class="o">(</span><span class="s">"jack"</span><span class="o">,</span><span class="mi">1000</span><span class="o">)</span>
+    <span class="n">javaHashMap</span><span class="o">.</span><span class="n">put</span><span class="o">(</span><span class="s">"bob"</span><span class="o">,</span><span class="mi">2000</span><span class="o">)</span>
 
 <span class="k">val</span> <span class="n">scalaMap</span> <span class="k">=</span> <span class="n">javaHashMap</span><span class="o">.</span><span class="n">asScala</span>
-<span class="n">println</span><span class="o">(</span><span class="n">scalaMap</span><span class="o">.</span><span class="n">getOrElse</span><span class="o">(</span><span class="s">&quot;dummy&quot;</span><span class="o">,</span><span class="mi">0</span><span class="o">))</span>
+<span class="n">println</span><span class="o">(</span><span class="n">scalaMap</span><span class="o">.</span><span class="n">getOrElse</span><span class="o">(</span><span class="s">"dummy"</span><span class="o">,</span><span class="mi">0</span><span class="o">))</span>
 <span class="n">println</span><span class="o">(</span><span class="n">scalaMap</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="o">=&gt;(</span><span class="n">value</span><span class="o">.</span><span class="n">_1</span><span class="o">,</span><span class="n">value</span><span class="o">.</span><span class="n">_2</span><span class="o">*</span><span class="n">value</span><span class="o">.</span><span class="n">_2</span><span class="o">)))</span></code></pre></div>
 
 <p>You can use “asJava” to convert from Scala to Java</p>
@@ -132,6 +132,14 @@
              
     
     <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
    </li>           
@@ -142,14 +150,6 @@
     <li>    
      <span class="post-date">08 Sep 2018</span>
      &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

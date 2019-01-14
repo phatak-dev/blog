@@ -108,7 +108,7 @@
   </li>
 </ul>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">tar -zxvf flink-1.0.0-bin-hadoop26-scala_2.10.tgz</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh"><span class="nb">tar</span> <span class="nt">-zxvf</span> flink-1.0.0-bin-hadoop26-scala_2.10.tgz</code></pre></div>
 
 <ul>
   <li>
@@ -134,7 +134,7 @@
 
 <p>Once we have packaged jar, now we can run it outside IDE. Run the below command from flink directory. Replace the path to jar with absolute path to the jar generated in last step.</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">bin/flink run -c com.madhukaraphatak.flink.streaming.examples.StreamingWordCount &lt;path-to-flink-examples_2.10-1.0.jar&gt;</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">bin/flink run <span class="nt">-c</span> com.madhukaraphatak.flink.streaming.examples.StreamingWordCount &lt;path-to-flink-examples_2.10-1.0.jar&gt;</code></pre></div>
 
 <p>The above command uses <em>flink</em> command to run the example. <em>flink</em>  is a command used for interact with jobs. The <em>run</em> sub command is used for submit jobs. <em>-c</em> option indicates the jar to be added to classpath. Next two parameters are main class and the jar path.</p>
 
@@ -160,6 +160,14 @@
              
     
     <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
    </li>           
@@ -170,14 +178,6 @@
     <li>    
      <span class="post-date">08 Sep 2018</span>
      &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

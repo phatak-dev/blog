@@ -96,9 +96,9 @@ which is similar to <em>read</em> method.</p>
 <p>As an example to show case the datasource API, let’s read from socket stream. The below is the code to do that</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">socketStreamDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">readStream</span>
-   <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;socket&quot;</span><span class="o">)</span>
-   <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;host&quot;</span><span class="o">,</span> <span class="s">&quot;localhost&quot;</span><span class="o">)</span>
-   <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;port&quot;</span><span class="o">,</span> <span class="mi">50050</span><span class="o">)</span>
+   <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">"socket"</span><span class="o">)</span>
+   <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"host"</span><span class="o">,</span> <span class="s">"localhost"</span><span class="o">)</span>
+   <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"port"</span><span class="o">,</span> <span class="mi">50050</span><span class="o">)</span>
    <span class="o">.</span><span class="n">load</span><span class="o">()</span></code></pre></div>
 
 <p>As you can observe from above code, reading a stream has become very similar to reading static data. In the code, <em>readStream</em> indicates
@@ -128,7 +128,7 @@ single column named <em>value</em> of the type <em>string</em>. This column cont
 that to a sink.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">consoleDataFrameWriter</span> <span class="k">=</span> <span class="n">socketStreamDf</span><span class="o">.</span><span class="n">writeStream</span>
-      <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;console&quot;</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">"console"</span><span class="o">)</span>
       <span class="o">.</span><span class="n">outputMode</span><span class="o">(</span><span class="nc">OutputMode</span><span class="o">.</span><span class="nc">Append</span><span class="o">())</span></code></pre></div>
 
 <p>To create a sink, we use <em>writeStream</em>. In our example, we are using <em>console</em> sink which just prints the data to the console. In the code,
@@ -152,7 +152,7 @@ we have specified output mode, which is similar to save modes in batch API. We w
 
 <p>Before we can run the example, we need to start the socket stream. You can do that by running below command</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">nc -lk localhost 50050</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">nc <span class="nt">-lk</span> localhost 50050</code></pre></div>
 
 <p>Now you can enter data in stdin, you can observe the result in the console.</p>
 
@@ -182,6 +182,14 @@ streaming world.</p>
              
     
     <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
    </li>           
@@ -192,14 +200,6 @@ streaming world.</p>
     <li>    
      <span class="post-date">08 Sep 2018</span>
      &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

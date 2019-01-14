@@ -82,18 +82,18 @@ the spark 1.x operations, it has added many new ones to improve the interaction 
 
 <h3 id="spark-1x">Spark 1.x</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">loadedDf</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;com.databricks.spark.csv&quot;</span><span class="o">).</span>
-  <span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">).</span><span class="n">load</span><span class="o">(</span><span class="s">&quot;../test_data/sales.csv&quot;</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">loadedDf</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">"com.databricks.spark.csv"</span><span class="o">).</span>
+  <span class="n">option</span><span class="o">(</span><span class="s">"header"</span><span class="o">,</span> <span class="s">"true"</span><span class="o">).</span><span class="n">load</span><span class="o">(</span><span class="s">"../test_data/sales.csv"</span><span class="o">)</span>
 
-<span class="n">loadedDf</span><span class="o">.</span><span class="n">registerTempTable</span><span class="o">(</span><span class="s">&quot;sales&quot;</span><span class="o">)</span></code></pre></div>
+<span class="n">loadedDf</span><span class="o">.</span><span class="n">registerTempTable</span><span class="o">(</span><span class="s">"sales"</span><span class="o">)</span></code></pre></div>
 
 <p>We use <em>registerTempTable</em> API for creating table in in-memory catalog.</p>
 
 <h3 id="spark-2x">Spark 2.x</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">loadedDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;csv&quot;</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">).</span><span class="n">load</span><span class="o">(</span><span class="s">&quot;../test_data/sales.csv&quot;</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">loadedDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">"csv"</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">"header"</span><span class="o">,</span> <span class="s">"true"</span><span class="o">).</span><span class="n">load</span><span class="o">(</span><span class="s">"../test_data/sales.csv"</span><span class="o">)</span>
 
-<span class="n">loadedDf</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="o">(</span><span class="s">&quot;sales&quot;</span><span class="o">)</span></code></pre></div>
+<span class="n">loadedDf</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="o">(</span><span class="s">"sales"</span><span class="o">)</span></code></pre></div>
 
 <p>In 2.x, <em>registerTempTable</em> API is deprecated. We should use <em>createOrReplaceTempView</em> for the same.</p>
 
@@ -140,7 +140,7 @@ part of the catalog which was missing in earlier API’s.</p>
 
 <p>In spark 2.x, there is no separate API for getting database names. As listTables, returns a Dataset we can use normal spark sql API’s for getting the name.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">sparkSession</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">listTables</span><span class="o">.</span><span class="n">select</span><span class="o">(</span><span class="s">&quot;name&quot;</span><span class="o">).</span><span class="n">collect</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">sparkSession</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">listTables</span><span class="o">.</span><span class="n">select</span><span class="o">(</span><span class="s">"name"</span><span class="o">).</span><span class="n">collect</span></code></pre></div>
 
 <h2 id="caching">Caching</h2>
 
@@ -148,11 +148,11 @@ part of the catalog which was missing in earlier API’s.</p>
 
 <h3 id="spark-1x-2">Spark 1.x</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">println</span><span class="o">(</span><span class="n">sqlContext</span><span class="o">.</span><span class="n">isCached</span><span class="o">(</span><span class="s">&quot;sales&quot;</span><span class="o">))</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">println</span><span class="o">(</span><span class="n">sqlContext</span><span class="o">.</span><span class="n">isCached</span><span class="o">(</span><span class="s">"sales"</span><span class="o">))</span></code></pre></div>
 
 <h3 id="spark-2x-2">Spark 2.x</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">println</span><span class="o">(</span><span class="n">sparkSession</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">isCached</span><span class="o">(</span><span class="s">&quot;sales&quot;</span><span class="o">))</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">println</span><span class="o">(</span><span class="n">sparkSession</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">isCached</span><span class="o">(</span><span class="s">"sales"</span><span class="o">))</span></code></pre></div>
 
 <h3 id="external-tables">External Tables</h3>
 
@@ -163,21 +163,21 @@ part of the catalog which was missing in earlier API’s.</p>
 <p>In spark 1.x, SQLContext didn’t support creating external tables. So we need to use hivecontext for do that.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">hiveContext</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">HiveContext</span><span class="o">(</span><span class="n">sparkContext</span><span class="o">)</span>
- <span class="n">hiveContext</span><span class="o">.</span><span class="n">setConf</span><span class="o">(</span><span class="s">&quot;hive.metastore.warehouse.dir&quot;</span><span class="o">,</span> <span class="s">&quot;/tmp&quot;</span><span class="o">)</span>
- <span class="n">hiveContext</span><span class="o">.</span><span class="n">createExternalTable</span><span class="o">(</span><span class="s">&quot;sales_external&quot;</span><span class="o">,</span> <span class="s">&quot;com.databricks.spark.csv&quot;</span><span class="o">,</span> <span class="nc">Map</span><span class="o">(</span>
-   <span class="s">&quot;path&quot;</span> <span class="o">-&gt;</span> <span class="s">&quot;../test_data/sales.csv&quot;</span><span class="o">,</span>
-   <span class="s">&quot;header&quot;</span> <span class="o">-&gt;</span> <span class="s">&quot;true&quot;</span><span class="o">))</span>
- <span class="n">hiveContext</span><span class="o">.</span><span class="n">table</span><span class="o">(</span><span class="s">&quot;sales_external&quot;</span><span class="o">).</span><span class="n">show</span><span class="o">()</span></code></pre></div>
+ <span class="n">hiveContext</span><span class="o">.</span><span class="n">setConf</span><span class="o">(</span><span class="s">"hive.metastore.warehouse.dir"</span><span class="o">,</span> <span class="s">"/tmp"</span><span class="o">)</span>
+ <span class="n">hiveContext</span><span class="o">.</span><span class="n">createExternalTable</span><span class="o">(</span><span class="s">"sales_external"</span><span class="o">,</span> <span class="s">"com.databricks.spark.csv"</span><span class="o">,</span> <span class="nc">Map</span><span class="o">(</span>
+   <span class="s">"path"</span> <span class="o">-&gt;</span> <span class="s">"../test_data/sales.csv"</span><span class="o">,</span>
+   <span class="s">"header"</span> <span class="o">-&gt;</span> <span class="s">"true"</span><span class="o">))</span>
+ <span class="n">hiveContext</span><span class="o">.</span><span class="n">table</span><span class="o">(</span><span class="s">"sales_external"</span><span class="o">).</span><span class="n">show</span><span class="o">()</span></code></pre></div>
 
 <p>In above code, first we create <em>HiveContext</em>. Then we need to set the warehouse directory so hive context knows where to keep the data. Then we use
 <em>createExternalTable</em> API to load the data to <em>sales_external</em> table.</p>
 
 <h3 id="spark-2x-3">Spark 2.x</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">sparkSession</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">createExternalTable</span><span class="o">(</span><span class="s">&quot;sales_external&quot;</span><span class="o">,</span> <span class="s">&quot;com.databricks.spark.csv&quot;</span><span class="o">,</span> <span class="nc">Map</span><span class="o">(</span>
- <span class="s">&quot;path&quot;</span> <span class="o">-&gt;</span> <span class="s">&quot;../test_data/sales.csv&quot;</span><span class="o">,</span>
- <span class="s">&quot;header&quot;</span> <span class="o">-&gt;</span> <span class="s">&quot;true&quot;</span><span class="o">))</span>
-<span class="n">sparkSession</span><span class="o">.</span><span class="n">table</span><span class="o">(</span><span class="s">&quot;sales_external&quot;</span><span class="o">).</span><span class="n">show</span><span class="o">()</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">sparkSession</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">createExternalTable</span><span class="o">(</span><span class="s">"sales_external"</span><span class="o">,</span> <span class="s">"com.databricks.spark.csv"</span><span class="o">,</span> <span class="nc">Map</span><span class="o">(</span>
+ <span class="s">"path"</span> <span class="o">-&gt;</span> <span class="s">"../test_data/sales.csv"</span><span class="o">,</span>
+ <span class="s">"header"</span> <span class="o">-&gt;</span> <span class="s">"true"</span><span class="o">))</span>
+<span class="n">sparkSession</span><span class="o">.</span><span class="n">table</span><span class="o">(</span><span class="s">"sales_external"</span><span class="o">).</span><span class="n">show</span><span class="o">()</span></code></pre></div>
 
 <p>In spark 2.x, creating external table is part of catalog API itself. We don’t need to enable hive for this functionality.</p>
 
@@ -210,7 +210,7 @@ in day to day development. Below sections discusses few of them.</p>
 
 <p>We can also list the columns of a table.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">sparkSession</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">listColumns</span><span class="o">(</span><span class="s">&quot;sales&quot;</span><span class="o">).</span><span class="n">show</span><span class="o">()</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">sparkSession</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">listColumns</span><span class="o">(</span><span class="s">"sales"</span><span class="o">).</span><span class="n">show</span><span class="o">()</span></code></pre></div>
 
 <p>The below is the output for our <em>sales</em> table.</p>
 
@@ -241,6 +241,14 @@ in day to day development. Below sections discusses few of them.</p>
              
     
     <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
    </li>           
@@ -251,14 +259,6 @@ in day to day development. Below sections discusses few of them.</p>
     <li>    
      <span class="post-date">08 Sep 2018</span>
      &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

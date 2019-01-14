@@ -77,10 +77,10 @@
 
 <p>So whenever we get sales data, we convert the raw data to RDD[SalesRecord].</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sc</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkContext</span><span class="o">(</span><span class="n">args</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="s">&quot;extendingspark&quot;</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sc</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkContext</span><span class="o">(</span><span class="n">args</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="s">"extendingspark"</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">dataRDD</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">textFile</span><span class="o">(</span><span class="n">args</span><span class="o">(</span><span class="mi">1</span><span class="o">))</span>
 <span class="k">val</span> <span class="n">salesRecordRDD</span> <span class="k">=</span> <span class="n">dataRDD</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">row</span> <span class="k">=&gt;</span> <span class="o">{</span>
-    <span class="k">val</span> <span class="n">colValues</span> <span class="k">=</span> <span class="n">row</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;,&quot;</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">colValues</span> <span class="k">=</span> <span class="n">row</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">","</span><span class="o">)</span>
     <span class="k">new</span> <span class="nc">SalesRecord</span><span class="o">(</span><span class="n">colValues</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span><span class="n">colValues</span><span class="o">(</span><span class="mi">1</span><span class="o">),</span>
     <span class="n">colValues</span><span class="o">(</span><span class="mi">2</span><span class="o">),</span><span class="n">colValues</span><span class="o">(</span><span class="mi">3</span><span class="o">).</span><span class="n">toDouble</span><span class="o">)</span>
 <span class="o">})</span></code></pre></div>
@@ -133,8 +133,8 @@
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">DiscountRDD</span><span class="o">(</span><span class="n">prev</span><span class="k">:</span><span class="kt">RDD</span><span class="o">[</span><span class="kt">SalesRecord</span><span class="o">],</span><span class="n">discountPercentage</span><span class="k">:</span><span class="kt">Double</span><span class="o">)</span> 
 <span class="k">extends</span> <span class="nc">RDD</span><span class="o">[</span><span class="kt">SalesRecord</span><span class="o">](</span><span class="n">prev</span><span class="o">){</span>
 
-<span class="c1">// override compute method to calculate the discount</span>
-<span class="k">override</span> <span class="k">def</span> <span class="n">compute</span><span class="o">(</span><span class="n">split</span><span class="k">:</span> <span class="kt">Partition</span><span class="o">,</span> <span class="n">context</span><span class="k">:</span> <span class="kt">TaskContext</span><span class="o">)</span><span class="k">:</span> <span class="kt">Iterator</span><span class="o">[</span><span class="kt">SalesRecord</span><span class="o">]</span> <span class="k">=</span>  <span class="o">{</span>
+<span class="c1">// override compute method to calculate the discount
+</span><span class="k">override</span> <span class="k">def</span> <span class="n">compute</span><span class="o">(</span><span class="n">split</span><span class="k">:</span> <span class="kt">Partition</span><span class="o">,</span> <span class="n">context</span><span class="k">:</span> <span class="kt">TaskContext</span><span class="o">)</span><span class="k">:</span> <span class="kt">Iterator</span><span class="o">[</span><span class="kt">SalesRecord</span><span class="o">]</span> <span class="k">=</span>  <span class="o">{</span>
   <span class="n">firstParent</span><span class="o">[</span><span class="kt">SalesRecord</span><span class="o">].</span><span class="n">iterator</span><span class="o">(</span><span class="n">split</span><span class="o">,</span> <span class="n">context</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="n">salesRecord</span> <span class="k">=&gt;</span> <span class="o">{</span>
       <span class="k">val</span> <span class="n">discount</span> <span class="k">=</span> <span class="n">salesRecord</span><span class="o">.</span><span class="n">itemValue</span><span class="o">*</span><span class="n">discountPercentage</span>
       <span class="k">new</span> <span class="nc">SalesRecord</span><span class="o">(</span><span class="n">salesRecord</span><span class="o">.</span><span class="n">transactionId</span><span class="o">,</span>
@@ -211,6 +211,14 @@
              
     
     <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
    </li>           
@@ -221,14 +229,6 @@
     <li>    
      <span class="post-date">08 Sep 2018</span>
      &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

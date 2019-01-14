@@ -72,10 +72,10 @@
 <h3 id="step-1--configure-master">Step 1 : Configure master</h3>
 <p>There will be only one master. So create a working dir for master under home and point master working directory to it.</p>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">//create a working dir under home folder
- mkdir <span class="nv">$HOME</span>/mesos-master-work 
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">//create a working <span class="nb">dir </span>under home folder
+ <span class="nb">mkdir</span> <span class="nv">$HOME</span>/mesos-master-work 
  //start mesos with working directory
- <span class="nv">$MESOS_HOME</span>/bin/mesos-master.sh --work_dir<span class="o">=</span><span class="nv">$HOME</span>/mesos-master-work  --ip<span class="o">=</span>127.0.0.1</code></pre></div>
+ <span class="nv">$MESOS_HOME</span>/bin/mesos-master.sh <span class="nt">--work_dir</span><span class="o">=</span><span class="nv">$HOME</span>/mesos-master-work  <span class="nt">--ip</span><span class="o">=</span>127.0.0.1</code></pre></div>
 
 <h3 id="step-2--configure-slaves">Step 2 : Configure Slaves</h3>
 <p>To run multiple mesos slaves on same machine, we have to differentiate them from each other. The mesos slaves are differentiating using</p>
@@ -91,8 +91,8 @@
 <h4 id="create-work-directories-for-slaves">2.1 Create work directories for slaves</h4>
 
 <div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c"># create working directories for slaves</span>
-mkdir -p <span class="nv">$HOME</span>/mesos_slave_work/slave1          
-mkdir -p <span class="nv">$HOME</span>/mesos_slave_work/slave2</code></pre></div>
+<span class="nb">mkdir</span> <span class="nt">-p</span> <span class="nv">$HOME</span>/mesos_slave_work/slave1          
+<span class="nb">mkdir</span> <span class="nt">-p</span> <span class="nv">$HOME</span>/mesos_slave_work/slave2</code></pre></div>
 
 <h4 id="configure-etchosts">2.2 Configure /etc/hosts</h4>
 <p>We specify two slaves with hostname slave1 and slave2. Put the following entries inside /etc/hosts</p>
@@ -106,9 +106,9 @@ mkdir -p <span class="nv">$HOME</span>/mesos_slave_work/slave2</code></pre></div
 
 <div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c"># start the slaves</span>
 
-<span class="nv">$MESOS_HOME</span>/bin/mesos-slave.sh --master<span class="o">=</span>localhost:5050 --port<span class="o">=</span><span class="m">5053</span> --hostname<span class="o">=</span>slave1  --work_dir<span class="o">=</span><span class="nv">$HOME</span>/mesos_slave_work/slave1 --resources<span class="o">=</span><span class="s2">&quot;cpus(*):2; mem(*):3500&quot;</span>
+<span class="nv">$MESOS_HOME</span>/bin/mesos-slave.sh <span class="nt">--master</span><span class="o">=</span>localhost:5050 <span class="nt">--port</span><span class="o">=</span>5053 <span class="nt">--hostname</span><span class="o">=</span>slave1  <span class="nt">--work_dir</span><span class="o">=</span><span class="nv">$HOME</span>/mesos_slave_work/slave1 <span class="nt">--resources</span><span class="o">=</span><span class="s2">"cpus(*):2; mem(*):3500"</span>
 
-<span class="nv">$MESOS_HOME</span>/bin/mesos-slave.sh --master<span class="o">=</span>localhost:5050 --port<span class="o">=</span><span class="m">5054</span> --hostname<span class="o">=</span>slave2  --work_dir<span class="o">=</span><span class="nv">$HOME</span>/mesos_slave_work/slave2 --resources<span class="o">=</span><span class="s2">&quot;cpus(*):2; mem(*):3500&quot;</span></code></pre></div>
+<span class="nv">$MESOS_HOME</span>/bin/mesos-slave.sh <span class="nt">--master</span><span class="o">=</span>localhost:5050 <span class="nt">--port</span><span class="o">=</span>5054 <span class="nt">--hostname</span><span class="o">=</span>slave2  <span class="nt">--work_dir</span><span class="o">=</span><span class="nv">$HOME</span>/mesos_slave_work/slave2 <span class="nt">--resources</span><span class="o">=</span><span class="s2">"cpus(*):2; mem(*):3500"</span></code></pre></div>
 
 <p><em>resources</em> flag on the command allows us to specify how much ram and memory has to be dedicated to the slaves. Tune the parameters according your machine resources.</p>
 

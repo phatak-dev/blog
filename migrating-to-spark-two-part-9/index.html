@@ -79,7 +79,7 @@ metastore and catalog API’s in later versions. In spark 1.x, we needed to use 
 <p>By default spark session is not configured to connect to hive. We need to explicitley have to enable using <em>enableHiveSupport</em> at the time of
 session creation.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sparkSession</span> <span class="k">=</span> <span class="nc">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">master</span><span class="o">(</span><span class="s">&quot;local&quot;</span><span class="o">).</span><span class="n">appName</span><span class="o">(</span><span class="s">&quot;mapexample&quot;</span><span class="o">).</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sparkSession</span> <span class="k">=</span> <span class="nc">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">master</span><span class="o">(</span><span class="s">"local"</span><span class="o">).</span><span class="n">appName</span><span class="o">(</span><span class="s">"mapexample"</span><span class="o">).</span>
         <span class="n">enableHiveSupport</span><span class="o">().</span><span class="n">getOrCreate</span><span class="o">()</span></code></pre></div>
 
 <p>Spark session looks for <em>hive-site.xml</em> for connecting to hive metastore.</p>
@@ -125,7 +125,7 @@ Time taken: 0.024 seconds, Fetched: 1 row(s)</code></pre></div>
 
 <p>Once we queried the tables , we can now load the table from hive. We use <em>table</em> API on spark session to do the same.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">table</span><span class="o">(</span><span class="s">&quot;sales&quot;</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">table</span><span class="o">(</span><span class="s">"sales"</span><span class="o">)</span>
 <span class="n">df</span><span class="o">.</span><span class="n">show</span><span class="o">()</span></code></pre></div>
 
 <p>Output</p>
@@ -153,7 +153,7 @@ Time taken: 0.024 seconds, Fetched: 1 row(s)</code></pre></div>
 
 <p>We can also save the dataframe to hive as table. It will create table metadata in hive metastore and save data in parquet format.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">df</span><span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="n">saveAsTable</span><span class="o">(</span><span class="s">&quot;sales_saved&quot;</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">df</span><span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="n">saveAsTable</span><span class="o">(</span><span class="s">"sales_saved"</span><span class="o">)</span></code></pre></div>
 
 <p>Observe output in the hive</p>
 
@@ -191,6 +191,14 @@ Time taken: 0.051 seconds, Fetched: 14 row(s)</code></pre></div>
              
     
     <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
    </li>           
@@ -201,14 +209,6 @@ Time taken: 0.051 seconds, Fetched: 14 row(s)</code></pre></div>
     <li>    
      <span class="post-date">08 Sep 2018</span>
      &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

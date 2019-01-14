@@ -120,17 +120,17 @@
 
 <p>In resource folder , a HelloWorld.composite file will be created. This file will define the configuration for the compositions. Replace the code in HelloWorld.composite by below code.</p>
 
-<div class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
-<span class="nt">&lt;composite</span> <span class="na">xmlns=</span><span class="s">&quot;http://docs.oasis-open.org/ns/opencsa/sca/200912&quot;</span>
-<span class="na">xmlns:tuscany=</span><span class="s">&quot;http://tuscany.apache.org/xmlns/sca/1.1&quot;</span>
-<span class="na">targetNamespace=</span><span class="s">&quot;http://com.demo.sca&quot;</span>
-<span class="na">name=</span><span class="s">&quot;hello-sca2&quot;</span><span class="nt">&gt;</span>
+<div class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="cp">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+<span class="nt">&lt;composite</span> <span class="na">xmlns=</span><span class="s">"http://docs.oasis-open.org/ns/opencsa/sca/200912"</span>
+<span class="na">xmlns:tuscany=</span><span class="s">"http://tuscany.apache.org/xmlns/sca/1.1"</span>
+<span class="na">targetNamespace=</span><span class="s">"http://com.demo.sca"</span>
+<span class="na">name=</span><span class="s">"hello-sca2"</span><span class="nt">&gt;</span>
 
-<span class="nt">&lt;component</span> <span class="na">name=</span><span class="s">&quot;HelloworldComponent&quot;</span><span class="nt">&gt;</span>
-<span class="nt">&lt;implementation.java</span> <span class="na">class=</span><span class="s">&quot;com.demo.sca.HelloworldImpl&quot;</span><span class="nt">/&gt;</span>
-<span class="nt">&lt;service</span> <span class="na">name=</span><span class="s">&quot;HelloworldService&quot;</span><span class="nt">&gt;</span>
-<span class="nt">&lt;interface.java</span> <span class="na">interface=</span><span class="s">&quot;com.demo.sca.HelloworldService&quot;</span> <span class="nt">/&gt;</span>
-<span class="nt">&lt;binding.ws</span> <span class="na">uri=</span><span class="s">&quot;http://localhost:8080/HelloWorld&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;component</span> <span class="na">name=</span><span class="s">"HelloworldComponent"</span><span class="nt">&gt;</span>
+<span class="nt">&lt;implementation.java</span> <span class="na">class=</span><span class="s">"com.demo.sca.HelloworldImpl"</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;service</span> <span class="na">name=</span><span class="s">"HelloworldService"</span><span class="nt">&gt;</span>
+<span class="nt">&lt;interface.java</span> <span class="na">interface=</span><span class="s">"com.demo.sca.HelloworldService"</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;binding.ws</span> <span class="na">uri=</span><span class="s">"http://localhost:8080/HelloWorld"</span> <span class="nt">/&gt;</span>
 <span class="nt">&lt;/service&gt;</span>
 <span class="nt">&lt;/component&gt;</span>
 
@@ -142,11 +142,11 @@ Note that the service name should be as same as the Interface Name</p>
 <h4 id="contribution-file">4.Contribution file</h4>
 <p>In META-INF , there is a file filed name sca-contribution.xml .It used to specify which component will be used as launching component. Replace the code by below code</p>
 
-<div class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<div class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="cp">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
 
-<span class="nt">&lt;contribution</span> <span class="na">xmlns=</span><span class="s">&quot;http://docs.oasis-open.org/ns/opencsa/sca/200912&quot;</span>
-<span class="na">xmlns:sample=</span><span class="s">&quot;http://com.demo.sca&quot;</span><span class="nt">&gt;</span>
-<span class="nt">&lt;deployable</span> <span class="na">composite=</span><span class="s">&quot;sample:hello-sca2&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;contribution</span> <span class="na">xmlns=</span><span class="s">"http://docs.oasis-open.org/ns/opencsa/sca/200912"</span>
+<span class="na">xmlns:sample=</span><span class="s">"http://com.demo.sca"</span><span class="nt">&gt;</span>
+<span class="nt">&lt;deployable</span> <span class="na">composite=</span><span class="s">"sample:hello-sca2"</span><span class="nt">/&gt;</span>
 <span class="nt">&lt;/contribution&gt;</span></code></pre></div>
 
 <h4 id="building-the-project">5.Building the project</h4>

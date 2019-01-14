@@ -83,7 +83,7 @@
 
 <p>First we load the data using spark data source API.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;inferSchema&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">).</span><span class="n">csv</span><span class="o">(</span><span class="s">&quot;src/main/resources/titanic/train.csv&quot;</span><span class="o">)</span> 
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"header"</span><span class="o">,</span> <span class="s">"true"</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">"inferSchema"</span><span class="o">,</span> <span class="s">"true"</span><span class="o">).</span><span class="n">csv</span><span class="o">(</span><span class="s">"src/main/resources/titanic/train.csv"</span><span class="o">)</span> 
 <span class="n">df</span><span class="o">.</span><span class="n">printSchema</span><span class="o">()</span></code></pre></div>
 
 <p>The below is the schema of data</p>
@@ -109,15 +109,15 @@
 
 <p>In our dataset, <em>Age</em> of some of the passengers is not known. So we use <em>na.fill</em> API to fill the mean age for all the missing age values.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">meanValue</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">agg</span><span class="o">(</span><span class="n">mean</span><span class="o">(</span><span class="n">df</span><span class="o">(</span><span class="s">&quot;Age&quot;</span><span class="o">))).</span><span class="n">first</span><span class="o">.</span><span class="n">getDouble</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
-<span class="k">val</span> <span class="n">fixedDf</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">na</span><span class="o">.</span><span class="n">fill</span><span class="o">(</span><span class="n">meanValue</span><span class="o">,</span> <span class="nc">Array</span><span class="o">(</span><span class="s">&quot;Age&quot;</span><span class="o">))</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">meanValue</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">agg</span><span class="o">(</span><span class="n">mean</span><span class="o">(</span><span class="n">df</span><span class="o">(</span><span class="s">"Age"</span><span class="o">))).</span><span class="n">first</span><span class="o">.</span><span class="n">getDouble</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">fixedDf</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">na</span><span class="o">.</span><span class="n">fill</span><span class="o">(</span><span class="n">meanValue</span><span class="o">,</span> <span class="nc">Array</span><span class="o">(</span><span class="s">"Age"</span><span class="o">))</span></code></pre></div>
 
 <h3 id="split-data-for-train-and-holdout">1.3 Split Data for Train and Holdout</h3>
 
 <p>One we prepared our data, we split the data for training and hold out. We use spark’s <em>randomSplit</em> method to do the same.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">dfs</span> <span class="k">=</span> <span class="n">fixedDf</span><span class="o">.</span><span class="n">randomSplit</span><span class="o">(</span><span class="nc">Array</span><span class="o">(</span><span class="mf">0.7</span><span class="o">,</span> <span class="mf">0.3</span><span class="o">))</span>
-<span class="k">val</span> <span class="n">trainDf</span> <span class="k">=</span> <span class="n">dfs</span><span class="o">(</span><span class="mi">0</span><span class="o">).</span><span class="n">withColumnRenamed</span><span class="o">(</span><span class="s">&quot;Survived&quot;</span><span class="o">,</span> <span class="s">&quot;label&quot;</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">trainDf</span> <span class="k">=</span> <span class="n">dfs</span><span class="o">(</span><span class="mi">0</span><span class="o">).</span><span class="n">withColumnRenamed</span><span class="o">(</span><span class="s">"Survived"</span><span class="o">,</span> <span class="s">"label"</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">crossDf</span> <span class="k">=</span> <span class="n">dfs</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span></code></pre></div>
 
 <h3 id="handling-categorical-variables">1.4 Handling Categorical Variables</h3>
@@ -127,17 +127,17 @@ In this example, we are using <em>StringIndexer</em> and <em>OneHotEncoder</em> 
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">handleCategorical</span><span class="o">(</span><span class="n">column</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">PipelineStage</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
   <span class="k">val</span> <span class="n">stringIndexer</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">StringIndexer</span><span class="o">().</span><span class="n">setInputCol</span><span class="o">(</span><span class="n">column</span><span class="o">)</span>
-    <span class="o">.</span><span class="n">setOutputCol</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;${column}_index&quot;</span><span class="o">)</span>
-    <span class="o">.</span><span class="n">setHandleInvalid</span><span class="o">(</span><span class="s">&quot;skip&quot;</span><span class="o">)</span>
-  <span class="k">val</span> <span class="n">oneHot</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">OneHotEncoder</span><span class="o">().</span><span class="n">setInputCol</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;${column}_index&quot;</span><span class="o">).</span><span class="n">setOutputCol</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;${column}_onehot&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">setOutputCol</span><span class="o">(</span><span class="n">s</span><span class="s">"${column}_index"</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">setHandleInvalid</span><span class="o">(</span><span class="s">"skip"</span><span class="o">)</span>
+  <span class="k">val</span> <span class="n">oneHot</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">OneHotEncoder</span><span class="o">().</span><span class="n">setInputCol</span><span class="o">(</span><span class="n">s</span><span class="s">"${column}_index"</span><span class="o">).</span><span class="n">setOutputCol</span><span class="o">(</span><span class="n">s</span><span class="s">"${column}_onehot"</span><span class="o">)</span>
   <span class="nc">Array</span><span class="o">(</span><span class="n">stringIndexer</span><span class="o">,</span> <span class="n">oneHot</span><span class="o">)</span>
 <span class="o">}</span></code></pre></div>
 
 <p>Create stages for all categorical variables</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">genderStages</span> <span class="k">=</span> <span class="n">handleCategorical</span><span class="o">(</span><span class="s">&quot;Sex&quot;</span><span class="o">)</span>
- <span class="k">val</span> <span class="n">embarkedStages</span> <span class="k">=</span> <span class="n">handleCategorical</span><span class="o">(</span><span class="s">&quot;Embarked&quot;</span><span class="o">)</span>
- <span class="k">val</span> <span class="n">pClassStages</span> <span class="k">=</span> <span class="n">handleCategorical</span><span class="o">(</span><span class="s">&quot;Pclass&quot;</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">genderStages</span> <span class="k">=</span> <span class="n">handleCategorical</span><span class="o">(</span><span class="s">"Sex"</span><span class="o">)</span>
+ <span class="k">val</span> <span class="n">embarkedStages</span> <span class="k">=</span> <span class="n">handleCategorical</span><span class="o">(</span><span class="s">"Embarked"</span><span class="o">)</span>
+ <span class="k">val</span> <span class="n">pClassStages</span> <span class="k">=</span> <span class="n">handleCategorical</span><span class="o">(</span><span class="s">"Pclass"</span><span class="o">)</span></code></pre></div>
 
 <h2 id="classification-using-randomforest">2. Classification using RandomForest</h2>
 
@@ -150,14 +150,14 @@ stage for classification.</p>
 
 <p>Then finally we create a ML pipeline with all the stages.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">//columns for training</span>
-<span class="k">val</span> <span class="n">cols</span> <span class="k">=</span> <span class="nc">Array</span><span class="o">(</span><span class="s">&quot;Sex_onehot&quot;</span><span class="o">,</span> <span class="s">&quot;Embarked_onehot&quot;</span><span class="o">,</span> <span class="s">&quot;Pclass_onehot&quot;</span><span class="o">,</span> <span class="s">&quot;SibSp&quot;</span><span class="o">,</span> <span class="s">&quot;Parch&quot;</span><span class="o">,</span> <span class="s">&quot;Age&quot;</span><span class="o">,</span> <span class="s">&quot;Fare&quot;</span><span class="o">)</span>
-<span class="k">val</span> <span class="n">vectorAssembler</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">VectorAssembler</span><span class="o">().</span><span class="n">setInputCols</span><span class="o">(</span><span class="n">cols</span><span class="o">).</span><span class="n">setOutputCol</span><span class="o">(</span><span class="s">&quot;features&quot;</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">//columns for training
+</span><span class="k">val</span> <span class="n">cols</span> <span class="k">=</span> <span class="nc">Array</span><span class="o">(</span><span class="s">"Sex_onehot"</span><span class="o">,</span> <span class="s">"Embarked_onehot"</span><span class="o">,</span> <span class="s">"Pclass_onehot"</span><span class="o">,</span> <span class="s">"SibSp"</span><span class="o">,</span> <span class="s">"Parch"</span><span class="o">,</span> <span class="s">"Age"</span><span class="o">,</span> <span class="s">"Fare"</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">vectorAssembler</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">VectorAssembler</span><span class="o">().</span><span class="n">setInputCols</span><span class="o">(</span><span class="n">cols</span><span class="o">).</span><span class="n">setOutputCol</span><span class="o">(</span><span class="s">"features"</span><span class="o">)</span>
 
-<span class="c1">//algorithm stage</span>
-<span class="k">val</span> <span class="n">randomForestClassifier</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">RandomForestClassifier</span><span class="o">()</span>
-<span class="c1">//pipeline</span>
-<span class="k">val</span> <span class="n">preProcessStages</span> <span class="k">=</span> <span class="n">genderStages</span> <span class="o">++</span> <span class="n">embarkedStages</span> <span class="o">++</span> <span class="n">pClassStages</span> <span class="o">++</span> <span class="nc">Array</span><span class="o">(</span><span class="n">vectorAssembler</span><span class="o">)</span>
+<span class="c1">//algorithm stage
+</span><span class="k">val</span> <span class="n">randomForestClassifier</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">RandomForestClassifier</span><span class="o">()</span>
+<span class="c1">//pipeline
+</span><span class="k">val</span> <span class="n">preProcessStages</span> <span class="k">=</span> <span class="n">genderStages</span> <span class="o">++</span> <span class="n">embarkedStages</span> <span class="o">++</span> <span class="n">pClassStages</span> <span class="o">++</span> <span class="nc">Array</span><span class="o">(</span><span class="n">vectorAssembler</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">pipeline</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Pipeline</span><span class="o">().</span><span class="n">setStages</span><span class="o">(</span><span class="n">preProcessStages</span> <span class="o">++</span> <span class="nc">Array</span><span class="o">(</span><span class="n">randomForestClassifier</span><span class="o">))</span></code></pre></div>
 
 <h3 id="fit-the-model">2.2 Fit the model</h3>
@@ -173,8 +173,8 @@ stage for classification.</p>
   <span class="k">new</span> <span class="nc">MulticlassMetrics</span><span class="o">(</span><span class="n">rdd</span><span class="o">).</span><span class="n">accuracy</span>
 <span class="o">}</span>
 
-  <span class="n">println</span><span class="o">(</span><span class="s">&quot;train accuracy with pipeline&quot;</span> <span class="o">+</span> <span class="n">accuracyScore</span><span class="o">(</span><span class="n">model</span><span class="o">.</span><span class="n">transform</span><span class="o">(</span><span class="n">trainDf</span><span class="o">),</span> <span class="s">&quot;label&quot;</span><span class="o">,</span> <span class="s">&quot;prediction&quot;</span><span class="o">))</span>
-  <span class="n">println</span><span class="o">(</span><span class="s">&quot;test accuracy with pipeline&quot;</span> <span class="o">+</span> <span class="n">accuracyScore</span><span class="o">(</span><span class="n">model</span><span class="o">.</span><span class="n">transform</span><span class="o">(</span><span class="n">crossDf</span><span class="o">),</span> <span class="s">&quot;Survived&quot;</span><span class="o">,</span> <span class="s">&quot;prediction&quot;</span><span class="o">))</span></code></pre></div>
+  <span class="n">println</span><span class="o">(</span><span class="s">"train accuracy with pipeline"</span> <span class="o">+</span> <span class="n">accuracyScore</span><span class="o">(</span><span class="n">model</span><span class="o">.</span><span class="n">transform</span><span class="o">(</span><span class="n">trainDf</span><span class="o">),</span> <span class="s">"label"</span><span class="o">,</span> <span class="s">"prediction"</span><span class="o">))</span>
+  <span class="n">println</span><span class="o">(</span><span class="s">"test accuracy with pipeline"</span> <span class="o">+</span> <span class="n">accuracyScore</span><span class="o">(</span><span class="n">model</span><span class="o">.</span><span class="n">transform</span><span class="o">(</span><span class="n">crossDf</span><span class="o">),</span> <span class="s">"Survived"</span><span class="o">,</span> <span class="s">"prediction"</span><span class="o">))</span></code></pre></div>
 
 <h3 id="results">2.4. Results</h3>
 
@@ -192,7 +192,7 @@ test accuracy with pipeline0.816793893129771</code></pre></div>
 <p>The below are the parameters which we want to search for.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">paramMap</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ParamGridBuilder</span><span class="o">()</span>
-  <span class="o">.</span><span class="n">addGrid</span><span class="o">(</span><span class="n">randomForestClassifier</span><span class="o">.</span><span class="n">impurity</span><span class="o">,</span> <span class="nc">Array</span><span class="o">(</span><span class="s">&quot;gini&quot;</span><span class="o">,</span> <span class="s">&quot;entropy&quot;</span><span class="o">))</span>
+  <span class="o">.</span><span class="n">addGrid</span><span class="o">(</span><span class="n">randomForestClassifier</span><span class="o">.</span><span class="n">impurity</span><span class="o">,</span> <span class="nc">Array</span><span class="o">(</span><span class="s">"gini"</span><span class="o">,</span> <span class="s">"entropy"</span><span class="o">))</span>
   <span class="o">.</span><span class="n">addGrid</span><span class="o">(</span><span class="n">randomForestClassifier</span><span class="o">.</span><span class="n">maxDepth</span><span class="o">,</span> <span class="nc">Array</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span><span class="mi">2</span><span class="o">,</span><span class="mi">5</span><span class="o">,</span> <span class="mi">10</span><span class="o">,</span> <span class="mi">15</span><span class="o">))</span>
   <span class="o">.</span><span class="n">addGrid</span><span class="o">(</span><span class="n">randomForestClassifier</span><span class="o">.</span><span class="n">minInstancesPerNode</span><span class="o">,</span> <span class="nc">Array</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span><span class="mi">5</span><span class="o">,</span><span class="mi">10</span><span class="o">))</span>
   <span class="o">.</span><span class="n">build</span><span class="o">()</span></code></pre></div>
@@ -222,13 +222,13 @@ test accuracy with cross validation 0.8577099236641222</code></pre></div>
 
 <p>As the data used in this example is part of kaggle competition, I generated results for their test data to sumbit using below code.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">testDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;inferSchema&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">).</span><span class="n">csv</span><span class="o">(</span><span class="s">&quot;src/main/resources/titanic/test.csv&quot;</span><span class="o">)</span>
- <span class="k">val</span> <span class="n">fareMeanValue</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">agg</span><span class="o">(</span><span class="n">mean</span><span class="o">(</span><span class="n">df</span><span class="o">(</span><span class="s">&quot;Fare&quot;</span><span class="o">))).</span><span class="n">first</span><span class="o">.</span><span class="n">getDouble</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
- <span class="k">val</span> <span class="n">fixedOutputDf</span> <span class="k">=</span> <span class="n">testDf</span><span class="o">.</span><span class="n">na</span><span class="o">.</span><span class="n">fill</span><span class="o">(</span><span class="n">meanValue</span><span class="o">,</span> <span class="nc">Array</span><span class="o">(</span><span class="s">&quot;age&quot;</span><span class="o">)).</span><span class="n">na</span><span class="o">.</span><span class="n">fill</span><span class="o">(</span><span class="n">fareMeanValue</span><span class="o">,</span> <span class="nc">Array</span><span class="o">(</span><span class="s">&quot;Fare&quot;</span><span class="o">))</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">testDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"header"</span><span class="o">,</span> <span class="s">"true"</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">"inferSchema"</span><span class="o">,</span> <span class="s">"true"</span><span class="o">).</span><span class="n">csv</span><span class="o">(</span><span class="s">"src/main/resources/titanic/test.csv"</span><span class="o">)</span>
+ <span class="k">val</span> <span class="n">fareMeanValue</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">agg</span><span class="o">(</span><span class="n">mean</span><span class="o">(</span><span class="n">df</span><span class="o">(</span><span class="s">"Fare"</span><span class="o">))).</span><span class="n">first</span><span class="o">.</span><span class="n">getDouble</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+ <span class="k">val</span> <span class="n">fixedOutputDf</span> <span class="k">=</span> <span class="n">testDf</span><span class="o">.</span><span class="n">na</span><span class="o">.</span><span class="n">fill</span><span class="o">(</span><span class="n">meanValue</span><span class="o">,</span> <span class="nc">Array</span><span class="o">(</span><span class="s">"age"</span><span class="o">)).</span><span class="n">na</span><span class="o">.</span><span class="n">fill</span><span class="o">(</span><span class="n">fareMeanValue</span><span class="o">,</span> <span class="nc">Array</span><span class="o">(</span><span class="s">"Fare"</span><span class="o">))</span></code></pre></div>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">generateOutputFile</span><span class="o">(</span><span class="n">testDF</span><span class="k">:</span> <span class="kt">DataFrame</span><span class="o">,</span> <span class="n">model</span><span class="k">:</span> <span class="kt">Model</span><span class="o">[</span><span class="k">_</span><span class="o">])</span> <span class="k">=</span> <span class="o">{</span>                                                                                          <span class="k">val</span> <span class="n">scoredDf</span> <span class="k">=</span> <span class="n">model</span><span class="o">.</span><span class="n">transform</span><span class="o">(</span><span class="n">testDF</span><span class="o">)</span>
-    <span class="k">val</span> <span class="n">outputDf</span> <span class="k">=</span> <span class="n">scoredDf</span><span class="o">.</span><span class="n">select</span><span class="o">(</span><span class="s">&quot;PassengerId&quot;</span><span class="o">,</span> <span class="s">&quot;prediction&quot;</span><span class="o">)</span>
-    <span class="k">val</span> <span class="n">castedDf</span> <span class="k">=</span> <span class="n">outputDf</span><span class="o">.</span><span class="n">select</span><span class="o">(</span><span class="n">outputDf</span><span class="o">(</span><span class="s">&quot;PassengerId&quot;</span><span class="o">),</span> <span class="n">outputDf</span><span class="o">(</span><span class="s">&quot;prediction&quot;</span><span class="o">).</span><span class="n">cast</span><span class="o">(</span><span class="nc">IntegerType</span><span class="o">).</span><span class="n">as</span><span class="o">(</span><span class="s">&quot;Survived&quot;</span><span class="o">))</span>                                      <span class="n">castedDf</span><span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;csv&quot;</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">).</span><span class="n">mode</span><span class="o">(</span><span class="nc">SaveMode</span><span class="o">.</span><span class="nc">Overwrite</span><span class="o">).</span><span class="n">save</span><span class="o">(</span><span class="s">&quot;src/main/resources/output/&quot;</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">outputDf</span> <span class="k">=</span> <span class="n">scoredDf</span><span class="o">.</span><span class="n">select</span><span class="o">(</span><span class="s">"PassengerId"</span><span class="o">,</span> <span class="s">"prediction"</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">castedDf</span> <span class="k">=</span> <span class="n">outputDf</span><span class="o">.</span><span class="n">select</span><span class="o">(</span><span class="n">outputDf</span><span class="o">(</span><span class="s">"PassengerId"</span><span class="o">),</span> <span class="n">outputDf</span><span class="o">(</span><span class="s">"prediction"</span><span class="o">).</span><span class="n">cast</span><span class="o">(</span><span class="nc">IntegerType</span><span class="o">).</span><span class="n">as</span><span class="o">(</span><span class="s">"Survived"</span><span class="o">))</span>                                      <span class="n">castedDf</span><span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">"csv"</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">"header"</span><span class="o">,</span> <span class="s">"true"</span><span class="o">).</span><span class="n">mode</span><span class="o">(</span><span class="nc">SaveMode</span><span class="o">.</span><span class="nc">Overwrite</span><span class="o">).</span><span class="n">save</span><span class="o">(</span><span class="s">"src/main/resources/output/"</span><span class="o">)</span>
   <span class="o">}</span></code></pre></div>
 
 <p>You can access complete code on  <a href="https://github.com/phatak-dev/spark-ml-kaggle/blob/master/src/main/scala/com/madhukaraphatak/spark/ml/titanic/RandomForest.scala">github</a>.</p>
@@ -246,6 +246,14 @@ test accuracy with cross validation 0.8577099236641222</code></pre></div>
              
     
     <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
    </li>           
@@ -256,14 +264,6 @@ test accuracy with cross validation 0.8577099236641222</code></pre></div>
     <li>    
      <span class="post-date">08 Sep 2018</span>
      &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 
