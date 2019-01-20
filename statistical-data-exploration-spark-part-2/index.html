@@ -73,7 +73,7 @@
 
 <p>In R, histogram is part of package named <strong>ggplot2</strong>. Once you installed the package you can generate the histogram as below.</p>
 
-<div class="highlight"><pre><code class="language-r" data-lang="r">hist<span class="p">(</span>LifeExp<span class="p">,</span><span class="m">5</span><span class="p">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-r" data-lang="r"><span class="n">hist</span><span class="p">(</span><span class="n">LifeExp</span><span class="p">,</span><span class="m">5</span><span class="p">)</span></code></pre></div>
 
 <p>We use hist method provided by the library to draw the histogram. The below picture shows the histogram.</p>
 
@@ -100,7 +100,7 @@
 
 <p>Dataframe API doesn’t have builtin function for histogram. But RDD API has. So using RDD API we can calculate histogram values as below</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="o">(</span><span class="n">startValues</span><span class="o">,</span><span class="n">counts</span><span class="o">)</span> <span class="k">=</span> <span class="n">lifeExpectancyDF</span><span class="o">.</span><span class="n">select</span><span class="o">(</span><span class="s">&quot;LifeExp&quot;</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">getDouble</span><span class="o">(</span><span class="mi">0</span><span class="o">)).</span><span class="n">rdd</span><span class="o">.</span><span class="n">histogram</span><span class="o">(</span><span class="mi">5</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="o">(</span><span class="n">startValues</span><span class="o">,</span><span class="n">counts</span><span class="o">)</span> <span class="k">=</span> <span class="n">lifeExpectancyDF</span><span class="o">.</span><span class="n">select</span><span class="o">(</span><span class="s">"LifeExp"</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">getDouble</span><span class="o">(</span><span class="mi">0</span><span class="o">)).</span><span class="n">rdd</span><span class="o">.</span><span class="n">histogram</span><span class="o">(</span><span class="mi">5</span><span class="o">)</span></code></pre></div>
 
 <p>RDD histogram API takes number of bins.</p>
 
@@ -134,7 +134,7 @@ counts: Array[Long] = Array(24, 18, 32, 69, 54)</code></pre></div>
 <span class="k">case</span> <span class="k">class</span> <span class="nc">HistRow</span><span class="o">(</span><span class="n">startPoint</span><span class="k">:</span><span class="kt">Double</span><span class="o">,</span><span class="n">count</span><span class="k">:</span><span class="kt">Long</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">rowRDD</span> <span class="k">=</span> <span class="n">zippedValues</span><span class="o">.</span><span class="n">map</span><span class="o">(</span> <span class="n">value</span> <span class="k">=&gt;</span> <span class="nc">HistRow</span><span class="o">(</span><span class="n">value</span><span class="o">.</span><span class="n">_1</span><span class="o">,</span><span class="n">value</span><span class="o">.</span><span class="n">_2</span><span class="o">))</span>
 <span class="k">val</span> <span class="n">histDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">createDataFrame</span><span class="o">(</span><span class="n">rowRDD</span><span class="o">)</span>
-<span class="n">histDf</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="o">(</span><span class="s">&quot;histogramTable&quot;</span><span class="o">)</span></code></pre></div>
+<span class="n">histDf</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="o">(</span><span class="s">"histogramTable"</span><span class="o">)</span></code></pre></div>
 
 <p>In above code, first we combining both arrays using zip method. It will give us a array of tuples. Then we convert that array into a dataframe using the case class.</p>
 
@@ -156,6 +156,14 @@ counts: Array[Long] = Array(24, 18, 32, 69, 54)</code></pre></div>
              
     
     <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
    </li>           
@@ -166,14 +174,6 @@ counts: Array[Long] = Array(24, 18, 32, 69, 54)</code></pre></div>
     <li>    
      <span class="post-date">08 Sep 2018</span>
      &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

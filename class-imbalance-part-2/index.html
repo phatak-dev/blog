@@ -81,7 +81,7 @@ the training data has equal amount of fraud and non-fraud samples.</p>
 
 <h3 id="find-number-of-samples-which-are-fraud">1. Find Number of samples which are Fraud</h3>
 
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">no_frauds</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s">&#39;Class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">])</span></code></pre></div>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">no_frauds</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s">'Class'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">])</span></code></pre></div>
 
 <h3 id="get-indices-of-non-fraud-samples">2.  Get indices of non fraud samples</h3>
 
@@ -119,8 +119,8 @@ the training data has equal amount of fraud and non-fraud samples.</p>
 
 <p>The below code runs logistic regression on undersampled data.</p>
 
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">X_under</span> <span class="o">=</span> <span class="n">under_sample</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="n">under_sample</span><span class="o">.</span><span class="n">columns</span> <span class="o">!=</span> <span class="s">&#39;Class&#39;</span><span class="p">]</span>
-<span class="n">y_under</span> <span class="o">=</span> <span class="n">under_sample</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="n">under_sample</span><span class="o">.</span><span class="n">columns</span> <span class="o">==</span> <span class="s">&#39;Class&#39;</span><span class="p">]</span>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">X_under</span> <span class="o">=</span> <span class="n">under_sample</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="n">under_sample</span><span class="o">.</span><span class="n">columns</span> <span class="o">!=</span> <span class="s">'Class'</span><span class="p">]</span>
+<span class="n">y_under</span> <span class="o">=</span> <span class="n">under_sample</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="n">under_sample</span><span class="o">.</span><span class="n">columns</span> <span class="o">==</span> <span class="s">'Class'</span><span class="p">]</span>
 <span class="n">X_under_train</span><span class="p">,</span> <span class="n">X_under_test</span><span class="p">,</span> <span class="n">y_under_train</span><span class="p">,</span> <span class="n">y_under_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">X_under</span><span class="p">,</span><span class="n">y_under</span><span class="p">,</span><span class="n">test_size</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">random_state</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
 
 <span class="n">lr_under</span> <span class="o">=</span> <span class="n">LogisticRegression</span><span class="p">()</span>
@@ -164,7 +164,7 @@ the training data has equal amount of fraud and non-fraud samples.</p>
 
 <p>The below code shows how to do the same</p>
 
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">lr_balanced</span> <span class="o">=</span> <span class="n">LogisticRegression</span><span class="p">(</span><span class="n">class_weight</span> <span class="o">=</span> <span class="s">&#39;balanced&#39;</span><span class="p">)</span>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">lr_balanced</span> <span class="o">=</span> <span class="n">LogisticRegression</span><span class="p">(</span><span class="n">class_weight</span> <span class="o">=</span> <span class="s">'balanced'</span><span class="p">)</span>
 <span class="n">lr_balanced</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span><span class="n">y_train</span><span class="p">)</span>
 <span class="n">y_balanced_pred</span> <span class="o">=</span> <span class="n">lr_balanced</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
 <span class="k">print</span><span class="p">(</span><span class="n">recall_score</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span><span class="n">y_balanced_pred</span><span class="p">))</span>
@@ -194,6 +194,14 @@ the training data has equal amount of fraud and non-fraud samples.</p>
              
     
     <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
    </li>           
@@ -204,14 +212,6 @@ the training data has equal amount of fraud and non-fraud samples.</p>
     <li>    
      <span class="post-date">08 Sep 2018</span>
      &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

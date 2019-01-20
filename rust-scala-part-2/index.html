@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>An Introduction to Spark Streaming- Meetup Video</title>
+    <title>Scala Developer Journey into Rust - Part 2 : Type Inference</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-spark-streaming-meetup-talk">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/rust-scala-part-2">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,25 +45,97 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>An Introduction to Spark Streaming- Meetup Video</h1>
-  <p class="meta">May 1, 2015</p>
+  <h1>Scala Developer Journey into Rust - Part 2 : Type Inference</h1>
+  <p class="meta">Jan 14, 2019</p>
   <div class="catagories">
     
-    <a href="/categories/spark"><span class="category">spark</span></a>
+    <a href="/categories/rust"><span class="category">rust</span></a>
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
-    <a href="/categories/talks"><span class="category">talks</span></a>
+    <a href="/categories/rust-scala"><span class="category">rust-scala</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>The below video is a recording of my talk on <em>An Introduction to Spark Streaming</em> in recent spark meetup. In this talk, I discuss about how you can use spark batch API in streaming mode also.</p>
+  <p>Rust is one of the major programming languages that’s been getting popular in recent years. It has many advanced high level language features like Scala.This made me interested to learn Rust. So in this next series of blogs I will share my experience with Rust from a Scala developer point of view. I would like to explore how these two language approach things. I would like to explore the similarities and their differences.</p>
 
-<p>Find the slides on <a href="http://www.slideshare.net/datamantra/introduction-to-spark-streaming">slideshare</a> and code on <a href="https://github.com/phatak-dev/introduction-to-spark-streaming">github</a>.</p>
+<p>This is second post in the series. In this post, I will be talking about type inference. You can find all the other posts in the series <a href="/categories/rust-scala">here</a>.</p>
 
-<div class="video-container"> <iframe src="https://www.youtube.com/embed/OFbClndwjps" frameborder="0" width="560" height="315"></iframe> </div>
+<h2 id="type-system">Type System</h2>
+
+<p>As Scala, Rust has very strong type system. It has many goodies provided by Scala to make sure that programs are correct at the time of compilation. Having a strong type system comes up with it’s on challenges. One of the challenge is to provide the right types everywhere. Scala elevates this challenge by inferring most of the types by itself.This makes programmer’s life much easier.</p>
+
+<p>As Scala, Rust also has type inference. It’s one of the first system level programming language which has support for the type inference. This features makes Rust easy to start as we don’t need worry about the types and their memory model.</p>
+
+<p>In this post, we will be discussing about how Rust’s type inference compares to Scala.</p>
+
+<h2 id="type-inference">Type Inference</h2>
+<p>There are different places where we need type inference. The below are some of those examples.</p>
+
+<h3 id="type-inference-of-normal-variables">Type Inference of Normal Variables</h3>
+
+<p>In Scala</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">a</span> <span class="k">=</span> <span class="mi">10</span></code></pre></div>
+
+<p>In Rust,</p>
+
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">let</span> <span class="n">_a</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span></code></pre></div>
+
+<p>Variable inference looks almost same in both languages.</p>
+
+<h3 id="checking-types">Checking Types</h3>
+
+<p>Scala has <em>asInstanceOf</em> to check the type. For earlier example, we can check the type as below</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">assert</span><span class="o">(</span><span class="n">a</span><span class="o">.</span><span class="n">isInstanceOf</span><span class="o">[</span><span class="kt">Int</span><span class="o">],</span> <span class="s">"not a int"</span><span class="o">)</span></code></pre></div>
+
+<p>Rust doesn’t have any facility like this. We can use the different types to produce a compile error which gives us idea what’s the inferred type is</p>
+
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">assert</span><span class="o">!</span><span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mf">10.0</span><span class="p">,</span> <span class="s">"not a int"</span><span class="p">);</span>
+<span class="cm">/* prints can't compare `{integer}` with `{float}`*/</span></code></pre></div>
+
+<h3 id="type-inference-for-collections">Type Inference for Collections</h3>
+
+<p>In Scala,</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">values</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="mi">10</span><span class="o">,</span><span class="mi">20</span><span class="o">,</span><span class="mi">30</span><span class="o">,</span><span class="mi">40</span><span class="o">)</span></code></pre></div>
+
+<p>In Rust,</p>
+
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">let</span> <span class="n">vector</span> <span class="o">=</span> <span class="nd">vec!</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">);</span></code></pre></div>
+
+<h3 id="type-inference-in-function-arguments">Type Inference in Function Arguments</h3>
+
+<p>Function arguments are one the place in Scala where the user has to specify the arguments explicitly. This is same in Rust also.</p>
+
+<p>In Scala</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">add</span><span class="o">(</span><span class="n">a</span> <span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">b</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
+<span class="o">}</span></code></pre></div>
+
+<p>In Rust,</p>
+
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">fn</span> <span class="nf">add</span><span class="p">(</span> <span class="n">a</span><span class="p">:</span> <span class="nb">i32</span><span class="p">,</span> <span class="n">b</span> <span class="p">:</span> <span class="nb">i32</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="nb">i32</span> <span class="p">{</span>
+    <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
+<span class="p">}</span></code></pre></div>
+
+<p><strong>One change from Scala is, in Rust return type should be always specified. In scala it’s inferred from the last line</strong>.</p>
+
+<p>I feel this is an improvement , as specifying return type explicitly makes interface of the function more explicit.</p>
+
+<h2 id="code">Code</h2>
+
+<p>You can find complete code for Scala <a href="https://github.com/phatak-dev/Rust-scala/blob/master/scala/src/main/scala/com/madhukaraphatak/scala/simple/TypeInference.scala">on github</a>.</p>
+
+<p>You can find complete code for Rust <a href="https://github.com/phatak-dev/Rust-scala/blob/master/Rust/simple/src/main.rs">on github</a>.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>From the above examples, we can observe that Rust type inference is very similar to Scala. So if you are comfortable with these aspects in Scala, you will feel right at home in Rust.</p>
 
 </article>
 <div class="related">
@@ -71,38 +143,28 @@
   <ul>
     
              
+          
+
+            
     
     <li>    
-     <span class="post-date">08 Sep 2018</span>
-     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+     <span class="post-date">13 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
    </li>           
          
 
             
     
     <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-7">Exploring Spark DataSource V2 - Part 7  : Meetup Talk</a>    
+     <span class="post-date">25 Aug 2016</span>
+     &raquo; <a href="/functional-programming-in-rust-part-2">Functional Programming in Rust - Part 2 : Functional Combinators</a>    
    </li>           
          
 
    
    
              
-    
-    <li>    
-     <span class="post-date">14 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
-   </li>           
-         
+          
 
             
     

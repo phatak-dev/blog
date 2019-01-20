@@ -61,8 +61,8 @@
 
 <p>This empty RDD makes sure that processing is consistent across multiple batches. But having an empty RDD sometimes may create some issues. For example, let’s say you want to save the data of a stream to HDFS.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">ssc</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">StreamingContext</span><span class="o">(</span><span class="n">args</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span><span class="s">&quot;test&quot;</span><span class="o">,</span><span class="nc">Seconds</span><span class="o">(</span><span class="mi">10</span><span class="o">))</span>
-<span class="k">val</span> <span class="n">socketStream</span> <span class="k">=</span> <span class="n">ssc</span><span class="o">.</span><span class="n">socketTextStream</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span><span class="mi">50050</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">ssc</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">StreamingContext</span><span class="o">(</span><span class="n">args</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span><span class="s">"test"</span><span class="o">,</span><span class="nc">Seconds</span><span class="o">(</span><span class="mi">10</span><span class="o">))</span>
+<span class="k">val</span> <span class="n">socketStream</span> <span class="k">=</span> <span class="n">ssc</span><span class="o">.</span><span class="n">socketTextStream</span><span class="o">(</span><span class="s">"localhost"</span><span class="o">,</span><span class="mi">50050</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">outputDir</span> <span class="k">=</span> <span class="n">args</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
 <span class="n">socketStream</span><span class="o">.</span><span class="n">foreachRDD</span><span class="o">(</span><span class="n">rdd</span> <span class="k">=&gt;</span> <span class="o">{</span>
   <span class="n">rdd</span><span class="o">.</span><span class="n">saveAsTextFile</span><span class="o">(</span><span class="n">outputDir</span><span class="o">)</span>
@@ -111,6 +111,14 @@
              
     
     <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
    </li>           
@@ -121,14 +129,6 @@
     <li>    
      <span class="post-date">08 Sep 2018</span>
      &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

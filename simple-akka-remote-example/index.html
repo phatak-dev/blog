@@ -69,13 +69,13 @@
 
 <p>Create a single sbt project using IDE or any other tools. Once you created the project, add the following dependencies.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">resolvers</span> <span class="o">+=</span> <span class="s">&quot;Typesafe Repository&quot;</span> <span class="n">at</span> <span class="s">&quot;http://repo.typesafe.com/typesafe/releases/&quot;</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">resolvers</span> <span class="o">+=</span> <span class="s">"Typesafe Repository"</span> <span class="n">at</span> <span class="s">"http://repo.typesafe.com/typesafe/releases/"</span>
 
 <span class="n">libraryDependencies</span> <span class="o">+=</span>
-  <span class="s">&quot;com.typesafe.akka&quot;</span> <span class="o">%%</span> <span class="s">&quot;akka-actor&quot;</span> <span class="o">%</span> <span class="s">&quot;2.3.7&quot;</span>
+  <span class="s">"com.typesafe.akka"</span> <span class="o">%%</span> <span class="s">"akka-actor"</span> <span class="o">%</span> <span class="s">"2.3.7"</span>
 
 <span class="n">libraryDependencies</span> <span class="o">+=</span>
-  <span class="s">&quot;com.typesafe.akka&quot;</span> <span class="o">%%</span> <span class="s">&quot;akka-remote&quot;</span> <span class="o">%</span> <span class="s">&quot;2.3.7&quot;</span></code></pre></div>
+  <span class="s">"com.typesafe.akka"</span> <span class="o">%%</span> <span class="s">"akka-remote"</span> <span class="o">%</span> <span class="s">"2.3.7"</span></code></pre></div>
 
 <p>Access complete code <a href="https://github.com/phatak-dev/akka-remote-simple-scala/blob/master/build.sbt">here</a>.</p>
 
@@ -89,10 +89,10 @@
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">RemoteActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
   <span class="k">override</span> <span class="k">def</span> <span class="n">receive</span><span class="k">:</span> <span class="kt">Receive</span> <span class="o">=</span> <span class="o">{</span>
     <span class="k">case</span> <span class="n">msg</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=&gt;</span> <span class="o">{</span>
-      <span class="n">println</span><span class="o">(</span><span class="s">&quot;remote received &quot;</span> <span class="o">+</span> <span class="n">msg</span> <span class="o">+</span> <span class="s">&quot; from &quot;</span> <span class="o">+</span> <span class="n">sender</span><span class="o">)</span>
-      <span class="n">sender</span> <span class="o">!</span> <span class="s">&quot;hi&quot;</span>
+      <span class="n">println</span><span class="o">(</span><span class="s">"remote received "</span> <span class="o">+</span> <span class="n">msg</span> <span class="o">+</span> <span class="s">" from "</span> <span class="o">+</span> <span class="n">sender</span><span class="o">)</span>
+      <span class="n">sender</span> <span class="o">!</span> <span class="s">"hi"</span>
     <span class="o">}</span>
-    <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;Received unknown msg &quot;</span><span class="o">)</span>
+    <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">"Received unknown msg "</span><span class="o">)</span>
   <span class="o">}</span>
 <span class="o">}</span></code></pre></div>
 
@@ -105,14 +105,14 @@
 <p>Create a file name “remote_application.conf” in resources folder. Then place following code</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">akka</span> <span class="o">{</span>
-  <span class="n">loglevel</span> <span class="k">=</span> <span class="s">&quot;INFO&quot;</span>
+  <span class="n">loglevel</span> <span class="k">=</span> <span class="s">"INFO"</span>
   <span class="n">actor</span> <span class="o">{</span>
-    <span class="n">provider</span> <span class="k">=</span> <span class="s">&quot;akka.remote.RemoteActorRefProvider&quot;</span>
+    <span class="n">provider</span> <span class="k">=</span> <span class="s">"akka.remote.RemoteActorRefProvider"</span>
   <span class="o">}</span>
   <span class="n">remote</span> <span class="o">{</span>
-    <span class="n">enabled</span><span class="o">-</span><span class="n">transports</span> <span class="k">=</span> <span class="o">[</span><span class="err">&quot;</span><span class="kt">akka.remote.netty.tcp</span><span class="err">&quot;</span><span class="o">]</span>
+    <span class="n">enabled</span><span class="o">-</span><span class="n">transports</span> <span class="k">=</span> <span class="o">[</span><span class="err">"</span><span class="kt">akka.remote.netty.tcp</span><span class="err">"</span><span class="o">]</span>
     <span class="n">netty</span><span class="o">.</span><span class="n">tcp</span> <span class="o">{</span>
-      <span class="n">hostname</span> <span class="k">=</span> <span class="s">&quot;127.0.0.1&quot;</span>
+      <span class="n">hostname</span> <span class="k">=</span> <span class="s">"127.0.0.1"</span>
       <span class="n">port</span> <span class="k">=</span> <span class="mi">5150</span>
     <span class="o">}</span>
     <span class="n">log</span><span class="o">-</span><span class="n">sent</span><span class="o">-</span><span class="n">messages</span> <span class="k">=</span> <span class="n">on</span>
@@ -140,7 +140,7 @@
 </ul>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">configFile</span> <span class="k">=</span> <span class="n">getClass</span><span class="o">.</span><span class="n">getClassLoader</span><span class="o">.</span>
-  <span class="n">getResource</span><span class="o">(</span><span class="s">&quot;remote_application.conf&quot;</span><span class="o">).</span><span class="n">getFile</span></code></pre></div>
+  <span class="n">getResource</span><span class="o">(</span><span class="s">"remote_application.conf"</span><span class="o">).</span><span class="n">getFile</span></code></pre></div>
 
 <ul>
   <li>Parse the config file to create config object</li>
@@ -152,7 +152,7 @@
   <li>Create an actor system with this config</li>
 </ul>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">(</span><span class="s">&quot;RemoteSystem&quot;</span> <span class="o">,</span> <span class="n">config</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">(</span><span class="s">"RemoteSystem"</span> <span class="o">,</span> <span class="n">config</span><span class="o">)</span></code></pre></div>
 
 <p>As you can observe, the configuration is always set in the level of actor system, not at actors level.</p>
 
@@ -160,7 +160,7 @@
   <li>Create an instance of remote actor using this actor system</li>
 </ul>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">remote</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">[</span><span class="kt">RemoteActor</span><span class="o">],</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;remote&quot;</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">remote</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">[</span><span class="kt">RemoteActor</span><span class="o">],</span> <span class="n">name</span><span class="o">=</span><span class="s">"remote"</span><span class="o">)</span></code></pre></div>
 
 <p>Once you create actor, it will be available at <em>akka:tcp://RemoteSystem@127.0.0.1:5150/user/remote</em>.</p>
 
@@ -177,28 +177,28 @@
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">LocalActor</span> <span class="k">extends</span> <span class="nc">Actor</span><span class="o">{</span>
   <span class="nd">@throws</span><span class="o">[</span><span class="kt">Exception</span><span class="o">](</span><span class="n">classOf</span><span class="o">[</span><span class="kt">Exception</span><span class="o">])</span>
   <span class="k">override</span> <span class="k">def</span> <span class="n">preStart</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
-    <span class="cm">/*</span>
-<span class="cm">      Connect to remote actor. The following are the different parts of actor path</span>
+    <span class="cm">/*
+      Connect to remote actor. The following are the different parts of actor path
 
-<span class="cm">      akka.tcp : enabled-transports  of remote_application.conf</span>
+      akka.tcp : enabled-transports  of remote_application.conf
 
-<span class="cm">      RemoteSystem : name of the actor system used to create remote actor</span>
+      RemoteSystem : name of the actor system used to create remote actor
 
-<span class="cm">      127.0.0.1:5150 : host and port</span>
+      127.0.0.1:5150 : host and port
 
-<span class="cm">      user : The actor is user defined</span>
+      user : The actor is user defined
 
-<span class="cm">      remote : name of the actor, passed as parameter to system.actorOf call</span>
+      remote : name of the actor, passed as parameter to system.actorOf call
 
-<span class="cm">     */</span>
-    <span class="k">val</span> <span class="n">remoteActor</span> <span class="k">=</span> <span class="n">context</span><span class="o">.</span><span class="n">actorSelection</span><span class="o">(</span><span class="s">&quot;akka.tcp://RemoteSystem@127.0.0.1:5150/user/remote&quot;</span><span class="o">)</span>
-    <span class="n">println</span><span class="o">(</span><span class="s">&quot;That &#39;s remote:&quot;</span> <span class="o">+</span> <span class="n">remoteActor</span><span class="o">)</span>
-    <span class="n">remoteActor</span> <span class="o">!</span> <span class="s">&quot;hi&quot;</span>
+     */</span>
+    <span class="k">val</span> <span class="n">remoteActor</span> <span class="k">=</span> <span class="n">context</span><span class="o">.</span><span class="n">actorSelection</span><span class="o">(</span><span class="s">"akka.tcp://RemoteSystem@127.0.0.1:5150/user/remote"</span><span class="o">)</span>
+    <span class="n">println</span><span class="o">(</span><span class="s">"That 's remote:"</span> <span class="o">+</span> <span class="n">remoteActor</span><span class="o">)</span>
+    <span class="n">remoteActor</span> <span class="o">!</span> <span class="s">"hi"</span>
   <span class="o">}</span>
   <span class="k">override</span> <span class="k">def</span> <span class="n">receive</span><span class="k">:</span> <span class="kt">Receive</span> <span class="o">=</span> <span class="o">{</span>
 
     <span class="k">case</span> <span class="n">msg</span><span class="k">:</span><span class="kt">String</span> <span class="o">=&gt;</span> <span class="o">{</span>
-      <span class="n">println</span><span class="o">(</span><span class="s">&quot;got message from remote&quot;</span> <span class="o">+</span> <span class="n">msg</span><span class="o">)</span>
+      <span class="n">println</span><span class="o">(</span><span class="s">"got message from remote"</span> <span class="o">+</span> <span class="n">msg</span><span class="o">)</span>
     <span class="o">}</span>
   <span class="o">}</span>
 <span class="o">}</span></code></pre></div>
@@ -208,14 +208,14 @@
 <h3 id="step-32--configuration-file-for-local-actor">Step 3.2 : Configuration file for local actor</h3>
 <p>As with remote actor, we need to specify the configuration file. We call it “local-configuration.conf”</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">loglevel</span> <span class="k">=</span> <span class="s">&quot;INFO&quot;</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">loglevel</span> <span class="k">=</span> <span class="s">"INFO"</span>
   <span class="n">actor</span> <span class="o">{</span>
-    <span class="n">provider</span> <span class="k">=</span> <span class="s">&quot;akka.remote.RemoteActorRefProvider&quot;</span>
+    <span class="n">provider</span> <span class="k">=</span> <span class="s">"akka.remote.RemoteActorRefProvider"</span>
   <span class="o">}</span>
   <span class="n">remote</span> <span class="o">{</span>
-    <span class="n">enabled</span><span class="o">-</span><span class="n">transports</span> <span class="k">=</span> <span class="o">[</span><span class="err">&quot;</span><span class="kt">akka.remote.netty.tcp</span><span class="err">&quot;</span><span class="o">]</span>
+    <span class="n">enabled</span><span class="o">-</span><span class="n">transports</span> <span class="k">=</span> <span class="o">[</span><span class="err">"</span><span class="kt">akka.remote.netty.tcp</span><span class="err">"</span><span class="o">]</span>
     <span class="n">netty</span><span class="o">.</span><span class="n">tcp</span> <span class="o">{</span>
-      <span class="n">hostname</span> <span class="k">=</span> <span class="s">&quot;127.0.0.1&quot;</span>
+      <span class="n">hostname</span> <span class="k">=</span> <span class="s">"127.0.0.1"</span>
       <span class="n">port</span> <span class="k">=</span> <span class="mi">0</span>
     <span class="o">}</span>
     <span class="n">log</span><span class="o">-</span><span class="n">sent</span><span class="o">-</span><span class="n">messages</span> <span class="k">=</span> <span class="n">on</span>
@@ -261,6 +261,14 @@
              
     
     <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
    </li>           
@@ -271,14 +279,6 @@
     <li>    
      <span class="post-date">08 Sep 2018</span>
      &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

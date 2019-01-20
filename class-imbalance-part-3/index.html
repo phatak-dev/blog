@@ -83,11 +83,11 @@
 
 <h3 id="find-records-which-are-fraud">1. Find records which are Fraud</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">fraudDf</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="s">&quot;Class=1.0&quot;</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">fraudDf</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="s">"Class=1.0"</span><span class="o">)</span></code></pre></div>
 
 <h3 id="find-records-which-are-non-fraud">2. Find records which are non Fraud</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">nonFraudDf</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="s">&quot;Class=0.0&quot;</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">nonFraudDf</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="s">"Class=0.0"</span><span class="o">)</span></code></pre></div>
 
 <h3 id="random-sample-non-fraud-records">3. Random sample non fraud records</h3>
 
@@ -106,20 +106,20 @@
 
 <p>The below code runs logistic regression on undersampled data. The below code spark ML pipeline API’s.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">amountVectorAssembler</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">VectorAssembler</span><span class="o">().</span><span class="n">setInputCols</span><span class="o">(</span><span class="nc">Array</span><span class="o">(</span><span class="s">&quot;Amount&quot;</span><span class="o">)).</span><span class="n">setOutputCol</span><span class="o">(</span><span class="s">&quot;Amount_vector&quot;</span><span class="o">)</span>
-<span class="k">val</span> <span class="n">standarScaler</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">StandardScaler</span><span class="o">().</span><span class="n">setInputCol</span><span class="o">(</span><span class="s">&quot;Amount_vector&quot;</span><span class="o">).</span><span class="n">setOutputCol</span><span class="o">(</span><span class="s">&quot;Amount_scaled&quot;</span><span class="o">)</span>
-<span class="k">val</span> <span class="n">dropColumns</span> <span class="k">=</span> <span class="nc">Array</span><span class="o">(</span><span class="s">&quot;Time&quot;</span><span class="o">,</span><span class="s">&quot;Amount&quot;</span><span class="o">,</span><span class="s">&quot;Class&quot;</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">amountVectorAssembler</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">VectorAssembler</span><span class="o">().</span><span class="n">setInputCols</span><span class="o">(</span><span class="nc">Array</span><span class="o">(</span><span class="s">"Amount"</span><span class="o">)).</span><span class="n">setOutputCol</span><span class="o">(</span><span class="s">"Amount_vector"</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">standarScaler</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">StandardScaler</span><span class="o">().</span><span class="n">setInputCol</span><span class="o">(</span><span class="s">"Amount_vector"</span><span class="o">).</span><span class="n">setOutputCol</span><span class="o">(</span><span class="s">"Amount_scaled"</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">dropColumns</span> <span class="k">=</span> <span class="nc">Array</span><span class="o">(</span><span class="s">"Time"</span><span class="o">,</span><span class="s">"Amount"</span><span class="o">,</span><span class="s">"Class"</span><span class="o">)</span>
 
-<span class="k">val</span> <span class="n">cols</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span> <span class="n">column</span> <span class="k">=&gt;</span> <span class="o">!</span><span class="n">dropColumns</span><span class="o">.</span><span class="n">contains</span><span class="o">(</span><span class="n">column</span><span class="o">))</span> <span class="o">++</span> <span class="nc">Array</span><span class="o">(</span><span class="s">&quot;Amount_scaled&quot;</span><span class="o">)</span>
-<span class="k">val</span> <span class="n">vectorAssembler</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">VectorAssembler</span><span class="o">().</span><span class="n">setInputCols</span><span class="o">(</span><span class="n">cols</span><span class="o">).</span><span class="n">setOutputCol</span><span class="o">(</span><span class="s">&quot;features&quot;</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">cols</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span> <span class="n">column</span> <span class="k">=&gt;</span> <span class="o">!</span><span class="n">dropColumns</span><span class="o">.</span><span class="n">contains</span><span class="o">(</span><span class="n">column</span><span class="o">))</span> <span class="o">++</span> <span class="nc">Array</span><span class="o">(</span><span class="s">"Amount_scaled"</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">vectorAssembler</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">VectorAssembler</span><span class="o">().</span><span class="n">setInputCols</span><span class="o">(</span><span class="n">cols</span><span class="o">).</span><span class="n">setOutputCol</span><span class="o">(</span><span class="s">"features"</span><span class="o">)</span>
 
-<span class="c1">// pipeline</span>
-<span class="k">val</span> <span class="n">logisticRegression</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">LogisticRegression</span><span class="o">().</span><span class="n">setLabelCol</span><span class="o">(</span><span class="s">&quot;Class&quot;</span><span class="o">)</span>
+<span class="c1">// pipeline
+</span><span class="k">val</span> <span class="n">logisticRegression</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">LogisticRegression</span><span class="o">().</span><span class="n">setLabelCol</span><span class="o">(</span><span class="s">"Class"</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">trainPipeline</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Pipeline</span><span class="o">().</span><span class="n">setStages</span><span class="o">(</span><span class="nc">Array</span><span class="o">(</span><span class="n">amountVectorAssembler</span><span class="o">,</span>
 <span class="n">standarScaler</span><span class="o">,</span><span class="n">vectorAssembler</span><span class="o">,</span><span class="n">logisticRegression</span><span class="o">))</span>
 
 <span class="k">val</span> <span class="n">underSampledDf</span> <span class="k">=</span> <span class="n">underSampleDf</span><span class="o">(</span><span class="n">df</span><span class="o">)</span>
-<span class="n">println</span><span class="o">(</span><span class="s">&quot;for balanced data&quot;</span><span class="o">)</span>
+<span class="n">println</span><span class="o">(</span><span class="s">"for balanced data"</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">balancedModel</span> <span class="k">=</span> <span class="n">runPipeline</span><span class="o">(</span><span class="n">trainPipeline</span><span class="o">,</span> <span class="n">underSampledDf</span><span class="o">)</span></code></pre></div>
 
 <p>You can access complete code on <a href="https://github.com/phatak-dev/spark-ml-kaggle/blob/master/src/main/scala/com/madhukaraphatak/spark/ml/UnderSampling.scala">github</a>.</p>
@@ -128,8 +128,8 @@
 
 <p>Once we run trained the model, we can verify the model using accuracy and recall scores.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">println</span><span class="o">(</span><span class="s">&quot;test accuracy with pipeline &quot;</span> <span class="o">+</span> <span class="n">accuracyScore</span><span class="o">(</span><span class="n">model</span><span class="o">.</span><span class="n">transform</span><span class="o">(</span><span class="n">df</span><span class="o">),</span> <span class="s">&quot;Class&quot;</span><span class="o">,</span> <span class="s">&quot;prediction&quot;</span><span class="o">))</span>
-<span class="n">println</span><span class="o">(</span><span class="s">&quot;test recall for 1.0 is &quot;</span> <span class="o">+</span> <span class="n">recall</span><span class="o">(</span><span class="n">model</span><span class="o">.</span><span class="n">transform</span><span class="o">(</span><span class="n">df</span><span class="o">),</span> <span class="s">&quot;Class&quot;</span><span class="o">,</span> <span class="s">&quot;prediction&quot;</span><span class="o">,</span> <span class="mf">1.0</span><span class="o">))</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">println</span><span class="o">(</span><span class="s">"test accuracy with pipeline "</span> <span class="o">+</span> <span class="n">accuracyScore</span><span class="o">(</span><span class="n">model</span><span class="o">.</span><span class="n">transform</span><span class="o">(</span><span class="n">df</span><span class="o">),</span> <span class="s">"Class"</span><span class="o">,</span> <span class="s">"prediction"</span><span class="o">))</span>
+<span class="n">println</span><span class="o">(</span><span class="s">"test recall for 1.0 is "</span> <span class="o">+</span> <span class="n">recall</span><span class="o">(</span><span class="n">model</span><span class="o">.</span><span class="n">transform</span><span class="o">(</span><span class="n">df</span><span class="o">),</span> <span class="s">"Class"</span><span class="o">,</span> <span class="s">"prediction"</span><span class="o">,</span> <span class="mf">1.0</span><span class="o">))</span></code></pre></div>
 
 <p>The result is</p>
 
@@ -145,7 +145,7 @@ test recall for 1.0 is 0.9444444444444444</code></pre></div>
 
 <p>Whenever we undersample data, the training data size reduces significantly. So even though model works well for balanced data, we need to make sure does it generalise well. As we did with python code,the below code calculates score for full data using above model</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">println</span><span class="o">(</span><span class="s">&quot;balanced model for full data&quot;</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">println</span><span class="o">(</span><span class="s">"balanced model for full data"</span><span class="o">)</span>
 <span class="n">printScores</span><span class="o">(</span><span class="n">balancedModel</span><span class="o">,</span> <span class="n">df</span><span class="o">)</span></code></pre></div>
 
 <p>The result is</p>
@@ -169,6 +169,14 @@ test recall for 1.0 is 0.9410569105691057</code></pre></div>
              
     
     <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
    </li>           
@@ -179,14 +187,6 @@ test recall for 1.0 is 0.9410569105691057</code></pre></div>
     <li>    
      <span class="post-date">08 Sep 2018</span>
      &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

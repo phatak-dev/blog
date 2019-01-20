@@ -112,7 +112,7 @@
 
   <span class="k">def</span> <span class="n">start</span><span class="o">()</span> <span class="k">=</span> <span class="o">{</span>
     <span class="k">if</span> <span class="o">(</span><span class="n">server</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-      <span class="k">throw</span> <span class="k">new</span> <span class="nc">RuntimeException</span><span class="o">(</span><span class="s">&quot;server already running&quot;</span><span class="o">)</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="nc">RuntimeException</span><span class="o">(</span><span class="s">"server already running"</span><span class="o">)</span>
     <span class="o">}</span>
     <span class="k">else</span> <span class="o">{</span>
 
@@ -122,15 +122,15 @@
       <span class="n">server</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Server</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
       <span class="n">server</span><span class="o">.</span><span class="n">setThreadPool</span><span class="o">(</span><span class="n">threadPool</span><span class="o">)</span>
 
-      <span class="c1">//serve the files in the folder as the path is indicated</span>
-      <span class="k">val</span> <span class="n">resourceHandler</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ResourceHandler</span>
+      <span class="c1">//serve the files in the folder as the path is indicated
+</span>      <span class="k">val</span> <span class="n">resourceHandler</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ResourceHandler</span>
       <span class="n">resourceHandler</span><span class="o">.</span><span class="n">setResourceBase</span><span class="o">(</span><span class="n">resourceBase</span><span class="o">.</span><span class="n">getAbsolutePath</span><span class="o">)</span>
 
       <span class="k">val</span> <span class="n">handlerList</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">HandlerList</span>
       <span class="n">handlerList</span><span class="o">.</span><span class="n">setHandlers</span><span class="o">(</span><span class="nc">Array</span><span class="o">(</span><span class="n">resourceHandler</span><span class="o">,</span> <span class="k">new</span> <span class="nc">DefaultHandler</span><span class="o">))</span>
 
-      <span class="c1">//start the server with handler and capture the port</span>
-      <span class="n">server</span><span class="o">.</span><span class="n">setHandler</span><span class="o">(</span><span class="n">handlerList</span><span class="o">)</span>
+      <span class="c1">//start the server with handler and capture the port
+</span>      <span class="n">server</span><span class="o">.</span><span class="n">setHandler</span><span class="o">(</span><span class="n">handlerList</span><span class="o">)</span>
       <span class="n">server</span><span class="o">.</span><span class="n">start</span><span class="o">()</span>
       <span class="n">port</span> <span class="k">=</span> <span class="n">server</span><span class="o">.</span><span class="n">getConnectors</span><span class="o">()(</span><span class="mi">0</span><span class="o">).</span><span class="n">getLocalPort</span>
     <span class="o">}</span>
@@ -146,19 +146,19 @@
 <p>The above server has to be started dynamically whenever we require to distribute the jars. In Mesos scheduler is responsible for spinning up the task, so we start it before the first task at scheduler side.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">override</span> <span class="k">def</span> <span class="n">registered</span><span class="o">(</span><span class="n">driver</span><span class="k">:</span> <span class="kt">SchedulerDriver</span><span class="o">,</span> <span class="n">frameworkId</span><span class="k">:</span> <span class="kt">FrameworkID</span><span class="o">,</span> <span class="n">masterInfo</span><span class="k">:</span> <span class="kt">MasterInfo</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
-    <span class="c1">//create the jar server if there are any jars have to be distributed</span>
-    <span class="k">if</span><span class="o">(</span><span class="n">jars</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">)</span>  <span class="n">createJarServer</span><span class="o">()</span>
+    <span class="c1">//create the jar server if there are any jars have to be distributed
+</span>    <span class="k">if</span><span class="o">(</span><span class="n">jars</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">)</span>  <span class="n">createJarServer</span><span class="o">()</span>
   <span class="o">}</span></code></pre></div>
 
 <p>We override registered method,so that whenever scheduler comes up we start the server.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">createJarServer</span><span class="o">()</span> <span class="k">=</span> <span class="o">{</span>
     <span class="k">val</span> <span class="n">dirFile</span> <span class="k">=</span> <span class="nc">Utils</span><span class="o">.</span><span class="n">createTempDir</span><span class="o">()</span>
-    <span class="n">println</span><span class="o">(</span><span class="s">&quot;jar directory is&quot;</span> <span class="o">+</span> <span class="n">dirFile</span><span class="o">.</span><span class="n">getAbsolutePath</span><span class="o">)</span>
+    <span class="n">println</span><span class="o">(</span><span class="s">"jar directory is"</span> <span class="o">+</span> <span class="n">dirFile</span><span class="o">.</span><span class="n">getAbsolutePath</span><span class="o">)</span>
     <span class="k">val</span> <span class="n">fileNames</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ArrayBuffer</span><span class="o">[</span><span class="kt">String</span><span class="o">]()</span>
     <span class="k">for</span> <span class="o">((</span><span class="n">path</span><span class="o">,</span> <span class="n">index</span><span class="o">)</span> <span class="k">&lt;-</span> <span class="n">jars</span><span class="o">.</span><span class="n">zipWithIndex</span><span class="o">)</span> <span class="o">{</span>
       <span class="k">val</span> <span class="n">file</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">File</span><span class="o">(</span><span class="n">path</span><span class="o">)</span>
-      <span class="k">val</span> <span class="n">fileName</span> <span class="k">=</span> <span class="n">index</span> <span class="o">+</span> <span class="s">&quot;_&quot;</span> <span class="o">+</span> <span class="n">file</span><span class="o">.</span><span class="n">getName</span>
+      <span class="k">val</span> <span class="n">fileName</span> <span class="k">=</span> <span class="n">index</span> <span class="o">+</span> <span class="s">"_"</span> <span class="o">+</span> <span class="n">file</span><span class="o">.</span><span class="n">getName</span>
       <span class="n">copyFile</span><span class="o">(</span><span class="n">file</span><span class="o">,</span> <span class="k">new</span> <span class="nc">File</span><span class="o">(</span><span class="n">dirFile</span><span class="o">,</span> <span class="n">fileName</span><span class="o">))</span>
       <span class="n">fileNames</span> <span class="o">+=</span> <span class="n">fileName</span>
     <span class="o">}</span>
@@ -166,8 +166,8 @@
     <span class="n">jarServer</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">HttpServer</span><span class="o">(</span><span class="n">dirFile</span><span class="o">)</span>
     <span class="n">jarServer</span><span class="o">.</span><span class="n">start</span><span class="o">()</span>
     <span class="k">val</span> <span class="n">uri</span> <span class="k">=</span> <span class="n">jarServer</span><span class="o">.</span><span class="n">uri</span>
-    <span class="n">println</span><span class="o">(</span><span class="s">&quot;jar server started at &quot;</span> <span class="o">+</span> <span class="n">uri</span><span class="o">)</span>
-    <span class="n">jarUris</span> <span class="k">=</span> <span class="n">fileNames</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">f</span> <span class="k">=&gt;</span> <span class="n">uri</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="n">f</span><span class="o">).</span><span class="n">mkString</span><span class="o">(</span><span class="s">&quot;,&quot;</span><span class="o">)</span>
+    <span class="n">println</span><span class="o">(</span><span class="s">"jar server started at "</span> <span class="o">+</span> <span class="n">uri</span><span class="o">)</span>
+    <span class="n">jarUris</span> <span class="k">=</span> <span class="n">fileNames</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">f</span> <span class="k">=&gt;</span> <span class="n">uri</span> <span class="o">+</span> <span class="s">"/"</span> <span class="o">+</span> <span class="n">f</span><span class="o">).</span><span class="n">mkString</span><span class="o">(</span><span class="s">","</span><span class="o">)</span>
   <span class="o">}</span></code></pre></div>
 
 <p><em>createServer</em> copies specified jar from it’s path to a temporary location. Also it populates <em>jarUris</em> string which contains all the jar URI’s in a comma separated manner.</p>
@@ -179,12 +179,12 @@
 <p>We have to pass this uri’s to the executor,so that it can download the jars and add them to class path before it starts running tasks. We pass it as the command line argument to the executor script as follows.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">getExecutorInfo</span><span class="o">(</span><span class="n">d</span><span class="k">:</span> <span class="kt">SchedulerDriver</span><span class="o">)</span><span class="k">:</span> <span class="kt">ExecutorInfo</span> <span class="o">=</span> <span class="o">{</span>
-    <span class="k">val</span> <span class="n">scriptPath</span> <span class="k">=</span> <span class="nc">System</span><span class="o">.</span><span class="n">getProperty</span><span class="o">(</span><span class="s">&quot;executor_script_path&quot;</span><span class="o">,</span>
-    <span class="s">&quot;~/run-executor.sh&quot;</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">scriptPath</span> <span class="k">=</span> <span class="nc">System</span><span class="o">.</span><span class="n">getProperty</span><span class="o">(</span><span class="s">"executor_script_path"</span><span class="o">,</span>
+    <span class="s">"~/run-executor.sh"</span><span class="o">)</span>
     <span class="nc">ExecutorInfo</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span>
-      <span class="n">setCommand</span><span class="o">(</span><span class="nc">CommandInfo</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span><span class="n">setValue</span><span class="o">(</span><span class="s">&quot;&quot;</span> <span class="o">+</span>
-      <span class="s">&quot;/bin/sh &quot;</span><span class="o">+</span><span class="n">scriptPath</span><span class="o">+</span> <span class="n">s</span><span class="s">&quot; $jarUris&quot;</span><span class="o">))</span>
-      <span class="o">.</span><span class="n">setExecutorId</span><span class="o">(</span><span class="nc">ExecutorID</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span><span class="n">setValue</span><span class="o">(</span><span class="s">&quot;1234&quot;</span><span class="o">))</span>
+      <span class="n">setCommand</span><span class="o">(</span><span class="nc">CommandInfo</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span><span class="n">setValue</span><span class="o">(</span><span class="s">""</span> <span class="o">+</span>
+      <span class="s">"/bin/sh "</span><span class="o">+</span><span class="n">scriptPath</span><span class="o">+</span> <span class="n">s</span><span class="s">" $jarUris"</span><span class="o">))</span>
+      <span class="o">.</span><span class="n">setExecutorId</span><span class="o">(</span><span class="nc">ExecutorID</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span><span class="n">setValue</span><span class="o">(</span><span class="s">"1234"</span><span class="o">))</span>
       <span class="o">.</span><span class="n">build</span><span class="o">()</span>
   <span class="o">}</span></code></pre></div>
 
@@ -198,17 +198,17 @@
         <span class="k">var</span> <span class="n">loader</span> <span class="k">=</span> <span class="k">this</span><span class="o">.</span><span class="n">getClass</span><span class="o">.</span><span class="n">getClassLoader</span>
         <span class="k">val</span> <span class="n">localfiles</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ArrayBuffer</span><span class="o">[</span><span class="kt">String</span><span class="o">]()</span>
 
-        <span class="c1">//if jars is specified then split by comma to get all paths</span>
-        <span class="k">if</span> <span class="o">(</span><span class="n">args</span><span class="o">.</span><span class="n">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
-          <span class="k">for</span> <span class="o">(</span><span class="n">uri</span> <span class="k">&lt;-</span> <span class="n">args</span><span class="o">(</span><span class="mi">0</span><span class="o">).</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;,&quot;</span><span class="o">).</span><span class="n">filter</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">))</span> <span class="o">{</span>
+        <span class="c1">//if jars is specified then split by comma to get all paths
+</span>        <span class="k">if</span> <span class="o">(</span><span class="n">args</span><span class="o">.</span><span class="n">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+          <span class="k">for</span> <span class="o">(</span><span class="n">uri</span> <span class="k">&lt;-</span> <span class="n">args</span><span class="o">(</span><span class="mi">0</span><span class="o">).</span><span class="n">split</span><span class="o">(</span><span class="s">","</span><span class="o">).</span><span class="n">filter</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">))</span> <span class="o">{</span>
             <span class="k">val</span> <span class="n">url</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">URL</span><span class="o">(</span><span class="n">uri</span><span class="o">)</span>
-            <span class="k">val</span> <span class="n">fileName</span> <span class="k">=</span> <span class="n">url</span><span class="o">.</span><span class="n">getPath</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;/&quot;</span><span class="o">).</span><span class="n">last</span>
+            <span class="k">val</span> <span class="n">fileName</span> <span class="k">=</span> <span class="n">url</span><span class="o">.</span><span class="n">getPath</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">"/"</span><span class="o">).</span><span class="n">last</span>
             <span class="n">downloadFile</span><span class="o">(</span><span class="n">url</span><span class="o">,</span> <span class="n">fileName</span><span class="o">)</span>
             <span class="n">localfiles</span> <span class="o">+=</span> <span class="n">fileName</span>
           <span class="o">}</span>
 
-          <span class="c1">//use the URL classloader to add it to the classpath</span>
-          <span class="k">if</span> <span class="o">(</span><span class="n">localfiles</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+          <span class="c1">//use the URL classloader to add it to the classpath
+</span>          <span class="k">if</span> <span class="o">(</span><span class="n">localfiles</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
             <span class="k">val</span> <span class="n">urls</span> <span class="k">=</span> <span class="n">localfiles</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">file</span> <span class="k">=&gt;</span> <span class="k">new</span> 
             	<span class="nc">File</span><span class="o">(</span><span class="n">file</span><span class="o">).</span><span class="n">toURI</span><span class="o">.</span><span class="n">toURL</span><span class="o">).</span><span class="n">toArray</span>
             <span class="n">loader</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">URLClassLoader</span><span class="o">(</span><span class="n">urls</span><span class="o">,</span> <span class="n">loader</span><span class="o">)</span>
@@ -230,8 +230,8 @@
       <span class="o">()</span> <span class="k">=&gt;</span> <span class="o">{</span>
         <span class="k">try</span> <span class="o">{</span>
           <span class="k">val</span> <span class="n">classLoader</span> <span class="k">=</span> <span class="nc">Thread</span><span class="o">.</span><span class="n">currentThread</span><span class="o">.</span><span class="n">getContextClassLoader</span>
-          <span class="n">classLoader</span><span class="o">.</span><span class="n">loadClass</span><span class="o">(</span><span class="s">&quot;com.mysql.jdbc.Driver&quot;</span><span class="o">)</span>
-          <span class="n">println</span><span class="o">(</span><span class="s">&quot;successfully loaded&quot;</span><span class="o">)</span>
+          <span class="n">classLoader</span><span class="o">.</span><span class="n">loadClass</span><span class="o">(</span><span class="s">"com.mysql.jdbc.Driver"</span><span class="o">)</span>
+          <span class="n">println</span><span class="o">(</span><span class="s">"successfully loaded"</span><span class="o">)</span>
         <span class="o">}</span>
         <span class="k">catch</span> <span class="o">{</span>
           <span class="k">case</span> <span class="n">e</span><span class="k">:</span> <span class="kt">Exception</span> <span class="o">=&gt;</span> <span class="o">{</span>
@@ -293,6 +293,14 @@
              
     
     <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
    </li>           
@@ -303,14 +311,6 @@
     <li>    
      <span class="post-date">08 Sep 2018</span>
      &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 
