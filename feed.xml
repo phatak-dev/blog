@@ -7,6 +7,91 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Scala Developer Journey into Rust - Part 3: Expression Based Language</title>
+        <description>&lt;p&gt;Rust is one of the major programming languages that’s been getting popular in recent years. It has many advanced high level language features like Scala.This made me interested to learn Rust. So in this next series of blogs I will share my experience with Rust from a Scala developer point of view. I would like to explore how these two language approach things. I would like to explore the similarities and their differences.&lt;/p&gt;
+
+&lt;p&gt;This is third post in the series. In this post, I will be talking about expression based language. You can find all the other posts in the series &lt;a href=&quot;/categories/rust-scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;expression-based-language&quot;&gt;Expression Based Language&lt;/h2&gt;
+
+&lt;p&gt;Rust syntax looks very similar to C/C++ languages. But in reality,it’s quite different than these languages. One of the important distinction is statement vs expression.&lt;/p&gt;
+
+&lt;p&gt;In a programming language, expression is a block of code which returns a result always. Whereas statement is block of code which doesn’t return anything.It depends upon the side effects for actual work. For ex: In C or Java, if condition is a statement because it doesn’t return any value.&lt;/p&gt;
+
+&lt;p&gt;One of the challenges with statement based languages is they don’t compose well. Also writing immutable data based programs in these languages become tricky as they depend heavily on side effect based programming.&lt;/p&gt;
+
+&lt;p&gt;Scala and other family of functional languages prefer expressions over statements. In these languages, everything is an expression. All the conditions, loops, block of code returns a value. This makes them highly composable.&lt;/p&gt;
+
+&lt;p&gt;Rust follows this suite for system programming. Rust is an expression based language. Every construct of rust return an expression which makes it behave very much like Scala. That’s why you will see similar construct like pattern matching etc. in Rust also.&lt;/p&gt;
+
+&lt;p&gt;In the next few sections, we will see how Rust expression based programming compares to the Scala.&lt;/p&gt;
+
+&lt;h2 id=&quot;if-and-else-condition&quot;&gt;If and Else Condition&lt;/h2&gt;
+
+&lt;p&gt;One of the important part of expression based language is, conditions are also expression. The below show how if/else works as an expression.&lt;/p&gt;
+
+&lt;p&gt;In the below code we check if a given variable is even or not. Also we store the result in a variable rather than updating from the condition.&lt;/p&gt;
+
+&lt;p&gt;In Scala,&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;isEven&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In Rust,&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;is_even&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;block-expression&quot;&gt;Block Expression&lt;/h2&gt;
+
+&lt;p&gt;In an expression based language any block of code can return a value. The below shows such an example.&lt;/p&gt;
+
+&lt;p&gt;In Scala,&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;blockResultExpression&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+ &lt;span class=&quot;o&quot;&gt;};&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In Rust,&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;block_result_statement&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+
+&lt;span class=&quot;nd&quot;&gt;println!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;block statement result is {:?}&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;block_result_statement&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;block_result_expression&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+   &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+
+&lt;span class=&quot;nd&quot;&gt;println!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;block expression result is {:?}&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;block_result_expression&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The result of the above rust is as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;block statement result is ()
+block expression result is 3&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Both code looks almost same. But they return different result.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;In Rust, a semicolon is used to turn expression into a statement. So in the first example, since we used ; it became a statement and return unit value. This facility is there for easy interoperability with C/C++&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;expressions-and-functional-programming&quot;&gt;Expressions and Functional Programming&lt;/h2&gt;
+
+&lt;p&gt;Expressions make composing easy.One of the important part of functional programming is to write programs by composing different functions. So having expression as first class citizens, makes Rust ideal candidate for many constructs of functional programming. You can read more about it in my &lt;a href=&quot;/categories/rust-functional&quot;&gt;earlier&lt;/a&gt; posts.
+## Code&lt;/p&gt;
+
+&lt;p&gt;You can find complete code for Scala &lt;a href=&quot;https://github.com/phatak-dev/rust-scala/blob/master/scala/src/main/scala/com/madhukaraphatak/scala/simple/Expression.scala&quot;&gt;on github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;You can find complete code for Rust &lt;a href=&quot;https://github.com/phatak-dev/rust-scala/blob/master/rust/simple/src/bin/expression.rs&quot;&gt;on github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Rust is an expression based language like Scala. It makes it more composable like functional programming language. So if you are familiar with Scala expressions like conditions,patterns matching, functional combinators you can easily employ them in Rust too.&lt;/p&gt;
+</description>
+        <pubDate>Sun, 20 Jan 2019 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/rust-scala-part-3</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/rust-scala-part-3</guid>
+      </item>
+    
+      <item>
         <title>Scala Developer Journey into Rust - Part 2 : Type Inference</title>
         <description>&lt;p&gt;Rust is one of the major programming languages that’s been getting popular in recent years. It has many advanced high level language features like Scala.This made me interested to learn Rust. So in this next series of blogs I will share my experience with Rust from a Scala developer point of view. I would like to explore how these two language approach things. I would like to explore the similarities and their differences.&lt;/p&gt;
 
@@ -550,105 +635,6 @@ of failures&lt;/p&gt;
         <pubDate>Tue, 24 Apr 2018 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/spark-datasource-v2-part-4</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-datasource-v2-part-4</guid>
-      </item>
-    
-      <item>
-        <title>Exploring Spark DataSource V2 - Part 3  : In-Memory DataSource</title>
-        <description>&lt;p&gt;In spark, data source is one of the foundational API for structured data analysis. Combined with dataframe and spark SQL abstractions, it makes spark one of the most complete structured data engine out there. You can read more about structured data analysis in spark &lt;a href=&quot;/categories/datasource-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Data source API was introduced in spark 1.3 along with dataframe abstraction. After that release, spark has undergone tremendous change. Spark has moved to custom memory management and with 2.0 we got Dataset , a better dataframe, abstraction. With these tremendous changes data source API needed to revisited.&lt;/p&gt;
-
-&lt;p&gt;So in 2.3 version, spark has released new version of data source API known as as data source V2. This API reflects all the learning spark developers learnt in last few releases. This API will be foundation for next few years of spark data source connectivity.&lt;/p&gt;
-
-&lt;p&gt;In this series of posts, I will be discussing about different parts of the API. We will be learning API by building data sources for different sources like flat file, relational databases etc.&lt;/p&gt;
-
-&lt;p&gt;This is third blog in the series where we discuss about building simple in-memory datasource. You can read all the posts in the series &lt;a href=&quot;/categories/datasource-v2-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;in-memory-datasource&quot;&gt;In-Memory DataSource&lt;/h2&gt;
-
-&lt;p&gt;In this post we are going to build a datasource which reads the data from an array. It will have single partition. This simple example helps us to understand how to implement all interfaces we discussed in last blog.&lt;/p&gt;
-
-&lt;p&gt;The below are the steps to implement a simple in memory data source.&lt;/p&gt;
-
-&lt;h2 id=&quot;create-unique-package&quot;&gt;Create Unique Package&lt;/h2&gt;
-
-&lt;p&gt;All the datasources in spark are discovered using their packages. So as the first step we create a package for our datasource.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;package&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;com.madhukaraphatak.examples.sparktwo.datasourcev2.simple&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;defaultsource&quot;&gt;DefaultSource&lt;/h2&gt;
-
-&lt;p&gt;Spark searches for a class named &lt;em&gt;DefaultSource&lt;/em&gt; in a given data source package. So we create &lt;em&gt;DefaultSource&lt;/em&gt; class in the package. It should extend &lt;em&gt;DatasourceV2&lt;/em&gt; and &lt;em&gt;ReaderSupport&lt;/em&gt; interfaces.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DefaultSource&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DataSourceV2&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;with&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ReadSupport&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-
-  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createReader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;DataSourceOptions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SimpleDataSourceReader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;  
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;simpledatasourcereader&quot;&gt;SimpleDataSourceReader&lt;/h2&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SimpleDataSourceReader&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DataSourceReader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-
-  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;readSchema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StructType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;StructField&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;value&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StringType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)))&lt;/span&gt;
-                                        
-  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createDataReaderFactories&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;factoryList&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;java&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;util&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;ArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;DataReaderFactory&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;factoryList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SimpleDataSourceReaderFactory&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;factoryList&lt;/span&gt; 
-   &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above code, we are hard coding the schema. Our data will have single column called &lt;em&gt;value&lt;/em&gt;. Also &lt;em&gt;createDataReaderFactories&lt;/em&gt; return single data factory which signifies that, there is single partition.&lt;/p&gt;
-
-&lt;h2 id=&quot;simpledatasourcereaderfactory&quot;&gt;SimpleDataSourceReaderFactory&lt;/h2&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SimpleDataSourceReaderFactory&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;extends&lt;/span&gt; 
-         &lt;span class=&quot;nc&quot;&gt;DataReaderFactory&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;with&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DataReader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createDataReader&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SimpleDataSourceReaderFactory&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;values&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;1&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;2&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;3&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;4&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;5&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-  &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;index&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
-
-  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;next&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;index&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;length&lt;/span&gt;
-
-  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;get&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;row&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;index&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;index&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;row&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;close&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Unit&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above code, &lt;em&gt;SimpleDataSourceReaderFactory&lt;/em&gt; implements both factory and data reader interfaces. The data for the datasource comes from &lt;em&gt;values&lt;/em&gt; array.&lt;/p&gt;
-
-&lt;p&gt;DataReader tracks the reading using &lt;em&gt;index&lt;/em&gt; variable. In get method, we create &lt;em&gt;Row&lt;/em&gt; object with single value from the array.&lt;/p&gt;
-
-&lt;h2 id=&quot;using-datasource&quot;&gt;Using DataSource&lt;/h2&gt;
-
-&lt;p&gt;The below is the code to read the data from this source&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;simpleDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;
-               &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;com.madhukaraphatak.examples.
-                       sparktwo.datasourcev2.simple&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;From above code it’s apparent that reading from v2 source is exactly same as v1 source. So for user of these connectors it will be transparent.&lt;/p&gt;
-
-&lt;p&gt;We can print the data and number partitions with below code&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;simpleDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;number of partitions in simple source is &quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;simpleDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getNumPartitions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/datasourcev2/SimpleDataSource.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;In this post we discussed how to implement a simple in memory data source using datasource V2 API’s.&lt;/p&gt;
-</description>
-        <pubDate>Fri, 13 Apr 2018 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-datasource-v2-part-3</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-datasource-v2-part-3</guid>
       </item>
     
   </channel>
