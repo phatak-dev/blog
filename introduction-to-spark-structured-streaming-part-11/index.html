@@ -103,9 +103,9 @@ can read all the posts in the series <a href="/categories/introduction-structure
 <p>The below code is to read the data from socket.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">socketStreamDs</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">readStream</span>
-  <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">"socket"</span><span class="o">)</span>
-  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"host"</span><span class="o">,</span> <span class="s">"localhost"</span><span class="o">)</span>
-  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"port"</span><span class="o">,</span> <span class="mi">50050</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;socket&quot;</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;host&quot;</span><span class="o">,</span> <span class="s">&quot;localhost&quot;</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;port&quot;</span><span class="o">,</span> <span class="mi">50050</span><span class="o">)</span>
   <span class="o">.</span><span class="n">load</span><span class="o">()</span>
   <span class="o">.</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span></code></pre></div>
 
@@ -114,7 +114,7 @@ can read all the posts in the series <a href="/categories/introduction-structure
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">case</span> <span class="k">class</span> <span class="nc">Stock</span><span class="o">(</span><span class="n">time</span><span class="k">:</span><span class="kt">Long</span><span class="o">,</span> <span class="n">symbol</span><span class="k">:</span><span class="kt">String</span><span class="o">,</span><span class="n">value</span><span class="k">:</span><span class="kt">Double</span><span class="o">)</span>
 
 <span class="k">val</span> <span class="n">stockDs</span> <span class="k">=</span> <span class="n">socketStreamDs</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="o">{</span>
-  <span class="k">val</span> <span class="n">columns</span> <span class="k">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">","</span><span class="o">)</span>
+  <span class="k">val</span> <span class="n">columns</span> <span class="k">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;,&quot;</span><span class="o">)</span>
   <span class="nc">Stock</span><span class="o">(</span><span class="k">new</span> <span class="nc">Timestamp</span><span class="o">(</span><span class="n">columns</span><span class="o">(</span><span class="mi">0</span><span class="o">).</span><span class="n">toLong</span><span class="o">),</span> <span class="n">columns</span><span class="o">(</span><span class="mi">1</span><span class="o">),</span> <span class="n">columns</span><span class="o">(</span><span class="mi">2</span><span class="o">).</span><span class="n">toDouble</span><span class="o">)</span>
 <span class="o">})</span></code></pre></div>
 
@@ -126,9 +126,9 @@ can read all the posts in the series <a href="/categories/introduction-structure
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">windowedCount</span> <span class="k">=</span> <span class="n">stockDs</span>
       <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span>
-        <span class="n">window</span><span class="o">(</span><span class="n">$</span><span class="s">"time"</span><span class="o">,</span> <span class="s">"10 seconds"</span><span class="o">)</span>
+        <span class="n">window</span><span class="o">(</span><span class="n">$</span><span class="s">&quot;time&quot;</span><span class="o">,</span> <span class="s">&quot;10 seconds&quot;</span><span class="o">)</span>
       <span class="o">)</span>
-      <span class="o">.</span><span class="n">sum</span><span class="o">(</span><span class="s">"value"</span><span class="o">)</span></code></pre></div>
+      <span class="o">.</span><span class="n">sum</span><span class="o">(</span><span class="s">&quot;value&quot;</span><span class="o">)</span></code></pre></div>
 
 <p>The above code defines the window which aggregates the stock value for last 10 seconds.</p>
 
@@ -150,7 +150,7 @@ can read all the posts in the series <a href="/categories/introduction-structure
 
 <p>The first records is for time Wed, 27 Apr 2016 11:34:22 GMT.</p>
 
-<div class="highlight"><pre><code class="language-text" data-lang="text">1461756862000,"aapl",500.0</code></pre></div>
+<div class="highlight"><pre><code class="language-text" data-lang="text">1461756862000,&quot;aapl&quot;,500.0</code></pre></div>
 
 <p>Spark outputs below results which indicates start of window</p>
 
@@ -167,7 +167,7 @@ Batch: 0
 
 <p>Now we send the next record, which is after 5 seconds. This signifies to spark that, 5 seconds have passed in source. So spark will be updating the same window. This event is for time Wed, 27 Apr 2016 11:34:27 GMT</p>
 
-<div class="highlight"><pre><code class="language-text" data-lang="text">1461756867001,"aapl",600.0</code></pre></div>
+<div class="highlight"><pre><code class="language-text" data-lang="text">1461756867001,&quot;aapl&quot;,600.0</code></pre></div>
 
 <p>The output of the spark will be as below. You can observe from output, spark is updating same window.</p>
 
@@ -184,7 +184,7 @@ Batch: 1
 
 <p>Now we send another event, which is after 6 seconds from this time. Now spark understands 11 seconds have been passed. This event is for Wed, 27 Apr 2016 11:34:32 GMT</p>
 
-<div class="highlight"><pre><code class="language-text" data-lang="text">1461756872000,"aapl",400.0</code></pre></div>
+<div class="highlight"><pre><code class="language-text" data-lang="text">1461756872000,&quot;aapl&quot;,400.0</code></pre></div>
 
 <p>Now spark completes the first window and add the above event to next window.</p>
 
@@ -202,7 +202,7 @@ Batch: 2
 
 <p>Let’s say we get an event which got delayed. It’s an event is for Wed, 27 Apr 2016 11:34:27 which is 5 seconds before the last event.</p>
 
-<div class="highlight"><pre><code class="language-text" data-lang="text">1461756867001,"aapl",200.0</code></pre></div>
+<div class="highlight"><pre><code class="language-text" data-lang="text">1461756867001,&quot;aapl&quot;,200.0</code></pre></div>
 
 <p>If you observe the spark result now, you can observe that it’s added it to right window.</p>
 
@@ -228,24 +228,24 @@ Batch: 3
              
     
     <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">14 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

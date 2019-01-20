@@ -95,14 +95,14 @@
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sampleData</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="mf">10.2</span><span class="o">,</span> <span class="mf">14.1</span><span class="o">,</span><span class="mf">14.4</span><span class="o">,</span><span class="mf">14.4</span><span class="o">,</span><span class="mf">14.4</span><span class="o">,</span><span class="mf">14.5</span><span class="o">,</span><span class="mf">14.5</span><span class="o">,</span><span class="mf">14.6</span><span class="o">,</span><span class="mf">14.7</span><span class="o">,</span>
            <span class="mf">14.7</span><span class="o">,</span> <span class="mf">14.7</span><span class="o">,</span><span class="mf">14.9</span><span class="o">,</span><span class="mf">15.1</span><span class="o">,</span> <span class="mf">15.9</span><span class="o">,</span><span class="mf">16.4</span><span class="o">)</span>
    <span class="k">val</span> <span class="n">rowRDD</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">sparkContext</span><span class="o">.</span><span class="n">makeRDD</span><span class="o">(</span><span class="n">sampleData</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="nc">Row</span><span class="o">(</span><span class="n">value</span><span class="o">)))</span>
-   <span class="k">val</span> <span class="n">schema</span> <span class="k">=</span> <span class="nc">StructType</span><span class="o">(</span><span class="nc">Array</span><span class="o">(</span><span class="nc">StructField</span><span class="o">(</span><span class="s">"value"</span><span class="o">,</span><span class="nc">DoubleType</span><span class="o">)))</span>
+   <span class="k">val</span> <span class="n">schema</span> <span class="k">=</span> <span class="nc">StructType</span><span class="o">(</span><span class="nc">Array</span><span class="o">(</span><span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;value&quot;</span><span class="o">,</span><span class="nc">DoubleType</span><span class="o">)))</span>
    <span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">createDataFrame</span><span class="o">(</span><span class="n">rowRDD</span><span class="o">,</span><span class="n">schema</span><span class="o">)</span></code></pre></div>
 
 <p>In above example, we have taken a list of values as sample data. If you observe the data, most of the values are around 14.1-14.7. From that we can assume mostly values 10.2, 16.4 are outliers. There is chance that 15.1 and 15.9 are also outliers but we are not fully sure.</p>
 
 <h3 id="calculate-quantiles-and-iqr">Calculate Quantiles and IQR</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">quantiles</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">stat</span><span class="o">.</span><span class="n">approxQuantile</span><span class="o">(</span><span class="s">"value"</span><span class="o">,</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">quantiles</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">stat</span><span class="o">.</span><span class="n">approxQuantile</span><span class="o">(</span><span class="s">&quot;value&quot;</span><span class="o">,</span>
            <span class="nc">Array</span><span class="o">(</span><span class="mf">0.25</span><span class="o">,</span><span class="mf">0.75</span><span class="o">),</span><span class="mf">0.0</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">Q1</span> <span class="k">=</span> <span class="n">quantiles</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">Q3</span> <span class="k">=</span> <span class="n">quantiles</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
@@ -115,7 +115,7 @@
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">lowerRange</span> <span class="k">=</span> <span class="n">Q1</span> <span class="o">-</span> <span class="mf">1.5</span><span class="o">*</span><span class="nc">IQR</span>
 <span class="k">val</span> <span class="n">upperRange</span> <span class="k">=</span> <span class="n">Q3</span><span class="o">+</span> <span class="mf">1.5</span><span class="o">*</span><span class="nc">IQR</span>
 
-<span class="k">val</span> <span class="n">outliers</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="n">s</span><span class="s">"value &lt; $lowerRange or value &gt; $upperRange"</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">outliers</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;value &lt; $lowerRange or value &gt; $upperRange&quot;</span><span class="o">)</span>
 <span class="n">outliers</span><span class="o">.</span><span class="n">show</span><span class="o">()</span></code></pre></div>
 
 <p>In above code, we first calculate the ranges. Then we filter the data using data frame filters.</p>
@@ -136,24 +136,24 @@
              
     
     <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">14 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

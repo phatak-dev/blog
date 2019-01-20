@@ -70,7 +70,7 @@ It’s is based on new Akka reactive streams library.</p>
 
 <p>To start using akka-http, you should add the following dependency to project. I am using sbt for build management. You can also use other build tools like maven.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="s">"com.typesafe.akka"</span> <span class="o">%%</span> <span class="s">"akka-http-experimental"</span> <span class="o">%</span> <span class="s">"1.0"</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="s">&quot;com.typesafe.akka&quot;</span> <span class="o">%%</span> <span class="s">&quot;akka-http-experimental&quot;</span> <span class="o">%</span> <span class="s">&quot;1.0&quot;</span></code></pre></div>
 
 <p>Though the artifact name says it’s experimental many companies are using it in the production.</p>
 
@@ -84,7 +84,7 @@ It’s is based on new Akka reactive streams library.</p>
 
 <p>Akka HTTP uses akka actors for handling concurrent requests. So in the first line we have to create akka actor system.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">implicit</span> <span class="k">val</span> <span class="n">actorSystem</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">(</span><span class="s">"system"</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">implicit</span> <span class="k">val</span> <span class="n">actorSystem</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">(</span><span class="s">&quot;system&quot;</span><span class="o">)</span></code></pre></div>
 
 <h3 id="create-actorflowmaterilizer">2. Create ActorFlowMaterilizer</h3>
 
@@ -110,7 +110,7 @@ It’s is based on new Akka reactive streams library.</p>
   <span class="n">pathSingleSlash</span> <span class="o">{</span>
     <span class="n">get</span> <span class="o">{</span>
       <span class="n">complete</span> <span class="o">{</span>
-        <span class="s">"Hello world"</span>
+        <span class="s">&quot;Hello world&quot;</span>
       <span class="o">}</span>
     <span class="o">}</span>
   <span class="o">}</span></code></pre></div>
@@ -127,7 +127,7 @@ It’s is based on new Akka reactive streams library.</p>
 
 <p>Once we have all pieces in place, we need to create a server and bind to this route, address and port.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="nc">Http</span><span class="o">().</span><span class="n">bindAndHandle</span><span class="o">(</span><span class="n">route</span><span class="o">,</span><span class="s">"localhost"</span><span class="o">,</span><span class="mi">8080</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="nc">Http</span><span class="o">().</span><span class="n">bindAndHandle</span><span class="o">(</span><span class="n">route</span><span class="o">,</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span><span class="mi">8080</span><span class="o">)</span></code></pre></div>
 
 <p>This creates and runs a simple http server at <a href="http://localhost:8080">http://localhost:8080</a>.</p>
 
@@ -143,24 +143,24 @@ It’s is based on new Akka reactive streams library.</p>
              
     
     <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">14 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

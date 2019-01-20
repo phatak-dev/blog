@@ -106,9 +106,9 @@ Executor sets up environment to run each task given by client. Scheduler uses th
 <p>Each framework running on mesos should identify itself using framework info data type. Usually framework info contains framework name, user information etc. Here we set our framework name as <em>DistributedShell</em>. All other properties are set to default.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">framework</span> <span class="k">=</span> <span class="nc">FrameworkInfo</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">.</span>
-                <span class="n">setName</span><span class="o">(</span><span class="s">"DistributedShell"</span><span class="o">).</span>
-                <span class="n">setUser</span><span class="o">(</span><span class="s">""</span><span class="o">).</span>
-                <span class="n">setRole</span><span class="o">(</span><span class="s">"*"</span><span class="o">).</span>
+                <span class="n">setName</span><span class="o">(</span><span class="s">&quot;DistributedShell&quot;</span><span class="o">).</span>
+                <span class="n">setUser</span><span class="o">(</span><span class="s">&quot;&quot;</span><span class="o">).</span>
+                <span class="n">setRole</span><span class="o">(</span><span class="s">&quot;*&quot;</span><span class="o">).</span>
                 <span class="n">setCheckpoint</span><span class="o">(</span><span class="kc">false</span><span class="o">).</span>
                 <span class="n">setFailoverTimeout</span><span class="o">(</span><span class="mf">0.0d</span><span class="o">).</span>
                 <span class="n">build</span><span class="o">()</span></code></pre></div>
@@ -133,12 +133,12 @@ Executor sets up environment to run each task given by client. Scheduler uses th
 
 <p>Mesos driver is the API which takes specified scheduler and framework info to create instance of scheduler on mesos cluster.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">//url pointing to mesos master
-</span><span class="k">val</span> <span class="n">mesosURL</span> <span class="k">=</span> <span class="s">"localhost:5050"</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">//url pointing to mesos master</span>
+<span class="k">val</span> <span class="n">mesosURL</span> <span class="k">=</span> <span class="s">&quot;localhost:5050&quot;</span>
 <span class="k">val</span> <span class="n">driver</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">MesosSchedulerDriver</span><span class="o">(</span><span class="n">scheduler</span><span class="o">,</span>
     <span class="n">framework</span><span class="o">,</span><span class="n">mesosURL</span><span class="o">)</span>
-<span class="c1">//run the driver
-</span><span class="n">driver</span><span class="o">.</span><span class="n">run</span><span class="o">()</span></code></pre></div>
+<span class="c1">//run the driver</span>
+<span class="n">driver</span><span class="o">.</span><span class="n">run</span><span class="o">()</span></code></pre></div>
 
 <p>You can access complete code listing <a href="https://github.com/phatak-dev/mesos-helloworld-scala/blob/master/src/main/scala/com/madhu/mesos/DistributedShell.scala">here</a>.</p>
 
@@ -156,10 +156,10 @@ Executor sets up environment to run each task given by client. Scheduler uses th
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">cpus</span> <span class="k">=</span> <span class="nc">Resource</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">.</span>
            <span class="n">setType</span><span class="o">(</span><span class="n">org</span><span class="o">.</span><span class="n">apache</span><span class="o">.</span><span class="n">mesos</span><span class="o">.</span><span class="nc">Protos</span><span class="o">.</span><span class="nc">Value</span><span class="o">.</span><span class="nc">Type</span><span class="o">.</span><span class="nc">SCALAR</span><span class="o">).</span>
-           <span class="n">setName</span><span class="o">(</span><span class="s">"cpus"</span><span class="o">).</span>
+           <span class="n">setName</span><span class="o">(</span><span class="s">&quot;cpus&quot;</span><span class="o">).</span>
            <span class="n">setScalar</span><span class="o">(</span><span class="n">org</span><span class="o">.</span><span class="n">apache</span><span class="o">.</span><span class="n">mesos</span><span class="o">.</span><span class="nc">Protos</span><span class="o">.</span><span class="nc">Value</span><span class="o">.</span>
            <span class="nc">Scalar</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">.</span><span class="n">setValue</span><span class="o">(</span><span class="mf">1.0</span><span class="o">)).</span>
-           <span class="n">setRole</span><span class="o">(</span><span class="s">"*"</span><span class="o">).</span>
+           <span class="n">setRole</span><span class="o">(</span><span class="s">&quot;*&quot;</span><span class="o">).</span>
            <span class="n">build</span></code></pre></div>
 
 <ul>
@@ -168,7 +168,7 @@ Executor sets up environment to run each task given by client. Scheduler uses th
 
 <p>Each task inside a framework, is identified using a taskid.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">id</span> <span class="k">=</span> <span class="s">"task"</span> <span class="o">+</span> <span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span><span class="o">()</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">id</span> <span class="k">=</span> <span class="s">&quot;task&quot;</span> <span class="o">+</span> <span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span><span class="o">()</span></code></pre></div>
 
 <ul>
   <li>Create taskinfo using command</li>
@@ -202,7 +202,7 @@ Executor sets up environment to run each task given by client. Scheduler uses th
   <li>Build</li>
 </ul>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">mvn clean <span class="nb">install</span></code></pre></div>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">mvn clean install</code></pre></div>
 
 <ul>
   <li>Running</li>
@@ -212,15 +212,15 @@ Executor sets up environment to run each task given by client. Scheduler uses th
 
 <p>The following is the command to run the example which will echo <em>hello</em> on mesos cluster.</p>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">java <span class="nt">-cp</span> target/Mesos-0.0.1-SNAPSHOT.jar 
-<span class="nt">-Djava</span>.library.path<span class="o">=</span><span class="nv">$MESOS_HOME</span>/src/.libs 
-com.madhu.mesos.DistributedShell <span class="s2">"/bin/echo hello"</span></code></pre></div>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">java -cp target/Mesos-0.0.1-SNAPSHOT.jar 
+-Djava.library.path<span class="o">=</span><span class="nv">$MESOS_HOME</span>/src/.libs 
+com.madhu.mesos.DistributedShell <span class="s2">&quot;/bin/echo hello&quot;</span></code></pre></div>
 
 <p>You can also run many commands at a time.</p>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">java <span class="nt">-cp</span> target/Mesos-0.0.1-SNAPSHOT.jar 
-<span class="nt">-Djava</span>.library.path<span class="o">=</span><span class="nv">$MESOS_HOME</span>/src/.libs 
-com.madhu.mesos.DistributedShell <span class="s2">"/bin/echo hello"</span> <span class="s2">"/bin/echo how are you"</span></code></pre></div>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">java -cp target/Mesos-0.0.1-SNAPSHOT.jar 
+-Djava.library.path<span class="o">=</span><span class="nv">$MESOS_HOME</span>/src/.libs 
+com.madhu.mesos.DistributedShell <span class="s2">&quot;/bin/echo hello&quot;</span> <span class="s2">&quot;/bin/echo how are you&quot;</span></code></pre></div>
 
 <h2 id="output">Output</h2>
 <p>After running the example, you can see the output through mesos web interface. Navigate
@@ -275,24 +275,24 @@ to <a href="http://localhost:5050">localhost:5050</a></p>
              
     
     <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">14 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

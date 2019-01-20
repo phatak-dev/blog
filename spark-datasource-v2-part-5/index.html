@@ -75,13 +75,13 @@
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">next</span> <span class="k">=</span>  <span class="o">{</span>
  <span class="k">if</span><span class="o">(</span><span class="n">iterator</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-    <span class="k">val</span> <span class="n">url</span> <span class="k">=</span> <span class="s">"jdbc:mysql://localhost/mysql"</span>
-    <span class="k">val</span> <span class="n">user</span> <span class="k">=</span> <span class="s">"root"</span>
-    <span class="k">val</span> <span class="n">password</span> <span class="k">=</span> <span class="s">"abc123"</span>
+    <span class="k">val</span> <span class="n">url</span> <span class="k">=</span> <span class="s">&quot;jdbc:mysql://localhost/mysql&quot;</span>
+    <span class="k">val</span> <span class="n">user</span> <span class="k">=</span> <span class="s">&quot;root&quot;</span>
+    <span class="k">val</span> <span class="n">password</span> <span class="k">=</span> <span class="s">&quot;abc123&quot;</span>
 
     <span class="k">val</span> <span class="n">properties</span> <span class="k">=</span> <span class="k">new</span> <span class="n">java</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="nc">Properties</span><span class="o">()</span>
-    <span class="n">properties</span><span class="o">.</span><span class="n">setProperty</span><span class="o">(</span><span class="s">"user"</span><span class="o">,</span><span class="n">user</span><span class="o">)</span>
-    <span class="n">properties</span><span class="o">.</span><span class="n">setProperty</span><span class="o">(</span><span class="s">"password"</span><span class="o">,</span><span class="n">password</span><span class="o">)</span>
+    <span class="n">properties</span><span class="o">.</span><span class="n">setProperty</span><span class="o">(</span><span class="s">&quot;user&quot;</span><span class="o">,</span><span class="n">user</span><span class="o">)</span>
+    <span class="n">properties</span><span class="o">.</span><span class="n">setProperty</span><span class="o">(</span><span class="s">&quot;password&quot;</span><span class="o">,</span><span class="n">password</span><span class="o">)</span>
 
 
     <span class="k">val</span> <span class="n">sparkSession</span> <span class="k">=</span> <span class="nc">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">getOrCreate</span><span class="o">()</span>
@@ -136,13 +136,13 @@
 
   <span class="k">val</span> <span class="n">getQuery</span><span class="k">:</span><span class="kt">String</span> <span class="o">=</span> <span class="o">{</span>
    <span class="k">if</span><span class="o">(</span><span class="n">pushedFilters</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">||</span> <span class="n">pushedFilters</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span>
-     <span class="s">"(select user from user)a"</span>
+     <span class="s">&quot;(select user from user)a&quot;</span>
    <span class="k">else</span> <span class="o">{</span>
     <span class="n">pushedFilters</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span> <span class="k">match</span> <span class="o">{</span>
     <span class="k">case</span> <span class="n">filter</span> <span class="k">:</span> <span class="kt">EqualTo</span> <span class="o">=&gt;</span>
-    <span class="k">val</span> <span class="n">condition</span> <span class="k">=</span> <span class="n">s</span><span class="s">"${filter.attribute} = '${filter.value}'"</span>
-    <span class="n">s</span><span class="s">"(select user from user where $condition)a"</span>
-    <span class="k">case</span> <span class="k">_</span> <span class="o">=&gt;</span><span class="s">"(select user from user)a"</span>
+    <span class="k">val</span> <span class="n">condition</span> <span class="k">=</span> <span class="n">s</span><span class="s">&quot;${filter.attribute} = &#39;${filter.value}&#39;&quot;</span>
+    <span class="n">s</span><span class="s">&quot;(select user from user where $condition)a&quot;</span>
+    <span class="k">case</span> <span class="k">_</span> <span class="o">=&gt;</span><span class="s">&quot;(select user from user)a&quot;</span>
     <span class="o">}</span>
    <span class="o">}</span>
   <span class="o">}</span></code></pre></div>
@@ -160,10 +160,10 @@
 <p>Once we have implemented filter push, we can test it from an example.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">simpleMysqlDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="o">(</span>
-<span class="s">"com.madhukaraphatak.examples.sparktwo.
-         datasourcev2.simplemysql"</span><span class="o">)</span>
+<span class="s">&quot;com.madhukaraphatak.examples.sparktwo.</span>
+<span class="s">         datasourcev2.simplemysql&quot;</span><span class="o">)</span>
          <span class="o">.</span><span class="n">load</span><span class="o">()</span>
-<span class="n">simpleMysqlDf</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="s">"user=\"root\""</span><span class="o">).</span><span class="n">show</span><span class="o">()</span></code></pre></div>
+<span class="n">simpleMysqlDf</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="s">&quot;user=\&quot;root\&quot;&quot;</span><span class="o">).</span><span class="n">show</span><span class="o">()</span></code></pre></div>
 
 <p>In above code, we read from our source and add a filter for user.</p>
 
@@ -184,7 +184,7 @@
 
 <p>Once filter is done, we see all the rows where filter matches. You can verify the is filter is pushed or not from mysql logs. The mysql log should show a query like below. You may need to enable logging in mysql.</p>
 
-<div class="highlight"><pre><code class="language-text" data-lang="text">119 Query     SELECT `user` FROM (select user from user where user = 'root')a</code></pre></div>
+<div class="highlight"><pre><code class="language-text" data-lang="text">119 Query     SELECT `user` FROM (select user from user where user = &#39;root&#39;)a</code></pre></div>
 
 <p>Above line makes sures that actual source is getting query with filter.</p>
 
@@ -200,24 +200,24 @@
              
     
     <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">14 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

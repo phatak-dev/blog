@@ -93,7 +93,7 @@ is more versatile than the dataframe this change makes library more powerful.</p
 
 <p>The below code shows a simple transformer in spark 1.x. It’s an identity transformer.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">IdentityTransformer</span><span class="o">(</span><span class="k">override</span> <span class="k">val</span> <span class="n">uid</span><span class="k">:</span><span class="kt">String</span><span class="o">=</span><span class="nc">Identifiable</span><span class="o">.</span><span class="n">randomUID</span><span class="o">(</span><span class="s">"identity"</span><span class="o">))</span> <span class="k">extends</span> <span class="nc">Transformer</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">IdentityTransformer</span><span class="o">(</span><span class="k">override</span> <span class="k">val</span> <span class="n">uid</span><span class="k">:</span><span class="kt">String</span><span class="o">=</span><span class="nc">Identifiable</span><span class="o">.</span><span class="n">randomUID</span><span class="o">(</span><span class="s">&quot;identity&quot;</span><span class="o">))</span> <span class="k">extends</span> <span class="nc">Transformer</span> <span class="o">{</span>
  <span class="k">override</span> <span class="k">def</span> <span class="n">transform</span><span class="o">(</span><span class="n">inputData</span><span class="k">:</span><span class="kt">DataFrame</span><span class="o">)</span><span class="k">:</span><span class="kt">DataFrame</span> <span class="o">=</span> <span class="o">{</span>
   <span class="n">inputData</span>
  <span class="o">}</span>
@@ -110,7 +110,7 @@ is more versatile than the dataframe this change makes library more powerful.</p
 
 <p>The below code shows modified version of the above transformer in 2.0</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">IdentityTransformer</span><span class="o">(</span><span class="k">override</span> <span class="k">val</span> <span class="n">uid</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="nc">Identifiable</span><span class="o">.</span><span class="n">randomUID</span><span class="o">(</span><span class="s">"identity"</span><span class="o">))</span> <span class="k">extends</span> <span class="nc">Transformer</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">IdentityTransformer</span><span class="o">(</span><span class="k">override</span> <span class="k">val</span> <span class="n">uid</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="nc">Identifiable</span><span class="o">.</span><span class="n">randomUID</span><span class="o">(</span><span class="s">&quot;identity&quot;</span><span class="o">))</span> <span class="k">extends</span> <span class="nc">Transformer</span> <span class="o">{</span>
   <span class="k">override</span> <span class="k">def</span> <span class="n">transform</span><span class="o">(</span><span class="n">inputData</span><span class="k">:</span> <span class="kt">Dataset</span><span class="o">[</span><span class="k">_</span><span class="o">])</span><span class="k">:</span> <span class="kt">DataFrame</span> <span class="o">=</span> <span class="o">{</span>
     <span class="n">inputData</span><span class="o">.</span><span class="n">toDF</span><span class="o">()</span>
   <span class="o">}</span>
@@ -152,24 +152,24 @@ we can now represent it as Dataset[LablePoint]. This makes code compile time saf
              
     
     <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">14 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

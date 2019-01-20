@@ -58,8 +58,8 @@
   <p>Accumulators in Spark are highly useful to do side effect based operations.
 For example, the following code calculates both sum and sum of squares as a side effect.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">//sc is spark context
-</span><span class="k">val</span> <span class="n">sum</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">accumulator</span><span class="o">[</span><span class="kt">Double</span><span class="o">](</span><span class="mf">0.0</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">//sc is spark context</span>
+<span class="k">val</span> <span class="n">sum</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">accumulator</span><span class="o">[</span><span class="kt">Double</span><span class="o">](</span><span class="mf">0.0</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">squaredSum</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">accumulator</span><span class="o">[</span><span class="kt">Double</span><span class="o">](</span><span class="mf">0.0</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">values</span> <span class="k">=</span> <span class="mi">0</span> <span class="n">to</span> <span class="mi">100000</span>   
 <span class="k">val</span> <span class="n">inputRDD</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">makeRDD</span><span class="o">(</span><span class="n">values</span><span class="o">)</span>
@@ -67,7 +67,7 @@ For example, the following code calculates both sum and sum of squares as a side
    <span class="n">sum</span><span class="o">+=</span> <span class="n">value</span>
    <span class="n">squaredSum</span><span class="o">+=</span> <span class="n">value</span><span class="o">*</span><span class="n">value</span>
  <span class="o">})</span>
-<span class="n">println</span><span class="o">(</span><span class="s">"sum is "</span><span class="o">+</span><span class="n">sum</span><span class="o">.</span><span class="n">value</span><span class="o">+</span><span class="s">" and square sum is "</span> <span class="o">+</span> <span class="n">squaredSum</span><span class="o">.</span><span class="n">value</span><span class="o">)</span></code></pre></div>
+<span class="n">println</span><span class="o">(</span><span class="s">&quot;sum is &quot;</span><span class="o">+</span><span class="n">sum</span><span class="o">.</span><span class="n">value</span><span class="o">+</span><span class="s">&quot; and square sum is &quot;</span> <span class="o">+</span> <span class="n">squaredSum</span><span class="o">.</span><span class="n">value</span><span class="o">)</span></code></pre></div>
 
 <p>The code looks good, but it will produce zero as the sum. This is because map is a lazy operation. Here we want to evaluate sumRDD just to update accumulators. Normally we use <strong>collect</strong> or <strong>count</strong> to trigger the calculation. But collect unnecessarily loads whole split to memory and count does the unnecessary shuffling.</p>
 
@@ -92,7 +92,7 @@ For example, the following code calculates both sum and sum of squares as a side
 <p>Now we use evaluate function to evaluate our <strong>sumRDD</strong> and get our accumulator values.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">evaluate</span><span class="o">(</span><span class="n">sumRDD</span><span class="o">)</span>
- <span class="n">println</span><span class="o">(</span><span class="s">"sum is "</span><span class="o">+</span><span class="n">sum</span><span class="o">.</span><span class="n">value</span><span class="o">+</span><span class="s">" and squared sum is "</span> <span class="o">+</span> <span class="n">squaredSum</span><span class="o">.</span><span class="n">value</span><span class="o">)</span></code></pre></div>
+ <span class="n">println</span><span class="o">(</span><span class="s">&quot;sum is &quot;</span><span class="o">+</span><span class="n">sum</span><span class="o">.</span><span class="n">value</span><span class="o">+</span><span class="s">&quot; and squared sum is &quot;</span> <span class="o">+</span> <span class="n">squaredSum</span><span class="o">.</span><span class="n">value</span><span class="o">)</span></code></pre></div>
 
 <p>Now it prints correct values of sum and squared sum.</p>
 

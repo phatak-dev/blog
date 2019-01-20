@@ -97,9 +97,9 @@ in a large traffic site.</p>
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">case</span> <span class="k">class</span> <span class="nc">Customer</span><span class="o">(</span><span class="n">customerId</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">customerName</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span>
 
   <span class="k">val</span> <span class="n">customerDs</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span>
-      <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">"csv"</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"header"</span><span class="o">,</span> <span class="kc">true</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">load</span><span class="o">(</span><span class="s">"src/main/resources/customers.csv"</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;csv&quot;</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span> <span class="kc">true</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">load</span><span class="o">(</span><span class="s">&quot;src/main/resources/customers.csv&quot;</span><span class="o">)</span>
       <span class="o">.</span><span class="n">as</span><span class="o">[</span><span class="kt">Customer</span><span class="o">]</span></code></pre></div>
 
 <p>In the above code, we read customer data from a csv file. We are using  <em>read</em> method which indicates that we are using batch API. We are converting
@@ -108,9 +108,9 @@ the data to a custom class named <em>Customer</em> using case classes.</p>
 <h3 id="reading-sales-stream-data">2. Reading Sales Stream Data</h3>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">socketStreamDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">readStream</span>
-      <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">"socket"</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"host"</span><span class="o">,</span> <span class="s">"localhost"</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"port"</span><span class="o">,</span> <span class="mi">50050</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;socket&quot;</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;host&quot;</span><span class="o">,</span> <span class="s">&quot;localhost&quot;</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;port&quot;</span><span class="o">,</span> <span class="mi">50050</span><span class="o">)</span>
       <span class="o">.</span><span class="n">load</span><span class="o">()</span></code></pre></div>
 
 <p>In the above code, we use <em>readStream</em> to read the sales data from socket.</p>
@@ -123,11 +123,11 @@ the data to a custom class named <em>Customer</em> using case classes.</p>
   <span class="n">itemId</span><span class="k">:</span>        <span class="kt">String</span><span class="o">,</span>
   <span class="n">amountPaid</span><span class="k">:</span>    <span class="kt">Double</span><span class="o">)</span>
 
-<span class="k">val</span> <span class="n">dataDf</span> <span class="k">=</span> <span class="n">socketStreamDf</span><span class="o">.</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">].</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="n">âalue</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">" "</span><span class="o">))</span>
+<span class="k">val</span> <span class="n">dataDf</span> <span class="k">=</span> <span class="n">socketStreamDf</span><span class="o">.</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">].</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="n">âalue</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">))</span>
 <span class="k">val</span> <span class="n">salesDs</span> <span class="k">=</span> <span class="n">dataDf</span>
   <span class="o">.</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>
   <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="n">â</span>
-    <span class="k">val</span> <span class="n">values</span> <span class="k">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">","</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">values</span> <span class="k">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;,&quot;</span><span class="o">)</span>
     <span class="nc">Sales</span><span class="o">(</span><span class="n">values</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="n">values</span><span class="o">(</span><span class="mi">1</span><span class="o">),</span> <span class="n">values</span><span class="o">(</span><span class="mi">2</span><span class="o">),</span> <span class="n">values</span><span class="o">(</span><span class="mi">3</span><span class="o">).</span><span class="n">toDouble</span><span class="o">)</span>
   <span class="o">})</span></code></pre></div>
 
@@ -140,7 +140,7 @@ text data as comma separated values. Then using <em>map</em> method on the strea
 it will be adding customer name to the sales stream.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">joinedDs</span> <span class="k">=</span> <span class="n">salesDs</span>
-      <span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">customerDs</span><span class="o">,</span> <span class="s">"customerId"</span><span class="o">)</span></code></pre></div>
+      <span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">customerDs</span><span class="o">,</span> <span class="s">&quot;customerId&quot;</span><span class="o">)</span></code></pre></div>
 
 <p>In above code, we use <em>join</em> API on dataset to achieve the enrichment. Here we can see how seamless it’s to join stream data with batch data.</p>
 
@@ -150,7 +150,7 @@ it will be adding customer name to the sales stream.</p>
 
 <h3 id="run-socket">1. Run socket</h3>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">nc <span class="nt">-lk</span> 50050</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">nc -lk 50050</code></pre></div>
 
 <h3 id="enter-sales-data">2. Enter Sales Data</h3>
 
@@ -179,24 +179,24 @@ to other stream processing systems.</p>
              
     
     <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">14 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

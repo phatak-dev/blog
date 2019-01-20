@@ -67,33 +67,33 @@
 
 <p>To start with we define our master using kubernetes deployment abstraction. As you can recall from <a href="/scaling-spark-with-kubernetes-part-3">earlier</a> post, deployment abstraction is used for defining one or morepods. Even though we need single master in our cluster, we will use deployment abstraction over pod as it gives us more flexiblity.</p>
 
-<div class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">extensions/v1beta1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">labels</span><span class="pi">:</span>
-    <span class="na">name</span><span class="pi">:</span> <span class="s">spark-master</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">spark-master</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">replicas</span><span class="pi">:</span> <span class="s">1</span>
-  <span class="na">template</span><span class="pi">:</span>
-    <span class="na">metadata</span><span class="pi">:</span>
-      <span class="na">labels</span><span class="pi">:</span>
-        <span class="na">name</span><span class="pi">:</span> <span class="s">spark-master</span>
-    <span class="na">spec</span><span class="pi">:</span>
-      <span class="na">containers</span><span class="pi">:</span>
-      <span class="pi">-</span> <span class="na">name </span><span class="pi">:</span> <span class="s">spark-master</span>
-        <span class="na">image</span><span class="pi">:</span> <span class="s">spark-2.1.0-bin-hadoop2.6</span> 
-        <span class="na">imagePullPolicy</span><span class="pi">:</span> <span class="s2">"</span><span class="s">IfNotPresent"</span>
-        <span class="na">name</span><span class="pi">:</span> <span class="s">spark-master</span>
-        <span class="na">ports</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="s">7077</span>
-          <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
-        <span class="na">command</span><span class="pi">:</span>
-         <span class="pi">-</span> <span class="s2">"</span><span class="s">/bin/bash"</span>
-         <span class="pi">-</span> <span class="s2">"</span><span class="s">-c"</span>
-         <span class="pi">-</span> <span class="s2">"</span><span class="s">--"</span>
-        <span class="na">args </span><span class="pi">:</span>
-         <span class="pi">-</span> <span class="s1">'</span><span class="s">./start-master.sh</span><span class="nv"> </span><span class="s">;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">infinity'</span></code></pre></div>
+<div class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">extensions/v1beta1</span>
+<span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Deployment</span>
+<span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+  <span class="l-Scalar-Plain">labels</span><span class="p-Indicator">:</span>
+    <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">spark-master</span>
+  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">spark-master</span>
+<span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+  <span class="l-Scalar-Plain">replicas</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">1</span>
+  <span class="l-Scalar-Plain">template</span><span class="p-Indicator">:</span>
+    <span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+      <span class="l-Scalar-Plain">labels</span><span class="p-Indicator">:</span>
+        <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">spark-master</span>
+    <span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+      <span class="l-Scalar-Plain">containers</span><span class="p-Indicator">:</span>
+      <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span> <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">spark-master</span>
+        <span class="l-Scalar-Plain">image</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">spark-2.1.0-bin-hadoop2.6</span> 
+        <span class="l-Scalar-Plain">imagePullPolicy</span><span class="p-Indicator">:</span> <span class="s">&quot;IfNotPresent&quot;</span>
+        <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">spark-master</span>
+        <span class="l-Scalar-Plain">ports</span><span class="p-Indicator">:</span>
+        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">containerPort</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">7077</span>
+          <span class="l-Scalar-Plain">protocol</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">TCP</span>
+        <span class="l-Scalar-Plain">command</span><span class="p-Indicator">:</span>
+         <span class="p-Indicator">-</span> <span class="s">&quot;/bin/bash&quot;</span>
+         <span class="p-Indicator">-</span> <span class="s">&quot;-c&quot;</span>
+         <span class="p-Indicator">-</span> <span class="s">&quot;--&quot;</span>
+        <span class="l-Scalar-Plain">args</span> <span class="p-Indicator">:</span>
+         <span class="p-Indicator">-</span> <span class="s">&#39;./start-master.sh</span><span class="nv"> </span><span class="s">;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">infinity&#39;</span></code></pre></div>
 
 <p>The above yaml configuration shows the configuration for the master. The noteworthy pieces are</p>
 
@@ -118,29 +118,29 @@
 
 <p>Once we have our configuration ready, we can start the spark master pod using below command</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl create <span class="nt">-f</span> spark-master.yaml</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl create -f spark-master.yaml</code></pre></div>
 
 <h3 id="spark-master-service">Spark Master Service</h3>
 
 <p>Once we have defined and ran the spark master, next step is to define the service for spark master. This service exposes the spark master on network and other workers can connect to it.</p>
 
-<div class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">spark-master</span>
-  <span class="na">labels</span><span class="pi">:</span>
-    <span class="na">name</span><span class="pi">:</span> <span class="s">spark-master</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">ports</span><span class="pi">:</span>
+<div class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
+<span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Service</span>
+<span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">spark-master</span>
+  <span class="l-Scalar-Plain">labels</span><span class="p-Indicator">:</span>
+    <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">spark-master</span>
+<span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+  <span class="l-Scalar-Plain">ports</span><span class="p-Indicator">:</span>
     <span class="c1"># the port that this service should serve on</span>
-  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">webui</span>
-    <span class="na">port</span><span class="pi">:</span> <span class="s">8080</span>
-    <span class="na">targetPort</span><span class="pi">:</span> <span class="s">8080</span>
-  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">spark</span>
-    <span class="na">port</span><span class="pi">:</span> <span class="s">7077</span>
-    <span class="na">targetPort</span><span class="pi">:</span> <span class="s">7077</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">name</span><span class="pi">:</span> <span class="s">spark-master</span></code></pre></div>
+  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">webui</span>
+    <span class="l-Scalar-Plain">port</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8080</span>
+    <span class="l-Scalar-Plain">targetPort</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">8080</span>
+  <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">spark</span>
+    <span class="l-Scalar-Plain">port</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">7077</span>
+    <span class="l-Scalar-Plain">targetPort</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">7077</span>
+  <span class="l-Scalar-Plain">selector</span><span class="p-Indicator">:</span>
+    <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">spark-master</span></code></pre></div>
 
 <p>The above yaml configuration for spark master service. We are naming the our service also <em>spark-master</em> which helps in resolving proper hosts on cluster.</p>
 
@@ -152,38 +152,38 @@
 
 <p>Once we have defined the master service, we can now start the service using below command.</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl create <span class="nt">-f</span> spark-master-service.yaml</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl create -f spark-master-service.yaml</code></pre></div>
 
 <h3 id="spark-worker-configuration">Spark Worker Configuration</h3>
 
 <p>Once we have our spark master and it’s service started, we can define the worker configuration.</p>
 
-<div class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">extensions/v1beta1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">labels</span><span class="pi">:</span>
-    <span class="na">name</span><span class="pi">:</span> <span class="s">spark-worker</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">spark-worker</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">replicas</span><span class="pi">:</span> <span class="s">1</span>
-  <span class="na">template</span><span class="pi">:</span>
-    <span class="na">metadata</span><span class="pi">:</span>
-      <span class="na">labels</span><span class="pi">:</span>
-        <span class="na">name</span><span class="pi">:</span> <span class="s">spark-worker</span>
-    <span class="na">spec</span><span class="pi">:</span>
-      <span class="na">containers</span><span class="pi">:</span>
-      <span class="pi">-</span> <span class="na">image</span><span class="pi">:</span> <span class="s">spark-2.1.0-bin-hadoop2.6</span> 
-        <span class="na">imagePullPolicy </span><span class="pi">:</span> <span class="s2">"</span><span class="s">IfNotPresent"</span>
-        <span class="na">name</span><span class="pi">:</span> <span class="s">spark-worker</span>
-        <span class="na">ports</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="s">7078</span>
-          <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
-        <span class="na">command</span><span class="pi">:</span>
-         <span class="pi">-</span> <span class="s2">"</span><span class="s">/bin/bash"</span>
-         <span class="pi">-</span> <span class="s2">"</span><span class="s">-c"</span>
-         <span class="pi">-</span> <span class="s2">"</span><span class="s">--"</span>
-        <span class="na">args </span><span class="pi">:</span>
-         <span class="pi">-</span> <span class="s1">'</span><span class="s">./start-worker.sh</span><span class="nv"> </span><span class="s">;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">infinity'</span></code></pre></div>
+<div class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="l-Scalar-Plain">apiVersion</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">extensions/v1beta1</span>
+<span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Deployment</span>
+<span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+  <span class="l-Scalar-Plain">labels</span><span class="p-Indicator">:</span>
+    <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">spark-worker</span>
+  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">spark-worker</span>
+<span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+  <span class="l-Scalar-Plain">replicas</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">1</span>
+  <span class="l-Scalar-Plain">template</span><span class="p-Indicator">:</span>
+    <span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
+      <span class="l-Scalar-Plain">labels</span><span class="p-Indicator">:</span>
+        <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">spark-worker</span>
+    <span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
+      <span class="l-Scalar-Plain">containers</span><span class="p-Indicator">:</span>
+      <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">image</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">spark-2.1.0-bin-hadoop2.6</span> 
+        <span class="l-Scalar-Plain">imagePullPolicy</span> <span class="p-Indicator">:</span> <span class="s">&quot;IfNotPresent&quot;</span>
+        <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">spark-worker</span>
+        <span class="l-Scalar-Plain">ports</span><span class="p-Indicator">:</span>
+        <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">containerPort</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">7078</span>
+          <span class="l-Scalar-Plain">protocol</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">TCP</span>
+        <span class="l-Scalar-Plain">command</span><span class="p-Indicator">:</span>
+         <span class="p-Indicator">-</span> <span class="s">&quot;/bin/bash&quot;</span>
+         <span class="p-Indicator">-</span> <span class="s">&quot;-c&quot;</span>
+         <span class="p-Indicator">-</span> <span class="s">&quot;--&quot;</span>
+        <span class="l-Scalar-Plain">args</span> <span class="p-Indicator">:</span>
+         <span class="p-Indicator">-</span> <span class="s">&#39;./start-worker.sh</span><span class="nv"> </span><span class="s">;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">infinity&#39;</span></code></pre></div>
 
 <p>As we are building two node cluster, we will be running only single worker as of now. Most of the configuration are same as master other than command which starts the worker.</p>
 
@@ -193,7 +193,7 @@
 
 <p>You can start worker deployment using below command</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl create <span class="nt">-f</span> spark-worker.yaml</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl create -f spark-worker.yaml</code></pre></div>
 
 <p>Now we have all services are ready</p>
 
@@ -267,11 +267,11 @@ spark-worker-91608803-l22pw    1/1       Running   0          56s</code></pre></
 
 <p>First we need to login to our master pod. Run below command</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl <span class="nb">exec</span> <span class="nt">-it</span> spark-master-498980536-kfgg8 bash</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl <span class="nb">exec</span> -it spark-master-498980536-kfgg8 bash</code></pre></div>
 
 <p>Start the spark shell using below command</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">/opt/spark/bin/spark-shell <span class="nt">--master</span> spark://spark-master:7077</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">/opt/spark/bin/spark-shell --master spark://spark-master:7077</code></pre></div>
 
 <p>Run below command to run some spark code</p>
 
@@ -295,24 +295,24 @@ spark-worker-91608803-l22pw    1/1       Running   0          56s</code></pre></
              
     
     <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">14 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

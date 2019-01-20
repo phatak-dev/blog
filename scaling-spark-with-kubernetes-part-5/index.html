@@ -102,12 +102,12 @@ java for all spark services.</p>
   <li>Download and Install Spark Binary</li>
 </ul>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">RUN <span class="nb">mkdir</span> <span class="nt">-p</span> /opt <span class="o">&amp;&amp;</span> <span class="se">\</span>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">RUN mkdir -p /opt <span class="o">&amp;&amp;</span> <span class="se">\</span>
     <span class="nb">cd</span> /opt <span class="o">&amp;&amp;</span> <span class="se">\</span>
-    curl http://www.us.apache.org/dist/spark/spark-<span class="k">${</span><span class="nv">spark_ver</span><span class="k">}</span>/spark-<span class="k">${</span><span class="nv">spark_ver</span><span class="k">}</span><span class="nt">-bin-hadoop2</span>.6.tgz | <span class="se">\</span>
-        <span class="nb">tar</span> <span class="nt">-zx</span> <span class="o">&amp;&amp;</span> <span class="se">\</span>
-    <span class="nb">ln</span> <span class="nt">-s</span> spark-<span class="k">${</span><span class="nv">spark_ver</span><span class="k">}</span><span class="nt">-bin-hadoop2</span>.6 spark <span class="o">&amp;&amp;</span> <span class="se">\</span>
-    <span class="nb">echo </span>Spark <span class="k">${</span><span class="nv">spark_ver</span><span class="k">}</span> installed <span class="k">in</span> /opt</code></pre></div>
+    curl http://www.us.apache.org/dist/spark/spark-<span class="k">${</span><span class="nv">spark_ver</span><span class="k">}</span>/spark-<span class="k">${</span><span class="nv">spark_ver</span><span class="k">}</span>-bin-hadoop2.6.tgz <span class="p">|</span> <span class="se">\</span>
+        tar -zx <span class="o">&amp;&amp;</span> <span class="se">\</span>
+    ln -s spark-<span class="k">${</span><span class="nv">spark_ver</span><span class="k">}</span>-bin-hadoop2.6 spark <span class="o">&amp;&amp;</span> <span class="se">\</span>
+    <span class="nb">echo </span>Spark <span class="k">${</span><span class="nv">spark_ver</span><span class="k">}</span> installed in /opt</code></pre></div>
 
 <p>The above curl command and downloads the spark binary. It will be symlinked into /opt/spark.</p>
 
@@ -116,7 +116,7 @@ java for all spark services.</p>
 </ul>
 
 <div class="highlight"><pre><code class="language-sh" data-lang="sh">ADD start-common.sh start-worker.sh start-master.sh /
-RUN <span class="nb">chmod</span> +x /start-common.sh /start-master.sh /start-worker.sh</code></pre></div>
+RUN chmod +x /start-common.sh /start-master.sh /start-worker.sh</code></pre></div>
 
 <p>The above lines add some start scripts. We discuss more about these scripts
 in next section.</p>
@@ -152,11 +152,11 @@ spark clustering. We will discuss more about service variable in next post.</p>
 
 <div class="highlight"><pre><code class="language-sh" data-lang="sh"><span class="c">#!/bin/sh</span>
 
-<span class="nb">.</span> /start-common.sh
+. /start-common.sh
 
-<span class="nb">echo</span> <span class="s2">"</span><span class="k">$(</span><span class="nb">hostname</span> <span class="nt">-i</span><span class="k">)</span><span class="s2"> spark-master"</span> <span class="o">&gt;&gt;</span> /etc/hosts
+<span class="nb">echo</span> <span class="s2">&quot;$(hostname -i) spark-master&quot;</span> &gt;&gt; /etc/hosts
 
-/opt/spark/sbin/start-master.sh <span class="nt">--ip</span> spark-master <span class="nt">--port</span> 7077</code></pre></div>
+/opt/spark/sbin/start-master.sh --ip spark-master --port 7077</code></pre></div>
 
 <p>In the first step, we run the common script. We will be using <em>spark-master</em> as the host name for our master container. So we are adding that into <em>/etc/hosts</em> file.</p>
 
@@ -172,7 +172,7 @@ spark clustering. We will discuss more about service variable in next post.</p>
 
 <div class="highlight"><pre><code class="language-sh" data-lang="sh"><span class="c">#!/bin/sh</span>
 
-<span class="nb">.</span> /start-common.sh
+. /start-common.sh
 
 /opt/spark/sbin/start-slave.sh spark://spark-master:7077</code></pre></div>
 
@@ -212,7 +212,7 @@ spark clustering. We will discuss more about service variable in next post.</p>
 
 <div class="highlight"><pre><code class="language-sh" data-lang="sh"><span class="nb">cd </span>docker
 
-docker build <span class="nt">-t</span> spark-2.1.0-bin-hadoop2.6 .</code></pre></div>
+docker build -t spark-2.1.0-bin-hadoop2.6 .</code></pre></div>
 
 <p>In above command, we are tagging (naming) the image as <em>spark-2.1.0-bin-hadoop-2.6</em>.</p>
 
@@ -235,24 +235,24 @@ off the shelf ones.</p>
              
     
     <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">14 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

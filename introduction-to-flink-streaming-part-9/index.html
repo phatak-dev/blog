@@ -92,10 +92,10 @@
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">case</span> <span class="k">class</span> <span class="nc">Stock</span><span class="o">(</span><span class="n">time</span><span class="k">:</span><span class="kt">Long</span><span class="o">,</span> <span class="n">symbol</span><span class="k">:</span><span class="kt">String</span><span class="o">,</span><span class="n">value</span><span class="k">:</span><span class="kt">Double</span><span class="o">)</span>
 
-  <span class="k">val</span> <span class="n">source</span> <span class="k">=</span> <span class="n">env</span><span class="o">.</span><span class="n">socketTextStream</span><span class="o">(</span><span class="s">"localhost"</span><span class="o">,</span><span class="mi">9000</span><span class="o">)</span>
+  <span class="k">val</span> <span class="n">source</span> <span class="k">=</span> <span class="n">env</span><span class="o">.</span><span class="n">socketTextStream</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span><span class="mi">9000</span><span class="o">)</span>
   
   <span class="k">val</span> <span class="n">parsedStream</span> <span class="k">=</span> <span class="n">source</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="o">{</span>
-      <span class="k">val</span> <span class="n">columns</span> <span class="k">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">","</span><span class="o">)</span>
+      <span class="k">val</span> <span class="n">columns</span> <span class="k">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;,&quot;</span><span class="o">)</span>
       <span class="nc">Stock</span><span class="o">(</span><span class="n">columns</span><span class="o">(</span><span class="mi">0</span><span class="o">).</span><span class="n">toLong</span><span class="o">,</span> <span class="n">columns</span><span class="o">(</span><span class="mi">1</span><span class="o">),</span><span class="n">columns</span><span class="o">(</span><span class="mi">2</span><span class="o">).</span><span class="n">toDouble</span><span class="o">)</span>
    <span class="o">})</span></code></pre></div>
 
@@ -117,9 +117,9 @@
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">keyedStream</span> <span class="k">=</span> <span class="n">timedValue</span><span class="o">.</span><span class="n">keyBy</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">symbol</span><span class="o">)</span>
 
-<span class="k">val</span> <span class="n">timeWindow</span> <span class="k">=</span> <span class="n">keyedStream</span><span class="o">.</span><span class="n">timeWindow</span><span class="o">(</span><span class="nc">Time</span><span class="o">.</span><span class="n">seconds</span><span class="o">(</span><span class="mi">10</span><span class="o">)).</span><span class="n">max</span><span class="o">(</span><span class="s">"value"</span><span class="o">).</span><span class="n">name</span><span class="o">(</span><span class="s">"timedwindow"</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">timeWindow</span> <span class="k">=</span> <span class="n">keyedStream</span><span class="o">.</span><span class="n">timeWindow</span><span class="o">(</span><span class="nc">Time</span><span class="o">.</span><span class="n">seconds</span><span class="o">(</span><span class="mi">10</span><span class="o">)).</span><span class="n">max</span><span class="o">(</span><span class="s">&quot;value&quot;</span><span class="o">).</span><span class="n">name</span><span class="o">(</span><span class="s">&quot;timedwindow&quot;</span><span class="o">)</span>
 
-<span class="n">timeWindow</span><span class="o">.</span><span class="n">print</span><span class="o">.</span><span class="n">name</span><span class="o">(</span><span class="s">"print sink"</span><span class="o">)</span></code></pre></div>
+<span class="n">timeWindow</span><span class="o">.</span><span class="n">print</span><span class="o">.</span><span class="n">name</span><span class="o">(</span><span class="s">&quot;print sink&quot;</span><span class="o">)</span></code></pre></div>
 
 <p>The above code, calculates max of a given stock price in last 10 seconds.</p>
 
@@ -131,19 +131,19 @@
 
 <p>Enter the below are the records in socket console. These are records for AAPL with time stamps. The first records is for time Wed, 27 Apr 2016 11:34:22 GMT.</p>
 
-<div class="highlight"><pre><code class="language-text" data-lang="text">1461756862000,"aapl",500.0</code></pre></div>
+<div class="highlight"><pre><code class="language-text" data-lang="text">1461756862000,&quot;aapl&quot;,500.0</code></pre></div>
 
 <p>Now we send the next record, which is after 5 seconds. This signifies to flink that, 5 seconds have passed in source. Nothing will evaluate yet, as we are looking for 10 seconds window. This event is for time Wed, 27 Apr 2016 11:34:27 GMT</p>
 
-<div class="highlight"><pre><code class="language-text" data-lang="text">1461756867000,"aapl",600.0</code></pre></div>
+<div class="highlight"><pre><code class="language-text" data-lang="text">1461756867000,&quot;aapl&quot;,600.0</code></pre></div>
 
 <p>Now we send another event, which is after 6 seconds from this time. Now flink understands 11 seconds have been passed and will evaluate the window. This event is for Wed, 27 Apr 2016 11:34:32 GMT</p>
 
-<div class="highlight"><pre><code class="language-text" data-lang="text">1461756872000,"aapl",400.0</code></pre></div>
+<div class="highlight"><pre><code class="language-text" data-lang="text">1461756872000,&quot;aapl&quot;,400.0</code></pre></div>
 
 <p>Now flink prints, maximum value as below in 10 seconds.</p>
 
-<div class="highlight"><pre><code class="language-text" data-lang="text">1461756872000,"aapl",600.0</code></pre></div>
+<div class="highlight"><pre><code class="language-text" data-lang="text">1461756872000,&quot;aapl&quot;,600.0</code></pre></div>
 
 <p>This shows how flink is keeping track of time using ascending watermarks to keep track of time in event time.</p>
 
@@ -155,24 +155,24 @@
              
     
     <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">14 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

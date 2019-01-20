@@ -67,7 +67,7 @@
 
 <p>Akka HTTP uses the akka-http-spray-json library for parsing json request and responses. So add the following dependency to your project.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="s">"com.typesafe.akka"</span> <span class="o">%%</span> <span class="s">"akka-http-spray-json-experimental"</span> <span class="o">%</span> <span class="s">"1.0"</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="s">&quot;com.typesafe.akka&quot;</span> <span class="o">%%</span> <span class="s">&quot;akka-http-spray-json-experimental&quot;</span> <span class="o">%</span> <span class="s">&quot;1.0&quot;</span></code></pre></div>
 
 <h2 id="rest-api-with-json">REST API with JSON</h2>
 
@@ -94,12 +94,12 @@
 <p>Once we have the model and parser implicits, we can define a route which has post for adding a customer and get to get all the added customers.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">route</span> <span class="k">=</span>
-    <span class="n">path</span><span class="o">(</span><span class="s">"customer"</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">path</span><span class="o">(</span><span class="s">&quot;customer&quot;</span><span class="o">)</span> <span class="o">{</span>
       <span class="n">post</span> <span class="o">{</span>
         <span class="n">entity</span><span class="o">(</span><span class="n">as</span><span class="o">[</span><span class="kt">Customer</span><span class="o">])</span> <span class="o">{</span>
           <span class="n">customer</span> <span class="k">=&gt;</span> <span class="n">complete</span> <span class="o">{</span>
             <span class="n">list</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">customer</span><span class="o">)</span>
-              <span class="n">s</span><span class="s">"got customer with name ${customer.name}"</span>
+              <span class="n">s</span><span class="s">&quot;got customer with name ${customer.name}&quot;</span>
             <span class="o">}</span>
           <span class="o">}</span>
         <span class="o">}</span> <span class="o">~</span>
@@ -127,24 +127,24 @@ Once we have the customer, we are adding it to a concurrent queue.</p>
              
     
     <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">14 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

@@ -73,11 +73,11 @@
 
 <h3 id="rdd">RDD</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">rdd</span> <span class="k">=</span> <span class="n">sparkContext</span><span class="o">.</span><span class="n">textFile</span><span class="o">(</span><span class="s">"src/main/resources/data.txt"</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">rdd</span> <span class="k">=</span> <span class="n">sparkContext</span><span class="o">.</span><span class="n">textFile</span><span class="o">(</span><span class="s">&quot;src/main/resources/data.txt&quot;</span><span class="o">)</span></code></pre></div>
 
 <h3 id="dataset">Dataset</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">ds</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">text</span><span class="o">(</span><span class="s">"src/main/resources/data.txt"</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">ds</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">text</span><span class="o">(</span><span class="s">&quot;src/main/resources/data.txt&quot;</span><span class="o">)</span></code></pre></div>
 
 <h2 id="calculating-count">2. Calculating count</h2>
 
@@ -93,14 +93,14 @@
 
 <h3 id="rdd-2">RDD</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">wordsRDD</span> <span class="k">=</span> <span class="n">rdd</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">"\\s+"</span><span class="o">))</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">wordsRDD</span> <span class="k">=</span> <span class="n">rdd</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;\\s+&quot;</span><span class="o">))</span>
  <span class="k">val</span> <span class="n">wordsPair</span> <span class="k">=</span> <span class="n">wordsRDD</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">word</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">word</span><span class="o">,</span><span class="mi">1</span><span class="o">))</span>
  <span class="k">val</span> <span class="n">wordCount</span> <span class="k">=</span> <span class="n">wordsPair</span><span class="o">.</span><span class="n">reduceByKey</span><span class="o">(</span><span class="k">_</span><span class="o">+</span><span class="k">_</span><span class="o">)</span></code></pre></div>
 
 <h3 id="dataset-2">Dataset</h3>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">import</span> <span class="nn">sparkSession.implicits._</span>
-<span class="k">val</span> <span class="n">wordsDs</span> <span class="k">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">"\\s+"</span><span class="o">))</span>
+<span class="k">val</span> <span class="n">wordsDs</span> <span class="k">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;\\s+&quot;</span><span class="o">))</span>
 <span class="k">val</span> <span class="n">wordsPairDs</span> <span class="k">=</span> <span class="n">wordsDs</span><span class="o">.</span><span class="n">groupByKey</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">wordCountDs</span> <span class="k">=</span> <span class="n">wordsPairDs</span><span class="o">.</span><span class="n">count</span><span class="o">()</span></code></pre></div>
 
@@ -118,11 +118,11 @@
 
 <h3 id="rdd-4">RDD</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">filteredRDD</span> <span class="k">=</span> <span class="n">wordsRDD</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span> <span class="o">==</span><span class="s">"hello"</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">filteredRDD</span> <span class="k">=</span> <span class="n">wordsRDD</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span> <span class="o">==</span><span class="s">&quot;hello&quot;</span><span class="o">)</span></code></pre></div>
 
 <h3 id="dataset-4">Dataset</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">filteredDS</span> <span class="k">=</span> <span class="n">wordsDs</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span> <span class="o">==</span><span class="s">"hello"</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">filteredDS</span> <span class="k">=</span> <span class="n">wordsDs</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span> <span class="o">==</span><span class="s">&quot;hello&quot;</span><span class="o">)</span></code></pre></div>
 
 <h2 id="map-partitions">6. Map Partitions</h2>
 
@@ -155,7 +155,7 @@
 <p>Converting a RDD to dataframe is little bit work as we need to specify the schema. Here we are showing how to convert RDD[String] to DataFrame[String].</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">rddStringToRowRDD</span> <span class="k">=</span> <span class="n">rdd</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="nc">Row</span><span class="o">(</span><span class="n">value</span><span class="o">))</span>
-<span class="k">val</span> <span class="n">dfschema</span> <span class="k">=</span> <span class="nc">StructType</span><span class="o">(</span><span class="nc">Array</span><span class="o">(</span><span class="nc">StructField</span><span class="o">(</span><span class="s">"value"</span><span class="o">,</span><span class="nc">StringType</span><span class="o">)))</span>
+<span class="k">val</span> <span class="n">dfschema</span> <span class="k">=</span> <span class="nc">StructType</span><span class="o">(</span><span class="nc">Array</span><span class="o">(</span><span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;value&quot;</span><span class="o">,</span><span class="nc">StringType</span><span class="o">)))</span>
 <span class="k">val</span> <span class="n">rddToDF</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">createDataFrame</span><span class="o">(</span><span class="n">rddStringToRowRDD</span><span class="o">,</span><span class="n">dfschema</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">rDDToDataSet</span> <span class="k">=</span> <span class="n">rddToDF</span><span class="o">.</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span></code></pre></div>
 
@@ -170,12 +170,12 @@
 <h3 id="dataset-8">Dataset</h3>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">rowRDD</span> <span class="k">=</span> <span class="n">doubleRDD</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="nc">Row</span><span class="o">.</span><span class="n">fromSeq</span><span class="o">(</span><span class="nc">List</span><span class="o">(</span><span class="n">value</span><span class="o">)))</span>
-<span class="k">val</span> <span class="n">schema</span> <span class="k">=</span> <span class="nc">StructType</span><span class="o">(</span><span class="nc">Array</span><span class="o">(</span><span class="nc">StructField</span><span class="o">(</span><span class="s">"value"</span><span class="o">,</span><span class="nc">DoubleType</span><span class="o">)))</span>
+<span class="k">val</span> <span class="n">schema</span> <span class="k">=</span> <span class="nc">StructType</span><span class="o">(</span><span class="nc">Array</span><span class="o">(</span><span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;value&quot;</span><span class="o">,</span><span class="nc">DoubleType</span><span class="o">)))</span>
 <span class="k">val</span> <span class="n">doubleDS</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">createDataFrame</span><span class="o">(</span><span class="n">rowRDD</span><span class="o">,</span><span class="n">schema</span><span class="o">)</span>
 
 <span class="k">import</span> <span class="nn">org.apache.spark.sql.functions._</span>
-<span class="n">doubleDS</span><span class="o">.</span><span class="n">agg</span><span class="o">(</span><span class="n">sum</span><span class="o">(</span><span class="s">"value"</span><span class="o">))</span>
-<span class="n">doubleDS</span><span class="o">.</span><span class="n">agg</span><span class="o">(</span><span class="n">mean</span><span class="o">(</span><span class="s">"value"</span><span class="o">))</span></code></pre></div>
+<span class="n">doubleDS</span><span class="o">.</span><span class="n">agg</span><span class="o">(</span><span class="n">sum</span><span class="o">(</span><span class="s">&quot;value&quot;</span><span class="o">))</span>
+<span class="n">doubleDS</span><span class="o">.</span><span class="n">agg</span><span class="o">(</span><span class="n">mean</span><span class="o">(</span><span class="s">&quot;value&quot;</span><span class="o">))</span></code></pre></div>
 
 <h2 id="reduce-api">9. Reduce API</h2>
 
@@ -199,24 +199,24 @@
              
     
     <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">14 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

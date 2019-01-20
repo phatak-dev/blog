@@ -61,14 +61,14 @@
 
 <p>So here is a small hack in C using which you can copy one array into another array without using any loops!!!! and obviously without using any in built in functions.</p>
 
-<div class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#include
-</span><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<div class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#include</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
 <span class="p">{</span>
 <span class="k">static</span> <span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="c1">//array index</span>
 <span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span><span class="o">=</span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">};</span> <span class="c1">//first array</span>
 <span class="kt">int</span> <span class="n">b</span><span class="p">[</span><span class="mi">10</span><span class="p">];</span> <span class="c1">//second array</span>
 <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
-<span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s"> %d"</span><span class="p">,</span><span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+<span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s"> %d&quot;</span><span class="p">,</span><span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
 <span class="n">i</span><span class="o">++</span><span class="p">;</span>
 <span class="k">if</span><span class="p">(</span><span class="n">i</span><span class="o">&gt;</span><span class="mi">2</span><span class="p">)</span> <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span> <span class="c1">//continue till first array is empty</span>
 <span class="n">main</span><span class="p">();</span>

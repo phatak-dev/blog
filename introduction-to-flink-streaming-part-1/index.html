@@ -77,7 +77,7 @@
 
 <p>To start using Datastream API, you should add the following dependency to project. I am using sbt for build management. You can also use other build tools like maven.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="s">"org.apache.flink"</span> <span class="o">%%</span> <span class="s">"flink-scala"</span> <span class="o">%</span> <span class="s">"1.0.0"</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="s">&quot;org.apache.flink&quot;</span> <span class="o">%%</span> <span class="s">&quot;flink-scala&quot;</span> <span class="o">%</span> <span class="s">&quot;1.0.0&quot;</span></code></pre></div>
 
 <p>You can access complete build.sbt <a href="https://github.com/phatak-dev/flink-examples/blob/master/build.sbt">here</a></p>
 
@@ -105,13 +105,13 @@
 
 <p>Once we have the pointer to execution environment, next step is to create a stream from socket.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">socketStream</span> <span class="k">=</span> <span class="n">env</span><span class="o">.</span><span class="n">socketTextStream</span><span class="o">(</span><span class="s">"localhost"</span><span class="o">,</span><span class="mi">9000</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">socketStream</span> <span class="k">=</span> <span class="n">env</span><span class="o">.</span><span class="n">socketTextStream</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span><span class="mi">9000</span><span class="o">)</span></code></pre></div>
 
 <p><em>socketStream</em> will be of the type DataStream. DataStream is basic abstraction of flink’s streaming API.</p>
 
 <h3 id="step-3-implement-wordcount-logic">Step 3. Implement wordcount logic</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">wordsStream</span> <span class="k">=</span> <span class="n">socketStream</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">"\\s+"</span><span class="o">)).</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">value</span><span class="o">,</span><span class="mi">1</span><span class="o">))</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">wordsStream</span> <span class="k">=</span> <span class="n">socketStream</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;\\s+&quot;</span><span class="o">)).</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">value</span><span class="o">,</span><span class="mi">1</span><span class="o">))</span>
 
     <span class="k">val</span> <span class="n">keyValuePair</span> <span class="k">=</span> <span class="n">wordsStream</span><span class="o">.</span><span class="n">keyBy</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
 
@@ -137,7 +137,7 @@
 
 <p>To run this example, we need to start the socket at 9000 at following command to</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">nc <span class="nt">-lk</span> 9000</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">nc -lk 9000</code></pre></div>
 
 <p>Once you do that, you can run the program from the IDE and <a href="https://ci.apache.org/projects/flink/flink-docs-master/apis/cli.html">command line interface</a>.</p>
 
@@ -179,24 +179,24 @@
              
     
     <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">14 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

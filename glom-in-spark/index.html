@@ -61,8 +61,8 @@
 
 <p>Now you can do it using map and reduce operations as below.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">// create rdd
-</span> <span class="k">val</span> <span class="n">dataList</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="mf">50.0</span><span class="o">,</span><span class="mf">40.0</span><span class="o">,</span><span class="mf">40.0</span><span class="o">,</span><span class="mf">70.0</span><span class="o">)</span>   
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">// create rdd</span>
+ <span class="k">val</span> <span class="n">dataList</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="mf">50.0</span><span class="o">,</span><span class="mf">40.0</span><span class="o">,</span><span class="mf">40.0</span><span class="o">,</span><span class="mf">70.0</span><span class="o">)</span>   
  <span class="k">val</span> <span class="n">dataRDD</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">makeRDD</span><span class="o">(</span><span class="n">dataList</span><span class="o">)</span>  
  <span class="k">val</span> <span class="n">maxValue</span> <span class="k">=</span>  <span class="n">dataRDD</span><span class="o">.</span><span class="n">reduce</span> <span class="o">(</span><span class="k">_</span> <span class="n">max</span> <span class="k">_</span><span class="o">)</span></code></pre></div>
 
@@ -88,8 +88,8 @@ Rather than comparing all the values, we can</p>
 
 <p>But with glom, you can multiply with whole partition at a time so that your computation will speed up significantly.Code listing for same is below</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">// Weighted sum using glom
-</span>  <span class="k">import</span> <span class="nn">org.jblas.DoubleMatrix</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">// Weighted sum using glom</span>
+  <span class="k">import</span> <span class="nn">org.jblas.DoubleMatrix</span>
   <span class="k">val</span> <span class="n">rowsList</span> <span class="k">=</span> <span class="nc">List</span><span class="o">[</span><span class="kt">List</span><span class="o">[</span><span class="kt">Double</span><span class="o">]](</span>
       <span class="nc">List</span><span class="o">(</span><span class="mf">50.0</span><span class="o">,</span><span class="mf">40.0</span><span class="o">,</span><span class="mf">44.0</span><span class="o">),</span>
       <span class="nc">List</span><span class="o">(</span><span class="mi">88</span><span class="o">,</span><span class="mf">44.0</span><span class="o">,</span><span class="mf">44.0</span><span class="o">),</span>

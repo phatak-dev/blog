@@ -136,18 +136,18 @@
 
 <p>Both Spark and Flink mimic scala collection API’s. So from surface both API’s look very similar. Following is the scala word count using RDD and Dataset API.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">// Spark wordcount
-</span><span class="k">object</span> <span class="nc">WordCount</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">// Spark wordcount</span>
+<span class="k">object</span> <span class="nc">WordCount</span> <span class="o">{</span>
 
   <span class="k">def</span> <span class="n">main</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span> <span class="o">{</span>
 
-    <span class="k">val</span> <span class="n">env</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkContext</span><span class="o">(</span><span class="s">"local"</span><span class="o">,</span><span class="s">"wordCount"</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">env</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkContext</span><span class="o">(</span><span class="s">&quot;local&quot;</span><span class="o">,</span><span class="s">&quot;wordCount&quot;</span><span class="o">)</span>
 
-    <span class="k">val</span> <span class="n">data</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">"hi"</span><span class="o">,</span><span class="s">"how are you"</span><span class="o">,</span><span class="s">"hi"</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">data</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">&quot;hi&quot;</span><span class="o">,</span><span class="s">&quot;how are you&quot;</span><span class="o">,</span><span class="s">&quot;hi&quot;</span><span class="o">)</span>
 
     <span class="k">val</span> <span class="n">dataSet</span> <span class="k">=</span> <span class="n">env</span><span class="o">.</span><span class="n">parallelize</span><span class="o">(</span><span class="n">data</span><span class="o">)</span>
 
-    <span class="k">val</span> <span class="n">words</span> <span class="k">=</span> <span class="n">dataSet</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">"\\s+"</span><span class="o">))</span>
+    <span class="k">val</span> <span class="n">words</span> <span class="k">=</span> <span class="n">dataSet</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;\\s+&quot;</span><span class="o">))</span>
 
     <span class="k">val</span> <span class="n">mappedWords</span> <span class="k">=</span> <span class="n">words</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">value</span><span class="o">,</span><span class="mi">1</span><span class="o">))</span>
 
@@ -159,18 +159,18 @@
 
 <span class="o">}</span></code></pre></div>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">// Flink wordcount
-</span><span class="k">object</span> <span class="nc">WordCount</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">// Flink wordcount</span>
+<span class="k">object</span> <span class="nc">WordCount</span> <span class="o">{</span>
 
   <span class="k">def</span> <span class="n">main</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span> <span class="o">{</span>
 
     <span class="k">val</span> <span class="n">env</span> <span class="k">=</span> <span class="nc">ExecutionEnvironment</span><span class="o">.</span><span class="n">getExecutionEnvironment</span>
 
-    <span class="k">val</span> <span class="n">data</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">"hi"</span><span class="o">,</span><span class="s">"how are you"</span><span class="o">,</span><span class="s">"hi"</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">data</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">&quot;hi&quot;</span><span class="o">,</span><span class="s">&quot;how are you&quot;</span><span class="o">,</span><span class="s">&quot;hi&quot;</span><span class="o">)</span>
 
     <span class="k">val</span> <span class="n">dataSet</span> <span class="k">=</span> <span class="n">env</span><span class="o">.</span><span class="n">fromCollection</span><span class="o">(</span><span class="n">data</span><span class="o">)</span>
 
-    <span class="k">val</span> <span class="n">words</span> <span class="k">=</span> <span class="n">dataSet</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">"\\s+"</span><span class="o">))</span>
+    <span class="k">val</span> <span class="n">words</span> <span class="k">=</span> <span class="n">dataSet</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;\\s+&quot;</span><span class="o">))</span>
 
     <span class="k">val</span> <span class="n">mappedWords</span> <span class="k">=</span> <span class="n">words</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">value</span><span class="o">,</span><span class="mi">1</span><span class="o">))</span>
 

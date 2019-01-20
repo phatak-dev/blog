@@ -94,7 +94,7 @@
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">SimpleDataSourceReader</span> <span class="k">extends</span> <span class="nc">DataSourceReader</span> <span class="o">{</span>
 
-  <span class="k">def</span> <span class="n">readSchema</span><span class="o">()</span> <span class="k">=</span> <span class="nc">StructType</span><span class="o">(</span><span class="nc">Array</span><span class="o">(</span><span class="nc">StructField</span><span class="o">(</span><span class="s">"value"</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">)))</span>
+  <span class="k">def</span> <span class="n">readSchema</span><span class="o">()</span> <span class="k">=</span> <span class="nc">StructType</span><span class="o">(</span><span class="nc">Array</span><span class="o">(</span><span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;value&quot;</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">)))</span>
                                         
   <span class="k">def</span> <span class="n">createDataReaderFactories</span> <span class="k">=</span> <span class="o">{</span>
     <span class="k">val</span> <span class="n">factoryList</span> <span class="k">=</span> <span class="k">new</span> <span class="n">java</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="nc">ArrayList</span><span class="o">[</span><span class="kt">DataReaderFactory</span><span class="o">[</span><span class="kt">Row</span><span class="o">]]</span>
@@ -110,7 +110,7 @@
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">SimpleDataSourceReaderFactory</span> <span class="k">extends</span> 
          <span class="nc">DataReaderFactory</span><span class="o">[</span><span class="kt">Row</span><span class="o">]</span> <span class="k">with</span> <span class="nc">DataReader</span><span class="o">[</span><span class="kt">Row</span><span class="o">]</span> <span class="o">{</span>
   <span class="k">def</span> <span class="n">createDataReader</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SimpleDataSourceReaderFactory</span><span class="o">()</span>
-  <span class="k">val</span> <span class="n">values</span> <span class="k">=</span> <span class="nc">Array</span><span class="o">(</span><span class="s">"1"</span><span class="o">,</span> <span class="s">"2"</span><span class="o">,</span> <span class="s">"3"</span><span class="o">,</span> <span class="s">"4"</span><span class="o">,</span> <span class="s">"5"</span><span class="o">)</span>
+  <span class="k">val</span> <span class="n">values</span> <span class="k">=</span> <span class="nc">Array</span><span class="o">(</span><span class="s">&quot;1&quot;</span><span class="o">,</span> <span class="s">&quot;2&quot;</span><span class="o">,</span> <span class="s">&quot;3&quot;</span><span class="o">,</span> <span class="s">&quot;4&quot;</span><span class="o">,</span> <span class="s">&quot;5&quot;</span><span class="o">)</span>
 
   <span class="k">var</span> <span class="n">index</span> <span class="k">=</span> <span class="mi">0</span>
 
@@ -134,8 +134,8 @@
 <p>The below is the code to read the data from this source</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">simpleDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span>
-               <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">"com.madhukaraphatak.examples.
-                       sparktwo.datasourcev2.simple"</span><span class="o">)</span>
+               <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;com.madhukaraphatak.examples.</span>
+<span class="s">                       sparktwo.datasourcev2.simple&quot;</span><span class="o">)</span>
       <span class="o">.</span><span class="n">load</span><span class="o">()</span></code></pre></div>
 
 <p>From above code it’s apparent that reading from v2 source is exactly same as v1 source. So for user of these connectors it will be transparent.</p>
@@ -143,7 +143,7 @@
 <p>We can print the data and number partitions with below code</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">simpleDf</span><span class="o">.</span><span class="n">show</span><span class="o">()</span>
-    <span class="n">println</span><span class="o">(</span><span class="s">"number of partitions in simple source is "</span><span class="o">+</span><span class="n">simpleDf</span><span class="o">.</span><span class="n">rdd</span><span class="o">.</span><span class="n">getNumPartitions</span><span class="o">)</span></code></pre></div>
+    <span class="n">println</span><span class="o">(</span><span class="s">&quot;number of partitions in simple source is &quot;</span><span class="o">+</span><span class="n">simpleDf</span><span class="o">.</span><span class="n">rdd</span><span class="o">.</span><span class="n">getNumPartitions</span><span class="o">)</span></code></pre></div>
 
 <p>You can access complete code on <a href="https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/datasourcev2/SimpleDataSource.scala">github</a>.</p>
 
@@ -159,24 +159,24 @@
              
     
     <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">14 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

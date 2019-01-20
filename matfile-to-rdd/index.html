@@ -83,15 +83,15 @@
   <li>Reading mat file using JMatIO</li>
 </ul>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">file</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">MatFileReader</span><span class="o">(</span><span class="s">"src/main/resources/mnist_uint8.mat"</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">file</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">MatFileReader</span><span class="o">(</span><span class="s">&quot;src/main/resources/mnist_uint8.mat&quot;</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">content</span> <span class="k">=</span> <span class="n">file</span><span class="o">.</span><span class="n">getContent</span></code></pre></div>
 
 <ul>
   <li>Getting specific Matlab variable from content</li>
 </ul>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">train_x</span> <span class="k">=</span> <span class="n">content</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="s">"train_x"</span><span class="o">).</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">MLUInt8</span><span class="o">].</span><span class="n">getArray</span>
- <span class="k">val</span> <span class="n">train_y</span> <span class="k">=</span> <span class="n">content</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="s">"train_y"</span><span class="o">).</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">MLUInt8</span><span class="o">].</span><span class="n">getArray</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">train_x</span> <span class="k">=</span> <span class="n">content</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="s">&quot;train_x&quot;</span><span class="o">).</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">MLUInt8</span><span class="o">].</span><span class="n">getArray</span>
+ <span class="k">val</span> <span class="n">train_y</span> <span class="k">=</span> <span class="n">content</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="s">&quot;train_y&quot;</span><span class="o">).</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">MLUInt8</span><span class="o">].</span><span class="n">getArray</span></code></pre></div>
 
 <p>Casting to MLUInt8 says that array content is integers.</p>
 
@@ -125,7 +125,7 @@ in most of the classification algorithms.</li>
   <li>Saving rdd for further processing</li>
 </ul>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">trainRDD</span><span class="o">.</span><span class="n">saveAsObjectFile</span><span class="o">(</span><span class="s">"mnsit"</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">trainRDD</span><span class="o">.</span><span class="n">saveAsObjectFile</span><span class="o">(</span><span class="s">&quot;mnsit&quot;</span><span class="o">)</span></code></pre></div>
 
 
 </article>

@@ -85,7 +85,7 @@
 
 <p>Once we have access to catalog, we can use it to query the databases. All the API’s on catalog returns a dataset.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">catalog</span><span class="o">.</span><span class="n">listDatabases</span><span class="o">().</span><span class="n">select</span><span class="o">(</span><span class="s">"name"</span><span class="o">).</span><span class="n">show</span><span class="o">()</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">catalog</span><span class="o">.</span><span class="n">listDatabases</span><span class="o">().</span><span class="n">select</span><span class="o">(</span><span class="s">&quot;name&quot;</span><span class="o">).</span><span class="n">show</span><span class="o">()</span></code></pre></div>
 
 <p>On catalog, <em>listDatabases</em> gives all the databases.By default, you will have only one database called <em>default</em>.In case of hive, it also access databases from the metastore. As the listDatabases returns a dataset, we can use all the operation available on dataset to query the metadata.</p>
 
@@ -95,7 +95,7 @@
 
 <p><em>createTempView</em> can be used as follows.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">df</span><span class="o">.</span><span class="n">createTempView</span><span class="o">(</span><span class="s">"sales"</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">df</span><span class="o">.</span><span class="n">createTempView</span><span class="o">(</span><span class="s">&quot;sales&quot;</span><span class="o">)</span></code></pre></div>
 
 <p>Once we have registered a view, we can query it using listTables.</p>
 
@@ -103,18 +103,18 @@
 
 <p>As we can query databases, we can query tables. It lists all the temporary table registered in case of spark sql. In hive case, it lists all the tables in the underneath metadata store.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">catalog</span><span class="o">.</span><span class="n">listTables</span><span class="o">().</span><span class="n">select</span><span class="o">(</span><span class="s">"name"</span><span class="o">).</span><span class="n">show</span><span class="o">()</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">catalog</span><span class="o">.</span><span class="n">listTables</span><span class="o">().</span><span class="n">select</span><span class="o">(</span><span class="s">&quot;name&quot;</span><span class="o">).</span><span class="n">show</span><span class="o">()</span></code></pre></div>
 
 <h2 id="checking-is-table-cached-or-not">Checking is table cached or not</h2>
 
 <p>Catalog not only is used for querying. It can be used to check state of individual tables. Given a table, we can check is it cache or not. It’s useful in scenarios to make sure we cache the tables which are accessed frequently.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">catalog</span><span class="o">.</span><span class="n">isCached</span><span class="o">(</span><span class="s">"sales"</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">catalog</span><span class="o">.</span><span class="n">isCached</span><span class="o">(</span><span class="s">&quot;sales&quot;</span><span class="o">)</span></code></pre></div>
 
 <p>You will get false as by default no table will be cache. Now we cache the table and query again.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">df</span><span class="o">.</span><span class="n">cache</span><span class="o">()</span>
-<span class="n">catalog</span><span class="o">.</span><span class="n">isCached</span><span class="o">(</span><span class="s">"sales"</span><span class="o">)</span></code></pre></div>
+<span class="n">catalog</span><span class="o">.</span><span class="n">isCached</span><span class="o">(</span><span class="s">&quot;sales&quot;</span><span class="o">)</span></code></pre></div>
 
 <p>Now it will print true.</p>
 
@@ -122,14 +122,14 @@
 
 <p>We can use catalog to drop views. In spark sql case, it will deregister the view. In case of hive, it will drops from the metadata store.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">catalog</span><span class="o">.</span><span class="n">dropTempView</span><span class="o">(</span><span class="s">"sales"</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">catalog</span><span class="o">.</span><span class="n">dropTempView</span><span class="o">(</span><span class="s">&quot;sales&quot;</span><span class="o">)</span></code></pre></div>
 
 <h2 id="query-registered-functions">Query registered functions</h2>
 
 <p>Catalog API not only allow us to interact with tables, it also allows us to interact with udf’s. The below code shows how to query all functions registered on spark session. They also include all built in functions.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">catalog</span><span class="o">.</span><span class="n">listFunctions</span><span class="o">().</span>
-<span class="n">select</span><span class="o">(</span><span class="s">"name"</span><span class="o">,</span><span class="s">"description"</span><span class="o">,</span><span class="s">"className"</span><span class="o">,</span><span class="s">"isTemporary"</span><span class="o">).</span><span class="n">show</span><span class="o">(</span><span class="mi">100</span><span class="o">)</span></code></pre></div>
+<span class="n">select</span><span class="o">(</span><span class="s">&quot;name&quot;</span><span class="o">,</span><span class="s">&quot;description&quot;</span><span class="o">,</span><span class="s">&quot;className&quot;</span><span class="o">,</span><span class="s">&quot;isTemporary&quot;</span><span class="o">).</span><span class="n">show</span><span class="o">(</span><span class="mi">100</span><span class="o">)</span></code></pre></div>
 
 <p>You can access complete code <a href="https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/CatalogExample.scala">here</a>.</p>
 
@@ -148,24 +148,24 @@
              
     
     <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">14 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

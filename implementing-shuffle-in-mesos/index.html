@@ -143,8 +143,8 @@
 
 <p>forEachTask returns a function task which does following.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">tempDir</span> <span class="k">=</span> <span class="nc">Utils</span><span class="o">.</span><span class="n">createTempDir</span><span class="o">(</span><span class="s">"/tmp/shuffleLocal"</span><span class="o">).</span><span class="n">getAbsoluteFile</span>
-<span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">"using tempDir $tempDir"</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">tempDir</span> <span class="k">=</span> <span class="nc">Utils</span><span class="o">.</span><span class="n">createTempDir</span><span class="o">(</span><span class="s">&quot;/tmp/shuffleLocal&quot;</span><span class="o">).</span><span class="n">getAbsoluteFile</span>
+<span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;using tempDir $tempDir&quot;</span><span class="o">)</span>
 
 <span class="k">val</span> <span class="n">index</span> <span class="k">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">_2</span>
 <span class="k">val</span> <span class="n">iterator</span> <span class="k">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">_1</span></code></pre></div>
@@ -174,7 +174,7 @@
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">paths</span> <span class="k">=</span> <span class="o">(</span><span class="mi">0</span> <span class="n">until</span> <span class="n">numberOfOutputSplit</span><span class="o">).</span><span class="n">map</span> <span class="o">{</span>
           <span class="n">i</span> <span class="k">=&gt;</span>
-            <span class="k">val</span> <span class="n">path</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">File</span><span class="o">(</span><span class="n">tempDir</span><span class="o">,</span> <span class="s">"%d-%d"</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="n">index</span><span class="o">,</span> <span class="n">i</span><span class="o">))</span>
+            <span class="k">val</span> <span class="n">path</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">File</span><span class="o">(</span><span class="n">tempDir</span><span class="o">,</span> <span class="s">&quot;%d-%d&quot;</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="n">index</span><span class="o">,</span> <span class="n">i</span><span class="o">))</span>
             <span class="k">val</span> <span class="n">out</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ObjectOutputStream</span><span class="o">(</span><span class="k">new</span> <span class="nc">FileOutputStream</span><span class="o">(</span><span class="n">path</span><span class="o">))</span>
             <span class="n">buckets</span><span class="o">(</span><span class="n">i</span><span class="o">).</span><span class="n">foreach</span><span class="o">(</span><span class="n">pair</span> <span class="k">=&gt;</span> <span class="n">out</span><span class="o">.</span><span class="n">writeObject</span><span class="o">(</span><span class="n">pair</span><span class="o">))</span>
             <span class="n">out</span><span class="o">.</span><span class="n">close</span><span class="o">()</span>
@@ -216,7 +216,7 @@
         <span class="k">val</span> <span class="n">combiners</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">HashMap</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">C</span><span class="o">]</span>
         <span class="k">for</span> <span class="o">((</span><span class="n">uri</span><span class="o">,</span> <span class="n">splits</span><span class="o">)</span> <span class="k">&lt;-</span> <span class="nc">Utils</span><span class="o">.</span><span class="n">shuffle</span><span class="o">(</span><span class="n">splitsByUri</span><span class="o">))</span> <span class="o">{</span>
           <span class="k">for</span> <span class="o">(</span><span class="n">split</span> <span class="k">&lt;-</span> <span class="n">splits</span><span class="o">)</span> <span class="o">{</span>
-            <span class="k">val</span> <span class="n">url</span> <span class="k">=</span> <span class="s">"%s/%d-%d"</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="n">uri</span><span class="o">,</span><span class="n">split</span><span class="o">,</span><span class="n">index</span><span class="o">)</span>
+            <span class="k">val</span> <span class="n">url</span> <span class="k">=</span> <span class="s">&quot;%s/%d-%d&quot;</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="n">uri</span><span class="o">,</span><span class="n">split</span><span class="o">,</span><span class="n">index</span><span class="o">)</span>
             <span class="k">val</span> <span class="n">inputStream</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ObjectInputStream</span><span class="o">(</span><span class="k">new</span> <span class="nc">URL</span><span class="o">(</span><span class="n">url</span><span class="o">).</span><span class="n">openStream</span><span class="o">())</span>
             <span class="k">try</span> <span class="o">{</span>
               <span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>
@@ -247,10 +247,10 @@
 
 <p>The following code uses our shuffle to implement word count. Here we do the mapping inline , only implement combiner and reducer functionality.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">paragraph</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">"hello how are you how are you i am fine let's go till end how are you"</span><span class="o">,</span><span class="s">"hello how are you u asked me"</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">paragraph</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">&quot;hello how are you how are you i am fine let&#39;s go till end how are you&quot;</span><span class="o">,</span><span class="s">&quot;hello how are you u asked me&quot;</span><span class="o">)</span>
 
     
-<span class="k">val</span> <span class="n">twoSplits</span> <span class="k">=</span> <span class="n">paragraph</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">" "</span><span class="o">)).</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">value</span><span class="o">,</span> <span class="mi">1</span><span class="o">)).</span><span class="n">splitAt</span><span class="o">(</span><span class="mi">10</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">twoSplits</span> <span class="k">=</span> <span class="n">paragraph</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">)).</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">value</span><span class="o">,</span> <span class="mi">1</span><span class="o">)).</span><span class="n">splitAt</span><span class="o">(</span><span class="mi">10</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">finalList</span> <span class="k">=</span> <span class="nc">List</span><span class="o">[</span><span class="kt">List</span><span class="o">[(</span><span class="kt">String</span>, <span class="kt">Int</span><span class="o">)]](</span><span class="n">twoSplits</span><span class="o">.</span><span class="n">_1</span><span class="o">,</span> <span class="n">twoSplits</span><span class="o">.</span><span class="n">_2</span><span class="o">)</span>
 
 <span class="k">val</span> <span class="n">createCombiner</span> <span class="k">=</span> <span class="o">(</span><span class="n">value</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">value</span>
@@ -259,7 +259,7 @@
 
 <span class="k">val</span> <span class="n">result</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">LocalShuffle</span><span class="o">().</span><span class="n">compute</span><span class="o">(</span><span class="n">finalList</span><span class="o">,</span><span class="n">createCombiner</span><span class="o">,</span>
 <span class="n">mergeValue</span><span class="o">,</span><span class="n">mergeCombiner</span><span class="o">,</span><span class="mi">2</span><span class="o">,</span><span class="n">scheduler</span><span class="o">)</span>
-<span class="n">println</span><span class="o">(</span><span class="s">"result is"</span> <span class="o">+</span><span class="n">result</span><span class="o">)</span></code></pre></div>
+<span class="n">println</span><span class="o">(</span><span class="s">&quot;result is&quot;</span> <span class="o">+</span><span class="n">result</span><span class="o">)</span></code></pre></div>
 
 <h2 id="building--and-running">Building  and Running</h2>
 
@@ -297,24 +297,24 @@
              
     
     <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">14 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

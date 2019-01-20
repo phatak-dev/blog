@@ -78,24 +78,24 @@
 
 <p>The below code is an example of cross join in 1.x. In this example, we are doing a self join without any condition.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">loadedDf</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">"com.databricks.spark.csv"</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">"header"</span><span class="o">,</span> <span class="s">"true"</span><span class="o">).</span><span class="n">load</span><span class="o">(</span><span class="s">"../test_data/sales.csv"</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">loadedDf</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;com.databricks.spark.csv&quot;</span><span class="o">).</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">).</span><span class="n">load</span><span class="o">(</span><span class="s">&quot;../test_data/sales.csv&quot;</span><span class="o">)</span>
 
- <span class="c1">//cross join the data
-</span> <span class="k">val</span> <span class="n">crossJoinDf</span> <span class="k">=</span> <span class="n">loadedDf</span><span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">loadedDf</span><span class="o">)</span>
-<span class="c1">// count the joined df
-</span> <span class="n">println</span><span class="o">(</span><span class="n">crossJoinDf</span><span class="o">.</span><span class="n">explain</span><span class="o">())</span>
+ <span class="c1">//cross join the data</span>
+ <span class="k">val</span> <span class="n">crossJoinDf</span> <span class="k">=</span> <span class="n">loadedDf</span><span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">loadedDf</span><span class="o">)</span>
+<span class="c1">// count the joined df</span>
+ <span class="n">println</span><span class="o">(</span><span class="n">crossJoinDf</span><span class="o">.</span><span class="n">explain</span><span class="o">())</span>
  <span class="n">println</span><span class="o">(</span><span class="n">crossJoinDf</span><span class="o">.</span><span class="n">count</span><span class="o">)</span></code></pre></div>
 
 <p>The plan looks as below</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="nc">CartesianProduct</span>
 <span class="o">:-</span> <span class="nc">Scan</span> <span class="nc">CsvRelation</span><span class="o">(&lt;</span><span class="n">function0</span><span class="o">&gt;,</span><span class="nc">Some</span><span class="o">(../</span><span class="n">test_data</span><span class="o">/</span><span class="n">sales</span><span class="o">.</span><span class="n">csv</span><span class="o">),</span><span class="kc">true</span><span class="o">,</span>
-<span class="o">,,</span><span class="s">",null,#,PERMISSIVE,COMMONS,false,
-false,false,null,
-false,null,,null,100000)[transactionId#0,
-customerId#1,itemId#2,amountPaid#3]
-+- Scan CsvRelation(&lt;function0&gt;,Some(../test_data/sales.csv),
-true,,,"</span><span class="o">,</span><span class="kc">null</span><span class="o">,#,</span><span class="nc">PERMISSIVE</span><span class="o">,</span><span class="nc">COMMONS</span><span class="o">,</span><span class="kc">false</span><span class="o">,</span>
+<span class="o">,,</span><span class="s">&quot;,null,#,PERMISSIVE,COMMONS,false,</span>
+<span class="s">false,false,null,</span>
+<span class="s">false,null,,null,100000)[transactionId#0,</span>
+<span class="s">customerId#1,itemId#2,amountPaid#3]</span>
+<span class="s">+- Scan CsvRelation(&lt;function0&gt;,Some(../test_data/sales.csv),</span>
+<span class="s">true,,,&quot;</span><span class="o">,</span><span class="kc">null</span><span class="o">,#,</span><span class="nc">PERMISSIVE</span><span class="o">,</span><span class="nc">COMMONS</span><span class="o">,</span><span class="kc">false</span><span class="o">,</span>
 <span class="kc">false</span><span class="o">,</span><span class="kc">false</span><span class="o">,</span><span class="kc">null</span><span class="o">,</span><span class="kc">false</span><span class="o">,</span><span class="kc">null</span><span class="o">,,</span><span class="kc">null</span><span class="o">,</span><span class="mi">100000</span><span class="o">)</span>
 <span class="o">[</span><span class="kt">transactionId</span><span class="k">#</span><span class="err">9</span>,<span class="kt">customerId</span><span class="k">#</span><span class="err">10</span>,<span class="kt">itemId</span><span class="k">#</span><span class="err">11</span>,<span class="kt">amountPaid</span><span class="k">#</span><span class="err">12</span><span class="o">]</span></code></pre></div>
 
@@ -133,24 +133,24 @@ true,,,"</span><span class="o">,</span><span class="kc">null</span><span class="
              
     
     <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">14 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

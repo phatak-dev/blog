@@ -78,7 +78,7 @@ allows us to scale our spark cluster dynamically.</p>
 
 <p>Run below command to scale up workers from 1 to 2.</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl scale deployment spark-worker <span class="nt">--replicas</span> 2</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl scale deployment spark-worker --replicas 2</code></pre></div>
 
 <p>The above command takes deployment name as parameters and number of replicas. 
 You can check results using</p>
@@ -92,7 +92,7 @@ pods come up they automatically connect to spark-master and scales the cluster.<
 
 <p>We can not only increase the workers, we can also scale down by setting lower replica numbers.</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl scale deployment spark-worker <span class="nt">--replicas</span> 1</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl scale deployment spark-worker --replicas 1</code></pre></div>
 
 <p>When above command executes, kubernetes will kill one of the worker to reduce the replica count to 1.</p>
 
@@ -103,11 +103,11 @@ pods come up they automatically connect to spark-master and scales the cluster.<
 <p>Till now, we have run single cluster. But sometime we may want to run multiple clusters on same kubernetes cluster. If we try to run
 same configurations twice like below</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl create <span class="nt">-f</span> spark-master.yaml</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl create -f spark-master.yaml</code></pre></div>
 
 <p>You will get below error</p>
 
-<div class="highlight"><pre><code class="language-text" data-lang="text">Error from server: error when creating "spark-master.yaml": deployments.extensions "spark-master" already exists</code></pre></div>
+<div class="highlight"><pre><code class="language-text" data-lang="text">Error from server: error when creating &quot;spark-master.yaml&quot;: deployments.extensions &quot;spark-master&quot; already exists</code></pre></div>
 
 <p>Kubernetes is rejecting the request as the spark-master named deployment is already exist. One of the way to solve this issue is to
 duplicate the configurations with different name. But it will be tedious and difficult to maintain.</p>
@@ -147,8 +147,8 @@ kube-system   Active    81d</code></pre></div>
 
 <p>Run below command to change the context</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh"><span class="nb">export </span><span class="nv">CONTEXT</span><span class="o">=</span><span class="k">$(</span>kubectl config view | <span class="nb">awk</span> <span class="s1">'/current-context/ {print $2}'</span><span class="k">)</span>
-kubectl config set-context <span class="nv">$CONTEXT</span> <span class="nt">--namespace</span><span class="o">=</span>cluster2</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh"><span class="nb">export </span><span class="nv">CONTEXT</span><span class="o">=</span><span class="k">$(</span>kubectl config view <span class="p">|</span> awk <span class="s1">&#39;/current-context/ {print $2}&#39;</span><span class="k">)</span>
+kubectl config <span class="nb">set</span>-context <span class="nv">$CONTEXT</span> --namespace<span class="o">=</span>cluster2</code></pre></div>
 
 <p>In the first step, we get <em>CONTEXT</em> variable. In the next command, we set namespace to <em>cluster2</em>.</p>
 
@@ -156,11 +156,11 @@ kubectl config set-context <span class="nv">$CONTEXT</span> <span class="nt">--n
 
 <p>Once we set the context, we can use same commands to create cluster. Let’s run below the command</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl create <span class="nt">-f</span> .</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl create -f .</code></pre></div>
 
 <p>Now our second cluster is started. We can see all the pods across the namespaces using below command</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl get po <span class="nt">--all-namespaces</span></code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl get po --all-namespaces</code></pre></div>
 
 <p>You should see some result something like below</p>
 
@@ -195,24 +195,24 @@ and monitoring. In next blog, we will discuss about resource management on kuber
              
     
     <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">14 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

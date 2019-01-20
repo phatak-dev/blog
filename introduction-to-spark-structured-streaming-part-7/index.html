@@ -92,18 +92,18 @@ can read all the posts in the series <a href="/categories/introduction-structure
 <p>For this example, we take sales data from a file stream and do some aggregation on it. The below is the code</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">schema</span> <span class="k">=</span> <span class="nc">StructType</span><span class="o">(</span>
-  <span class="nc">Array</span><span class="o">(</span><span class="nc">StructField</span><span class="o">(</span><span class="s">"transactionId"</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
-        <span class="nc">StructField</span><span class="o">(</span><span class="s">"customerId"</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
-        <span class="nc">StructField</span><span class="o">(</span><span class="s">"itemId"</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
-        <span class="nc">StructField</span><span class="o">(</span><span class="s">"amountPaid"</span><span class="o">,</span> <span class="nc">DoubleType</span><span class="o">)))</span>
+  <span class="nc">Array</span><span class="o">(</span><span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;transactionId&quot;</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
+        <span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;customerId&quot;</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
+        <span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;itemId&quot;</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">),</span>
+        <span class="nc">StructField</span><span class="o">(</span><span class="s">&quot;amountPaid&quot;</span><span class="o">,</span> <span class="nc">DoubleType</span><span class="o">)))</span>
 
-<span class="c1">//create stream from folder
-</span><span class="k">val</span> <span class="n">fileStreamDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">readStream</span>
-  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"header"</span><span class="o">,</span> <span class="s">"true"</span><span class="o">)</span>
+<span class="c1">//create stream from folder</span>
+<span class="k">val</span> <span class="n">fileStreamDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">readStream</span>
+  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span> <span class="s">&quot;true&quot;</span><span class="o">)</span>
   <span class="o">.</span><span class="n">schema</span><span class="o">(</span><span class="n">schema</span><span class="o">)</span>
-  <span class="o">.</span><span class="n">csv</span><span class="o">(</span><span class="s">"/tmp/input"</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">csv</span><span class="o">(</span><span class="s">&quot;/tmp/input&quot;</span><span class="o">)</span>
 
-<span class="k">val</span> <span class="n">countDs</span> <span class="k">=</span> <span class="n">fileStreamDf</span><span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="s">"customerId"</span><span class="o">).</span><span class="n">sum</span><span class="o">(</span><span class="s">"amountPaid"</span><span class="o">)</span></code></pre></div>
+<span class="k">val</span> <span class="n">countDs</span> <span class="k">=</span> <span class="n">fileStreamDf</span><span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="s">&quot;customerId&quot;</span><span class="o">).</span><span class="n">sum</span><span class="o">(</span><span class="s">&quot;amountPaid&quot;</span><span class="o">)</span></code></pre></div>
 
 <p>In this example, we are aggregating the amount for a given customer. We like to checkpoint this state. It makes sure that amount doesn’t start from zero whenever there is failure.</p>
 
@@ -114,8 +114,8 @@ to scale checkpointing across multiple different processing.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">query</span> <span class="k">=</span>
   <span class="n">countDs</span><span class="o">.</span><span class="n">writeStream</span>
-    <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">"console"</span><span class="o">)</span>
-    <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"checkpointLocation"</span><span class="o">,</span> <span class="s">"/tmp/checkpoint"</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;console&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;checkpointLocation&quot;</span><span class="o">,</span> <span class="s">&quot;/tmp/checkpoint&quot;</span><span class="o">)</span>
     <span class="o">.</span><span class="n">outputMode</span><span class="o">(</span><span class="nc">OutputMode</span><span class="o">.</span><span class="nc">Complete</span><span class="o">())</span></code></pre></div>
 
 <p>In above code, we specify the checkpointing directory using <em>checkpointLocation</em> option on <em>writeStream</em>. This makes sure that the state is written the directory.</p>
@@ -143,24 +143,24 @@ to scale checkpointing across multiple different processing.</p>
              
     
     <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">14 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 
