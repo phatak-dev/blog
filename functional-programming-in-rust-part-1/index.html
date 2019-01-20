@@ -67,8 +67,8 @@
 
 <h2 id="defining-a-function-in-rust">Defining a function in rust</h2>
 
-<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">fn</span> <span class="n">simple_function</span><span class="p">()</span> <span class="p">{</span>
-	<span class="nb">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;function called&quot;</span><span class="p">);</span>
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">fn</span> <span class="nf">simple_function</span><span class="p">()</span> <span class="p">{</span>
+	<span class="nd">println!</span><span class="p">(</span><span class="s">"function called"</span><span class="p">);</span>
 <span class="p">}</span></code></pre></div>
 
 <p>The above code shows how to define a function. <em>fn</em> keyword marks beginning of a function followed with function name and argument. As with scala, if we don’t specify any return type it will be inferred as unit.</p>
@@ -79,11 +79,11 @@
 
 <p>In functional programming languages, a function is a first class citizen. So we can store a function inside a variable and return the function from other function. So in this example, we will see how to store a function in a variable.</p>
 
-<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">fn</span> <span class="n">add</span><span class="p">(</span><span class="n">a</span><span class="o">:</span><span class="kt">i32</span><span class="p">,</span> <span class="n">b</span><span class="o">:</span><span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">i32</span>  <span class="p">{</span>
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">fn</span> <span class="nf">add</span><span class="p">(</span><span class="n">a</span><span class="p">:</span><span class="nb">i32</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span><span class="nb">i32</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="nb">i32</span>  <span class="p">{</span>
     <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
     <span class="p">}</span>
-<span class="kd">let</span> <span class="n">fn_variable</span> <span class="o">=</span> <span class="n">add</span><span class="p">;</span>
-<span class="nb">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;calling using function variable {}&quot;</span><span class="p">,</span><span class="n">fn_variable</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">20</span><span class="p">));</span></code></pre></div>
+<span class="k">let</span> <span class="n">fn_variable</span> <span class="o">=</span> <span class="n">add</span><span class="p">;</span>
+<span class="nd">println!</span><span class="p">(</span><span class="s">"calling using function variable {}"</span><span class="p">,</span><span class="nf">fn_variable</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">20</span><span class="p">));</span></code></pre></div>
 
 <p>The above code show how to define a function variable in rust. First we define a function named add. In this function, we specify the return type explicitly. Unlike scala, in rust return types are not type inferred. The last line of the function is considered as return statement.</p>
 
@@ -93,9 +93,9 @@
 
 <p>Once we are able to store a function in a variable, we should be able to pass the function to another function. These kind of functions are known as higher order functions. The below code shows how to define function which accepts another function as parameter.</p>
 
-<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">fn</span> <span class="n">higer_order_fn</span><span class="o">&lt;</span><span class="n">F</span><span class="o">&gt;</span><span class="p">(</span><span class="n">value</span><span class="o">:</span><span class="kt">i32</span><span class="p">,</span> <span class="n">step</span><span class="o">:</span> <span class="n">F</span><span class="p">)</span>  <span class="o">-&gt;</span> <span class="kt">i32</span>
-                    <span class="n">where</span> <span class="n">F</span><span class="o">:</span> <span class="n">Fn</span><span class="p">(</span><span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">i32</span> <span class="p">{</span>
-    <span class="n">step</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">fn</span> <span class="n">higer_order_fn</span><span class="o">&lt;</span><span class="n">F</span><span class="o">&gt;</span><span class="p">(</span><span class="n">value</span><span class="p">:</span><span class="nb">i32</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="n">F</span><span class="p">)</span>  <span class="k">-&gt;</span> <span class="nb">i32</span>
+                    <span class="k">where</span> <span class="n">F</span><span class="p">:</span> <span class="nf">Fn</span><span class="p">(</span><span class="nb">i32</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="nb">i32</span> <span class="p">{</span>
+    <span class="nf">step</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 <span class="p">}</span></code></pre></div>
 
 <p>The above code shows a higher order function. The interesting piece in code is the type of second parameter step. step is of generic type F which is defined in  the where clause.</p>
@@ -106,15 +106,15 @@
 
 <h3 id="using-named-function">Using Named Function</h3>
 
-<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">fn</span> <span class="n">add_one</span><span class="p">(</span><span class="n">x</span><span class="o">:</span><span class="kt">i32</span><span class="p">)</span><span class="o">-&gt;</span><span class="kt">i32</span> <span class="p">{</span> <span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">}</span>
-<span class="kd">let</span> <span class="n">result</span> <span class="o">=</span> <span class="n">higer_order_fn</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="n">add_one</span><span class="p">);</span></code></pre></div>
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">fn</span> <span class="nf">add_one</span><span class="p">(</span><span class="n">x</span><span class="p">:</span><span class="nb">i32</span><span class="p">)</span><span class="k">-&gt;</span><span class="nb">i32</span> <span class="p">{</span> <span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">}</span>
+<span class="k">let</span> <span class="n">result</span> <span class="o">=</span> <span class="nf">higer_order_fn</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="n">add_one</span><span class="p">);</span></code></pre></div>
 
 <p>The above code defines a named function add_one and passes it to higher_order function.</p>
 
 <h3 id="using-anonymous-functions">Using anonymous functions</h3>
 <p>Anonymous functions are in rust are part of closure feature of rust. Closures are special functions which has access to their surrounding scope. So anonymous functions are closures with empty scope.</p>
 
-<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="kd">let</span> <span class="n">result</span> <span class="o">=</span> <span class="n">higer_order_fn</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="o">|</span><span class="n">x</span><span class="o">:</span><span class="kt">i32</span><span class="o">|</span> <span class="n">x</span> <span class="o">+</span><span class="mi">1</span> <span class="p">);</span></code></pre></div>
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">let</span> <span class="n">result</span> <span class="o">=</span> <span class="nf">higer_order_fn</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="p">|</span><span class="n">x</span><span class="p">:</span><span class="nb">i32</span><span class="p">|</span> <span class="n">x</span> <span class="o">+</span><span class="mi">1</span> <span class="p">);</span></code></pre></div>
 
 <p>The above code show how to pass an anonymous function. You can read more about rust closures <a href="https://doc.rust-lang.org/book/closures.html">here</a>.</p>
 
@@ -125,9 +125,9 @@ This is quite simple in most of the functional programming languages, but it’s
 
 <p>In this code I will show how to achieve the return of a function.</p>
 
-<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">fn</span> <span class="n">higer_order_fn_return</span><span class="o">&lt;</span><span class="nl">&#39;a</span><span class="o">&gt;</span><span class="p">(</span><span class="n">step_value</span><span class="o">:&amp;</span> <span class="nl">&#39;a</span> <span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> 
-                            <span class="n">Box</span><span class="o">&lt;</span><span class="n">Fn</span><span class="p">(</span><span class="kt">i32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">i32</span> <span class="o">+</span> <span class="nl">&#39;a</span> <span class="o">&gt;</span> <span class="p">{</span>
-       <span class="n">Box</span><span class="o">::</span><span class="n">new</span><span class="p">(</span><span class="n">move</span> <span class="o">|</span><span class="n">x</span><span class="o">:</span><span class="kt">i32</span><span class="o">|</span> <span class="n">x</span><span class="o">+</span><span class="n">step_value</span><span class="p">)</span>
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">fn</span> <span class="n">higer_order_fn_return</span><span class="o">&lt;</span><span class="nv">'a</span><span class="o">&gt;</span><span class="p">(</span><span class="n">step_value</span><span class="p">:</span><span class="o">&amp;</span> <span class="nv">'a</span> <span class="nb">i32</span><span class="p">)</span> <span class="k">-&gt;</span> 
+                            <span class="nb">Box</span><span class="o">&lt;</span><span class="nf">Fn</span><span class="p">(</span><span class="nb">i32</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="nb">i32</span> <span class="o">+</span> <span class="nv">'a</span> <span class="o">&gt;</span> <span class="p">{</span>
+       <span class="nn">Box</span><span class="p">::</span><span class="nf">new</span><span class="p">(</span><span class="k">move</span> <span class="p">|</span><span class="n">x</span><span class="p">:</span><span class="nb">i32</span><span class="p">|</span> <span class="n">x</span><span class="o">+</span><span class="n">step_value</span><span class="p">)</span>
 <span class="p">}</span></code></pre></div>
 
 <p>The above code looks complicated. The reason to have the complications is the way rust works with lifetimes. Let’s try to understand what’s going on here.</p>
@@ -144,9 +144,9 @@ This is quite simple in most of the functional programming languages, but it’s
 
 <p>The below code shows how to invoke the above function.</p>
 
-<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="kd">let</span> <span class="n">step_value</span> <span class="o">=</span> <span class="o">&amp;</span><span class="mi">10</span><span class="p">;</span>
-<span class="kd">let</span> <span class="n">step_function</span> <span class="o">=</span> <span class="n">higer_order_fn_return</span><span class="p">(</span><span class="n">step_value</span><span class="p">);</span>
-<span class="nb">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;the stepped value is{}&quot;</span><span class="p">,</span> <span class="n">step_function</span><span class="p">(</span><span class="mi">50</span><span class="p">));</span></code></pre></div>
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">let</span> <span class="n">step_value</span> <span class="o">=</span> <span class="o">&amp;</span><span class="mi">10</span><span class="p">;</span>
+<span class="k">let</span> <span class="n">step_function</span> <span class="o">=</span> <span class="nf">higer_order_fn_return</span><span class="p">(</span><span class="n">step_value</span><span class="p">);</span>
+<span class="nd">println!</span><span class="p">(</span><span class="s">"the stepped value is{}"</span><span class="p">,</span> <span class="nf">step_function</span><span class="p">(</span><span class="mi">50</span><span class="p">));</span></code></pre></div>
 
 <p>You can access complete code <a href="https://github.com/phatak-dev/fpinrust/blob/master/src/bin/definefunctions.rs">here</a>.</p>
 
@@ -154,7 +154,7 @@ This is quite simple in most of the functional programming languages, but it’s
 
 <p>You can run all the examples using the below command</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">cargo run --bin definefunctions</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">cargo run <span class="nt">--bin</span> definefunctions</code></pre></div>
 
 <p>So in this we got familiar with rust function abstraction. In next post, we will discuss how to use this abstractions to build function combinators on collections.</p>
 
@@ -166,21 +166,26 @@ This is quite simple in most of the functional programming languages, but it’s
              
     
     <li>    
-     <span class="post-date">13 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+     <span class="post-date">20 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
    </li>           
          
 
             
     
     <li>    
-     <span class="post-date">25 Aug 2016</span>
-     &raquo; <a href="/functional-programming-in-rust-part-2">Functional Programming in Rust - Part 2 : Functional Combinators</a>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
    </li>           
          
 
             
-          
+    
+    <li>    
+     <span class="post-date">13 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
 
    
    

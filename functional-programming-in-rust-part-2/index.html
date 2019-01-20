@@ -83,12 +83,12 @@
 
 <p>To use function combinators we need to have access to collection. So we are defining a vector in below code</p>
 
-<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="kd">let</span> <span class="n">vector</span> <span class="o">=</span> <span class="n">vec</span><span class="o">!</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="p">);</span></code></pre></div>
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">let</span> <span class="n">vector</span> <span class="o">=</span> <span class="nd">vec!</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="p">);</span></code></pre></div>
 
 <h2 id="map-combinator">Map Combinator</h2>
 
-<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="kd">let</span> <span class="n">mapped_vector</span> <span class="o">=</span> <span class="n">vector</span><span class="p">.</span><span class="n">iter</span><span class="p">().</span><span class="n">map</span><span class="p">(</span><span class="o">|&amp;</span><span class="n">x</span><span class="o">|</span> <span class="n">x</span> <span class="o">+</span><span class="mi">1</span><span class="p">).</span><span class="n">collect</span><span class="o">::&lt;</span><span class="n">Vec</span><span class="o">&lt;</span><span class="kt">i32</span><span class="o">&gt;&gt;</span><span class="p">();</span>
-<span class="nb">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{:?}&quot;</span><span class="p">,</span><span class="n">mapped_vector</span><span class="p">);</span></code></pre></div>
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">let</span> <span class="n">mapped_vector</span> <span class="o">=</span> <span class="n">vector</span><span class="nf">.iter</span><span class="p">()</span><span class="nf">.map</span><span class="p">(|</span><span class="o">&amp;</span><span class="n">x</span><span class="p">|</span> <span class="n">x</span> <span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="py">.collect</span><span class="p">::</span><span class="o">&lt;</span><span class="nb">Vec</span><span class="o">&lt;</span><span class="nb">i32</span><span class="o">&gt;&gt;</span><span class="p">();</span>
+<span class="nd">println!</span><span class="p">(</span><span class="s">"{:?}"</span><span class="p">,</span><span class="n">mapped_vector</span><span class="p">);</span></code></pre></div>
 
 <p>In above code, first we access iterator using <em>iter()</em> method. Then we call our map combinator and pass a closure to it.</p>
 
@@ -100,35 +100,35 @@
 
 <h2 id="filter">Filter</h2>
 
-<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="kd">let</span> <span class="n">filtered_values</span> <span class="o">=</span> <span class="n">vector</span><span class="p">.</span><span class="n">iter</span><span class="p">().</span><span class="n">filter</span><span class="p">(</span><span class="o">|&amp;</span><span class="n">x</span><span class="o">|</span> <span class="n">x</span><span class="o">%</span><span class="mi">2</span> <span class="o">==</span><span class="mi">0</span><span class="p">).</span><span class="n">collect</span><span class="o">::&lt;</span><span class="n">Vec</span><span class="o">&lt;&amp;</span><span class="kt">i32</span><span class="o">&gt;&gt;</span><span class="p">();</span></code></pre></div>
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">let</span> <span class="n">filtered_values</span> <span class="o">=</span> <span class="n">vector</span><span class="nf">.iter</span><span class="p">()</span><span class="nf">.filter</span><span class="p">(|</span><span class="o">&amp;</span><span class="n">x</span><span class="p">|</span> <span class="n">x</span><span class="o">%</span><span class="mi">2</span> <span class="o">==</span><span class="mi">0</span><span class="p">)</span><span class="py">.collect</span><span class="p">::</span><span class="o">&lt;</span><span class="nb">Vec</span><span class="o">&lt;&amp;</span><span class="nb">i32</span><span class="o">&gt;&gt;</span><span class="p">();</span></code></pre></div>
 
 <h2 id="count">Count</h2>
 
-<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="kd">let</span> <span class="n">vec_count</span> <span class="o">=</span> <span class="n">vector</span><span class="p">.</span><span class="n">iter</span><span class="p">().</span><span class="n">count</span><span class="p">();</span></code></pre></div>
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">let</span> <span class="n">vec_count</span> <span class="o">=</span> <span class="n">vector</span><span class="nf">.iter</span><span class="p">()</span><span class="nf">.count</span><span class="p">();</span></code></pre></div>
 
 <h2 id="zip-with-index">Zip with Index</h2>
 
-<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="kd">let</span> <span class="n">index_vec</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">.</span><span class="n">vec_count</span><span class="p">;</span>
-<span class="kd">let</span> <span class="n">index_zipped_vector</span> <span class="o">=</span> <span class="n">vector</span><span class="p">.</span><span class="n">iter</span><span class="p">().</span><span class="n">zip</span><span class="p">(</span><span class="n">index_vec</span><span class="p">).</span><span class="n">collect</span><span class="o">::&lt;</span><span class="n">Vec</span><span class="o">&lt;</span><span class="p">(</span><span class="o">&amp;</span><span class="kt">i32</span><span class="p">,</span><span class="n">usize</span><span class="p">)</span><span class="o">&gt;&gt;</span><span class="p">();</span></code></pre></div>
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">let</span> <span class="n">index_vec</span> <span class="o">=</span> <span class="mi">0</span><span class="o">..</span><span class="n">vec_count</span><span class="p">;</span>
+<span class="k">let</span> <span class="n">index_zipped_vector</span> <span class="o">=</span> <span class="n">vector</span><span class="nf">.iter</span><span class="p">()</span><span class="nf">.zip</span><span class="p">(</span><span class="n">index_vec</span><span class="p">)</span><span class="py">.collect</span><span class="p">::</span><span class="o">&lt;</span><span class="nb">Vec</span><span class="o">&lt;</span><span class="p">(</span><span class="o">&amp;</span><span class="nb">i32</span><span class="p">,</span><span class="nb">usize</span><span class="p">)</span><span class="o">&gt;&gt;</span><span class="p">();</span></code></pre></div>
 
 <h2 id="fold">Fold</h2>
 
-<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="kd">let</span> <span class="n">sum</span> <span class="o">=</span> <span class="n">vector</span><span class="p">.</span><span class="n">iter</span><span class="p">().</span><span class="n">fold</span><span class="p">(</span><span class="mi">0</span><span class="p">,(</span><span class="o">|</span><span class="n">sum</span><span class="p">,</span><span class="n">value</span><span class="o">|</span> <span class="n">sum</span><span class="o">+</span><span class="n">value</span><span class="p">));</span></code></pre></div>
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">let</span> <span class="n">sum</span> <span class="o">=</span> <span class="n">vector</span><span class="nf">.iter</span><span class="p">()</span><span class="nf">.fold</span><span class="p">(</span><span class="mi">0</span><span class="p">,(|</span><span class="n">sum</span><span class="p">,</span><span class="n">value</span><span class="p">|</span> <span class="n">sum</span><span class="o">+</span><span class="n">value</span><span class="p">));</span></code></pre></div>
 
 <h2 id="max">Max</h2>
 
-<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="kd">let</span> <span class="n">max</span> <span class="o">=</span> <span class="n">vector</span><span class="p">.</span><span class="n">iter</span><span class="p">().</span><span class="n">max</span><span class="p">().</span><span class="n">unwrap</span><span class="p">();</span></code></pre></div>
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">let</span> <span class="n">max</span> <span class="o">=</span> <span class="n">vector</span><span class="nf">.iter</span><span class="p">()</span><span class="nf">.max</span><span class="p">()</span><span class="nf">.unwrap</span><span class="p">();</span></code></pre></div>
 
 <p>In max, rust returns an option value. We use <em>unwrap</em> method to get the value from option. It’s similar to <em>get</em> method on scala option.</p>
 
 <h2 id="for-all">For All</h2>
 
-<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="kd">let</span> <span class="n">greater_than_zero</span> <span class="o">=</span> <span class="n">vector</span><span class="p">.</span><span class="n">iter</span><span class="p">().</span><span class="n">all</span><span class="p">(</span><span class="o">|&amp;</span><span class="n">x</span><span class="o">|</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="p">)</span> <span class="p">;</span></code></pre></div>
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">let</span> <span class="n">greater_than_zero</span> <span class="o">=</span> <span class="n">vector</span><span class="nf">.iter</span><span class="p">()</span><span class="nf">.all</span><span class="p">(|</span><span class="o">&amp;</span><span class="n">x</span><span class="p">|</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="p">)</span> <span class="p">;</span></code></pre></div>
 
 <h2 id="flatmap">FlatMap</h2>
 
-<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="kd">let</span> <span class="n">lines_vec</span> <span class="o">=</span> <span class="n">vec</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;hello,how&quot;</span><span class="p">,</span><span class="s">&quot;are,you&quot;</span><span class="p">);</span>
-<span class="kd">let</span> <span class="n">words_vec</span> <span class="o">=</span> <span class="n">lines_vec</span><span class="p">.</span><span class="n">iter</span><span class="p">().</span><span class="n">flat_map</span><span class="p">(</span><span class="o">|&amp;</span><span class="n">x</span><span class="o">|</span> <span class="n">x</span><span class="p">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;,&quot;</span><span class="p">)).</span><span class="n">collect</span><span class="o">::&lt;</span><span class="n">Vec</span><span class="o">&lt;&amp;</span><span class="kt">str</span><span class="o">&gt;&gt;</span><span class="p">();</span></code></pre></div>
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">let</span> <span class="n">lines_vec</span> <span class="o">=</span> <span class="nd">vec!</span><span class="p">(</span><span class="s">"hello,how"</span><span class="p">,</span><span class="s">"are,you"</span><span class="p">);</span>
+<span class="k">let</span> <span class="n">words_vec</span> <span class="o">=</span> <span class="n">lines_vec</span><span class="nf">.iter</span><span class="p">()</span><span class="nf">.flat_map</span><span class="p">(|</span><span class="o">&amp;</span><span class="n">x</span><span class="p">|</span> <span class="n">x</span><span class="nf">.split</span><span class="p">(</span><span class="s">","</span><span class="p">))</span><span class="py">.collect</span><span class="p">::</span><span class="o">&lt;</span><span class="nb">Vec</span><span class="o">&lt;&amp;</span><span class="nb">str</span><span class="o">&gt;&gt;</span><span class="p">();</span></code></pre></div>
 
 <p>You can access complete code <a href="https://github.com/phatak-dev/fpinrust/blob/master/src/bin/fncombinators.rs">here</a>.</p>
 
@@ -136,7 +136,7 @@
 
 <p>You can run all the examples using the below command</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">cargo run --bin fncombinators</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">cargo run <span class="nt">--bin</span> fncombinators</code></pre></div>
 
 <p>So in this post, we looked at how to use functional combinators to manipulate collections in rust.</p>
 
@@ -148,19 +148,24 @@
              
     
     <li>    
-     <span class="post-date">13 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+     <span class="post-date">20 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
    </li>           
          
 
             
-          
+    
+    <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
 
             
     
     <li>    
-     <span class="post-date">24 Aug 2016</span>
-     &raquo; <a href="/functional-programming-in-rust-part-1">Functional Programming in Rust - Part 1 : Function Abstraction</a>    
+     <span class="post-date">13 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
    </li>           
          
 

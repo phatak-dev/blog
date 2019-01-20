@@ -97,8 +97,8 @@
 <p>As we discussed in last blog, we use spark session as entry point for dataset API.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sparkSession</span> <span class="k">=</span> <span class="nc">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span>
-      <span class="n">master</span><span class="o">(</span><span class="s">&quot;local&quot;</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">appName</span><span class="o">(</span><span class="s">&quot;example&quot;</span><span class="o">)</span>
+      <span class="n">master</span><span class="o">(</span><span class="s">"local"</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">appName</span><span class="o">(</span><span class="s">"example"</span><span class="o">)</span>
       <span class="o">.</span><span class="n">getOrCreate</span><span class="o">()</span></code></pre></div>
 
 <h3 id="step-2--read-data-and-convert-to-dataset">Step 2 : Read data and convert to Dataset</h3>
@@ -106,14 +106,14 @@
 <p>We read data using read.text API which is similar to <em>textFile</em> API of RDD. The <em>as[String]</em> part of code assigns the needed schema for dataset.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">import</span> <span class="nn">sparkSession.implicits._</span>
-<span class="k">val</span> <span class="n">data</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">text</span><span class="o">(</span><span class="s">&quot;src/main/resources/data.txt&quot;</span><span class="o">).</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span></code></pre></div>
+<span class="k">val</span> <span class="n">data</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">text</span><span class="o">(</span><span class="s">"src/main/resources/data.txt"</span><span class="o">).</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span></code></pre></div>
 
 <p>Here <em>data</em> will be of the type of <em>DataSet[String]</em>. Remember to import <strong>sparkSession.implicits._</strong> for all schema conversion magic.</p>
 
 <h3 id="step-3--split-and-group-by-word">Step 3 : Split and group by word</h3>
 <p>Dataset mimics lot of RDD API’s like map, groupByKey etc. The below code we are splitting lines to get words and group them by words.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">words</span> <span class="k">=</span> <span class="n">data</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;\\s+&quot;</span><span class="o">))</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">words</span> <span class="k">=</span> <span class="n">data</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">"\\s+"</span><span class="o">))</span>
 <span class="k">val</span> <span class="n">groupedWords</span> <span class="k">=</span> <span class="n">words</span><span class="o">.</span><span class="n">groupByKey</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">toLowerCase</span><span class="o">)</span></code></pre></div>
 
 <p>One thing you may observed we don’t create a key/value pair. The reason is unlike RDD, dataset works in row level abstraction. Each value is treated a row with multiple columns and any column can act as key for grouping like in database.</p>
@@ -141,24 +141,24 @@
              
     
     <li>    
+     <span class="post-date">20 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">08 Sep 2018</span>
-     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

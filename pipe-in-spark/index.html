@@ -67,17 +67,17 @@
 
 <h3 id="step-1--create-a-rdd">Step 1 : Create a RDD</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">data</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">&quot;hi&quot;</span><span class="o">,</span><span class="s">&quot;hello&quot;</span><span class="o">,</span><span class="s">&quot;how&quot;</span><span class="o">,</span><span class="s">&quot;are&quot;</span><span class="o">,</span><span class="s">&quot;you&quot;</span><span class="o">)</span>
- <span class="k">val</span> <span class="n">dataRDD</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">makeRDD</span><span class="o">(</span><span class="n">data</span><span class="o">)</span> <span class="c1">//sc is SparkContext</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">data</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">"hi"</span><span class="o">,</span><span class="s">"hello"</span><span class="o">,</span><span class="s">"how"</span><span class="o">,</span><span class="s">"are"</span><span class="o">,</span><span class="s">"you"</span><span class="o">)</span>
+ <span class="k">val</span> <span class="n">dataRDD</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">makeRDD</span><span class="o">(</span><span class="n">data</span><span class="o">)</span> <span class="o">//</span><span class="n">sc</span> <span class="n">is</span> <span class="nc">SparkContext</span></code></pre></div>
 
 <h3 id="step-2--create-a-shell-script">Step 2 : Create a shell script</h3>
 
 <p>Once we have RDD, then we will pipe it to a shell script. Let’s create a file called <em>echo.sh</em>, then put the following content.</p>
 
 <div class="highlight"><pre><code class="language-sh" data-lang="sh"><span class="c">#!/bin/sh</span>
-<span class="nb">echo</span> <span class="s2">&quot;Running shell script&quot;</span>
-<span class="k">while</span> <span class="nb">read </span>LINE<span class="p">;</span> <span class="k">do</span>
-   <span class="nb">echo</span> <span class="k">${</span><span class="nv">LINE</span><span class="k">}</span>    
+<span class="nb">echo</span> <span class="s2">"Running shell script"</span>
+<span class="k">while </span><span class="nb">read </span>LINE<span class="p">;</span> <span class="k">do
+   </span><span class="nb">echo</span> <span class="k">${</span><span class="nv">LINE</span><span class="k">}</span>    
 <span class="k">done</span></code></pre></div>
 
 <p>This is a simple shell script which reads the input from stdin and output that to stdout. You can do any other shell operation in this shell script.</p>
@@ -86,7 +86,7 @@
 
 <p>One we have the shell script, we can pipe the RDD through this script. Make sure that you change the <em>scriptPath</em> variable to match path of your file.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">scriptPath</span> <span class="k">=</span> <span class="s">&quot;/home/hadoop/echo.sh&quot;</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">scriptPath</span> <span class="k">=</span> <span class="s">"/home/hadoop/echo.sh"</span>
 <span class="k">val</span> <span class="n">pipeRDD</span> <span class="k">=</span> <span class="n">dataRDD</span><span class="o">.</span><span class="n">pipe</span><span class="o">(</span><span class="n">scriptPath</span><span class="o">)</span>
 <span class="n">pipeRDD</span><span class="o">.</span><span class="n">collect</span><span class="o">()</span></code></pre></div>
 
@@ -102,7 +102,7 @@
 
 <p>Every process has three streams associated with it. They are <strong>stdin</strong> - standard input, <strong>stdout</strong> - standard output and <strong>stderr</strong> - Standard error. It’s important to capture errors produced by the process. So we redirect the process stderr to java stderr. This runs in separate thread as these streams are asynchronous in nature.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">new</span> <span class="nc">Thread</span><span class="o">(</span><span class="s">&quot;stderr reader for &quot;</span> <span class="o">+</span> <span class="n">command</span><span class="o">)</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">new</span> <span class="nc">Thread</span><span class="o">(</span><span class="s">"stderr reader for "</span> <span class="o">+</span> <span class="n">command</span><span class="o">)</span> <span class="o">{</span>
       <span class="k">override</span> <span class="k">def</span> <span class="n">run</span><span class="o">()</span> <span class="o">{</span>
         <span class="k">for</span><span class="o">(</span><span class="n">line</span> <span class="k">&lt;-</span> <span class="nc">Source</span><span class="o">.</span><span class="n">fromInputStream</span><span class="o">(</span><span class="n">proc</span><span class="o">.</span><span class="n">getErrorStream</span><span class="o">).</span><span class="n">getLines</span><span class="o">)</span>
           <span class="nc">System</span><span class="o">.</span><span class="n">err</span><span class="o">.</span><span class="n">println</span><span class="o">(</span><span class="n">line</span><span class="o">)</span>
@@ -113,8 +113,8 @@
 
 <p>As next step, we create some data using List. Then we pass this data to <em>proc.getOutputStream</em>. Output to the stream is piped into the standard input stream of the process.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">lineList</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">&quot;hello&quot;</span><span class="o">,</span><span class="s">&quot;how&quot;</span><span class="o">,</span><span class="s">&quot;are&quot;</span><span class="o">,</span><span class="s">&quot;you&quot;</span><span class="o">)</span>
-  <span class="k">new</span> <span class="nc">Thread</span><span class="o">(</span><span class="s">&quot;stdin writer for &quot;</span> <span class="o">+</span> <span class="n">command</span><span class="o">)</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">lineList</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">"hello"</span><span class="o">,</span><span class="s">"how"</span><span class="o">,</span><span class="s">"are"</span><span class="o">,</span><span class="s">"you"</span><span class="o">)</span>
+  <span class="k">new</span> <span class="nc">Thread</span><span class="o">(</span><span class="s">"stdin writer for "</span> <span class="o">+</span> <span class="n">command</span><span class="o">)</span> <span class="o">{</span>
       <span class="k">override</span> <span class="k">def</span> <span class="n">run</span><span class="o">()</span> <span class="o">{</span>
         <span class="k">val</span> <span class="n">out</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">PrintWriter</span><span class="o">(</span><span class="n">proc</span><span class="o">.</span><span class="n">getOutputStream</span><span class="o">)</span>
         <span class="k">for</span><span class="o">(</span><span class="n">elem</span> <span class="k">&lt;-</span> <span class="n">lineList</span><span class="o">)</span>
@@ -166,24 +166,24 @@
              
     
     <li>    
+     <span class="post-date">20 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">08 Sep 2018</span>
-     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

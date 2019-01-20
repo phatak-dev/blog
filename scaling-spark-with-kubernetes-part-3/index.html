@@ -108,14 +108,14 @@ of an application. The major difference between VM and Containers is how they sh
 
 <p>In below configuration, we are defining a pod which runs a single container of nginx. Nginx is a popular web server.</p>
 
-<div class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="l-Scalar-Plain">apiVersion</span> <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">v1</span>
-<span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Pod</span>
-<span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
-  <span class="l-Scalar-Plain">name</span> <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx-pod</span>
-<span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
-  <span class="l-Scalar-Plain">containers</span><span class="p-Indicator">:</span>
-   <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span> <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx</span>
-     <span class="l-Scalar-Plain">image</span> <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx</span></code></pre></div>
+<div class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="na">apiVersion </span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name </span><span class="pi">:</span> <span class="s">nginx-pod</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+   <span class="pi">-</span> <span class="na">name </span><span class="pi">:</span> <span class="s">nginx</span>
+     <span class="na">image </span><span class="pi">:</span> <span class="s">nginx</span></code></pre></div>
 
 <p>The above yaml snippet defines the pod. The below are the different pieces.</p>
 
@@ -149,7 +149,7 @@ of an application. The major difference between VM and Containers is how they sh
 
 <p>Once we define the pod, then we can use <em>kubectl create</em> command to create a pod</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl create -f nginx.yaml</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl create <span class="nt">-f</span> nginx.yaml</code></pre></div>
 
 <p>This will download the latest nginx image from dockerhub and starts the container inside the pod.</p>
 
@@ -171,20 +171,20 @@ of an application. The major difference between VM and Containers is how they sh
 
 <p>So let’s rewrite our nginx pod example using deployment abstraction. The below is the yaml configuration for deployment</p>
 
-<div class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="l-Scalar-Plain">apiVersion</span> <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">extensions/v1beta1</span>
-<span class="l-Scalar-Plain">kind</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Deployment</span>
-<span class="l-Scalar-Plain">metadata</span><span class="p-Indicator">:</span>
-  <span class="l-Scalar-Plain">name</span> <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx-deployment</span>
-<span class="l-Scalar-Plain">spec</span><span class="p-Indicator">:</span>
-  <span class="l-Scalar-Plain">replicas</span> <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">1</span>
-  <span class="l-Scalar-Plain">template</span><span class="p-Indicator">:</span>
-    <span class="l-Scalar-Plain">metadata</span> <span class="p-Indicator">:</span>
-     <span class="l-Scalar-Plain">labels</span> <span class="p-Indicator">:</span>
-        <span class="l-Scalar-Plain">name</span> <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx</span>
-    <span class="l-Scalar-Plain">spec</span> <span class="p-Indicator">:</span>
-      <span class="l-Scalar-Plain">containers</span><span class="p-Indicator">:</span>
-       <span class="p-Indicator">-</span> <span class="l-Scalar-Plain">name</span> <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx</span>
-         <span class="l-Scalar-Plain">image</span> <span class="p-Indicator">:</span> <span class="l-Scalar-Plain">nginx</span></code></pre></div>
+<div class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="na">apiVersion </span><span class="pi">:</span> <span class="s">extensions/v1beta1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name </span><span class="pi">:</span> <span class="s">nginx-deployment</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas </span><span class="pi">:</span> <span class="s">1</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata </span><span class="pi">:</span>
+     <span class="na">labels </span><span class="pi">:</span>
+        <span class="na">name </span><span class="pi">:</span> <span class="s">nginx</span>
+    <span class="na">spec </span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+       <span class="pi">-</span> <span class="na">name </span><span class="pi">:</span> <span class="s">nginx</span>
+         <span class="na">image </span><span class="pi">:</span> <span class="s">nginx</span></code></pre></div>
 
 <p>The below are the major differences are</p>
 
@@ -203,7 +203,7 @@ of an application. The major difference between VM and Containers is how they sh
 
 <p>Use the below command to run the deployment</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl create -f nginxdeployment.yaml</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl create <span class="nt">-f</span> nginxdeployment.yaml</code></pre></div>
 
 <p>You can see all running deployments using below command</p>
 
@@ -227,24 +227,24 @@ of an application. The major difference between VM and Containers is how they sh
              
     
     <li>    
+     <span class="post-date">20 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">08 Sep 2018</span>
-     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

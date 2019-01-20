@@ -73,7 +73,7 @@
 
 <p>You need to add akka-http-testkit library to test your rest services.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="s">&quot;com.typesafe.akka&quot;</span> <span class="o">%%</span><span class="s">&quot;akka-http-testkit-experimental&quot;</span> <span class="o">%</span> <span class="s">&quot;1.0&quot;</span><span class="o">,</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="s">"com.typesafe.akka"</span> <span class="o">%%</span><span class="s">"akka-http-testkit-experimental"</span> <span class="o">%</span> <span class="s">"1.0"</span><span class="o">,</span></code></pre></div>
 
 <h2 id="code-structure">Code structure</h2>
 
@@ -100,12 +100,12 @@
 
    <span class="k">import</span> <span class="nn">ServiceJsonProtoocol._</span>
    <span class="k">val</span> <span class="n">route</span> <span class="k">=</span>
-      <span class="n">path</span><span class="o">(</span><span class="s">&quot;customer&quot;</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">path</span><span class="o">(</span><span class="s">"customer"</span><span class="o">)</span> <span class="o">{</span>
          <span class="n">post</span> <span class="o">{</span>
             <span class="n">entity</span><span class="o">(</span><span class="n">as</span><span class="o">[</span><span class="kt">Customer</span><span class="o">])</span> <span class="o">{</span>
                <span class="n">customer</span> <span class="k">=&gt;</span> <span class="n">complete</span> <span class="o">{</span>
                   <span class="n">list</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">customer</span><span class="o">)</span>
-                  <span class="n">s</span><span class="s">&quot;got customer with name ${customer.name}&quot;</span>
+                  <span class="n">s</span><span class="s">"got customer with name ${customer.name}"</span>
                <span class="o">}</span>
             <span class="o">}</span>
          <span class="o">}</span> <span class="o">~</span>
@@ -143,11 +143,11 @@
 
   <span class="k">def</span> <span class="n">main</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span> <span class="o">{</span>
 
-    <span class="k">implicit</span> <span class="k">val</span> <span class="n">actorSystem</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">(</span><span class="s">&quot;rest-server&quot;</span><span class="o">)</span>
+    <span class="k">implicit</span> <span class="k">val</span> <span class="n">actorSystem</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">(</span><span class="s">"rest-server"</span><span class="o">)</span>
     <span class="k">implicit</span> <span class="k">val</span> <span class="n">materializer</span> <span class="k">=</span> <span class="nc">ActorMaterializer</span><span class="o">()</span>
 
     <span class="k">val</span> <span class="n">server</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">RestServer</span><span class="o">()</span>
-    <span class="n">server</span><span class="o">.</span><span class="n">startServer</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span><span class="mi">8080</span><span class="o">)</span>
+    <span class="n">server</span><span class="o">.</span><span class="n">startServer</span><span class="o">(</span><span class="s">"localhost"</span><span class="o">,</span><span class="mi">8080</span><span class="o">)</span>
   <span class="o">}</span>
 <span class="o">}</span></code></pre></div>
 
@@ -169,19 +169,19 @@
 
 <h4 id="prepare-the-request">2. Prepare the request</h4>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="s">&quot;Customer API&quot;</span> <span class="n">should</span> <span class="o">{</span>
-    <span class="s">&quot;Posting to /customer should add the customer&quot;</span> <span class="n">in</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="s">"Customer API"</span> <span class="n">should</span> <span class="o">{</span>
+    <span class="s">"Posting to /customer should add the customer"</span> <span class="n">in</span> <span class="o">{</span>
 
       <span class="k">val</span> <span class="n">jsonRequest</span> <span class="k">=</span> <span class="nc">ByteString</span><span class="o">(</span>
-        <span class="n">s</span><span class="s">&quot;&quot;&quot;</span>
-<span class="s">           |{</span>
-<span class="s">           |    &quot;name&quot;:&quot;test&quot;</span>
-<span class="s">           |}</span>
-<span class="s">        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">stripMargin</span><span class="o">)</span>
+        <span class="n">s</span><span class="s">"""
+           |{
+           |    "name":"test"
+           |}
+        """</span><span class="o">.</span><span class="n">stripMargin</span><span class="o">)</span>
 
       <span class="k">val</span> <span class="n">postRequest</span> <span class="k">=</span> <span class="nc">HttpRequest</span><span class="o">(</span>
         <span class="nc">HttpMethods</span><span class="o">.</span><span class="nc">POST</span><span class="o">,</span>
-        <span class="n">uri</span> <span class="k">=</span> <span class="s">&quot;/customer&quot;</span><span class="o">,</span>
+        <span class="n">uri</span> <span class="k">=</span> <span class="s">"/customer"</span><span class="o">,</span>
         <span class="n">entity</span> <span class="k">=</span> <span class="nc">HttpEntity</span><span class="o">(</span><span class="nc">MediaTypes</span><span class="o">.</span><span class="n">`application/json`</span><span class="o">,</span> <span class="n">jsonRequest</span><span class="o">))</span></code></pre></div>
 
 <p>Once we prepare the spec, we prepare the POST request. The above code shows how to create HTTP post request, using HttpRequest API akka-http models.</p>
@@ -207,24 +207,24 @@
              
     
     <li>    
+     <span class="post-date">20 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">08 Sep 2018</span>
-     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

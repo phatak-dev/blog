@@ -96,8 +96,8 @@ is very valuable to understand the distribution of our sales.</p>
 <p>In spark 1.x, there was no way to express this in one query. So we need to do as a two step. In first step we calculate the max <em>amountPaid</em> and then 
 in second step we add that to each row as a literal. The code looks like below</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">max_amount</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="s">&quot;select max(amountPaid) as max_amount from sales&quot;</span><span class="o">).</span><span class="n">first</span><span class="o">.</span><span class="n">getDouble</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
-<span class="k">val</span> <span class="n">dfWithMaxAmount</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;select *, ($max_amount) as max_amount from sales&quot;</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">max_amount</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="s">"select max(amountPaid) as max_amount from sales"</span><span class="o">).</span><span class="n">first</span><span class="o">.</span><span class="n">getDouble</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">dfWithMaxAmount</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="n">s</span><span class="s">"select *, ($max_amount) as max_amount from sales"</span><span class="o">)</span></code></pre></div>
 
 <p>Even though it works, it’s not elegant. If we want to add more aggregations, this doesn’t scale well.</p>
 
@@ -107,7 +107,7 @@ in second step we add that to each row as a literal. The code looks like below</
 
 <p>With uncorrelated scalar sub query support, the above code can be rewritten as below in 2.x</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">dfWithMaxAmount</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="s">&quot;select *, (select max(amountPaid) from sales) max_amount from sales&quot;</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">dfWithMaxAmount</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="s">"select *, (select max(amountPaid) from sales) max_amount from sales"</span><span class="o">)</span></code></pre></div>
 
 <p>In this query, we write query inside query which calculates max value and adds to the dataframe. This code is much easier to write
 and maintain. The subquery is called uncorrelated because it returns same value for each row in the dataset.</p>
@@ -123,9 +123,9 @@ max for each group of items and append it to the group. So let’s see how sub q
 
 <p>The logic for this problem involves a left join with group by operation. It can be written as below</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">dfWithMaxPerItem</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="s">&quot;&quot;&quot;select A.itemId, B.max_amount  </span>
-<span class="s">from sales A left outer join ( select itemId, max(amountPaid) max_amount</span>
-<span class="s">from sales B group by itemId) B where A.itemId = B.itemId&quot;&quot;&quot;</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">dfWithMaxPerItem</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="s">"""select A.itemId, B.max_amount  
+from sales A left outer join ( select itemId, max(amountPaid) max_amount
+from sales B group by itemId) B where A.itemId = B.itemId"""</span><span class="o">)</span></code></pre></div>
 
 <p>Again it’s complicated and less maintainable.</p>
 
@@ -134,8 +134,8 @@ max for each group of items and append it to the group. So let’s see how sub q
 <h3 id="query-in-2x-1">Query in 2.x</h3>
 <p>Now we can rewrite the above code without any joins in subquery as below</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">dfWithMaxPerItem</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="s">&quot;select A.itemId, </span>
-<span class="s">(select max(amountPaid) from sales where itemId=A.itemId) max_amount from sales A&quot;</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">dfWithMaxPerItem</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="s">"select A.itemId, 
+(select max(amountPaid) from sales where itemId=A.itemId) max_amount from sales A"</span><span class="o">)</span></code></pre></div>
 
 <p>This looks much cleaner than above. Internally spark converts above code into a left outer join. But as a user, we don’t need to worry about it.</p>
 
@@ -162,24 +162,24 @@ more readable and maintainable.</p>
              
     
     <li>    
+     <span class="post-date">20 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">08 Sep 2018</span>
-     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

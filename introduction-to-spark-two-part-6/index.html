@@ -79,8 +79,8 @@
 
 <p>Before we write our optimization rule, let’s understand how to access the optimized plan in spark. The below code shows a simple example</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span><span class="s">&quot;true&quot;</span><span class="o">).</span><span class="n">csv</span><span class="o">(</span><span class="s">&quot;src/main/resources/sales.csv&quot;</span><span class="o">)</span>
-<span class="k">val</span> <span class="n">multipliedDF</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">selectExpr</span><span class="o">(</span><span class="s">&quot;amountPaid * 1&quot;</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"header"</span><span class="o">,</span><span class="s">"true"</span><span class="o">).</span><span class="n">csv</span><span class="o">(</span><span class="s">"src/main/resources/sales.csv"</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">multipliedDF</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">selectExpr</span><span class="o">(</span><span class="s">"amountPaid * 1"</span><span class="o">)</span>
 <span class="n">println</span><span class="o">(</span><span class="n">multipliedDF</span><span class="o">.</span><span class="n">queryExecution</span><span class="o">.</span><span class="n">optimizedPlan</span><span class="o">.</span><span class="n">numberedTreeString</span><span class="o">)</span></code></pre></div>
 
 <p>In above code, we have loaded a csv file and multiplied one to one of the column. We can look at the optimized plan for that dataframe using <em>optimizedPlan</em> object on queryExecution. <em>queryExecution</em> allows us to access all the information related execution of the query. Optimized plan is one of them.</p>
@@ -114,7 +114,7 @@
     <span class="k">def</span> <span class="n">apply</span><span class="o">(</span><span class="n">plan</span><span class="k">:</span> <span class="kt">LogicalPlan</span><span class="o">)</span><span class="k">:</span> <span class="kt">LogicalPlan</span> <span class="o">=</span> <span class="n">plan</span> <span class="n">transformAllExpressions</span> <span class="o">{</span>
       <span class="k">case</span> <span class="nc">Multiply</span><span class="o">(</span><span class="n">left</span><span class="o">,</span><span class="n">right</span><span class="o">)</span> <span class="k">if</span> <span class="n">right</span><span class="o">.</span><span class="n">isInstanceOf</span><span class="o">[</span><span class="kt">Literal</span><span class="o">]</span> <span class="o">&amp;&amp;</span>
         <span class="n">right</span><span class="o">.</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">Literal</span><span class="o">].</span><span class="n">value</span><span class="o">.</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">Double</span><span class="o">]</span> <span class="o">==</span> <span class="mf">1.0</span> <span class="k">=&gt;</span>
-        <span class="n">println</span><span class="o">(</span><span class="s">&quot;optimization of one applied&quot;</span><span class="o">)</span>
+        <span class="n">println</span><span class="o">(</span><span class="s">"optimization of one applied"</span><span class="o">)</span>
         <span class="n">left</span>
     <span class="o">}</span>
   <span class="o">}</span></code></pre></div>
@@ -135,8 +135,8 @@
 
 <p>Once we have our rule added, we need to check it is applied or not. We will do same manipulation again as below code.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">multipliedDFWithOptimization</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">selectExpr</span><span class="o">(</span><span class="s">&quot;amountPaid * 1&quot;</span><span class="o">)</span>
-<span class="n">println</span><span class="o">(</span><span class="s">&quot;after optimization&quot;</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">multipliedDFWithOptimization</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">selectExpr</span><span class="o">(</span><span class="s">"amountPaid * 1"</span><span class="o">)</span>
+<span class="n">println</span><span class="o">(</span><span class="s">"after optimization"</span><span class="o">)</span>
 <span class="n">println</span><span class="o">(</span><span class="n">multipliedDFWithOptimization</span><span class="o">.</span><span class="n">queryExecution</span><span class="o">.</span>
 <span class="n">optimizedPlan</span><span class="o">.</span><span class="n">numberedTreeString</span><span class="o">)</span></code></pre></div>
 
@@ -162,24 +162,24 @@
              
     
     <li>    
+     <span class="post-date">20 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">08 Sep 2018</span>
-     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

@@ -93,14 +93,14 @@ is collected for last 5 seconds. The state is only kept for those 5 seconds and 
 <p>As in last post, we will read from the socket and create words</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">socketStreamDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">readStream</span>
-  <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;socket&quot;</span><span class="o">)</span>
-  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;host&quot;</span><span class="o">,</span> <span class="s">&quot;localhost&quot;</span><span class="o">)</span>
-  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;port&quot;</span><span class="o">,</span> <span class="mi">50050</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">"socket"</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"host"</span><span class="o">,</span> <span class="s">"localhost"</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"port"</span><span class="o">,</span> <span class="mi">50050</span><span class="o">)</span>
   <span class="o">.</span><span class="n">load</span><span class="o">()</span>
 
 <span class="k">import</span> <span class="nn">sparkSession.implicits._</span>
 <span class="k">val</span> <span class="n">socketDs</span> <span class="k">=</span> <span class="n">socketStreamDf</span><span class="o">.</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>
-<span class="k">val</span> <span class="n">wordsDs</span> <span class="k">=</span> <span class="n">socketDs</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="k">⇒</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">))</span></code></pre></div>
+<span class="k">val</span> <span class="n">wordsDs</span> <span class="k">=</span> <span class="n">socketDs</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="k">⇒</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">" "</span><span class="o">))</span></code></pre></div>
 
 <h2 id="flatmapgroups-api">flatMapGroups API</h2>
 
@@ -109,7 +109,7 @@ groupByKey and flatMapGroups API to do the aggregation as below.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">countDs</span> <span class="k">=</span> <span class="n">wordsDs</span><span class="o">.</span><span class="n">groupByKey</span><span class="o">(</span><span class="n">value</span> <span class="k">⇒</span> <span class="n">value</span><span class="o">).</span><span class="n">flatMapGroups</span><span class="o">{</span>
   <span class="k">case</span> <span class="o">(</span><span class="n">value</span><span class="o">,</span> <span class="n">iter</span><span class="o">)</span> <span class="k">⇒</span> <span class="nc">Iterator</span><span class="o">((</span><span class="n">value</span><span class="o">,</span> <span class="n">iter</span><span class="o">.</span><span class="n">length</span><span class="o">))</span>
-<span class="o">}.</span><span class="n">toDF</span><span class="o">(</span><span class="s">&quot;value&quot;</span><span class="o">,</span> <span class="s">&quot;count&quot;</span><span class="o">)</span></code></pre></div>
+<span class="o">}.</span><span class="n">toDF</span><span class="o">(</span><span class="s">"value"</span><span class="o">,</span> <span class="s">"count"</span><span class="o">)</span></code></pre></div>
 
 <p>Rather than using <em>groupBy</em> API of dataframe, we use <em>groupByKey</em> from the dataset. As we need to group on words, we just pass the same
 value to grouping function. If you have complex object, then you can choose which column you want to treat as the key.</p>
@@ -126,8 +126,8 @@ function is very similar to <em>reduceByKey</em> of RDD world which allows us to
 <p>As we want to aggregate for every 5 seconds, we need to pass that information to query using trigger API. Trigger API is used to specify the frequency of computation. This separation of frequency from the stream processing is one of the most important part of structured streaming. This separation allows us to be flexible in computing different results in different speed.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">query</span> <span class="k">=</span>
- <span class="n">countDs</span><span class="o">.</span><span class="n">writeStream</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;console&quot;</span><span class="o">).</span><span class="n">outputMode</span><span class="o">(</span><span class="nc">OutputMode</span><span class="o">.</span><span class="nc">Append</span><span class="o">()).</span>
-   <span class="n">trigger</span><span class="o">(</span><span class="nc">Trigger</span><span class="o">.</span><span class="nc">ProcessingTime</span><span class="o">(</span><span class="s">&quot;5 seconds&quot;</span><span class="o">))</span></code></pre></div>
+ <span class="n">countDs</span><span class="o">.</span><span class="n">writeStream</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">"console"</span><span class="o">).</span><span class="n">outputMode</span><span class="o">(</span><span class="nc">OutputMode</span><span class="o">.</span><span class="nc">Append</span><span class="o">()).</span>
+   <span class="n">trigger</span><span class="o">(</span><span class="nc">Trigger</span><span class="o">.</span><span class="nc">ProcessingTime</span><span class="o">(</span><span class="s">"5 seconds"</span><span class="o">))</span></code></pre></div>
 
 <p>In the above code, we have specified the trigger using processing time. This analogous to the batch time of DStream API. Also observe that, we have specified output mode as <em>append</em>. This means we are doing only batch wise aggregations rather than full stream aggregations.</p>
 
@@ -148,24 +148,24 @@ function is very similar to <em>reduceByKey</em> of RDD world which allows us to
              
     
     <li>    
+     <span class="post-date">20 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">08 Sep 2018</span>
-     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

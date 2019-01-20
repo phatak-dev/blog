@@ -161,10 +161,10 @@
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">env</span> <span class="k">=</span> <span class="nc">StreamExecutionEnvironment</span><span class="o">.</span><span class="n">getExecutionEnvironment</span>
 
-<span class="k">val</span> <span class="n">source</span> <span class="k">=</span> <span class="n">env</span><span class="o">.</span><span class="n">socketTextStream</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">9000</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">source</span> <span class="k">=</span> <span class="n">env</span><span class="o">.</span><span class="n">socketTextStream</span><span class="o">(</span><span class="s">"localhost"</span><span class="o">,</span> <span class="mi">9000</span><span class="o">)</span>
     
 <span class="k">val</span> <span class="n">values</span> <span class="k">=</span> <span class="n">source</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="o">{</span>
-    <span class="k">val</span> <span class="n">columns</span> <span class="k">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot;,&quot;</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">columns</span> <span class="k">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">","</span><span class="o">)</span>
     <span class="k">val</span> <span class="n">endSignal</span> <span class="k">=</span> <span class="nc">Try</span><span class="o">(</span><span class="nc">Some</span><span class="o">(</span><span class="n">columns</span><span class="o">(</span><span class="mi">2</span><span class="o">))).</span><span class="n">getOrElse</span><span class="o">(</span><span class="nc">None</span><span class="o">)</span>
     <span class="nc">Session</span><span class="o">(</span><span class="n">columns</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="n">columns</span><span class="o">(</span><span class="mi">1</span><span class="o">).</span><span class="n">toDouble</span><span class="o">,</span> <span class="n">endSignal</span><span class="o">)</span>
 <span class="o">})</span></code></pre></div>
@@ -188,7 +188,7 @@
 
 <p>Once we have the window, we need to define an aggregate function over window. In this example, we are going to sum the value over session and print to console.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">sessionWindowStream</span><span class="o">.</span><span class="n">sum</span><span class="o">(</span><span class="s">&quot;value&quot;</span><span class="o">).</span><span class="n">print</span><span class="o">()</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">sessionWindowStream</span><span class="o">.</span><span class="n">sum</span><span class="o">(</span><span class="s">"value"</span><span class="o">).</span><span class="n">print</span><span class="o">()</span></code></pre></div>
 
 <p>You can access complete code <a href="https://github.com/phatak-dev/flink-examples/blob/master/src/main/scala/com/madhukaraphatak/flink/streaming/examples/sessionwindow/SessionWindowExample.scala">here</a>.</p>
 
@@ -227,24 +227,24 @@ session2,200</code></pre></div>
              
     
     <li>    
+     <span class="post-date">20 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">08 Sep 2018</span>
-     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

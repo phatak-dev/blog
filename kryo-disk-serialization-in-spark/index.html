@@ -88,8 +88,8 @@
 
 <p>For every <em>splitArray</em>, first we create an instance of kryo. kryo instances are not thread safe. That’s why we create one for each map operation. When we call <em>kryoSerializer.newKryo()</em> it creates a new instance of kryo and also it calls our custom <a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.serializer.KryoRegistrator">registrator</a> if any.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">//create output stream and plug it to the kryo output</span>
-<span class="k">val</span> <span class="n">bao</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ByteArrayOutputStream</span><span class="o">()</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">//create output stream and plug it to the kryo output
+</span><span class="k">val</span> <span class="n">bao</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ByteArrayOutputStream</span><span class="o">()</span>
 <span class="k">val</span> <span class="n">output</span> <span class="k">=</span> <span class="n">kryoSerializer</span><span class="o">.</span><span class="n">newKryoOutput</span><span class="o">()</span>
 <span class="n">output</span><span class="o">.</span><span class="n">setOutputStream</span><span class="o">(</span><span class="n">bao</span><span class="o">)</span>
 <span class="n">kryo</span><span class="o">.</span><span class="n">writeClassAndObject</span><span class="o">(</span><span class="n">output</span><span class="o">,</span> <span class="n">splitArray</span><span class="o">)</span>
@@ -131,23 +131,23 @@
 
 <p>The following example uses above two methods to serialize and deserialize a custom object named Person.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">// user defined class that need to serialized</span>
-  <span class="k">class</span> <span class="nc">Person</span><span class="o">(</span><span class="k">val</span> <span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="c1">// user defined class that need to serialized
+</span>  <span class="k">class</span> <span class="nc">Person</span><span class="o">(</span><span class="k">val</span> <span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span>
 
  <span class="k">def</span> <span class="n">main</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span> <span class="o">{</span>
 
     <span class="k">if</span> <span class="o">(</span><span class="n">args</span><span class="o">.</span><span class="n">length</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
-      <span class="n">println</span><span class="o">(</span><span class="s">&quot;Please provide output path&quot;</span><span class="o">)</span>
+      <span class="n">println</span><span class="o">(</span><span class="s">"Please provide output path"</span><span class="o">)</span>
       <span class="k">return</span>
     <span class="o">}</span>
     <span class="k">val</span> <span class="n">outputPath</span> <span class="k">=</span> <span class="n">args</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
 
-    <span class="k">val</span> <span class="n">conf</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkConf</span><span class="o">().</span><span class="n">setMaster</span><span class="o">(</span><span class="s">&quot;local&quot;</span><span class="o">).</span><span class="n">setAppName</span><span class="o">(</span><span class="s">&quot;kryoexample&quot;</span><span class="o">)</span>
-    <span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="o">(</span><span class="s">&quot;spark.serializer&quot;</span><span class="o">,</span> <span class="s">&quot;org.apache.spark.serializer.KryoSerializer&quot;</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">conf</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkConf</span><span class="o">().</span><span class="n">setMaster</span><span class="o">(</span><span class="s">"local"</span><span class="o">).</span><span class="n">setAppName</span><span class="o">(</span><span class="s">"kryoexample"</span><span class="o">)</span>
+    <span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="o">(</span><span class="s">"spark.serializer"</span><span class="o">,</span> <span class="s">"org.apache.spark.serializer.KryoSerializer"</span><span class="o">)</span>
     <span class="k">val</span> <span class="n">sc</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkContext</span><span class="o">(</span><span class="n">conf</span><span class="o">)</span>
 
-    <span class="c1">//create some dummy data</span>
-    <span class="k">val</span> <span class="n">personList</span> <span class="k">=</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">10000</span> <span class="n">map</span> <span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="k">new</span> <span class="nc">Person</span><span class="o">(</span><span class="n">value</span> <span class="o">+</span> <span class="s">&quot;&quot;</span><span class="o">))</span>
+    <span class="c1">//create some dummy data
+</span>    <span class="k">val</span> <span class="n">personList</span> <span class="k">=</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">10000</span> <span class="n">map</span> <span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="k">new</span> <span class="nc">Person</span><span class="o">(</span><span class="n">value</span> <span class="o">+</span> <span class="s">""</span><span class="o">))</span>
     <span class="k">val</span> <span class="n">personRDD</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">makeRDD</span><span class="o">(</span><span class="n">personList</span><span class="o">)</span>
 
     <span class="n">saveAsObjectFile</span><span class="o">(</span><span class="n">personRDD</span><span class="o">,</span> <span class="n">outputPath</span><span class="o">)</span>
@@ -192,24 +192,24 @@
              
     
     <li>    
+     <span class="post-date">20 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">08 Sep 2018</span>
-     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

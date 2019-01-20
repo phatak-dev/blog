@@ -77,9 +77,9 @@ writing csv data.</p>
 You can find sample <a href="https://github.com/phatak-dev/blog/blob/master/code/DataSourceExamples/src/main/resources/sales.csv">data</a> and complete project on <a href="https://github.com/phatak-dev/blog/tree/master/code/DataSourceExamples">github</a>. For detailed steps
 about data source API, please refer to this <a href="/introduction-to-spark-data-source-api-part-1">post</a>.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sc</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkContext</span><span class="o">(</span><span class="n">args</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="s">&quot;Csv loading example&quot;</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sc</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkContext</span><span class="o">(</span><span class="n">args</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="s">"Csv loading example"</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">sqlContext</span> <span class="k">=</span> <span class="k">new</span> <span class="n">org</span><span class="o">.</span><span class="n">apache</span><span class="o">.</span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="nc">SQLContext</span><span class="o">(</span><span class="n">sc</span><span class="o">)</span>
-<span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">load</span><span class="o">(</span><span class="s">&quot;com.databricks.spark.csv&quot;</span><span class="o">,</span> <span class="nc">Map</span><span class="o">(</span><span class="s">&quot;path&quot;</span> <span class="o">-&gt;</span> <span class="n">args</span><span class="o">(</span><span class="mi">1</span><span class="o">),</span><span class="s">&quot;header&quot;</span><span class="o">-&gt;</span><span class="s">&quot;true&quot;</span><span class="o">))</span>
+<span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">load</span><span class="o">(</span><span class="s">"com.databricks.spark.csv"</span><span class="o">,</span> <span class="nc">Map</span><span class="o">(</span><span class="s">"path"</span> <span class="o">-&gt;</span> <span class="n">args</span><span class="o">(</span><span class="mi">1</span><span class="o">),</span><span class="s">"header"</span><span class="o">-&gt;</span><span class="s">"true"</span><span class="o">))</span>
 <span class="n">df</span><span class="o">.</span><span class="n">printSchema</span><span class="o">()</span></code></pre></div>
 
 <p>In the above code, we pass <em>com.databricks.spark.csv</em> to load method to signify that we want to read csv data. Also in the
@@ -87,8 +87,8 @@ second parameter, we pass <em>“header”-&gt;”true”</em> to tell that, the
 
 <h3 id="querying-csv-data">Querying CSV Data</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">df</span><span class="o">.</span><span class="n">registerTempTable</span><span class="o">(</span><span class="s">&quot;sales&quot;</span><span class="o">)</span>
-<span class="k">val</span> <span class="n">aggDF</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="s">&quot;select sum(amountPaid) from sales&quot;</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">df</span><span class="o">.</span><span class="n">registerTempTable</span><span class="o">(</span><span class="s">"sales"</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">aggDF</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="s">"select sum(amountPaid) from sales"</span><span class="o">)</span>
 <span class="n">println</span><span class="o">(</span><span class="n">aggDF</span><span class="o">.</span><span class="n">collectAsList</span><span class="o">())</span></code></pre></div>
 
 <p>Once we load data as dataframe, querying is exactly same as any other data source. You can access complete
@@ -99,10 +99,10 @@ code on <a href="https://github.com/phatak-dev/blog/blob/master/code/DataSourceE
 <p>In the previous section, we looked at how to load and query the data in CSV. In this section, we are going to
 look how to save a dataframe as CSV file. In this example, we will load data from json and then save it as csv file.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sc</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkContext</span><span class="o">(</span><span class="n">args</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="s">&quot;Csv loading example&quot;</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sc</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkContext</span><span class="o">(</span><span class="n">args</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="s">"Csv loading example"</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">sqlContext</span> <span class="k">=</span> <span class="k">new</span> <span class="n">org</span><span class="o">.</span><span class="n">apache</span><span class="o">.</span><span class="n">spark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="nc">SQLContext</span><span class="o">(</span><span class="n">sc</span><span class="o">)</span>
-<span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">load</span><span class="o">(</span><span class="s">&quot;org.apache.spark.sql.json&quot;</span><span class="o">,</span> <span class="nc">Map</span><span class="o">(</span><span class="s">&quot;path&quot;</span> <span class="o">-&gt;</span> <span class="n">args</span><span class="o">(</span><span class="mi">1</span><span class="o">)))</span>
-<span class="n">df</span><span class="o">.</span><span class="n">save</span><span class="o">(</span><span class="s">&quot;com.databricks.spark.csv&quot;</span><span class="o">,</span> <span class="nc">SaveMode</span><span class="o">.</span><span class="nc">ErrorIfExists</span><span class="o">,</span><span class="nc">Map</span><span class="o">(</span><span class="s">&quot;path&quot;</span> <span class="o">-&gt;</span> <span class="n">args</span><span class="o">(</span><span class="mi">2</span><span class="o">),</span><span class="s">&quot;header&quot;</span><span class="o">-&gt;</span><span class="s">&quot;true&quot;</span><span class="o">))</span></code></pre></div>
+<span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sqlContext</span><span class="o">.</span><span class="n">load</span><span class="o">(</span><span class="s">"org.apache.spark.sql.json"</span><span class="o">,</span> <span class="nc">Map</span><span class="o">(</span><span class="s">"path"</span> <span class="o">-&gt;</span> <span class="n">args</span><span class="o">(</span><span class="mi">1</span><span class="o">)))</span>
+<span class="n">df</span><span class="o">.</span><span class="n">save</span><span class="o">(</span><span class="s">"com.databricks.spark.csv"</span><span class="o">,</span> <span class="nc">SaveMode</span><span class="o">.</span><span class="nc">ErrorIfExists</span><span class="o">,</span><span class="nc">Map</span><span class="o">(</span><span class="s">"path"</span> <span class="o">-&gt;</span> <span class="n">args</span><span class="o">(</span><span class="mi">2</span><span class="o">),</span><span class="s">"header"</span><span class="o">-&gt;</span><span class="s">"true"</span><span class="o">))</span></code></pre></div>
 
 <p>The first 3 lines of code loads json data. The last line saves the constructed data frame as a csv file.  The
 <em>save</em> is an universal method in data source API to save to any source. The following are the parameters passed to save method.</p>
@@ -154,24 +154,24 @@ load, query and change between multiple sources with few lines of code.</p>
              
     
     <li>    
+     <span class="post-date">20 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">08 Sep 2018</span>
-     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

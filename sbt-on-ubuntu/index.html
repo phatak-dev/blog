@@ -63,13 +63,13 @@
 wget http://apt.typesafe.com/repo-deb-build-0002.deb <span class="sb">`</span>
 
 <span class="c">#Install the repository</span>
-sudo dpkg -i repo-deb-build-0002.deb
+<span class="nb">sudo </span>dpkg <span class="nt">-i</span> repo-deb-build-0002.deb
 
 <span class="c">#Refresh</span>
-sudo apt-get update
+<span class="nb">sudo </span>apt-get update
 
 <span class="c">#Install sbt</span>
-sudo apt-get install sbt
+<span class="nb">sudo </span>apt-get <span class="nb">install </span>sbt
 
 <span class="c">#check whether sbt is installed</span>
 sbt</code></pre></div>
@@ -82,8 +82,8 @@ sbt</code></pre></div>
 
 <p>Run the following commands by replacing <username> with you username.</username></p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">mkdir -p /home/<span class="o">{</span>username<span class="o">}</span>/.sbt/.lib/0.12.2/ 
- wget -O /home/<span class="o">{</span>username<span class="o">}</span>/.sbt/.lib/0.12.2/sbt-launch.jar 
+<div class="highlight"><pre><code class="language-sh" data-lang="sh"><span class="nb">mkdir</span> <span class="nt">-p</span> /home/<span class="o">{</span>username<span class="o">}</span>/.sbt/.lib/0.12.2/ 
+ wget <span class="nt">-O</span> /home/<span class="o">{</span>username<span class="o">}</span>/.sbt/.lib/0.12.2/sbt-launch.jar 
  http://typesafe.artifactoryonline.com/typesafe/ivy-releases/
  org.scala-sbt/sbt-launch/0.12.2/sbt-launch.jar</code></pre></div>
 
@@ -96,24 +96,24 @@ sbt</code></pre></div>
              
     
     <li>    
+     <span class="post-date">20 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">08 Sep 2018</span>
-     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

@@ -96,7 +96,7 @@ mesos.Executor and listens on launchTask callback.</p>
 
   <span class="k">def</span> <span class="n">main</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span> <span class="o">{</span>
     <span class="k">val</span> <span class="n">logger</span> <span class="k">=</span> <span class="nc">Logger</span><span class="o">.</span><span class="n">getLogger</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="n">getClass</span><span class="o">.</span><span class="n">getName</span><span class="o">)</span>
-    <span class="nc">System</span><span class="o">.</span><span class="n">loadLibrary</span><span class="o">(</span><span class="s">&quot;mesos&quot;</span><span class="o">)</span>
+    <span class="nc">System</span><span class="o">.</span><span class="n">loadLibrary</span><span class="o">(</span><span class="s">"mesos"</span><span class="o">)</span>
     <span class="k">var</span> <span class="n">classLoader</span><span class="k">:</span> <span class="kt">ClassLoader</span> <span class="o">=</span> <span class="kc">null</span>
     <span class="k">var</span> <span class="n">threadPool</span><span class="k">:</span> <span class="kt">ExecutorService</span> <span class="o">=</span> <span class="kc">null</span>
 
@@ -114,8 +114,8 @@ mesos.Executor and listens on launchTask callback.</p>
                 <span class="o">.</span><span class="n">setState</span><span class="o">(</span><span class="nc">TaskState</span><span class="o">.</span><span class="nc">TASK_FINISHED</span><span class="o">).</span><span class="n">build</span><span class="o">())</span>
             <span class="o">}</span> <span class="k">catch</span> <span class="o">{</span>
               <span class="k">case</span> <span class="n">e</span><span class="k">:</span> <span class="kt">Exception</span> <span class="o">=&gt;</span> <span class="o">{</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="o">(</span><span class="s">&quot;the execption is&quot;</span><span class="o">,</span><span class="n">e</span><span class="o">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="o">(</span><span class="s">&quot;error in task id&quot;</span> <span class="o">+</span> <span class="n">task</span><span class="o">.</span><span class="n">getTaskId</span><span class="o">.</span><span class="n">getValue</span><span class="o">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="o">(</span><span class="s">"the execption is"</span><span class="o">,</span><span class="n">e</span><span class="o">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="o">(</span><span class="s">"error in task id"</span> <span class="o">+</span> <span class="n">task</span><span class="o">.</span><span class="n">getTaskId</span><span class="o">.</span><span class="n">getValue</span><span class="o">)</span>
                 <span class="nc">System</span><span class="o">.</span><span class="n">exit</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
               <span class="o">}</span>
             <span class="o">}</span>
@@ -139,17 +139,17 @@ mesos.Executor and listens on launchTask callback.</p>
 <p>Once we have the custom executor, next step is to plug it in our mesos scheduler. Mesos doesn’t understand any specific language, it just understands how to run shell scripts. So we run our task executor from a shell script and specify the shell script path in executor info.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">getExecutorInfo</span><span class="o">(</span><span class="n">d</span><span class="k">:</span> <span class="kt">SchedulerDriver</span><span class="o">)</span><span class="k">:</span> <span class="kt">ExecutorInfo</span> <span class="o">=</span> <span class="o">{</span>
-    <span class="k">val</span> <span class="n">scriptPath</span> <span class="k">=</span> <span class="nc">System</span><span class="o">.</span><span class="n">getProperty</span><span class="o">(</span><span class="s">&quot;executor_script_path&quot;</span><span class="o">,</span><span class="s">&quot;~/run-executor.sh&quot;</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">scriptPath</span> <span class="k">=</span> <span class="nc">System</span><span class="o">.</span><span class="n">getProperty</span><span class="o">(</span><span class="s">"executor_script_path"</span><span class="o">,</span><span class="s">"~/run-executor.sh"</span><span class="o">)</span>
     <span class="nc">ExecutorInfo</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span>
-      <span class="n">setCommand</span><span class="o">(</span><span class="nc">CommandInfo</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span><span class="n">setValue</span><span class="o">(</span><span class="s">&quot;&quot;</span> <span class="o">+</span>
-      <span class="s">&quot;/bin/sh &quot;</span><span class="o">+</span><span class="n">scriptPath</span><span class="o">))</span>
-      <span class="o">.</span><span class="n">setExecutorId</span><span class="o">(</span><span class="nc">ExecutorID</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span><span class="n">setValue</span><span class="o">(</span><span class="s">&quot;1234&quot;</span><span class="o">))</span>
+      <span class="n">setCommand</span><span class="o">(</span><span class="nc">CommandInfo</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span><span class="n">setValue</span><span class="o">(</span><span class="s">""</span> <span class="o">+</span>
+      <span class="s">"/bin/sh "</span><span class="o">+</span><span class="n">scriptPath</span><span class="o">))</span>
+      <span class="o">.</span><span class="n">setExecutorId</span><span class="o">(</span><span class="nc">ExecutorID</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span><span class="n">setValue</span><span class="o">(</span><span class="s">"1234"</span><span class="o">))</span>
       <span class="o">.</span><span class="n">build</span><span class="o">()</span>
   <span class="o">}</span>
 
  
- <span class="c1">//call setExecutor to set the executor info</span>
- <span class="k">val</span> <span class="n">taskInfo</span> <span class="k">=</span> <span class="nc">TaskInfo</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">()</span>
+ <span class="c1">//call setExecutor to set the executor info
+</span> <span class="k">val</span> <span class="n">taskInfo</span> <span class="k">=</span> <span class="nc">TaskInfo</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">()</span>
           <span class="o">.</span><span class="n">setSlaveId</span><span class="o">(</span><span class="nc">SlaveID</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span><span class="n">setValue</span><span class="o">(</span><span class="n">offer</span><span class="o">.</span><span class="n">getSlaveId</span><span class="o">.</span><span class="n">getValue</span><span class="o">).</span><span class="n">build</span><span class="o">())</span>
           <span class="o">.</span><span class="n">setTaskId</span><span class="o">(</span><span class="nc">TaskID</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span><span class="n">setValue</span><span class="o">(</span><span class="n">taskId</span><span class="o">.</span><span class="n">toString</span><span class="o">))</span>
           <span class="o">.</span><span class="n">setExecutor</span><span class="o">(</span><span class="n">getExecutorInfo</span><span class="o">(</span><span class="n">driver</span><span class="o">))</span>
@@ -166,10 +166,10 @@ mesos.Executor and listens on launchTask callback.</p>
 <p>This script file, used by the executor info to instantiate our custom executor.</p>
 
 <div class="highlight"><pre><code class="language-sh" data-lang="sh"><span class="c">#!/bin/sh</span>
-<span class="nb">echo</span> <span class="s2">&quot;running Executor&quot;</span>
+<span class="nb">echo</span> <span class="s2">"running Executor"</span>
 <span class="nb">export </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span><span class="nv">$MESOS_HOME</span>/src/.libs:<span class="nv">$LD_LIBRARY_PATH</span>
 <span class="c">#update the path to point to jar</span>
-java -cp &lt;project-path&gt;/target/mesoscustomexecutor-1.0-SNAPSHOT.jar com.madhu.mesos.customexecutor.TaskExecutor</code></pre></div>
+java <span class="nt">-cp</span> &lt;project-path&gt;/target/mesoscustomexecutor-1.0-SNAPSHOT.jar com.madhu.mesos.customexecutor.TaskExecutor</code></pre></div>
 
 <p>update <em>project-path</em> to the directory which has the build jar from code.</p>
 
@@ -179,7 +179,7 @@ java -cp &lt;project-path&gt;/target/mesoscustomexecutor-1.0-SNAPSHOT.jar com.ma
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">multipleTasks</span><span class="o">()</span> <span class="k">=</span> <span class="o">{</span>
      <span class="mi">0</span> <span class="n">to</span> <span class="mi">1</span> <span class="n">map</span> <span class="o">{</span>
        <span class="n">index</span> <span class="k">=&gt;</span> <span class="o">{</span>
-         <span class="k">val</span> <span class="n">f</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">FunctionTask</span><span class="o">[</span><span class="kt">Unit</span><span class="o">](()</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;hi&quot;</span> <span class="o">+</span> <span class="n">index</span><span class="o">))</span>
+         <span class="k">val</span> <span class="n">f</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">FunctionTask</span><span class="o">[</span><span class="kt">Unit</span><span class="o">](()</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">"hi"</span> <span class="o">+</span> <span class="n">index</span><span class="o">))</span>
          <span class="n">f</span>
        <span class="o">}</span>
      <span class="o">}</span>
@@ -225,24 +225,24 @@ java -cp &lt;project-path&gt;/target/mesoscustomexecutor-1.0-SNAPSHOT.jar com.ma
              
     
     <li>    
+     <span class="post-date">20 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">08 Sep 2018</span>
-     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

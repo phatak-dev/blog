@@ -90,9 +90,9 @@ can read all the posts in the series <a href="/categories/introduction-structure
 <p>The below code is to read the data from socket.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">socketStreamDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">readStream</span>
-  <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;socket&quot;</span><span class="o">)</span>
-  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;host&quot;</span><span class="o">,</span> <span class="s">&quot;localhost&quot;</span><span class="o">)</span>
-  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;port&quot;</span><span class="o">,</span> <span class="mi">50050</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">"socket"</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"host"</span><span class="o">,</span> <span class="s">"localhost"</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"port"</span><span class="o">,</span> <span class="mi">50050</span><span class="o">)</span>
   <span class="o">.</span><span class="n">load</span><span class="o">()</span></code></pre></div>
 
 <h3 id="adding-the-time-column">Adding the Time Column</h3>
@@ -100,7 +100,7 @@ can read all the posts in the series <a href="/categories/introduction-structure
 <p>To define a window in structured streaming, we need to have a column in dataframe of the type <em>Timestamp</em>. As we are working with processing time,
 we will use <em>current_timestamp()</em> function of spark SQL to add processing time to our data.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">currentTimeDf</span> <span class="k">=</span> <span class="n">socketStreamDf</span><span class="o">.</span><span class="n">withColumn</span><span class="o">(</span><span class="s">&quot;processingTime&quot;</span><span class="o">,</span><span class="n">current_timestamp</span><span class="o">())</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">currentTimeDf</span> <span class="k">=</span> <span class="n">socketStreamDf</span><span class="o">.</span><span class="n">withColumn</span><span class="o">(</span><span class="s">"processingTime"</span><span class="o">,</span><span class="n">current_timestamp</span><span class="o">())</span></code></pre></div>
 
 <p>In above code, we are adding a column named <em>processingTime</em> which captures the current time of the processing engine.</p>
 
@@ -111,8 +111,8 @@ we will use <em>current_timestamp()</em> function of spark SQL to add processing
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">import</span> <span class="nn">sparkSession.implicits._</span>
 <span class="k">val</span> <span class="n">socketDs</span> <span class="k">=</span> <span class="n">currentTimeDf</span><span class="o">.</span><span class="n">as</span><span class="o">[(</span><span class="kt">String</span>, <span class="kt">Timestamp</span><span class="o">)]</span>
 <span class="k">val</span> <span class="n">wordsDs</span> <span class="k">=</span> <span class="n">socketDs</span>
-  <span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">line</span> <span class="k">=&gt;</span> <span class="n">line</span><span class="o">.</span><span class="n">_1</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="n">word</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">word</span><span class="o">,</span> <span class="n">line</span><span class="o">.</span><span class="n">_2</span><span class="o">)))</span>
-  <span class="o">.</span><span class="n">toDF</span><span class="o">(</span><span class="s">&quot;word&quot;</span><span class="o">,</span> <span class="s">&quot;processingTime&quot;</span><span class="o">)</span></code></pre></div>
+  <span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="n">line</span> <span class="k">=&gt;</span> <span class="n">line</span><span class="o">.</span><span class="n">_1</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">" "</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="n">word</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">word</span><span class="o">,</span> <span class="n">line</span><span class="o">.</span><span class="n">_2</span><span class="o">)))</span>
+  <span class="o">.</span><span class="n">toDF</span><span class="o">(</span><span class="s">"word"</span><span class="o">,</span> <span class="s">"processingTime"</span><span class="o">)</span></code></pre></div>
 
 <h3 id="defining-window">Defining Window</h3>
 
@@ -120,10 +120,10 @@ we will use <em>current_timestamp()</em> function of spark SQL to add processing
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">windowedCount</span> <span class="k">=</span> <span class="n">wordsDs</span>
   <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span>
-    <span class="n">window</span><span class="o">(</span><span class="n">$</span><span class="s">&quot;processingTime&quot;</span><span class="o">,</span> <span class="s">&quot;15 seconds&quot;</span><span class="o">)</span>
+    <span class="n">window</span><span class="o">(</span><span class="n">$</span><span class="s">"processingTime"</span><span class="o">,</span> <span class="s">"15 seconds"</span><span class="o">)</span>
   <span class="o">)</span>
   <span class="o">.</span><span class="n">count</span><span class="o">()</span>
-  <span class="o">.</span><span class="n">orderBy</span><span class="o">(</span><span class="s">&quot;window&quot;</span><span class="o">)</span></code></pre></div>
+  <span class="o">.</span><span class="n">orderBy</span><span class="o">(</span><span class="s">"window"</span><span class="o">)</span></code></pre></div>
 
 <p>In above code, we define window as part of groupby. We group the records that we received in last 15 seconds.</p>
 
@@ -149,8 +149,8 @@ we will use <em>current_timestamp()</em> function of spark SQL to add processing
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">query</span> <span class="k">=</span>
   <span class="n">windowedCount</span><span class="o">.</span><span class="n">writeStream</span>
-    <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;console&quot;</span><span class="o">)</span>
-    <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;truncate&quot;</span><span class="o">,</span><span class="s">&quot;false&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">"console"</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"truncate"</span><span class="o">,</span><span class="s">"false"</span><span class="o">)</span>
     <span class="o">.</span><span class="n">outputMode</span><span class="o">(</span><span class="nc">OutputMode</span><span class="o">.</span><span class="nc">Complete</span><span class="o">())</span>
 
 <span class="n">query</span><span class="o">.</span><span class="n">start</span><span class="o">().</span><span class="n">awaitTermination</span><span class="o">()</span></code></pre></div>
@@ -180,24 +180,24 @@ we will use <em>current_timestamp()</em> function of spark SQL to add processing
              
     
     <li>    
+     <span class="post-date">20 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">08 Sep 2018</span>
-     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

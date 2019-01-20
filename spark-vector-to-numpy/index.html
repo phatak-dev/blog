@@ -76,16 +76,16 @@
 </ul>
 
 <div class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">pyspark.sql</span> <span class="kn">import</span> <span class="n">SparkSession</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="n">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
 
 <span class="n">sparkSession</span> <span class="o">=</span> <span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span> \
-       <span class="o">.</span><span class="n">master</span><span class="p">(</span><span class="s">&quot;local&quot;</span><span class="p">)</span> \
-       <span class="o">.</span><span class="n">appName</span><span class="p">(</span><span class="s">&quot;Spark ML&quot;</span><span class="p">)</span> \
+       <span class="o">.</span><span class="n">master</span><span class="p">(</span><span class="s">"local"</span><span class="p">)</span> \
+       <span class="o">.</span><span class="n">appName</span><span class="p">(</span><span class="s">"Spark ML"</span><span class="p">)</span> \
        <span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
 
-<span class="n">sparkDf</span> <span class="o">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;csv&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s">&quot;header&quot;</span><span class="p">,</span><span class="s">&quot;true&quot;</span><span class="p">)</span><span class="o">.</span> \
-<span class="n">option</span><span class="p">(</span><span class="s">&quot;inferSchema&quot;</span><span class="p">,</span><span class="s">&quot;true&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&quot;adult_salary_100rows.csv&quot;</span><span class="p">)</span></code></pre></div>
+<span class="n">sparkDf</span> <span class="o">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="s">"csv"</span><span class="p">)</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s">"header"</span><span class="p">,</span><span class="s">"true"</span><span class="p">)</span><span class="o">.</span> \
+<span class="n">option</span><span class="p">(</span><span class="s">"inferSchema"</span><span class="p">,</span><span class="s">"true"</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">"adult_salary_100rows.csv"</span><span class="p">)</span></code></pre></div>
 
 <ul>
   <li>
@@ -97,27 +97,27 @@
 
 <p>For our analysis we will be using salary column as label. age and workclass as input features. As <em>salary</em> and <em>workclass</em> are string column we need to convert them to one hot encoded values. The below code does it using spark pipeline.</p>
 
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># Create String Indexer for workclass and salary</span>
-<span class="kn">from</span> <span class="nn">pyspark.ml.feature</span> <span class="kn">import</span> <span class="n">StringIndexer</span><span class="p">,</span><span class="n">VectorAssembler</span><span class="p">,</span><span class="n">OneHotEncoder</span>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c1"># Create String Indexer for workclass and salary
+</span><span class="kn">from</span> <span class="nn">pyspark.ml.feature</span> <span class="kn">import</span> <span class="n">StringIndexer</span><span class="p">,</span><span class="n">VectorAssembler</span><span class="p">,</span><span class="n">OneHotEncoder</span>
 <span class="kn">from</span> <span class="nn">pyspark.ml</span> <span class="kn">import</span> <span class="n">Pipeline</span>
 
 <span class="n">workClassIndexer</span> <span class="o">=</span> <span class="n">StringIndexer</span><span class="p">()</span>
-	<span class="o">.</span><span class="n">setInputCol</span><span class="p">(</span><span class="s">&quot;workclass&quot;</span><span class="p">)</span>
-	<span class="o">.</span><span class="n">setOutputCol</span><span class="p">(</span><span class="s">&quot;workclass_indexed&quot;</span><span class="p">)</span>
+	<span class="o">.</span><span class="n">setInputCol</span><span class="p">(</span><span class="s">"workclass"</span><span class="p">)</span>
+	<span class="o">.</span><span class="n">setOutputCol</span><span class="p">(</span><span class="s">"workclass_indexed"</span><span class="p">)</span>
 
 <span class="n">workClassOneHot</span> <span class="o">=</span>  <span class="n">OneHotEncoder</span><span class="p">()</span><span class="o">.</span>
-	<span class="n">setInputCol</span><span class="p">(</span><span class="s">&quot;workclass_indexed&quot;</span><span class="p">)</span>
-	<span class="o">.</span><span class="n">setOutputCol</span><span class="p">(</span><span class="s">&quot;workclass_onehot&quot;</span><span class="p">)</span>
+	<span class="n">setInputCol</span><span class="p">(</span><span class="s">"workclass_indexed"</span><span class="p">)</span>
+	<span class="o">.</span><span class="n">setOutputCol</span><span class="p">(</span><span class="s">"workclass_onehot"</span><span class="p">)</span>
 
 <span class="n">salaryIndexer</span> <span class="o">=</span> <span class="n">StringIndexer</span><span class="p">()</span>
-	<span class="o">.</span><span class="n">setInputCol</span><span class="p">(</span><span class="s">&quot;salary&quot;</span><span class="p">)</span>
-	<span class="o">.</span><span class="n">setOutputCol</span><span class="p">(</span><span class="s">&quot;label&quot;</span><span class="p">)</span>
+	<span class="o">.</span><span class="n">setInputCol</span><span class="p">(</span><span class="s">"salary"</span><span class="p">)</span>
+	<span class="o">.</span><span class="n">setOutputCol</span><span class="p">(</span><span class="s">"label"</span><span class="p">)</span>
 
 <span class="n">vectorAssembler</span> <span class="o">=</span> <span class="n">VectorAssembler</span><span class="p">()</span>
-	<span class="o">.</span><span class="n">setInputCols</span><span class="p">([</span><span class="s">&#39;workclass_onehot&#39;</span><span class="p">,</span><span class="s">&#39;age&#39;</span><span class="p">])</span>
-	<span class="o">.</span><span class="n">setOutputCol</span><span class="p">(</span><span class="s">&quot;features&quot;</span><span class="p">)</span>
-<span class="c"># create pipeline</span>
-<span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">()</span><span class="o">.</span><span class="n">setStages</span><span class="p">([</span><span class="n">workClassIndexer</span><span class="p">,</span><span class="n">workClassOneHot</span><span class="p">,</span>
+	<span class="o">.</span><span class="n">setInputCols</span><span class="p">([</span><span class="s">'workclass_onehot'</span><span class="p">,</span><span class="s">'age'</span><span class="p">])</span>
+	<span class="o">.</span><span class="n">setOutputCol</span><span class="p">(</span><span class="s">"features"</span><span class="p">)</span>
+<span class="c1"># create pipeline
+</span><span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">()</span><span class="o">.</span><span class="n">setStages</span><span class="p">([</span><span class="n">workClassIndexer</span><span class="p">,</span><span class="n">workClassOneHot</span><span class="p">,</span>
 <span class="n">salaryIndexer</span><span class="p">,</span><span class="n">vectorAssembler</span><span class="p">])</span></code></pre></div>
 
 <p>In above code, we used vector assembler to convert multiple columns into single features array.</p>
@@ -130,7 +130,7 @@
 
 <p>Once we have the pipeline, we can use it to transform our input dataframe to desired form.</p>
 
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">transformedDf</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">sparkDf</span><span class="p">)</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">sparkDf</span><span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s">&quot;features&quot;</span><span class="p">,</span><span class="s">&quot;label&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">transformedDf</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">sparkDf</span><span class="p">)</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">sparkDf</span><span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s">"features"</span><span class="p">,</span><span class="s">"label"</span><span class="p">)</span>
 <span class="n">transformedDf</span><span class="o">.</span><span class="n">printSchema</span><span class="p">()</span></code></pre></div>
 
 <p>Output of the schema will looks as below</p>
@@ -160,7 +160,7 @@
 
 <div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">pandaDf</span><span class="o">.</span><span class="n">info</span><span class="p">()</span></code></pre></div>
 
-<div class="highlight"><pre><code class="language-text" data-lang="text">&lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+<div class="highlight"><pre><code class="language-text" data-lang="text">&lt;class 'pandas.core.frame.DataFrame'&gt;
 RangeIndex: 101 entries, 0 to 100
 Data columns (total 2 columns):
 features    101 non-null object
@@ -174,8 +174,8 @@ dtypes: float64(1), object(1)</code></pre></div>
 <p>Let’s try to train logistic regression on data.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">from</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">linear_model</span> <span class="k">import</span> <span class="nn">LogisticRegression</span>
-<span class="n">X</span> <span class="k">=</span> <span class="n">pandaDf</span><span class="o">[</span><span class="err">&#39;</span><span class="kt">features</span><span class="err">&#39;</span><span class="o">]</span>
-<span class="n">y</span> <span class="k">=</span> <span class="n">pandaDf</span><span class="o">[</span><span class="err">&#39;</span><span class="kt">label</span><span class="err">&#39;</span><span class="o">].</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="o">(-</span><span class="mi">1</span><span class="o">,</span><span class="mi">1</span><span class="o">)</span>
+<span class="n">X</span> <span class="k">=</span> <span class="n">pandaDf</span><span class="o">[</span><span class="kt">'features'</span><span class="o">]</span>
+<span class="n">y</span> <span class="k">=</span> <span class="n">pandaDf</span><span class="o">[</span><span class="kt">'label'</span><span class="o">].</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="o">(-</span><span class="mi">1</span><span class="o">,</span><span class="mi">1</span><span class="o">)</span>
 
 <span class="n">lr</span> <span class="k">=</span> <span class="nc">LogisticRegression</span><span class="o">()</span>
 <span class="n">lr</span><span class="o">.</span><span class="n">fit</span><span class="o">(</span><span class="n">X</span><span class="o">,</span><span class="n">y</span><span class="o">)</span></code></pre></div>
@@ -190,7 +190,7 @@ dtypes: float64(1), object(1)</code></pre></div>
 
 <p>Let’s see how feature array is represented. The below code show the same</p>
 
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span> <span class="p">:</span> <span class="n">x</span><span class="p">,</span><span class="n">pandaDf</span><span class="p">[</span><span class="s">&#39;features&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">])</span></code></pre></div>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span> <span class="p">:</span> <span class="n">x</span><span class="p">,</span><span class="n">pandaDf</span><span class="p">[</span><span class="s">'features'</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">])</span></code></pre></div>
 
 <div class="highlight"><pre><code class="language-text" data-lang="text">[SparseVector(7, {5: 1.0, 6: 39.0})]</code></pre></div>
 
@@ -208,7 +208,7 @@ dtypes: float64(1), object(1)</code></pre></div>
   </li>
 </ul>
 
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">series</span> <span class="o">=</span> <span class="n">pandaDf</span><span class="p">[</span><span class="s">&#39;features&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">toArray</span><span class="p">()))</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">series</span> <span class="o">=</span> <span class="n">pandaDf</span><span class="p">[</span><span class="s">'features'</span><span class="p">]</span><span class="o">.</span><span class="nb">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">toArray</span><span class="p">()))</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span></code></pre></div>
 
 <p>In above code, we convert sparse vector to a python array by calling <em>toArray</em> method. Then we use numpy <em>as_matrix</em> method to convert to the two dimensional arrays.</p>
 
@@ -252,24 +252,24 @@ dtypes: float64(1), object(1)</code></pre></div>
              
     
     <li>    
+     <span class="post-date">20 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">08 Sep 2018</span>
-     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

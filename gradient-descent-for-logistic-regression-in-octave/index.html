@@ -61,88 +61,88 @@
 
 <p>Create a file called gradientDescent.m and paste the following code</p>
 
-<div class="highlight"><pre><code class="language-octave" data-lang="octave"><span class="k">function</span><span class="w"> </span>[theta,cost] <span class="p">=</span><span class="w"> </span><span class="nf">gradientDescent</span><span class="p">(</span>X, y, theta, alpha, num_iters<span class="p">)</span><span class="w"></span>
+<div class="highlight"><pre><code class="language-octave" data-lang="octave">function [theta,cost] = gradientDescent(X, y, theta, alpha, num_iters)
 
-<span class="c">%GRADIENTDESCENT Performs gradient descent to learn theta</span>
+%GRADIENTDESCENT Performs gradient descent to learn theta
 
-<span class="c">%   theta = GRADIENTDESENT(X, y, theta, alpha, num_iters) updates theta by</span>
+%   theta = GRADIENTDESENT(X, y, theta, alpha, num_iters) updates theta by
 
-<span class="c">%   taking num_iters gradient steps with learning rate alpha</span>
-
-
-
-<span class="c">% Initialize some useful values</span>
-
-<span class="n">m</span> <span class="p">=</span> <span class="nb">length</span><span class="p">(</span><span class="n">y</span><span class="p">);</span> <span class="c">% number of training examples</span>
-
-<span class="n">J_history</span> <span class="p">=</span> <span class="nb">zeros</span><span class="p">(</span><span class="n">num_iters</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
-
-<span class="n">theta_history</span> <span class="p">=</span> <span class="n">theta</span><span class="p">;</span>
+%   taking num_iters gradient steps with learning rate alpha
 
 
 
-<span class="k">for</span> <span class="n">iter</span> <span class="p">=</span> <span class="mi">1</span><span class="p">:</span><span class="n">num_iters</span>
+% Initialize some useful values
 
-    <span class="n">h</span> <span class="p">=</span> <span class="n">sigmoid</span><span class="p">(</span><span class="n">X</span><span class="o">*</span><span class="n">theta</span><span class="p">);</span>
+m = length(y); % number of training examples
 
-    <span class="n">grad</span> <span class="p">=</span> <span class="p">(</span><span class="n">X</span><span class="o">&#39;*</span><span class="p">(</span><span class="n">h</span> <span class="o">-</span> <span class="n">y</span><span class="p">))</span><span class="o">/</span><span class="n">m</span><span class="p">;</span>
+J_history = zeros(num_iters, 1);
 
-    <span class="n">theta</span> <span class="p">=</span> <span class="n">theta</span> <span class="o">-</span> <span class="n">alpha</span><span class="o">*</span><span class="n">grad</span><span class="p">;</span>               
+theta_history = theta;
 
-<span class="k">end</span>
 
-<span class="p">[</span><span class="n">cost</span><span class="p">,</span><span class="nb">gradient</span><span class="p">]</span> <span class="p">=</span> <span class="n">costFunction</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">);</span></code></pre></div>
+
+for iter = 1:num_iters
+
+    h = sigmoid(X*theta);
+
+    grad = (X'*(h - y))/m;
+
+    theta = theta - alpha*grad;               
+
+end
+
+[cost,gradient] = costFunction(theta,X,y);</code></pre></div>
 
 <p>Other than the calculation of h, the other code is identical to the gradient descent of the logisitic regression.</p>
 
 <p>To call gradient descent , add the following lines to ex2.m</p>
 
-<div class="highlight"><pre><code class="language-octave" data-lang="octave"><span class="c">%%============= Part 4: Optimizing using Gradient Descent =============</span>
+<div class="highlight"><pre><code class="language-octave" data-lang="octave">%%============= Part 4: Optimizing using Gradient Descent =============
 
-<span class="n">alpha</span> <span class="p">=</span> <span class="mf">0.0014</span><span class="p">;</span>
+alpha = 0.0014;
 
-<span class="p">[</span><span class="n">theta</span><span class="p">,</span><span class="n">cost</span><span class="p">]=</span> <span class="n">gradientDescent</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">,</span>
-<span class="n">initial_theta</span><span class="p">,</span><span class="n">alpha</span><span class="p">,</span><span class="mi">2000000</span><span class="p">);</span>
+[theta,cost]= gradientDescent(X,y,
+initial_theta,alpha,2000000);
 
-<span class="c">% Print theta to screen</span>
+% Print theta to screen
 
-<span class="nb">fprintf</span><span class="p">(</span><span class="s">&#39;Cost at theta found by gradient Descent: %f\n&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="p">);</span>
+fprintf('Cost at theta found by gradient Descent: %f\n', cost);
 
-<span class="nb">fprintf</span><span class="p">(</span><span class="s">&#39;theta: \n&#39;</span><span class="p">);</span>
+fprintf('theta: \n');
 
-<span class="nb">fprintf</span><span class="p">(</span><span class="s">&#39; %f \n&#39;</span><span class="p">,</span> <span class="n">theta</span><span class="p">);</span>
-
-
-
-<span class="c">% Plot Boundary</span>
-
-<span class="n">plotDecisionBoundary</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">);</span>
+fprintf(' %f \n', theta);
 
 
 
-<span class="c">% Put some labels</span>
+% Plot Boundary
 
-<span class="nb">hold</span> <span class="n">on</span><span class="p">;</span>
-
-<span class="c">% Labels and Legend</span>
-
-<span class="nb">xlabel</span><span class="p">(</span><span class="s">&#39;Exam 1 score&#39;</span><span class="p">)</span>
-
-<span class="nb">ylabel</span><span class="p">(</span><span class="s">&#39;Exam 2 score&#39;</span><span class="p">)</span>
+plotDecisionBoundary(theta, X, y);
 
 
 
-<span class="c">% Specified in plot order</span>
+% Put some labels
 
-<span class="nb">legend</span><span class="p">(</span><span class="s">&#39;Admitted&#39;</span><span class="p">,</span> <span class="s">&#39;Not admitted&#39;</span><span class="p">)</span>
+hold on;
 
-<span class="nb">hold</span> <span class="n">off</span><span class="p">;</span>
+% Labels and Legend
+
+xlabel('Exam 1 score')
+
+ylabel('Exam 2 score')
 
 
 
-<span class="nb">fprintf</span><span class="p">(</span><span class="s">&#39;\nProgram paused. Press enter to continue.\n&#39;</span><span class="p">);</span>
+% Specified in plot order
 
-<span class="nb">pause</span><span class="p">;</span></code></pre></div>
+legend('Admitted', 'Not admitted')
+
+hold off;
+
+
+
+fprintf('\nProgram paused. Press enter to continue.\n');
+
+pause;</code></pre></div>
 
 <p>Now you should have gradient descent working for logistic regression.</p>
 

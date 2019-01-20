@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Scala Developer Journey into Rust - Part 1 : Introduction</title>
+    <title>Scala Developer Journey into Rust - Part 3: Expression Based Language</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/rust-scala-part-1">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/rust-scala-part-3">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,8 +45,8 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Scala Developer Journey into Rust - Part 1 : Introduction</h1>
-  <p class="meta">Jan 13, 2019</p>
+  <h1>Scala Developer Journey into Rust - Part 3: Expression Based Language</h1>
+  <p class="meta">Jan 20, 2019</p>
   <div class="catagories">
     
     <a href="/categories/rust"><span class="category">rust</span></a>
@@ -59,47 +59,83 @@
 </header> 
 
 <article class="post-content">
-  <p>Rust is one of the major programming languages that’s been getting popular in recent years. It has promised bringing the flexibility and expressiveness of high level language like Scala, Java to the performance critical system programming. So I have been curious about Rust from last 2 years and kept a constant eye on the it’s evolution.I had briefly dabbled with language 2 years back from functional programming point of view and had written few entries in this blog. But I had never seriously spent more time after that.</p>
+  <p>Rust is one of the major programming languages that’s been getting popular in recent years. It has many advanced high level language features like Scala.This made me interested to learn Rust. So in this next series of blogs I will share my experience with Rust from a Scala developer point of view. I would like to explore how these two language approach things. I would like to explore the similarities and their differences.</p>
 
-<p>Recently I had started again learning Rust. This time I had an excellent learning companion in the form of a book. <a href="https://www.goodreads.com/book/show/25550614-programming-rust">Programming  Rust</a> is one of the best Rust book out there. It makes learning concepts a joy.</p>
+<p>This is third post in the series. In this post, I will be talking about expression based language. You can find all the other posts in the series <a href="/categories/rust-scala">here</a>.</p>
 
-<h2 id="scala-connection">Scala Connection</h2>
+<h2 id="expression-based-language">Expression Based Language</h2>
 
-<p>As I was reading book it became obvious that lot of Scala concepts are in Rust. But most parts of the book was written for people who come from C/C++ or even from Java. As the Rust being the system programming language, that’s the typical crowd. But as a Scala developer, I was able to appreciate some of the advanced parts of the language more. This connection became more obvious when recently <a href="https://www.youtube.com/watch?v=2wZ1pCpJUIM">Bryan Cantrill gave a Rust talk in Scala conference</a>.</p>
+<p>Rust syntax looks very similar to C/C++ languages. But in reality,it’s quite different than these languages. One of the important distinction is statement vs expression.</p>
 
-<p>There are not too many blogs or people talk about Rust from a Scala point of view. So I thought it would become very interesting way to approach the language rather in traditional way.</p>
+<p>In a programming language, expression is a block of code which returns a result always. Whereas statement is block of code which doesn’t return anything.It depends upon the side effects for actual work. For ex: In C or Java, if condition is a statement because it doesn’t return any value.</p>
 
-<p>So in this next series of blogs I will share my experience with rust from a Scala developer point of view. I would like to explore how these two language approach things. I would like to explore the similarities and their differences.</p>
+<p>One of the challenges with statement based languages is they don’t compose well. Also writing immutable data based programs in these languages become tricky as they depend heavily on side effect based programming.</p>
 
-<h2 id="topics-of-discussion">Topics of Discussion</h2>
+<p>Scala and other family of functional languages prefer expressions over statements. In these languages, everything is an expression. All the conditions, loops, block of code returns a value. This makes them highly composable.</p>
 
-<p>Both Rust and Scala are huge languages. So discussing everything inside the language is impossible. But below are the some of the topics which are of the interest for me.</p>
+<p>Rust follows this suite for system programming. Rust is an expression based language. Every construct of rust return an expression which makes it behave very much like Scala. That’s why you will see similar construct like pattern matching etc. in Rust also.</p>
 
-<ul>
-  <li>
-    <p>Approach to Type Inference</p>
-  </li>
-  <li>
-    <p>Enums and Algebric Types</p>
-  </li>
-  <li>
-    <p>Functional Programming</p>
-  </li>
-  <li>
-    <p>Expression based language</p>
-  </li>
-  <li>
-    <p>Safe Concurrency</p>
-  </li>
-</ul>
+<p>In the next few sections, we will see how Rust expression based programming compares to the Scala.</p>
 
-<h2 id="memory-management">Memory Management</h2>
+<h2 id="if-and-else-condition">If and Else Condition</h2>
 
-<p>Many resources in Rust focus a quite a bit on memory management and borrowing model. It’s very important part of the Rust which makes the language what it is. But in my series of blog, I will be not going to focus on too much on it. Whenever I need those ideas I will mention. There are other excellent resources to learn about the same.</p>
+<p>One of the important part of expression based language is, conditions are also expression. The below show how if/else works as an expression.</p>
+
+<p>In the below code we check if a given variable is even or not. Also we store the result in a variable rather than updating from the condition.</p>
+
+<p>In Scala,</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">isEven</span> <span class="k">=</span> <span class="k">if</span><span class="o">(</span><span class="n">a</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="kc">true</span> <span class="k">else</span> <span class="kc">false</span></code></pre></div>
+
+<p>In Rust,</p>
+
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">let</span> <span class="n">is_even</span> <span class="o">=</span> <span class="k">if</span> <span class="n">a</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span><span class="k">true</span><span class="p">}</span> <span class="k">else</span> <span class="p">{</span><span class="k">false</span><span class="p">};</span></code></pre></div>
+
+<h2 id="block-expression">Block Expression</h2>
+
+<p>In an expression based language any block of code can return a value. The below shows such an example.</p>
+
+<p>In Scala,</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">blockResultExpression</span> <span class="k">=</span>  <span class="o">{</span>
+      <span class="mi">1</span><span class="o">+</span><span class="mi">2</span><span class="o">;</span>
+ <span class="o">};</span></code></pre></div>
+
+<p>In Rust,</p>
+
+<div class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">let</span> <span class="n">block_result_statement</span> <span class="o">=</span>  <span class="p">{</span>
+  <span class="mi">1</span><span class="o">+</span><span class="mi">2</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="nd">println!</span><span class="p">(</span><span class="s">"block statement result is {:?}"</span><span class="p">,</span><span class="n">block_result_statement</span><span class="p">);</span>
+
+<span class="k">let</span> <span class="n">block_result_expression</span> <span class="o">=</span>  <span class="p">{</span>
+   <span class="mi">1</span><span class="o">+</span><span class="mi">2</span>
+<span class="p">};</span>
+
+<span class="nd">println!</span><span class="p">(</span><span class="s">"block expression result is {:?}"</span><span class="p">,</span><span class="n">block_result_expression</span><span class="p">);</span></code></pre></div>
+
+<p>The result of the above rust is as below</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">block statement result is ()
+block expression result is 3</code></pre></div>
+
+<p>Both code looks almost same. But they return different result.</p>
+
+<p><strong>In Rust, a semicolon is used to turn expression into a statement. So in the first example, since we used ; it became a statement and return unit value. This facility is there for easy interoperability with C/C++</strong>.</p>
+
+<h2 id="expressions-and-functional-programming">Expressions and Functional Programming</h2>
+
+<p>Expressions make composing easy.One of the important part of functional programming is to write programs by composing different functions. So having expression as first class citizens, makes Rust ideal candidate for many constructs of functional programming. You can read more about it in my <a href="/categories/rust-functional">earlier</a> posts.
+## Code</p>
+
+<p>You can find complete code for Scala <a href="https://github.com/phatak-dev/rust-scala/blob/master/scala/src/main/scala/com/madhukaraphatak/scala/simple/Expression.scala">on github</a>.</p>
+
+<p>You can find complete code for Rust <a href="https://github.com/phatak-dev/rust-scala/blob/master/rust/simple/src/bin/expression.rs">on github</a>.</p>
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>Rust is one of most fascinating new programming language out there. It brings many ideas of advanced languages like Scala to machine level system programming. So if you are a Scala developer and like to how rust stacks up to the same , follow along me in this journey in next set of blogs.</p>
+<p>Rust is an expression based language like Scala. It makes it more composable like functional programming language. So if you are familiar with Scala expressions like conditions,patterns matching, functional combinators you can easily employ them in Rust too.</p>
 
 </article>
 <div class="related">
@@ -107,12 +143,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
+          
 
             
     
@@ -123,17 +154,17 @@
          
 
             
-          
+    
+    <li>    
+     <span class="post-date">13 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
 
    
    
              
-    
-    <li>    
-     <span class="post-date">20 Jan 2019</span>
-     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
-   </li>           
-         
+          
 
             
     
@@ -144,7 +175,12 @@
          
 
             
-          
+    
+    <li>    
+     <span class="post-date">13 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
+   </li>           
+         
 
    
    

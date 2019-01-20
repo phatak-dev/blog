@@ -81,9 +81,9 @@
 
 <p>Once we have time series data, we need to import it to dataframe. All the time window API’s need a column with type timestamp. Luckily <em>spark-csv</em> package can automatically infer the date formats from data and create schema accordingly. The below code is for importing with schema inference.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">stocksDF</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span><span class="s">&quot;true&quot;</span><span class="o">).</span>
-      <span class="n">option</span><span class="o">(</span><span class="s">&quot;inferSchema&quot;</span><span class="o">,</span><span class="s">&quot;true&quot;</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">csv</span><span class="o">(</span><span class="s">&quot;src/main/resources/applestock.csv&quot;</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">stocksDF</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"header"</span><span class="o">,</span><span class="s">"true"</span><span class="o">).</span>
+      <span class="n">option</span><span class="o">(</span><span class="s">"inferSchema"</span><span class="o">,</span><span class="s">"true"</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">csv</span><span class="o">(</span><span class="s">"src/main/resources/applestock.csv"</span><span class="o">)</span></code></pre></div>
 
 <h2 id="find-weekly-average-in-2016">Find weekly average in 2016</h2>
 
@@ -93,7 +93,7 @@
 
 <p>As we are interested only in 2016, we need to filter the data for 2016. The below code show how to filter data on time.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">stocks2016</span> <span class="k">=</span> <span class="n">stocksDF</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="s">&quot;year(Date)==2016&quot;</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">stocks2016</span> <span class="k">=</span> <span class="n">stocksDF</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="s">"year(Date)==2016"</span><span class="o">)</span></code></pre></div>
 
 <p>We can use builtin function year, as Date is already represented as a timestamp.</p>
 
@@ -102,8 +102,8 @@
 <p>Once we have filtered data, we need to create window for every 1 week. This kind of discretization of data is called as a tumbling window.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">tumblingWindowDS</span> <span class="k">=</span> <span class="n">stocks2016</span>
-      <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="n">window</span><span class="o">(</span><span class="n">stocks2016</span><span class="o">.</span><span class="n">col</span><span class="o">(</span><span class="s">&quot;Date&quot;</span><span class="o">),</span><span class="s">&quot;1 week&quot;</span><span class="o">))</span>
-      <span class="o">.</span><span class="n">agg</span><span class="o">(</span><span class="n">avg</span><span class="o">(</span><span class="s">&quot;Close&quot;</span><span class="o">).</span><span class="n">as</span><span class="o">(</span><span class="s">&quot;weekly_average&quot;</span><span class="o">))</span></code></pre></div>
+      <span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="n">window</span><span class="o">(</span><span class="n">stocks2016</span><span class="o">.</span><span class="n">col</span><span class="o">(</span><span class="s">"Date"</span><span class="o">),</span><span class="s">"1 week"</span><span class="o">))</span>
+      <span class="o">.</span><span class="n">agg</span><span class="o">(</span><span class="n">avg</span><span class="o">(</span><span class="s">"Close"</span><span class="o">).</span><span class="n">as</span><span class="o">(</span><span class="s">"weekly_average"</span><span class="o">))</span></code></pre></div>
 
 <p>The above code show how to use time window API. Window is normally used inside a group by. The first parameter signifies which column needs to be treated as time. Second parameter signifies the window duration. Window duration can be seconds, minutes, hours, days or weeks.</p>
 
@@ -113,13 +113,13 @@
 
 <p>Once we calculated the time window, we want to see the result.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">printWindow</span><span class="o">(</span><span class="n">tumblingWindowDS</span><span class="o">,</span><span class="s">&quot;weekly_average&quot;</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">printWindow</span><span class="o">(</span><span class="n">tumblingWindowDS</span><span class="o">,</span><span class="s">"weekly_average"</span><span class="o">)</span></code></pre></div>
 
 <p>The above code uses a helper function called <em>printWindow</em> which takes aggregated window dataframe and aggregated column name. The helper function looks as follows.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">printWindow</span><span class="o">(</span><span class="n">windowDF</span><span class="k">:</span><span class="kt">DataFrame</span><span class="o">,</span> <span class="n">aggCol</span><span class="k">:</span><span class="kt">String</span><span class="o">)</span> <span class="o">={</span>
-    <span class="n">windowDF</span><span class="o">.</span><span class="n">sort</span><span class="o">(</span><span class="s">&quot;window.start&quot;</span><span class="o">).</span>
-    <span class="n">select</span><span class="o">(</span><span class="s">&quot;window.start&quot;</span><span class="o">,</span><span class="s">&quot;window.end&quot;</span><span class="o">,</span><span class="n">s</span><span class="s">&quot;$aggCol&quot;</span><span class="o">).</span>
+    <span class="n">windowDF</span><span class="o">.</span><span class="n">sort</span><span class="o">(</span><span class="s">"window.start"</span><span class="o">).</span>
+    <span class="n">select</span><span class="o">(</span><span class="s">"window.start"</span><span class="o">,</span><span class="s">"window.end"</span><span class="o">,</span><span class="n">s</span><span class="s">"$aggCol"</span><span class="o">).</span>
     <span class="n">show</span><span class="o">(</span><span class="n">truncate</span> <span class="k">=</span> <span class="kc">false</span><span class="o">)</span>
  <span class="o">}</span></code></pre></div>
 
@@ -145,9 +145,9 @@
 
 <p>In earlier code, we used a tumbling window. In order to specify start time we need to use a sliding window. As of now, there is no API which combines tumbling window with start time. We can create tumbling window effect by keeping both window duration and slide duration same.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">windowWithStartTime</span> <span class="k">=</span> <span class="n">stocks2016</span><span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="n">window</span><span class="o">(</span><span class="n">stocks2016</span><span class="o">.</span><span class="n">col</span><span class="o">(</span><span class="s">&quot;Date&quot;</span><span class="o">),</span>
-                          <span class="s">&quot;1 week&quot;</span><span class="o">,</span><span class="s">&quot;1 week&quot;</span><span class="o">,</span> <span class="s">&quot;4 days&quot;</span><span class="o">))</span>
-                          <span class="o">.</span><span class="n">agg</span><span class="o">(</span><span class="n">avg</span><span class="o">(</span><span class="s">&quot;Close&quot;</span><span class="o">).</span><span class="n">as</span><span class="o">(</span><span class="s">&quot;weekly_average&quot;</span><span class="o">))</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">windowWithStartTime</span> <span class="k">=</span> <span class="n">stocks2016</span><span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="n">window</span><span class="o">(</span><span class="n">stocks2016</span><span class="o">.</span><span class="n">col</span><span class="o">(</span><span class="s">"Date"</span><span class="o">),</span>
+                          <span class="s">"1 week"</span><span class="o">,</span><span class="s">"1 week"</span><span class="o">,</span> <span class="s">"4 days"</span><span class="o">))</span>
+                          <span class="o">.</span><span class="n">agg</span><span class="o">(</span><span class="n">avg</span><span class="o">(</span><span class="s">"Close"</span><span class="o">).</span><span class="n">as</span><span class="o">(</span><span class="s">"weekly_average"</span><span class="o">))</span></code></pre></div>
 
 <p>In above code, we specify “4 days” which is a offset for start time. The first two parameters specify window duration and slide duration.When we run this code, we observe the below result</p>
 
@@ -162,7 +162,7 @@
 
 <p>Now we have a week starting from <em>2016-01-04</em>. Still we have initial row which is take from 2015. The reason is, as our start time is 4 days, it creates a window till that time from last seven days.We can remove this row easily using filter as below.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">filteredWindow</span> <span class="k">=</span> <span class="n">windowWithStartTime</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="s">&quot;year(window.start)=2016&quot;</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">filteredWindow</span> <span class="k">=</span> <span class="n">windowWithStartTime</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="s">"year(window.start)=2016"</span><span class="o">)</span></code></pre></div>
 
 <p>Now we will see the expected result.</p>
 
@@ -189,24 +189,24 @@
              
     
     <li>    
+     <span class="post-date">20 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">08 Sep 2018</span>
-     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

@@ -84,15 +84,15 @@
 <p>SparkSession follows builder factory design pattern. The below is the code to create a spark session.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sparkSession</span> <span class="k">=</span> <span class="nc">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span>
-      <span class="n">master</span><span class="o">(</span><span class="s">&quot;local&quot;</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">appName</span><span class="o">(</span><span class="s">&quot;spark session example&quot;</span><span class="o">)</span>
+      <span class="n">master</span><span class="o">(</span><span class="s">"local"</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">appName</span><span class="o">(</span><span class="s">"spark session example"</span><span class="o">)</span>
       <span class="o">.</span><span class="n">getOrCreate</span><span class="o">()</span></code></pre></div>
 
 <p>The above is similar to creating an SparkContext with local and creating an SQLContext wrapping it. If you need to create, hive context you can use below code to create spark session with hive support.</p>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sparkSession</span> <span class="k">=</span> <span class="nc">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span>
-      <span class="n">master</span><span class="o">(</span><span class="s">&quot;local&quot;</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">appName</span><span class="o">(</span><span class="s">&quot;spark session example&quot;</span><span class="o">)</span>
+      <span class="n">master</span><span class="o">(</span><span class="s">"local"</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">appName</span><span class="o">(</span><span class="s">"spark session example"</span><span class="o">)</span>
       <span class="o">.</span><span class="n">enableHiveSupport</span><span class="o">()</span>
       <span class="o">.</span><span class="n">getOrCreate</span><span class="o">()</span></code></pre></div>
 
@@ -104,8 +104,8 @@
 
 <p>The below code is reading data from csv using spark session.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">&quot;header&quot;</span><span class="o">,</span><span class="s">&quot;true&quot;</span><span class="o">).</span>
-    <span class="n">csv</span><span class="o">(</span><span class="s">&quot;src/main/resources/sales.csv&quot;</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"header"</span><span class="o">,</span><span class="s">"true"</span><span class="o">).</span>
+    <span class="n">csv</span><span class="o">(</span><span class="s">"src/main/resources/sales.csv"</span><span class="o">)</span></code></pre></div>
 
 <p>It looks like exactly like reading using SQLContext. You can easily replace all your code of SQLContext with SparkSession now.</p>
 
@@ -130,24 +130,24 @@
              
     
     <li>    
+     <span class="post-date">20 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">08 Sep 2018</span>
-     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 

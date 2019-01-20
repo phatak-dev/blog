@@ -83,7 +83,7 @@ configuration. We can use deployment abstraction for achieving the same.</p>
 
 <p>Once we update the docker file, we need to build new image with below command.</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">docker build -t spark-1.6.3-bin-hadoop2.6 .</code></pre></div>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">docker build <span class="nt">-t</span> spark-1.6.3-bin-hadoop2.6 .</code></pre></div>
 
 <p>Now we have  our new spark image ready.</p>
 
@@ -113,10 +113,10 @@ the old pods will be deleted.</p>
 <p>This shown in the below output.</p>
 
 <div class="highlight"><pre><code class="language-sh" data-lang="sh">NAME                               READY     STATUS        RESTARTS   AGE
-nginx-deployment-619952658-16z1h   1/1       Running       <span class="m">1</span>          11d
-spark-master-1095292607-mb0xh      1/1       Running       <span class="m">0</span>          37s
-spark-worker-1610799992-4f701      0/1       Pending       <span class="m">0</span>          25s
-spark-worker-671341425-xxlxn       1/1       Terminating   <span class="m">0</span>          53s</code></pre></div>
+nginx-deployment-619952658-16z1h   1/1       Running       1          11d
+spark-master-1095292607-mb0xh      1/1       Running       0          37s
+spark-worker-1610799992-4f701      0/1       Pending       0          25s
+spark-worker-671341425-xxlxn       1/1       Terminating   0          53s</code></pre></div>
 
 <p>As part of the roll out, kubernetes will update all dns entries to point to new pods.</p>
 
@@ -152,24 +152,24 @@ our services without effecting other services.</p>
              
     
     <li>    
+     <span class="post-date">20 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-3">Scala Developer Journey into Rust - Part 3: Expression Based Language</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">14 Jan 2019</span>
+     &raquo; <a href="/rust-scala-part-2">Scala Developer Journey into Rust - Part 2 : Type Inference</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
      <span class="post-date">13 Jan 2019</span>
      &raquo; <a href="/rust-scala-part-1">Scala Developer Journey into Rust - Part 1 : Introduction</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">08 Sep 2018</span>
-     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 
