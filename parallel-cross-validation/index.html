@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Spark on Kubernetes : Native Kubernetes Integration for Spark</title>
+    <title>Parallel Cross Validation in Spark</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-on-kubernetes">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/parallel-cross-validation">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,25 +45,79 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Spark on Kubernetes : Native Kubernetes Integration for Spark</h1>
-  <p class="meta">Sep 8, 2018</p>
+  <h1>Parallel Cross Validation in Spark</h1>
+  <p class="meta">May 27, 2019</p>
   <div class="catagories">
-    
-    <a href="/categories/scala"><span class="category">scala</span></a>
     
     <a href="/categories/spark"><span class="category">spark</span></a>
     
-    <a href="/categories/kubernetes"><span class="category">kubernetes</span></a>
+    <a href="/categories/scala"><span class="category">scala</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>The below video is a recording of my talk <em>Spark on Kubernetes</em> in recent spark meetup. In this talk, I discuss about native kubernetes for spark that got introduced in spark 2.3.</p>
+  <p>Cross validation in spark, is process of running a machine learning pipeline with different combinations of parameters to find the optimal model. Often this operation is costly as spark needs to go through many combinations of parameters on large size of data.</p>
 
-<p>Find the slides on <a href="https://www.slideshare.net/datamantra/spark-on-kubernetes">slideshare</a> and code on <a href="https://github.com/phatak-dev/kubernetes-spark">github</a>.</p>
+<h2 id="cross-validation-before-spark-23">Cross Validation before Spark 2.3</h2>
 
-<div class="video-container"> <iframe src="https://www.youtube.com/embed/jtfcSsLX6SE" frameborder="0" width="560" height="315"></iframe> </div>
+<p>Till spark 2.3, cross validation was done serially. That means , for every combination of cross validation, spark runs one set of jobs before it moves on to next combination.</p>
+
+<p>The below code show one example of such cross validation.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">paramMap</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ParamGridBuilder</span><span class="o">()</span>
+  <span class="o">.</span><span class="n">addGrid</span><span class="o">(</span><span class="n">logisticRegression</span><span class="o">.</span><span class="n">maxIter</span><span class="o">,</span> <span class="nc">Array</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">)).</span><span class="n">build</span><span class="o">()</span>
+
+
+<span class="k">val</span> <span class="n">crossValidator</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">CrossValidator</span><span class="o">()</span>
+<span class="n">crossValidator</span><span class="o">.</span><span class="n">setEstimator</span><span class="o">(</span><span class="n">pipeline</span><span class="o">)</span>
+<span class="n">crossValidator</span><span class="o">.</span><span class="n">setEvaluator</span><span class="o">(</span><span class="k">new</span> <span class="nc">BinaryClassificationEvaluator</span><span class="o">())</span>
+<span class="n">crossValidator</span><span class="o">.</span><span class="n">setEstimatorParamMaps</span><span class="o">(</span><span class="n">paramMap</span><span class="o">)</span>
+
+<span class="n">crossValidator</span><span class="o">.</span><span class="n">fit</span><span class="o">(</span><span class="n">salaryDf</span><span class="o">)</span></code></pre></div>
+
+<p>In above code, we are running an algorithm 3 times, logistic regression in this case ( not shown in the code), with different values of <strong>maxIter</strong>.</p>
+
+<h2 id="result-of-serial-cross-validation">Result of Serial Cross Validation</h2>
+
+<p>When we see the Spark UI, we can observe that logistic regression is running one after another. The below screenshots confirm the same.</p>
+
+<p><img src="/images/firstlogisticregression.png" alt="firstregression" />
+<img src="/images/secondlogisticregression.png" alt="secondregression" /></p>
+
+<p>As you can see from above images, two jobs have <em>one second</em> of gap.Also from the job number, we can make out that there were many jobs ran before second logistic regression started.</p>
+
+<h2 id="parallel-cross-validation-in-spark-23">Parallel Cross Validation in Spark 2.3</h2>
+
+<p>Every combination of cross validation are independent of each other. Which means we can run them parallely. This will increase resource usage, but it does get us results much faster.</p>
+
+<p>So from Spark 2.3 version, there is an option to specify parallelism in cross validation. The below codes shows the same</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">paramMap</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ParamGridBuilder</span><span class="o">()</span>
+  <span class="o">.</span><span class="n">addGrid</span><span class="o">(</span><span class="n">logisticRegression</span><span class="o">.</span><span class="n">maxIter</span><span class="o">,</span> <span class="nc">Array</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">)).</span><span class="n">build</span><span class="o">()</span>
+
+
+<span class="k">val</span> <span class="n">crossValidator</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">CrossValidator</span><span class="o">()</span>
+<span class="n">crossValidator</span><span class="o">.</span><span class="n">setEstimator</span><span class="o">(</span><span class="n">pipeline</span><span class="o">)</span>
+<span class="n">crossValidator</span><span class="o">.</span><span class="n">setEvaluator</span><span class="o">(</span><span class="k">new</span> <span class="nc">BinaryClassificationEvaluator</span><span class="o">())</span>
+<span class="n">crossValidator</span><span class="o">.</span><span class="n">setEstimatorParamMaps</span><span class="o">(</span><span class="n">paramMap</span><span class="o">)</span>
+<span class="n">crossValidator</span><span class="o">.</span><span class="n">setParallelism</span><span class="o">(</span><span class="mi">3</span><span class="o">)</span>
+
+<span class="n">crossValidator</span><span class="o">.</span><span class="n">fit</span><span class="o">(</span><span class="n">salaryDf</span><span class="o">)</span></code></pre></div>
+
+<p>In above code, we set the parallelism with <em>setParallelism</em> parameter.</p>
+
+<h2 id="result-of-parallel-cross-validation">Result of Parallel Cross Validation</h2>
+
+<p>When we observe the spark UI with cross validation enabled, we can see the below result.</p>
+
+<p><img src="/images/combinedlogisticregression.png" alt="combinedregression" /></p>
+
+<p>As you can observe from above screenshot, all the 3 logistic regression have started together.</p>
+
+<h2 id="code">Code</h2>
+
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/ml/ParallelCrossValidation.scala">github</a>.</p>
 
 </article>
 <div class="related">
@@ -71,12 +125,28 @@
   <ul>
     
              
+          
+
+            
     
     <li>    
-     <span class="post-date">27 May 2019</span>
-     &raquo; <a href="/parallel-cross-validation">Parallel Cross Validation in Spark</a>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
    </li>           
          
+
+            
+    
+    <li>    
+     <span class="post-date">12 Jul 2018</span>
+     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
+   </li>           
+         
+
+   
+   
+             
+          
 
             
     
@@ -91,27 +161,6 @@
     <li>    
      <span class="post-date">18 Feb 2019</span>
      &raquo; <a href="/rust-scala-part-4">Scala Developer Journey into Rust - Part 4: Algebraic Data Types</a>    
-   </li>           
-         
-
-   
-   
-             
-    
-    <li>    
-     <span class="post-date">27 May 2019</span>
-     &raquo; <a href="/parallel-cross-validation">Parallel Cross Validation in Spark</a>    
-   </li>           
-         
-
-            
-          
-
-            
-    
-    <li>    
-     <span class="post-date">12 Jul 2018</span>
-     &raquo; <a href="/spark-datasource-v2-part-8">Exploring Spark DataSource V2 - Part 8  : Transactional Writes</a>    
    </li>           
          
 
