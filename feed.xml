@@ -7,6 +7,56 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Multiple Column Feature Transformations in Spark ML</title>
+        <description>&lt;p&gt;Feature transformations are one of the most important and time consuming part of any machine learning pipeline. As number of columns increases, these transformations also grow with it. So having improvement in performance in these will improve the overall performance of the machine learning system.&lt;/p&gt;
+
+&lt;h2 id=&quot;spark-ml-feature-transformations-before-spark-23&quot;&gt;Spark ML Feature Transformations Before Spark 2.3&lt;/h2&gt;
+
+&lt;p&gt;Till spark 2.3, most of the ML transformations supported single column at a time.&lt;/p&gt;
+
+&lt;p&gt;The below code show one example of such transformation.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;singleColumnOneHotEncoder&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;OneHotEncoder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;singleColumnOneHotEncoder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setInputCol&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;workclass_index&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;singleColumnOneHotEncoder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setOutputCol&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;workclass_onehot&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above code, we are one hot encoding one column. If we have 20 categorical columns, we need to create 20 one hot encoders, which will run one after another. This is highly time consuming.&lt;/p&gt;
+
+&lt;h2 id=&quot;multi-column-ml-transformations-from-spark-23&quot;&gt;Multi-Column ML Transformations from Spark 2.3&lt;/h2&gt;
+
+&lt;p&gt;Combining multiple columns together for feature transformations improve the overall performance of the pipeline. So from 2.3, spark has started supporting multiple column transformations for few of the built in transformations.&lt;/p&gt;
+
+&lt;p&gt;So from Spark 2.3 version, we can do all the one hot encoding in one shot as shown in the below code&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;singleOneHotEncoder&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;OneHotEncoderEstimator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;singleOneHotEncoder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setInputCols&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stringColumns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;_index&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;singleOneHotEncoder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setOutputCols&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;outputColumns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above code, we can observe that &lt;strong&gt;setInputCols&lt;/strong&gt; allows us to set multiple columns at same time. This make sure that we run all the one hot encoding for multiple columns together.&lt;/p&gt;
+
+&lt;h2 id=&quot;missing-transformations&quot;&gt;Missing Transformations&lt;/h2&gt;
+
+&lt;p&gt;In Spark 2.3 and 2.4 only few of the built-in transformations support the multiple columns. Few of the the missing ones are&lt;/p&gt;
+
+&lt;p&gt;• StringIndexer&lt;/p&gt;
+
+&lt;p&gt;• Binarizer&lt;/p&gt;
+
+&lt;p&gt;Support for these will be added in spark 3.0.&lt;/p&gt;
+
+&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/blob/2.4/src/main/scala/com/madhukaraphatak/examples/sparktwo/ml/MultiColumnTransformation.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;From Spark 2.3, spark supports multi-column feature transformations. These greatly speedup the real world ML pipelines.&lt;/p&gt;
+</description>
+        <pubDate>Thu, 06 Jun 2019 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/multi-column-feature-transformation-spark-ml</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/multi-column-feature-transformation-spark-ml</guid>
+      </item>
+    
+      <item>
         <title>Parallel Cross Validation in Spark</title>
         <description>&lt;p&gt;Cross validation in spark, is process of running a machine learning pipeline with different combinations of parameters to find the optimal model. Often this operation is costly as spark needs to go through many combinations of parameters on large size of data.&lt;/p&gt;
 
@@ -576,141 +626,6 @@ block expression result is 3&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
         <pubDate>Thu, 12 Jul 2018 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/spark-datasource-v2-part-7</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-datasource-v2-part-7</guid>
-      </item>
-    
-      <item>
-        <title>Exploring Spark DataSource V2 - Part 6  : Anatomy of V2 Write API</title>
-        <description>&lt;p&gt;In spark, data source is one of the foundational API for structured data analysis. Combined with dataframe and spark SQL abstractions, it makes spark one of the most complete structured data engine out there. You can read more about structured data analysis in spark &lt;a href=&quot;/categories/datasource-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Data source API was introduced in spark 1.3 along with dataframe abstraction. After that release, spark has undergone tremendous change. Spark has moved to custom memory management and with 2.0 we got Dataset , a better dataframe, abstraction. With these tremendous changes data source API needed to revisited.&lt;/p&gt;
-
-&lt;p&gt;So in 2.3 version, spark has released new version of data source API known as as data source V2. This API reflects all the learning spark developers learnt in last few releases. This API will be foundation for next few years of spark data source connectivity.&lt;/p&gt;
-
-&lt;p&gt;In this series of posts, I will be discussing about different parts of the API. We will be learning API by building data sources for different sources like flat file, relational databases etc.&lt;/p&gt;
-
-&lt;p&gt;This is sixth blog in the series where we discuss about different interfaces to write data in V2 API.You can read all the post in the series &lt;a href=&quot;/categories/datasource-v2-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;write-api--with-transactions&quot;&gt;Write API  with Transactions&lt;/h2&gt;
-
-&lt;p&gt;One of the shortcoming of the data source V1 API was bare bone write API. It was not built to support complex down stream systems like databases. Also the interface has not exposed any transactional support. So it was all left to user to do all the complex handling of failures and cleanup.&lt;/p&gt;
-
-&lt;p&gt;Datasource V2 API addresses this shortcoming. It has transactional support in API level. This makes building more powerful connectors much easier.&lt;/p&gt;
-
-&lt;h2 id=&quot;write-api-interfaces&quot;&gt;Write API Interfaces&lt;/h2&gt;
-
-&lt;p&gt;Write API interfaces mimics the read interfaces which we saw in last few posts. The below are the different interfaces.&lt;/p&gt;
-
-&lt;h2 id=&quot;datasourcev2&quot;&gt;DataSourceV2&lt;/h2&gt;
-
-&lt;p&gt;DataSourceV2 is a marker interface. It doesn’t have any methods to override. Extending this interface we indicate that we are implementing support for V2 datasource.&lt;/p&gt;
-
-&lt;h2 id=&quot;writersupport&quot;&gt;WriterSupport&lt;/h2&gt;
-
-&lt;p&gt;WriterSupport is interface which indicates that data source supports write.&lt;/p&gt;
-
-&lt;p&gt;It has single method with below signature&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createWriter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;jobId&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;schema&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;StructType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mode&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;SaveMode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; 
-&lt;span class=&quot;n&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;DataSourceOptions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Optional&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;DataSourceWriter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;From the above signature it’s clear that,it’s an entry point method for data source. The below are different options&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;jobId - Id of the job in which this write is happening.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;schema - Schema of DataFrame/Dataset that need to be written&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;SaveMode - Different modes of write like overwrite, update etc. This is same as earlier API&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;options - Map containing all the options passed to connect to the underneath source.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The method returns an optional &lt;em&gt;DataSourceWriter&lt;/em&gt;. &lt;em&gt;Optional&lt;/em&gt; type is a Java 8 equivalent of scala &lt;em&gt;Option&lt;/em&gt;. The return type is optional here, because data source can decide not to do anything depending upon the &lt;em&gt;SaveMode&lt;/em&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;datasourcewriter&quot;&gt;DataSourceWriter&lt;/h2&gt;
-
-&lt;p&gt;DataSourceWriter is the primary interface for actually responsible for writing. It exposes below methods&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;datawriterfactory&quot;&gt;DataWriterFactory&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createWriterFactory&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;DataWriterFactory&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;DataWriterFactory is a factory class to create actual data writers. For each partition of data it is created and sent to executors.&lt;/p&gt;
-
-&lt;p&gt;It’s little bit different compared to read path. In read, data source returned a list of factory objects. The reason for that is, the list indicated how many partitions needs to be created. But in case of write, spark already knows number of partitions. So no need to of list here.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;commit&quot;&gt;Commit&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;commit&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;messages&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;WriterCommitMessage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;])&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Unit&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As we discussed before, the above method is part of transaction support in the writer. When all the writing is done, this method is called to commit. This is overall commit. Individual partition commit will be there in DataWriter interface which we will discuss below.&lt;/p&gt;
-
-&lt;p&gt;WriterCommitMessage is a message interface, that should be used by data source to define their own messages to indicate the status of each partition write.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;abort&quot;&gt;Abort&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;abort&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;messages&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;WriterCommitMessage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;])&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Unit&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;It’s a mirror interface to commit. This is called whenever there is complete failure of job. This is used to cleanup the partially written data.&lt;/p&gt;
-
-&lt;h2 id=&quot;datawriterfactory-1&quot;&gt;DataWriterFactory&lt;/h2&gt;
-
-&lt;p&gt;It’s a factory class to create actual data writer. This code executes in each executor.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createDataWriter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partitionId&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;attemptNumber&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;DataWriter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As the name suggest, it creates data writers. The parameters are&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;partitionId - Id of partition. This helps writer to understand which partition it’s writing&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;attemptNumber - In case of writing, there can be multiple attempts. These attempts can be due to speculative run or because
-of failures&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Method returns DataWriter. As of now, T can be Row only.&lt;/p&gt;
-
-&lt;h2 id=&quot;datawriter&quot;&gt;DataWriter&lt;/h2&gt;
-
-&lt;p&gt;Finally we have the interface which actually writes data. The below are methods&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Unit&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;commit&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;WriterCommitMessage&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;abort&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Unit&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;em&gt;write&lt;/em&gt; method is the one which responsible for actual write. Other two methods are same as &lt;em&gt;DataSourceWriter&lt;/em&gt; but now they work at the level of partition. These methods are responsible committing or handling write failures at partition level.&lt;/p&gt;
-
-&lt;p&gt;The &lt;em&gt;WriterCommitMessage&lt;/em&gt; sent by commit method in this interface are the one which are sent to &lt;em&gt;DataSourceWriter&lt;/em&gt;. This helps data source to understand status of each partition.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;Datasource V2 brings transaction support to data source writes. This makes API more powerful and flexible.&lt;/p&gt;
-</description>
-        <pubDate>Thu, 07 Jun 2018 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-datasource-v2-part-6</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-datasource-v2-part-6</guid>
       </item>
     
   </channel>
