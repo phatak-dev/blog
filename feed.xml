@@ -7,6 +7,89 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Migrating to Spark 2.4 Data Source API</title>
+        <description>&lt;p&gt;In &lt;a href=&quot;/categories/datasource-v2-series/&quot;&gt;earlier series&lt;/a&gt; of posts, we have discussed about new data source API that was introduced in 2.3. In 2.3, it was in beta version. In 2.4, API have been updated and marked as stable. Some of these are breaking changes.So if you are porting the datasources to 2.4 version, you need to update your code to match the latest API.&lt;/p&gt;
+
+&lt;p&gt;In this post, we are going to discuss the changes that introduced in the API. Also all the code what we saw in earlier series is ported to new version. This allow you to see how to update your own code.&lt;/p&gt;
+
+&lt;h2 id=&quot;reader-api&quot;&gt;Reader API&lt;/h2&gt;
+
+&lt;p&gt;In this section, we are going to see the changes that introduced for Reader API.&lt;/p&gt;
+
+&lt;h3 id=&quot;datasourcereader-interface&quot;&gt;DataSourceReader Interface&lt;/h3&gt;
+
+&lt;p&gt;In DataSourceReader interaface, the function&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createDataReaderFactories&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;DataReaderFactory&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;is replaced by&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;planInputPartitions&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;InputPartition&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;As you can see in this, factory is replaced by partition.&lt;/p&gt;
+
+&lt;h3 id=&quot;datareaderfactory-to-inputpartition&quot;&gt;DataReaderFactory to InputPartition&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;DataReaderFactory&lt;/strong&gt; interface is renamed to  &lt;strong&gt;InputPartition&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Also the method&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createDataReader&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;DataReader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;is replaced by&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createPartitionReader&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;InputPartitionReader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;InternalRow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;datareader-to-partitionreader&quot;&gt;DataReader to PartitionReader&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;DataReader&lt;/strong&gt; interface is renamed to &lt;strong&gt;InputPartitionReader&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Also the method&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createDataReader&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;is replaced by&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createPartitionReader&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;row-to-internalrow&quot;&gt;Row to InternalRow&lt;/h3&gt;
+
+&lt;p&gt;In earlier API’s, the interfaces used to take &lt;em&gt;Row&lt;/em&gt;. All that is changed to &lt;strong&gt;InternalRow&lt;/strong&gt;. This allows all the data sources load data in more efficient way.&lt;/p&gt;
+
+&lt;h2 id=&quot;writer-api&quot;&gt;Writer API&lt;/h2&gt;
+
+&lt;p&gt;Compared to Reader API, writer API has gone very minimal changes. In this section we are going to discuss about those changes.&lt;/p&gt;
+
+&lt;h3 id=&quot;datawriterfactoryrow-to-datawriterfactoryinternalrow&quot;&gt;DataWriterFactory[Row] to DataWriterFactory[InternalRow]&lt;/h3&gt;
+
+&lt;p&gt;As we discussed in earlier section, &lt;strong&gt;Row&lt;/strong&gt; is changed to &lt;strong&gt;InternalRow&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;datawriterfactory-interface&quot;&gt;DataWriterFactory Interface&lt;/h3&gt;
+
+&lt;p&gt;In DataWriterFactory interface, the method&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createDataWriter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partitionId&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;attemptNumber&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;is changed to&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createDataWriter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partitionId&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;taskId&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;epochId&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;epochId&lt;/strong&gt; is added to support spark structured streaming.&lt;/p&gt;
+
+&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
+
+&lt;p&gt;You can access the port of earlier code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/commit/1cfba393a09c2d4a012f29f7a6579ff5efc1dd53&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Spark 2.4 has updated API’s for newly introduced data source API. Now the API is marked as stable and going to serve the spark developers for long.&lt;/p&gt;
+</description>
+        <pubDate>Fri, 14 Jun 2019 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/migrate-spark-datasource-2.4</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrate-spark-datasource-2.4</guid>
+      </item>
+    
+      <item>
         <title>Multiple Column Feature Transformations in Spark ML</title>
         <description>&lt;p&gt;Feature transformations are one of the most important and time consuming part of any machine learning pipeline. As number of columns increases, these transformations also grow with it. So having improvement in performance in these will improve the overall performance of the machine learning system.&lt;/p&gt;
 
@@ -613,19 +696,6 @@ block expression result is 3&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
         <pubDate>Thu, 12 Jul 2018 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/spark-datasource-v2-part-8</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-datasource-v2-part-8</guid>
-      </item>
-    
-      <item>
-        <title>Exploring Spark DataSource V2 - Part 7  : Meetup Talk</title>
-        <description>&lt;p&gt;The below video is a recording of my talk on &lt;em&gt;Introduction to Spark Datasource V2 API&lt;/em&gt; in recent spark meetup. In this talk, I discuss about shortcomings of datasource V1 API and how datasource V2 API overcomes it. It’s a first talk in series of talks on datasource V2 API.&lt;/p&gt;
-
-&lt;p&gt;Find the slides on &lt;a href=&quot;https://www.slideshare.net/datamantra/introduction-to-datasource-v2-api&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/Yoc9rLsCV0c&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
-</description>
-        <pubDate>Thu, 12 Jul 2018 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-datasource-v2-part-7</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-datasource-v2-part-7</guid>
       </item>
     
   </channel>

@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Exploring Spark DataSource V2 - Part 8  : Transactional Writes</title>
+    <title>Migrating to Spark 2.4 Data Source API</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-datasource-v2-part-8">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/migrate-spark-datasource-2.4">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,13 +45,13 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Exploring Spark DataSource V2 - Part 8  : Transactional Writes</h1>
-  <p class="meta">Jul 12, 2018</p>
+  <h1>Migrating to Spark 2.4 Data Source API</h1>
+  <p class="meta">Jun 14, 2019</p>
   <div class="catagories">
     
-    <a href="/categories/scala"><span class="category">scala</span></a>
-    
     <a href="/categories/spark"><span class="category">spark</span></a>
+    
+    <a href="/categories/scala"><span class="category">scala</span></a>
     
     <a href="/categories/datasource-v2-series"><span class="category">datasource-v2-series</span></a>
     
@@ -59,11 +59,81 @@
 </header> 
 
 <article class="post-content">
-  <p>The below video is a recording of my talk on <em>Understanding Transactional Writes in Data Source V2 API</em> in recent spark meetup. In this talk, I discuss about datasource V2 write API. It’s a second talk in series of talks on datasource V2 API.</p>
+  <p>In <a href="/categories/datasource-v2-series/">earlier series</a> of posts, we have discussed about new data source API that was introduced in 2.3. In 2.3, it was in beta version. In 2.4, API have been updated and marked as stable. Some of these are breaking changes.So if you are porting the datasources to 2.4 version, you need to update your code to match the latest API.</p>
 
-<p>Find the slides on <a href="https://www.slideshare.net/datamantra/understanding-transactional-writes-in-datasource-v2-109643509">slideshare</a> and code on <a href="https://github.com/phatak-dev/spark2.0-examples">github</a>.</p>
+<p>In this post, we are going to discuss the changes that introduced in the API. Also all the code what we saw in earlier series is ported to new version. This allow you to see how to update your own code.</p>
 
-<div class="video-container"> <iframe src="https://www.youtube.com/embed/lkYSfgQ_IAY" frameborder="0" width="560" height="315"></iframe> </div>
+<h2 id="reader-api">Reader API</h2>
+
+<p>In this section, we are going to see the changes that introduced for Reader API.</p>
+
+<h3 id="datasourcereader-interface">DataSourceReader Interface</h3>
+
+<p>In DataSourceReader interaface, the function</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">createDataReaderFactories</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">DataReaderFactory</span><span class="o">[</span><span class="kt">T</span><span class="o">]]</span></code></pre></div>
+
+<p>is replaced by</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">planInputPartitions</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">InputPartition</span><span class="o">]</span></code></pre></div>
+
+<p>As you can see in this, factory is replaced by partition.</p>
+
+<h3 id="datareaderfactory-to-inputpartition">DataReaderFactory to InputPartition</h3>
+
+<p><strong>DataReaderFactory</strong> interface is renamed to  <strong>InputPartition</strong>.</p>
+
+<p>Also the method</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">createDataReader</span><span class="k">:</span> <span class="kt">DataReader</span><span class="o">[</span><span class="kt">Row</span><span class="o">]</span></code></pre></div>
+
+<p>is replaced by</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">createPartitionReader</span><span class="k">:</span><span class="kt">InputPartitionReader</span><span class="o">[</span><span class="kt">InternalRow</span><span class="o">]</span></code></pre></div>
+
+<h3 id="datareader-to-partitionreader">DataReader to PartitionReader</h3>
+
+<p><strong>DataReader</strong> interface is renamed to <strong>InputPartitionReader</strong>.</p>
+
+<p>Also the method</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">createDataReader</span></code></pre></div>
+
+<p>is replaced by</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">createPartitionReader</span></code></pre></div>
+
+<h3 id="row-to-internalrow">Row to InternalRow</h3>
+
+<p>In earlier API’s, the interfaces used to take <em>Row</em>. All that is changed to <strong>InternalRow</strong>. This allows all the data sources load data in more efficient way.</p>
+
+<h2 id="writer-api">Writer API</h2>
+
+<p>Compared to Reader API, writer API has gone very minimal changes. In this section we are going to discuss about those changes.</p>
+
+<h3 id="datawriterfactoryrow-to-datawriterfactoryinternalrow">DataWriterFactory[Row] to DataWriterFactory[InternalRow]</h3>
+
+<p>As we discussed in earlier section, <strong>Row</strong> is changed to <strong>InternalRow</strong></p>
+
+<h3 id="datawriterfactory-interface">DataWriterFactory Interface</h3>
+
+<p>In DataWriterFactory interface, the method</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">createDataWriter</span><span class="o">(</span><span class="n">partitionId</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">attemptNumber</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span></code></pre></div>
+
+<p>is changed to</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">createDataWriter</span><span class="o">(</span><span class="n">partitionId</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">taskId</span><span class="k">:</span><span class="kt">Long</span><span class="o">,</span><span class="n">epochId</span><span class="k">:</span> <span class="kt">Long</span><span class="o">)</span></code></pre></div>
+
+<p><strong>epochId</strong> is added to support spark structured streaming.</p>
+
+<h2 id="code">Code</h2>
+
+<p>You can access the port of earlier code on <a href="https://github.com/phatak-dev/spark2.0-examples/commit/1cfba393a09c2d4a012f29f7a6579ff5efc1dd53">github</a>.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Spark 2.4 has updated API’s for newly introduced data source API. Now the API is marked as stable and going to serve the spark developers for long.</p>
 
 </article>
 <div class="related">
@@ -71,12 +141,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">14 Jun 2019</span>
-     &raquo; <a href="/migrate-spark-datasource-2.4">Migrating to Spark 2.4 Data Source API</a>    
-   </li>           
-         
+          
 
             
     
@@ -97,12 +162,7 @@
    
    
              
-    
-    <li>    
-     <span class="post-date">14 Jun 2019</span>
-     &raquo; <a href="/migrate-spark-datasource-2.4">Migrating to Spark 2.4 Data Source API</a>    
-   </li>           
-         
+          
 
             
     
