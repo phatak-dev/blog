@@ -7,6 +7,19 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Multi Source Data Analysis using Spark and Tellius : Meetup Video</title>
+        <description>&lt;p&gt;The below video is a recording of my talk &lt;em&gt;Multi Source Data Analysis using Spark and Tellius&lt;/em&gt; in recent spark meetup. In this talk, I discuss about how spark enables multi source analysis much easier than any another frameworks out there. I also demonstrate how this part of spark is used in &lt;a href=&quot;http://www.tellius.com&quot;&gt;Tellius&lt;/a&gt;, analytics product which my company has developed in last 3 years.&lt;/p&gt;
+
+&lt;p&gt;Find the slides on &lt;a href=&quot;https://www.slideshare.net/datamantra/multi-source-data-analysis-using-spark-and-tellius&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/tree/2.4/src/main/scala/com/madhukaraphatak/examples/sparktwo/multisource&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/kdihQSwj-LI&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
+</description>
+        <pubDate>Mon, 01 Jul 2019 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/multi-source-spark-tellius</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/multi-source-spark-tellius</guid>
+      </item>
+    
+      <item>
         <title>Migrating to Spark 2.4 Data Source API</title>
         <description>&lt;p&gt;In &lt;a href=&quot;/categories/datasource-v2-series/&quot;&gt;earlier series&lt;/a&gt; of posts, we have discussed about new data source API that was introduced in 2.3. In 2.3, it was in beta version. In 2.4, API have been updated and marked as stable. Some of these are breaking changes.So if you are porting the datasources to 2.4 version, you need to update your code to match the latest API.&lt;/p&gt;
 
@@ -683,19 +696,6 @@ block expression result is 3&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
         <pubDate>Sat, 08 Sep 2018 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/spark-on-kubernetes</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-on-kubernetes</guid>
-      </item>
-    
-      <item>
-        <title>Exploring Spark DataSource V2 - Part 8  : Transactional Writes</title>
-        <description>&lt;p&gt;The below video is a recording of my talk on &lt;em&gt;Understanding Transactional Writes in Data Source V2 API&lt;/em&gt; in recent spark meetup. In this talk, I discuss about datasource V2 write API. It’s a second talk in series of talks on datasource V2 API.&lt;/p&gt;
-
-&lt;p&gt;Find the slides on &lt;a href=&quot;https://www.slideshare.net/datamantra/understanding-transactional-writes-in-datasource-v2-109643509&quot;&gt;slideshare&lt;/a&gt; and code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/lkYSfgQ_IAY&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
-</description>
-        <pubDate>Thu, 12 Jul 2018 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-datasource-v2-part-8</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-datasource-v2-part-8</guid>
       </item>
     
   </channel>
