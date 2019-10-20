@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Madhukar's Blog</title>
+    <title>Understanding Kubernetes API - Part 1 : Introduction</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/page13/">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/understanding-k8s-api-part-1">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -43,108 +43,117 @@
 
     <div class="page-content">
       <div class="wrap">
-      <div class="home">
-	
+      <div class="post">
+ <header class="post-header">
+  <h1>Understanding Kubernetes API - Part 1 : Introduction</h1>
+  <p class="meta">Oct 20, 2019</p>
+  <div class="catagories">
+    
+    <a href="/categories/kubernetes"><span class="category">kubernetes</span></a>
+    
+    <a href="/categories/k8-api"><span class="category">k8-api</span></a>
+    
+  </div>
+</header> 
 
-	<ul class="posts">
-		
-		<li>           
-			<span class="post-date">Dec 15, 2014</span>             
-			<div>
-				<a class="post-link" href="/implementing-shuffle-in-mesos">Implementing shuffle in Mesos
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Dec 15, 2014</span>             
-			<div>
-				<a class="post-link" href="/distributing-third-party-libraries-in-mesos">Distributing third party libraries in Mesos
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Dec 3, 2014</span>             
-			<div>
-				<a class="post-link" href="/sizeof-operator-java-scala">sizeof operator for Java&#47;Scala
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Nov 18, 2014</span>             
-			<div>
-				<a class="post-link" href="/kryo-disk-serialization-in-spark">Kryo disk serialization in Spark
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Nov 16, 2014</span>             
-			<div>
-				<a class="post-link" href="/functional-programming-in-c++">Functional programming in C++
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Nov 11, 2014</span>             
-			<div>
-				<a class="post-link" href="/custom-mesos-executor-scala">Custom mesos executor in Scala
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Nov 4, 2014</span>             
-			<div>
-				<a class="post-link" href="/granular-resource-management-mesos">Granular resource management in  Mesos
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Oct 26, 2014</span>             
-			<div>
-				<a class="post-link" href="/mesos-helloworld-scala">Mesos Hello world in Scala
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Oct 24, 2014</span>             
-			<div>
-				<a class="post-link" href="/mesos-single-node-setup-ubuntu">Mesos single node cluster on Ubuntu
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Sep 29, 2014</span>             
-			<div>
-				<a class="post-link" href="/evaluating-spark-rdd-for-side-effects">Evaluating Spark RDD's for side effects
-				</a> 
-			</div>                                  
-		</li>        
-		
-	</ul>
+<article class="post-content">
+  <p>Kubernetes is a REST API driven system. All the operations in the system are executed by making the API requests to it’s API server. This makes kubernetes easy to interact from external systems.</p>
 
-</div>
+<p>Most of the initial interactions with the API is done using <strong>kubectl</strong>. kubectl is a command line tool which converts the user commands to a API call.But once the user is comfortable with <strong>kubectl</strong>, for advance operations it will be beneficial to know how to interact with API directly. This gives more power to the user to express the operations more effectively.</p>
+
+<p>So in this series of blog posts, I will be discussing about how to use various kubernetes API’s. This is the first post in the series which gives introduction to Kubernetes API and setting up access. You can access all the posts in the series <a href="/categories/k8-api">here</a>.</p>
+
+<h2 id="kubernetes-api">Kubernetes API</h2>
+
+<p>Kubernetes is a API driven system. Kubernetes master runs <strong>kubeapi-server</strong> to interact with the complete kubernetes control plane. This API is a REST API driven API which allows user to control every aspect the deployment.</p>
+
+<h2 id="pre-requisites">Pre-requisites</h2>
+
+<p>To use the kubernetes API  you need to have a kubernetes cluster running. You can run one on a single node using minikube. For more information you can refer to the this <a href="/scaling-spark-with-kubernetes-part-2">post</a>.</p>
+
+<h2 id="getting-access">Getting Access</h2>
+
+<p>There is <a href="https://kubernetes.io/docs/tasks/access-application-cluster/access-cluster/">wide variety of ways</a> to setting up access to the kube api server. Easiest one is using <strong>kubectl-proxy</strong>. This is a reverse proxy which auto locates the API server and then allows user interaction with default access.</p>
+
+<p>You can start the proxy using</p>
+
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl proxy <span class="nt">--port</span> 8080</code></pre></div>
+
+<p>Now the proxy is available on 8080 port of the local system.</p>
+
+<h2 id="sending-api-request">Sending API Request</h2>
+
+<p>Once the proxy is available, you can send an API request using below curl command</p>
+
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">curl <span class="nt">--request</span> GET <span class="se">\</span>
+  <span class="nt">--url</span> http://localhost:8080/api/v1</code></pre></div>
+
+<p>The truncated output look like as below</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">{
+  "kind": "APIResourceList",
+  "groupVersion": "v1",
+  "resources": [
+    {
+      "name": "bindings",
+      "singularName": "",
+      "namespaced": true,
+      "kind": "Binding",
+      }
+]
+}
+...</code></pre></div>
+
+<p>If you are able to see above result, you have been successfully connected to kubernetes API.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Kubernetes is a REST API system which allows user to control it’s object using this API. By learning this API, user can make effective use of kubernetes.</p>
+
+</article>
+<div class="related">
+  <h2>Related posts</h2>
+  <ul>
+    
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">08 Sep 2018</span>
+     &raquo; <a href="/spark-on-kubernetes">Spark on Kubernetes : Native Kubernetes Integration for Spark</a>    
+   </li>           
+         
+
+   
+   
+             
+          
+
+   
+   
+ </ul>
 
 
+ 
+<!--     
+    <div id="disqus_thread" style="padding-top:4%;"></div>
+     <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'personalblogmadhukar'; // required: replace example with your forum shortname
+        var disqus_developer = 1;
 
-<div class="pagination">
-
-	
-	<a href="/page12" class="previous">Previous</a>
-	
-	<span class="page_number ">Page: 13 of 18</span>
-	
-	<a href="/page14" class="next ">Next</a>
-	
-</div>
-
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+   
+</div> -->
 
       </div>
     </div>

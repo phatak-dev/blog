@@ -7,6 +7,66 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Understanding Kubernetes API - Part 1 : Introduction</title>
+        <description>&lt;p&gt;Kubernetes is a REST API driven system. All the operations in the system are executed by making the API requests to it’s API server. This makes kubernetes easy to interact from external systems.&lt;/p&gt;
+
+&lt;p&gt;Most of the initial interactions with the API is done using &lt;strong&gt;kubectl&lt;/strong&gt;. kubectl is a command line tool which converts the user commands to a API call.But once the user is comfortable with &lt;strong&gt;kubectl&lt;/strong&gt;, for advance operations it will be beneficial to know how to interact with API directly. This gives more power to the user to express the operations more effectively.&lt;/p&gt;
+
+&lt;p&gt;So in this series of blog posts, I will be discussing about how to use various kubernetes API’s. This is the first post in the series which gives introduction to Kubernetes API and setting up access. You can access all the posts in the series &lt;a href=&quot;/categories/k8-api&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;kubernetes-api&quot;&gt;Kubernetes API&lt;/h2&gt;
+
+&lt;p&gt;Kubernetes is a API driven system. Kubernetes master runs &lt;strong&gt;kubeapi-server&lt;/strong&gt; to interact with the complete kubernetes control plane. This API is a REST API driven API which allows user to control every aspect the deployment.&lt;/p&gt;
+
+&lt;h2 id=&quot;pre-requisites&quot;&gt;Pre-requisites&lt;/h2&gt;
+
+&lt;p&gt;To use the kubernetes API  you need to have a kubernetes cluster running. You can run one on a single node using minikube. For more information you can refer to the this &lt;a href=&quot;/scaling-spark-with-kubernetes-part-2&quot;&gt;post&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;getting-access&quot;&gt;Getting Access&lt;/h2&gt;
+
+&lt;p&gt;There is &lt;a href=&quot;https://kubernetes.io/docs/tasks/access-application-cluster/access-cluster/&quot;&gt;wide variety of ways&lt;/a&gt; to setting up access to the kube api server. Easiest one is using &lt;strong&gt;kubectl-proxy&lt;/strong&gt;. This is a reverse proxy which auto locates the API server and then allows user interaction with default access.&lt;/p&gt;
+
+&lt;p&gt;You can start the proxy using&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl proxy &lt;span class=&quot;nt&quot;&gt;--port&lt;/span&gt; 8080&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now the proxy is available on 8080 port of the local system.&lt;/p&gt;
+
+&lt;h2 id=&quot;sending-api-request&quot;&gt;Sending API Request&lt;/h2&gt;
+
+&lt;p&gt;Once the proxy is available, you can send an API request using below curl command&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;curl &lt;span class=&quot;nt&quot;&gt;--request&lt;/span&gt; GET &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;--url&lt;/span&gt; http://localhost:8080/api/v1&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The truncated output look like as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;{
+  &quot;kind&quot;: &quot;APIResourceList&quot;,
+  &quot;groupVersion&quot;: &quot;v1&quot;,
+  &quot;resources&quot;: [
+    {
+      &quot;name&quot;: &quot;bindings&quot;,
+      &quot;singularName&quot;: &quot;&quot;,
+      &quot;namespaced&quot;: true,
+      &quot;kind&quot;: &quot;Binding&quot;,
+      }
+]
+}
+...&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;If you are able to see above result, you have been successfully connected to kubernetes API.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Kubernetes is a REST API system which allows user to control it’s object using this API. By learning this API, user can make effective use of kubernetes.&lt;/p&gt;
+</description>
+        <pubDate>Sun, 20 Oct 2019 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/understanding-k8s-api-part-1</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/understanding-k8s-api-part-1</guid>
+      </item>
+    
+      <item>
         <title>Scala Developer Journey into Rust - Part 7 : Type Classes</title>
         <description>&lt;p&gt;Rust is one of the major programming languages that’s been getting popular in recent years. It has many advanced high level language features like Scala.This made me interested to learn Rust. So in this next series of blogs I will share my experience with Rust from a Scala developer point of view. I would like to explore how these two language approach things. I would like to explore the similarities and their differences.&lt;/p&gt;
 
@@ -792,91 +852,6 @@ block expression result is 3&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
         <pubDate>Sun, 20 Jan 2019 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/rust-scala-part-3</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/rust-scala-part-3</guid>
-      </item>
-    
-      <item>
-        <title>Scala Developer Journey into Rust - Part 2 : Type Inference</title>
-        <description>&lt;p&gt;Rust is one of the major programming languages that’s been getting popular in recent years. It has many advanced high level language features like Scala.This made me interested to learn Rust. So in this next series of blogs I will share my experience with Rust from a Scala developer point of view. I would like to explore how these two language approach things. I would like to explore the similarities and their differences.&lt;/p&gt;
-
-&lt;p&gt;This is second post in the series. In this post, I will be talking about type inference. You can find all the other posts in the series &lt;a href=&quot;/categories/rust-scala&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;type-system&quot;&gt;Type System&lt;/h2&gt;
-
-&lt;p&gt;As Scala, Rust has very strong type system. It has many goodies provided by Scala to make sure that programs are correct at the time of compilation. Having a strong type system comes up with it’s on challenges. One of the challenge is to provide the right types everywhere. Scala elevates this challenge by inferring most of the types by itself.This makes programmer’s life much easier.&lt;/p&gt;
-
-&lt;p&gt;As Scala, Rust also has type inference. It’s one of the first system level programming language which has support for the type inference. This features makes Rust easy to start as we don’t need worry about the types and their memory model.&lt;/p&gt;
-
-&lt;p&gt;In this post, we will be discussing about how Rust’s type inference compares to Scala.&lt;/p&gt;
-
-&lt;h2 id=&quot;type-inference&quot;&gt;Type Inference&lt;/h2&gt;
-&lt;p&gt;There are different places where we need type inference. The below are some of those examples.&lt;/p&gt;
-
-&lt;h3 id=&quot;type-inference-of-normal-variables&quot;&gt;Type Inference of Normal Variables&lt;/h3&gt;
-
-&lt;p&gt;In Scala&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In Rust,&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Variable inference looks almost same in both languages.&lt;/p&gt;
-
-&lt;h3 id=&quot;checking-types&quot;&gt;Checking Types&lt;/h3&gt;
-
-&lt;p&gt;Scala has &lt;em&gt;asInstanceOf&lt;/em&gt; to check the type. For earlier example, we can check the type as below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;assert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isInstanceOf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;not a int&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Rust doesn’t have any facility like this. We can use the different types to produce a compile error which gives us idea what’s the inferred type is&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;assert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;10.0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;not a int&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;cm&quot;&gt;/* prints can&#39;t compare `{integer}` with `{float}`*/&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;type-inference-for-collections&quot;&gt;Type Inference for Collections&lt;/h3&gt;
-
-&lt;p&gt;In Scala,&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;values&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;30&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;40&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In Rust,&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nd&quot;&gt;vec!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;type-inference-in-function-arguments&quot;&gt;Type Inference in Function Arguments&lt;/h3&gt;
-
-&lt;p&gt;Function arguments are one the place in Scala where the user has to specify the arguments explicitly. This is same in Rust also.&lt;/p&gt;
-
-&lt;p&gt;In Scala&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In Rust,&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;fn&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;i32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;i32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;i32&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;strong&gt;One change from Scala is, in Rust return type should be always specified. In scala it’s inferred from the last line&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;p&gt;I feel this is an improvement , as specifying return type explicitly makes interface of the function more explicit.&lt;/p&gt;
-
-&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
-
-&lt;p&gt;You can find complete code for Scala &lt;a href=&quot;https://github.com/phatak-dev/Rust-scala/blob/master/scala/src/main/scala/com/madhukaraphatak/scala/simple/TypeInference.scala&quot;&gt;on github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;You can find complete code for Rust &lt;a href=&quot;https://github.com/phatak-dev/Rust-scala/blob/master/Rust/simple/src/main.rs&quot;&gt;on github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;From the above examples, we can observe that Rust type inference is very similar to Scala. So if you are comfortable with these aspects in Scala, you will feel right at home in Rust.&lt;/p&gt;
-</description>
-        <pubDate>Mon, 14 Jan 2019 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/rust-scala-part-2</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/rust-scala-part-2</guid>
       </item>
     
   </channel>
