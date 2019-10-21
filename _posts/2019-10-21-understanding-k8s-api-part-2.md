@@ -2,7 +2,7 @@
 layout: post
 title: "Understanding Kubernetes API - Part 2 : Pods API"
 date : 2019-10-21
-categories: kubernetes k9-api
+categories: kubernetes k8-api
 ---
 
 Kubernetes is a REST API driven system. All the operations in the system are executed by making the API requests to it's API server. This makes kubernetes easy to interact from external systems.
