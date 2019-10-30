@@ -7,6 +7,129 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Auto Scaling Spark in Kubernetes - Part 3 : HPA with Spark Cluster</title>
+        <description>&lt;p&gt;Kubernetes makes it easy to run services on scale. With kubernetes abstractions, it’s easy to setup a cluster of spark, hadoop or database on large number of nodes. Kubernetes takes care of handling tricky pieces like node assignment,service discovery, resource management of a distributed system. We have discussed how it can be used for spark clustering in our earlier &lt;a href=&quot;/categories/kubernetes-series&quot;&gt;series&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;As the services are becoming more and more dynamic, handling resource needs statically is becoming challenge. With cloud being prevalent, users expect their infrastructure to scale with usage. For example, spark cluster on kubernetes should be able to scale up or down depending upon the load.&lt;/p&gt;
+
+&lt;p&gt;Kubernetes system can scaled manually by increasing or decreasing the number of replicas. You can refer to &lt;a href=&quot;/scaling-spark-with-kubernetes-part-7&quot;&gt;this&lt;/a&gt; post for more information. But doing this manually means lot of work. Isn’t it better if kubernetes can auto manage the same?&lt;/p&gt;
+
+&lt;p&gt;Kubernetes Horizontal Pod AutoScaler(HPA) is one of the controller in the kubernetes which is built to the auto management of scaling. It’s very powerful tool which allows user to utilize resources of the cluster effectively.&lt;/p&gt;
+
+&lt;p&gt;In this series of post, I will be discussing about kubernetes HPA with respect to auto scaling spark. This is the third post in the series which talks about how to auto scale the spark cluster. You can find all the posts in the series &lt;a href=&quot;/categories/k8s-horizontal-scaling&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;registering-the-horizontal-pod-autoscaler&quot;&gt;Registering the Horizontal Pod AutoScaler&lt;/h2&gt;
+
+&lt;p&gt;We can register a HPA for &lt;strong&gt;spark-worker&lt;/strong&gt; deployment using below command.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl autoscale deployment spark-worker &lt;span class=&quot;nt&quot;&gt;--max&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;2 &lt;span class=&quot;nt&quot;&gt;--cpu-percent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;50&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above command we specified below information&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Deployment is spark-worker&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Maximum number of replicas is 2&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Threshold is 50 percent cpu usage&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;get-current-state-of-hpa&quot;&gt;Get current State of HPA&lt;/h2&gt;
+
+&lt;p&gt;Once we create the HPA we can see the current status using below command&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl get hpa&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The result will look as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;NAME           REFERENCE                 TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
+spark-worker   Deployment/spark-worker   0%/50%    1         2         1          4h43m&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;As you can see, the current state says the load is 0 as there is nothing running in the spark layer.&lt;/p&gt;
+
+&lt;h2 id=&quot;describing-hpa&quot;&gt;Describing HPA&lt;/h2&gt;
+
+&lt;p&gt;The above command just gives the high level information. If we want to know more, we can run the &lt;strong&gt;describe&lt;/strong&gt; command to get all the events.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl describe hpa spark-worker&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The result looks as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;Name:                                                  spark-worker
+Namespace:                                             default
+Labels:                                                &amp;lt;none&amp;gt;
+Annotations:                                           &amp;lt;none&amp;gt;
+CreationTimestamp:                                     Sun, 27 Oct 2019 11:30:50 +0530
+Reference:                                             Deployment/spark-worker
+Metrics:                                               ( current / target )
+  resource cpu on pods  (as a percentage of request):  0% (1m) / 50%
+Min replicas:                                          1
+Max replicas:                                          2
+Deployment pods:                                       1 current / 1 desired
+Conditions:
+  Type            Status  Reason            Message
+  ----            ------  ------            -------
+  AbleToScale     True    ReadyForNewScale  recommended size matches current size
+  ScalingActive   True    ValidMetricFound  the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)
+  ScalingLimited  True    TooFewReplicas    the desired replica count is less than the minimum replica count
+Events:           &amp;lt;none&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The conditions field of the output says the current state.&lt;/p&gt;
+
+&lt;h2 id=&quot;running-dynamic-allocated-spark-job&quot;&gt;Running Dynamic Allocated Spark Job&lt;/h2&gt;
+
+&lt;p&gt;Let’s run the spark pi example in dynamic allocation mode. The dynamic allocation mode of spark starts with minimum number of executors. But as the more number of tasks are schedule it will start requesting the more executors. This intern should request more resources from kubernetes which will kick in the auto scaling.&lt;/p&gt;
+
+&lt;p&gt;Run the below command from &lt;strong&gt;spark-master&lt;/strong&gt; container.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;/opt/spark/bin/spark-submit &lt;span class=&quot;nt&quot;&gt;--master&lt;/span&gt; spark://spark-master:7077 &lt;span class=&quot;nt&quot;&gt;--conf&lt;/span&gt; spark.shuffle.service.enabled&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--conf&lt;/span&gt; spark.dynamicAllocation.enabled&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--class&lt;/span&gt; org.apache.spark.examples.SparkPi /opt/spark/examples/jars/spark-examples_2.11-2.1.0.jar 10000&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;observing-the-auto-scale-in-hpa&quot;&gt;Observing the Auto Scale in HPA&lt;/h2&gt;
+
+&lt;p&gt;Once the spark jobs start running, the cpu usage will go higher. We can start describing the HPA state using below command to see did the auto scaling kick in. You need to keep running this command for 1-2 minutes to see the changes.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;kubectl describe hpa spark-worker&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You should see below result after sometime&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;Deployment pods:                                       1 current / 2 desired
+Conditions:
+  Type            Status  Reason              Message
+  ----            ------  ------              -------
+  AbleToScale     True    SucceededRescale    the HPA controller was able to update the target scale to 2
+  ScalingActive   True    ValidMetricFound    the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)
+  ScalingLimited  False   DesiredWithinRange  the desired count is within the acceptable range
+Events:
+  Type    Reason             Age                 From                       Message
+  ----    ------             ----                ----                       -------
+  Normal  SuccessfulRescale  4s (x2 over 4h52m)  horizontal-pod-autoscaler  New size: 2; reason: cpu resource utilization (percentage of request) above target&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Here you can see the auto scaling kicked in. You can confirm by spark UI also.&lt;/p&gt;
+
+&lt;h2 id=&quot;observing-auto-scaling-in-spark-ui&quot;&gt;Observing Auto Scaling in Spark UI&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/hpa/spark-master-auto-scale.png&quot; alt=&quot;Spark Master Auto Scaling&quot; /&gt;.&lt;/p&gt;
+
+&lt;p&gt;In the above image, you can observe that they are two workers are running now.&lt;/p&gt;
+
+&lt;h2 id=&quot;cool-down-of-spark-scaling&quot;&gt;Cool Down of Spark Scaling&lt;/h2&gt;
+
+&lt;p&gt;The pods that are allocated with kept for &lt;strong&gt;5mins&lt;/strong&gt; by default. After this cool down time they will be released.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In this post we discussed how to setup HPA for the spark worker. This shows how we can automatically scale our spark cluster with the load.&lt;/p&gt;
+</description>
+        <pubDate>Wed, 30 Oct 2019 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/horizontal-scaling-k8s-part-3</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/horizontal-scaling-k8s-part-3</guid>
+      </item>
+    
+      <item>
         <title>Auto Scaling Spark in Kubernetes - Part 2 : Spark Cluster Setup</title>
         <description>&lt;p&gt;Kubernetes makes it easy to run services on scale. With kubernetes abstractions, it’s easy to setup a cluster of spark, hadoop or database on large number of nodes. Kubernetes takes care of handling tricky pieces like node assignment,service discovery, resource management of a distributed system. We have discussed how it can be used for spark clustering in our earlier &lt;a href=&quot;/categories/kubernetes-series&quot;&gt;series&lt;/a&gt;.&lt;/p&gt;
 
@@ -922,56 +1045,6 @@
         <pubDate>Fri, 14 Jun 2019 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/migrate-spark-datasource-2.4</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrate-spark-datasource-2.4</guid>
-      </item>
-    
-      <item>
-        <title>Multiple Column Feature Transformations in Spark ML</title>
-        <description>&lt;p&gt;Feature transformations are one of the most important and time consuming part of any machine learning pipeline. As number of columns increases, these transformations also grow with it. So having improvement in performance in these will improve the overall performance of the machine learning system.&lt;/p&gt;
-
-&lt;h2 id=&quot;spark-ml-feature-transformations-before-spark-23&quot;&gt;Spark ML Feature Transformations Before Spark 2.3&lt;/h2&gt;
-
-&lt;p&gt;Till spark 2.3, most of the ML transformations supported single column at a time.&lt;/p&gt;
-
-&lt;p&gt;The below code show one example of such transformation.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;singleColumnOneHotEncoder&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;OneHotEncoder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;singleColumnOneHotEncoder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setInputCol&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;workclass_index&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;singleColumnOneHotEncoder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setOutputCol&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;workclass_onehot&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above code, we are one hot encoding one column. If we have 20 categorical columns, we need to create 20 one hot encoders, which will run one after another. This is highly time consuming.&lt;/p&gt;
-
-&lt;h2 id=&quot;multi-column-ml-transformations-from-spark-23&quot;&gt;Multi-Column ML Transformations from Spark 2.3&lt;/h2&gt;
-
-&lt;p&gt;Combining multiple columns together for feature transformations improve the overall performance of the pipeline. So from 2.3, spark has started supporting multiple column transformations for few of the built in transformations.&lt;/p&gt;
-
-&lt;p&gt;So from Spark 2.3 version, we can do all the one hot encoding in one shot as shown in the below code&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;singleOneHotEncoder&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;OneHotEncoderEstimator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;singleOneHotEncoder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setInputCols&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stringColumns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;_index&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;singleOneHotEncoder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setOutputCols&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;outputColumns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above code, we can observe that &lt;strong&gt;setInputCols&lt;/strong&gt; allows us to set multiple columns at same time. This make sure that we run all the one hot encoding for multiple columns together.&lt;/p&gt;
-
-&lt;h2 id=&quot;missing-transformations&quot;&gt;Missing Transformations&lt;/h2&gt;
-
-&lt;p&gt;In Spark 2.3 and 2.4 only few of the built-in transformations support the multiple columns. Few of the the missing ones are&lt;/p&gt;
-
-&lt;p&gt;• StringIndexer&lt;/p&gt;
-
-&lt;p&gt;• Binarizer&lt;/p&gt;
-
-&lt;p&gt;Support for these will be added in spark 3.0.&lt;/p&gt;
-
-&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/blob/2.4/src/main/scala/com/madhukaraphatak/examples/sparktwo/ml/MultiColumnTransformation.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-&lt;p&gt;From Spark 2.3, spark supports multi-column feature transformations. These greatly speedup the real world ML pipelines.&lt;/p&gt;
-</description>
-        <pubDate>Thu, 06 Jun 2019 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/multi-column-feature-transformation-spark-ml</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/multi-column-feature-transformation-spark-ml</guid>
       </item>
     
   </channel>
