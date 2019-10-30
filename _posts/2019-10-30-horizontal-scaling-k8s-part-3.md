@@ -1,19 +1,23 @@
 ---
 layout: post
-title: "Horizontal AutoScaling Spark in Kubernetes - Part 3 : AutoScaling Spark Cluster"
-date : 2019-10-27
+title: "Auto Scaling Spark in Kubernetes - Part 3 : HPA with Spark Cluster"
+date : 2019-10-30
 categories: kubernetes k8s-horizontal-scaling spark
 ---
+Kubernetes makes it easy to run services on scale. With kubernetes abstractions, it's easy to setup a cluster of spark, hadoop or database on large number of nodes. Kubernetes takes care of handling tricky pieces like node assignment,service discovery, resource management of a distributed system. We have discussed how it can be used for spark clustering in our earlier [series](/categories/kubernetes-series).
 
+As the services are becoming more and more dynamic, handling resource needs statically is becoming challenge. With cloud being prevalent, users expect their infrastructure to scale with usage. For example, spark cluster on kubernetes should be able to scale up or down depending upon the load.
 
-<<<<<<<<<<<<< Introduction >>>>>>>>>>>>
+Kubernetes system can scaled manually by increasing or decreasing the number of replicas. You can refer to [this](/scaling-spark-with-kubernetes-part-7) post for more information. But doing this manually means lot of work. Isn't it better if kubernetes can auto manage the same?
 
-In this series of post, I will be discussing about kubernetes horizontal pod auto scaler with respect to auto scaling spark. This is the third post in the series which talks about how to auto scale the spark cluster. You can find all the posts in the series [here](/categories/k8s-horizontal-scaling).
+Kubernetes Horizontal Pod AutoScaler(HPA) is one of the controller in the kubernetes which is built to the auto management of scaling. It's very powerful tool which allows user to utilize resources of the cluster effectively.
+
+In this series of post, I will be discussing about kubernetes HPA with respect to auto scaling spark. This is the third post in the series which talks about how to auto scale the spark cluster. You can find all the posts in the series [here](/categories/k8s-horizontal-scaling).
 
 
 ## Registering the Horizontal Pod AutoScaler
 
-We can register a HPA for **spark-worker** deployment using below command
+We can register a HPA for **spark-worker** deployment using below command.
 
 {% highlight sh %}
 
@@ -27,7 +31,7 @@ In above command we specified below information
 
 * Maximum number of replicas is 2
 
-* Threshold is 50 percent
+* Threshold is 50 percent cpu usage
 
 
 ## Get current State of HPA
@@ -91,7 +95,7 @@ The conditions field of the output says the current state.
 
 ## Running Dynamic Allocated Spark Job
 
-Let's run the spark pi example in dynamic allocation mode. The dynamic allocation mode of spark starts with minimum number of executors. But as the more number of tasks are schedule it will start requesting the more executors. This intern should request more resources from kubernetes which will kickin the autoscaling.
+Let's run the spark pi example in dynamic allocation mode. The dynamic allocation mode of spark starts with minimum number of executors. But as the more number of tasks are schedule it will start requesting the more executors. This intern should request more resources from kubernetes which will kick in the auto scaling.
 
 Run the below command from **spark-master** container.
 
@@ -101,9 +105,9 @@ Run the below command from **spark-master** container.
 
 {% endhighlight %}
 
-## Observing the AutoScale in HPA
+## Observing the Auto Scale in HPA
 
-Once the spark jobs start running, the cpu usage will go higher. We can start describing the HPA state using below command to see did the auto scaling kick in. You need to keep running this command for 1-2 minutes to see the change
+Once the spark jobs start running, the cpu usage will go higher. We can start describing the HPA state using below command to see did the auto scaling kick in. You need to keep running this command for 1-2 minutes to see the changes.
 
 {% highlight sh %}
 
@@ -129,17 +133,19 @@ Events:
 
 {% endhighlight %}
 
-Here you can see the autoscaling kicked in. You can confirm by spark UI also.
+Here you can see the auto scaling kicked in. You can confirm by spark UI also.
 
 
-## Observing AutoScaling in Spark UI
+## Observing Auto Scaling in Spark UI
 
-<<image>>
+![Spark Master Auto Scaling](/images/hpa/spark-master-auto-scale.png).
 
+In the above image, you can observe that they are two workers are running now.
 
-## CoolDown of Spark Scaling
+## Cool Down of Spark Scaling
 
-The pods that are allocated with kept for **5mins** by default. After this cooldown time they will be released.
+The pods that are allocated with kept for **5mins** by default. After this cool down time they will be released.
 
 ## Conclusion
-In this pod we discussed about what is Horizontal Pod Autoscaler and how it's used.
+
+In this post we discussed how to setup HPA for the spark worker. This shows how we can automatically scale our spark cluster with the load.
