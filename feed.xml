@@ -7,7 +7,7 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
-        <title>Auto Scaling Spark in Kubernetes - Part 3 : HPA with Spark Cluster</title>
+        <title>Auto Scaling Spark in Kubernetes - Part 3 : Scaling Spark Workers</title>
         <description>&lt;p&gt;Kubernetes makes it easy to run services on scale. With kubernetes abstractions, it’s easy to setup a cluster of spark, hadoop or database on large number of nodes. Kubernetes takes care of handling tricky pieces like node assignment,service discovery, resource management of a distributed system. We have discussed how it can be used for spark clustering in our earlier &lt;a href=&quot;/categories/kubernetes-series&quot;&gt;series&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;As the services are becoming more and more dynamic, handling resource needs statically is becoming challenge. With cloud being prevalent, users expect their infrastructure to scale with usage. For example, spark cluster on kubernetes should be able to scale up or down depending upon the load.&lt;/p&gt;
