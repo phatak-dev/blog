@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Auto Scaling Spark in Kubernetes - Part 3 : HPA with Spark Cluster"
+title: "Auto Scaling Spark in Kubernetes - Part 3 : Scaling Spark Workers"
 date : 2019-10-30
 categories: kubernetes k8s-horizontal-scaling spark
 ---
