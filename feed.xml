@@ -7,7 +7,63 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
-        <title>Auto Scaling Spark in Kubernetes - Part 3 : Scaling Spark Workers</title>
+        <title>Dynamic Shuffle Partitions in Spark SQL</title>
+        <description>&lt;p&gt;In Apache Spark, shuffle is one of costliest operation. Effective parallelising of this operation gives good performing for spark jobs.&lt;/p&gt;
+
+&lt;h2 id=&quot;shuffle-partitions-in-spark-sql&quot;&gt;Shuffle Partitions in Spark SQL&lt;/h2&gt;
+
+&lt;p&gt;Shuffle partitions are the partitions in spark dataframe, which is created using a grouped or join operation. Number of partitions in this dataframe is different than the original dataframe partitions.&lt;/p&gt;
+
+&lt;p&gt;For example, the below code&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;csv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;src/main/resources/sales.csv&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partitions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;will print &lt;strong&gt;2&lt;/strong&gt; for small sales file. This indicates there are two partitions in the dataframe.&lt;/p&gt;
+
+&lt;p&gt;Now when we run the groupby operation on the same, the number of partitions will change&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;_c0&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partitions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above code prints &lt;strong&gt;200&lt;/strong&gt;. The &lt;em&gt;2&lt;/em&gt; partition increased to &lt;strong&gt;200&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;This is because the parameter &lt;strong&gt;spark.sql.shuffle.partitions&lt;/strong&gt; which controls number of shuffle partitions is set to &lt;strong&gt;200&lt;/strong&gt; by default.&lt;/p&gt;
+
+&lt;h2 id=&quot;challenges-with-default-shuffle-partitions&quot;&gt;Challenges with Default Shuffle Partitions&lt;/h2&gt;
+
+&lt;p&gt;The number of shuffle partitions in spark is static. It doesn’t change with different data size. This will lead into below issues&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;For smaller data, 200 is a overkill which often leads to slower processing because of scheduling overheads.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;For large data, 200 is small and doesn’t effectively use the all resources in the cluster.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;To over come the issues mentioned above, we need to control shuffle partitions dynamically.&lt;/p&gt;
+
+&lt;h2 id=&quot;dynamically-setting-the-shuffle-partitions&quot;&gt;Dynamically Setting the Shuffle Partitions&lt;/h2&gt;
+
+&lt;p&gt;Spark allows changing the configuration of spark sql using &lt;em&gt;conf&lt;/em&gt; method on the &lt;em&gt;sparkSession&lt;/em&gt;. Using this method, we can set wide variety of configurations dynamically.&lt;/p&gt;
+
+&lt;p&gt;So if we need to reduce the number of shuffle partitions for a given dataset, we can do that by below code&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;conf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;spark.sql.shuffle.partitions&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;_c0&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partitions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above code will print &lt;strong&gt;100&lt;/strong&gt;. This shows how to set the number partitions dynamically.&lt;/p&gt;
+
+&lt;p&gt;The exact logic for coming up with number of shuffle partitions depends on actual analysis. You can typically set it to be 1.5 or 2 times of the initial partitions.&lt;/p&gt;
+</description>
+        <pubDate>Tue, 26 Nov 2019 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/dynamic-spark-shuffle-partitions</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/dynamic-spark-shuffle-partitions</guid>
+      </item>
+    
+      <item>
+        <title>Auto Scaling Spark in Kubernetes - Part 3 : HPA with Spark Cluster</title>
         <description>&lt;p&gt;Kubernetes makes it easy to run services on scale. With kubernetes abstractions, it’s easy to setup a cluster of spark, hadoop or database on large number of nodes. Kubernetes takes care of handling tricky pieces like node assignment,service discovery, resource management of a distributed system. We have discussed how it can be used for spark clustering in our earlier &lt;a href=&quot;/categories/kubernetes-series&quot;&gt;series&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;As the services are becoming more and more dynamic, handling resource needs statically is becoming challenge. With cloud being prevalent, users expect their infrastructure to scale with usage. For example, spark cluster on kubernetes should be able to scale up or down depending upon the load.&lt;/p&gt;
@@ -962,89 +1018,6 @@ Events:
         <pubDate>Mon, 01 Jul 2019 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/multi-source-spark-tellius</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/multi-source-spark-tellius</guid>
-      </item>
-    
-      <item>
-        <title>Migrating to Spark 2.4 Data Source API</title>
-        <description>&lt;p&gt;In &lt;a href=&quot;/categories/datasource-v2-series/&quot;&gt;earlier series&lt;/a&gt; of posts, we have discussed about new data source API that was introduced in 2.3. In 2.3, it was in beta version. In 2.4, API have been updated and marked as stable. Some of these are breaking changes.So if you are porting the datasources to 2.4 version, you need to update your code to match the latest API.&lt;/p&gt;
-
-&lt;p&gt;In this post, we are going to discuss the changes that introduced in the API. Also all the code what we saw in earlier series is ported to new version. This allow you to see how to update your own code.&lt;/p&gt;
-
-&lt;h2 id=&quot;reader-api&quot;&gt;Reader API&lt;/h2&gt;
-
-&lt;p&gt;In this section, we are going to see the changes that introduced for Reader API.&lt;/p&gt;
-
-&lt;h3 id=&quot;datasourcereader-interface&quot;&gt;DataSourceReader Interface&lt;/h3&gt;
-
-&lt;p&gt;In DataSourceReader interaface, the function&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createDataReaderFactories&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;DataReaderFactory&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;is replaced by&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;planInputPartitions&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;InputPartition&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As you can see in this, factory is replaced by partition.&lt;/p&gt;
-
-&lt;h3 id=&quot;datareaderfactory-to-inputpartition&quot;&gt;DataReaderFactory to InputPartition&lt;/h3&gt;
-
-&lt;p&gt;&lt;strong&gt;DataReaderFactory&lt;/strong&gt; interface is renamed to  &lt;strong&gt;InputPartition&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;p&gt;Also the method&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createDataReader&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;DataReader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Row&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;is replaced by&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createPartitionReader&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;InputPartitionReader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;InternalRow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;datareader-to-partitionreader&quot;&gt;DataReader to PartitionReader&lt;/h3&gt;
-
-&lt;p&gt;&lt;strong&gt;DataReader&lt;/strong&gt; interface is renamed to &lt;strong&gt;InputPartitionReader&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;p&gt;Also the method&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createDataReader&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;is replaced by&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createPartitionReader&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;row-to-internalrow&quot;&gt;Row to InternalRow&lt;/h3&gt;
-
-&lt;p&gt;In earlier API’s, the interfaces used to take &lt;em&gt;Row&lt;/em&gt;. All that is changed to &lt;strong&gt;InternalRow&lt;/strong&gt;. This allows all the data sources load data in more efficient way.&lt;/p&gt;
-
-&lt;h2 id=&quot;writer-api&quot;&gt;Writer API&lt;/h2&gt;
-
-&lt;p&gt;Compared to Reader API, writer API has gone very minimal changes. In this section we are going to discuss about those changes.&lt;/p&gt;
-
-&lt;h3 id=&quot;datawriterfactoryrow-to-datawriterfactoryinternalrow&quot;&gt;DataWriterFactory[Row] to DataWriterFactory[InternalRow]&lt;/h3&gt;
-
-&lt;p&gt;As we discussed in earlier section, &lt;strong&gt;Row&lt;/strong&gt; is changed to &lt;strong&gt;InternalRow&lt;/strong&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;datawriterfactory-interface&quot;&gt;DataWriterFactory Interface&lt;/h3&gt;
-
-&lt;p&gt;In DataWriterFactory interface, the method&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createDataWriter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partitionId&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;attemptNumber&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;is changed to&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createDataWriter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partitionId&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;taskId&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;epochId&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Long&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;strong&gt;epochId&lt;/strong&gt; is added to support spark structured streaming.&lt;/p&gt;
-
-&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
-
-&lt;p&gt;You can access the port of earlier code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/commit/1cfba393a09c2d4a012f29f7a6579ff5efc1dd53&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;Spark 2.4 has updated API’s for newly introduced data source API. Now the API is marked as stable and going to serve the spark developers for long.&lt;/p&gt;
-</description>
-        <pubDate>Fri, 14 Jun 2019 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/migrate-spark-datasource-2.4</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/migrate-spark-datasource-2.4</guid>
       </item>
     
   </channel>

@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Structured data processing with Spark SQL - Meetup Video</title>
+    <title>Dynamic Shuffle Partitions in Spark SQL</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/structured-data-processing-with-spark-sql-meetup-talk">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/dynamic-spark-shuffle-partitions">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,26 +45,66 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Structured data processing with Spark SQL - Meetup Video</h1>
-  <p class="meta">Jun 8, 2015</p>
+  <h1>Dynamic Shuffle Partitions in Spark SQL</h1>
+  <p class="meta">Nov 26, 2019</p>
   <div class="catagories">
     
     <a href="/categories/spark"><span class="category">spark</span></a>
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
-    <a href="/categories/talks"><span class="category">talks</span></a>
-    
   </div>
 </header> 
 
 <article class="post-content">
-  <p>The below video is a recording of my talk on <em>Structured data processing with Spark SQL</em> in recent spark meetup. In this talk, I discuss about how you can use spark sql API’s like Data source, Data frame API’s
-to analyse structured data with Spark.</p>
+  <p>In Apache Spark, shuffle is one of costliest operation. Effective parallelising of this operation gives good performing for spark jobs.</p>
 
-<p>Find the slides on <a href="http://www.slideshare.net/datamantra/introduction-to-structured-data-in-spark">slideshare</a> and code on <a href="https://github.com/phatak-dev/structured_data_processing_spark_sql">github</a>.</p>
+<h2 id="shuffle-partitions-in-spark-sql">Shuffle Partitions in Spark SQL</h2>
 
-<div class="video-container"> <iframe src="https://www.youtube.com/embed/0jd3EWmKQfo" frameborder="0" width="560" height="315"></iframe> </div>
+<p>Shuffle partitions are the partitions in spark dataframe, which is created using a grouped or join operation. Number of partitions in this dataframe is different than the original dataframe partitions.</p>
+
+<p>For example, the below code</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">csv</span><span class="o">(</span><span class="s">"src/main/resources/sales.csv"</span><span class="o">)</span>
+<span class="n">println</span><span class="o">(</span><span class="n">df</span><span class="o">.</span><span class="n">rdd</span><span class="o">.</span><span class="n">partitions</span><span class="o">.</span><span class="n">length</span><span class="o">)</span></code></pre></div>
+
+<p>will print <strong>2</strong> for small sales file. This indicates there are two partitions in the dataframe.</p>
+
+<p>Now when we run the groupby operation on the same, the number of partitions will change</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">println</span><span class="o">(</span><span class="n">df</span><span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="s">"_c0"</span><span class="o">).</span><span class="n">count</span><span class="o">().</span><span class="n">rdd</span><span class="o">.</span><span class="n">partitions</span><span class="o">.</span><span class="n">length</span><span class="o">)</span></code></pre></div>
+
+<p>The above code prints <strong>200</strong>. The <em>2</em> partition increased to <strong>200</strong>.</p>
+
+<p>This is because the parameter <strong>spark.sql.shuffle.partitions</strong> which controls number of shuffle partitions is set to <strong>200</strong> by default.</p>
+
+<h2 id="challenges-with-default-shuffle-partitions">Challenges with Default Shuffle Partitions</h2>
+
+<p>The number of shuffle partitions in spark is static. It doesn’t change with different data size. This will lead into below issues</p>
+
+<ul>
+  <li>
+    <p>For smaller data, 200 is a overkill which often leads to slower processing because of scheduling overheads.</p>
+  </li>
+  <li>
+    <p>For large data, 200 is small and doesn’t effectively use the all resources in the cluster.</p>
+  </li>
+</ul>
+
+<p>To over come the issues mentioned above, we need to control shuffle partitions dynamically.</p>
+
+<h2 id="dynamically-setting-the-shuffle-partitions">Dynamically Setting the Shuffle Partitions</h2>
+
+<p>Spark allows changing the configuration of spark sql using <em>conf</em> method on the <em>sparkSession</em>. Using this method, we can set wide variety of configurations dynamically.</p>
+
+<p>So if we need to reduce the number of shuffle partitions for a given dataset, we can do that by below code</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">sparkSession</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="o">(</span><span class="s">"spark.sql.shuffle.partitions"</span><span class="o">,</span><span class="mi">100</span><span class="o">)</span>
+<span class="n">println</span><span class="o">(</span><span class="n">df</span><span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="s">"_c0"</span><span class="o">).</span><span class="n">count</span><span class="o">().</span><span class="n">rdd</span><span class="o">.</span><span class="n">partitions</span><span class="o">.</span><span class="n">length</span><span class="o">)</span></code></pre></div>
+
+<p>The above code will print <strong>100</strong>. This shows how to set the number partitions dynamically.</p>
+
+<p>The exact logic for coming up with number of shuffle partitions depends on actual analysis. You can typically set it to be 1.5 or 2 times of the initial partitions.</p>
 
 </article>
 <div class="related">
@@ -72,12 +112,7 @@ to analyse structured data with Spark.</p>
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">26 Nov 2019</span>
-     &raquo; <a href="/dynamic-spark-shuffle-partitions">Dynamic Shuffle Partitions in Spark SQL</a>    
-   </li>           
-         
+          
 
             
     
@@ -98,12 +133,7 @@ to analyse structured data with Spark.</p>
    
    
              
-    
-    <li>    
-     <span class="post-date">26 Nov 2019</span>
-     &raquo; <a href="/dynamic-spark-shuffle-partitions">Dynamic Shuffle Partitions in Spark SQL</a>    
-   </li>           
-         
+          
 
             
     
