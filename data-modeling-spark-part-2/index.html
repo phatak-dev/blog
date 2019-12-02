@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Scalable Spark Deployment using Kubernetes - Part 2 : Installing Kubernetes Locally using Minikube</title>
+    <title>Data Modeling in Apache Spark - Part 2 : Working With Multiple Dates</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-2">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/data-modeling-spark-part-2">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,85 +45,71 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Scalable Spark Deployment using Kubernetes - Part 2 : Installing Kubernetes Locally using Minikube</h1>
-  <p class="meta">Feb 15, 2017</p>
+  <h1>Data Modeling in Apache Spark - Part 2 : Working With Multiple Dates</h1>
+  <p class="meta">Dec 2, 2019</p>
   <div class="catagories">
-    
-    <a href="/categories/scala"><span class="category">scala</span></a>
     
     <a href="/categories/spark"><span class="category">spark</span></a>
     
-    <a href="/categories/kubernetes-series"><span class="category">kubernetes-series</span></a>
+    <a href="/categories/data-modeling"><span class="category">data-modeling</span></a>
+    
+    <a href="/categories/scala"><span class="category">scala</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>In last blog, we discussed about what is kubernetes and what are it’s advantages. In this second post of the series, we are going to discuss
-how to install the kubernetes locally on your machine.You can find all the posts in the series <a href="/categories/kubernetes-series/">here</a>.</p>
+  <p>Data modeling is one of the important aspect of data analysis. Having right kind of model, allows user to ask business questions easily. The data modeling techniques have been bedrock of the SQL data warehouses in past few decades.</p>
 
-<h2 id="installing-kubernetes-on-local-machine">Installing Kubernetes on Local Machine</h2>
+<p>As Apache Spark has become new warehousing technology, we should be able to use the earlier data modeling techniques in spark also. This makes Spark data pipelines much more effective.</p>
 
-<p>One of the cool features of kubernetes that it can be installed and tried out in local. It behaves exactly as it will be on a cluster. To try out 
-kubernetes on local we need to install minikube and kubectl.</p>
+<p>In this series of posts, I will be discussing different data modeling in the context of spark. This is the second post in the series which discusses about handling multiple dates. You can access all the posts in the series <a href="/categories/data-modeling">here</a>.</p>
 
-<p>The below are the steps</p>
+<h2 id="multiple-date-columns">Multiple Date Columns</h2>
+<p>In last post, we discussed how to handle date analysis for a single date column. Having single date column is common in many of the datasets. So the strategy discussed in earlier post works fine.</p>
 
-<ul>
-  <li>
-    <h4 id="step-1-pre-requisites">Step 1 :Pre-Requisites</h4>
-  </li>
-</ul>
+<p>But there are datasets where we may want to analyse our data against multiple date columns. Then the strategy discussed in earlier post is not enough. So we need to extends date dimension logic to accommodate multiple date columns.</p>
 
-<p>To install the kubernetes on local machine, we install minikube. But minikube normally uses some kind of virtualization layer to install the
-needed software. So for our example, we will use virtualbox as our virtualization layer. For more pre-requisites refer <a href="https://kubernetes.io/docs/getting-started-guides/minikube/#requirements">here</a>.</p>
+<h2 id="adding-issue-date-to-stock-data">Adding Issue Date to Stock Data</h2>
 
-<p>Download and Install virtualbox from <a href="http://www.virtualbox.org">here</a>.</p>
+<p>The below code adds a date column called <strong>issue_date</strong> to stock data to emulate the scenario of multiple dates.</p>
 
-<ul>
-  <li>
-    <h4 id="step-2--install-minikube">Step 2 : Install MiniKube</h4>
-  </li>
-</ul>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">appleStockDfWithIssueDate</span> <span class="k">=</span> <span class="n">appleStockDf</span><span class="o">.</span>
+      <span class="n">withColumn</span><span class="o">(</span><span class="s">"issue_date"</span><span class="o">,</span><span class="n">add_months</span><span class="o">(</span><span class="n">appleStockDf</span><span class="o">(</span><span class="s">"Date"</span><span class="o">),-</span><span class="mi">12</span><span class="o">))</span></code></pre></div>
 
-<p>Run the below commands to install minikube on linux. For other operating system, refer <a href="https://github.com/kubernetes/minikube/releases">here</a>.
-Latest version as of now is 0.16.0</p>
+<p>Now if the user wants to analyse against <strong>Date</strong> column which signifies transaction date and <strong>issue_date</strong> which signifies the when a given stock is issued, we need to use multiple date dimensions.</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">curl <span class="nt">-Lo</span> minikube https://storage.googleapis.com/minikube/releases/v0.16.0/minikube-linux-amd64 <span class="o">&amp;&amp;</span> <span class="nb">chmod</span> +x minikube <span class="o">&amp;&amp;</span> <span class="nb">sudo mv </span>minikube /usr/local/bin/</code></pre></div>
+<h2 id="date-dimension-with-new-prefix">Date Dimension with New Prefix</h2>
 
-<ul>
-  <li>
-    <h3 id="step-3--install-kubectl">Step 3 : Install KubeCtl</h3>
-  </li>
-</ul>
+<p>To analyse multiple dates, we need to join date dimension multiple times. We need to make a view out of data dimension with different prefix which allows us to do the same.</p>
 
-<p>Kubectl is a command line utility which communicates to kubernetes over it’s REST API. We can install it using below command</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">issueDateSchema</span> <span class="k">=</span> <span class="nc">StructType</span><span class="o">(</span><span class="n">dateDf</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> 
+<span class="n">value</span><span class="o">.</span><span class="n">copy</span><span class="o">(</span><span class="n">name</span> <span class="k">=</span> <span class="s">"issue_"</span><span class="o">+</span><span class="n">value</span><span class="o">.</span><span class="n">name</span><span class="o">)))</span>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">curl <span class="nt">-LO</span> https://storage.googleapis.com/kubernetes-release/release/<span class="k">$(</span>curl <span class="nt">-s</span> https://storage.googleapis.com/kubernetes-release/release/stable.txt<span class="k">)</span>/bin/linux/amd64/kubectl
-<span class="nb">chmod</span> +x ./kubectl
-<span class="nb">sudo mv</span> ./kubectl /usr/local/bin/kubectl</code></pre></div>
+<span class="k">val</span> <span class="n">issueDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">createDataFrame</span><span class="o">(</span><span class="n">dateDf</span><span class="o">.</span><span class="n">rdd</span><span class="o">,</span> <span class="n">issueDateSchema</span><span class="o">)</span></code></pre></div>
 
-<h2 id="interacting-with-minikube">Interacting With Minikube</h2>
+<p>In above code, we are creating new df called <strong>issueDf</strong> which adds prefix called <strong>issue</strong> for all the columns which signifies this date dimension is combined for <strong>issue_date</strong>.</p>
 
-<p>Once we installed the minikube and kubectl , we can start playing with kubernetes.</p>
+<h2 id="three-way-join">Three way Join</h2>
 
-<p>We can start minikube using below command. It downloads minikube iso and start a virtual machine in virtualbox.</p>
+<p>Once we have new date dimension ready, now we can join for both dates in stock data.</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">minikube start</code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">twoJoinDf</span> <span class="k">=</span> <span class="n">appleStockDfWithIssueDate</span><span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">dateDf</span><span class="o">,</span> <span class="n">appleStockDfWithIssueDate</span><span class="o">.</span><span class="n">col</span><span class="o">(</span><span class="s">"Date"</span><span class="o">)</span> <span class="o">===</span>
+       <span class="n">dateDf</span><span class="o">.</span><span class="n">col</span><span class="o">(</span><span class="s">"full_date_formatted"</span><span class="o">))</span>
+             <span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">issueDf</span><span class="o">,</span> <span class="n">appleStockDfWithIssueDate</span><span class="o">.</span><span class="n">col</span><span class="o">(</span><span class="s">"issue_date"</span><span class="o">)</span> <span class="o">===</span> <span class="n">issueDf</span><span class="o">.</span><span class="n">col</span><span class="o">(</span><span class="s">"issue_full_date_formatted"</span><span class="o">))</span></code></pre></div>
 
-<p>We can open the kubernetes dashboard using below command</p>
+<h2 id="analysis-on-issue-date">Analysis on Issue Date</h2>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">minikube dashboard</code></pre></div>
+<p>Once we have done joins, we can analyse on issue date as below</p>
 
-<p>We can check is anything running or not, using below command</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">twoJoinDf</span><span class="o">.</span><span class="n">groupBy</span><span class="o">(</span><span class="s">"issue_year"</span><span class="o">,</span><span class="s">"issue_quarter"</span><span class="o">).</span>
+      <span class="n">avg</span><span class="o">(</span><span class="s">"Close"</span><span class="o">).</span>
+            <span class="n">sort</span><span class="o">(</span><span class="s">"issue_year"</span><span class="o">,</span><span class="s">"issue_quarter"</span><span class="o">)</span>
+	          <span class="o">.</span><span class="n">show</span><span class="o">()</span></code></pre></div>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl get po <span class="nt">--all-namespaces</span></code></pre></div>
+<h2 id="code">Code</h2>
 
-<p>This command should show some kubernetes container running.</p>
-
-<p>Now we have successfully installed and configured the kubernetes on our machine.</p>
-
-<p>In our next post, we will discuss the different abstractions of kubernetes and how to use them in our applications.</p>
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark2.0-examples/blob/2.4/src/main/scala/com/madhukaraphatak/examples/sparktwo/datamodeling/DateHandlingExample.scala">github</a>.</p>
 
 </article>
 <div class="related">
@@ -131,12 +117,7 @@ Latest version as of now is 0.16.0</p>
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">02 Dec 2019</span>
-     &raquo; <a href="/data-modeling-spark-part-2">Data Modeling in Apache Spark - Part 2 : Working With Multiple Dates</a>    
-   </li>           
-         
+          
 
             
     
@@ -157,26 +138,13 @@ Latest version as of now is 0.16.0</p>
    
    
              
-    
-    <li>    
-     <span class="post-date">02 Dec 2019</span>
-     &raquo; <a href="/data-modeling-spark-part-2">Data Modeling in Apache Spark - Part 2 : Working With Multiple Dates</a>    
-   </li>           
-         
+          
 
             
     
     <li>    
      <span class="post-date">27 Nov 2019</span>
      &raquo; <a href="/data-modeling-spark-part-1">Data Modeling in Apache Spark - Part 1 : Date Dimension</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">26 Nov 2019</span>
-     &raquo; <a href="/dynamic-spark-shuffle-partitions">Dynamic Shuffle Partitions in Spark SQL</a>    
    </li>           
          
 
