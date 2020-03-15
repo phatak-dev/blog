@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Exploratory Data Analysis in Spark with Jupyter</title>
+    <title>Experiments with GraalVM - Part 1 : Introduction</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/exploratory-data-analysis-in-spark-with-jupyter">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/graal-vm-part-1">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,27 +45,79 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Exploratory Data Analysis in Spark with Jupyter</h1>
-  <p class="meta">May 22, 2018</p>
+  <h1>Experiments with GraalVM - Part 1 : Introduction</h1>
+  <p class="meta">Mar 15, 2020</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
-    <a href="/categories/spark"><span class="category">spark</span></a>
-    
-    <a href="/categories/statistical-data-exploration"><span class="category">statistical-data-exploration</span></a>
-    
-    <a href="/categories/talks"><span class="category">talks</span></a>
+    <a href="/categories/graal-vm"><span class="category">graal-vm</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>The below video is a recording of my talk on <em>Exploratory Data Analysis in Spark with Jupyter</em> in recent spark meetup. In this talk, I discuss about how you can use different tools and techniques to do statistical data analysis with spark and jupyter notebook.</p>
+  <p>GraalVM is a new open source project by Oracle which is trying to make Java VM an universal VM to run all the major languages. Before GraalVM, there were already few languages like Scala, Closure which targeted JVM as their runtime. This has been hugely successful for those languages. GraalVM takes this idea further and makes it easy to target JVM so that many more languages can coexist on JVM.</p>
 
-<p>Find the slides on <a href="https://www.slideshare.net/datamantra/exploratory-data-analysis-in-spark">slideshare</a> and code on <a href="https://github.com/phatak-dev/Statistical-Data-Exploration-Using-Spark-2.0">github</a>.</p>
+<p>GraalVM is around from 2014 as a research project. It’s been used in production by Twitter from 2017. But for general public, it became production ready in latter half of 2019.</p>
 
-<div class="video-container"> <iframe src="https://www.youtube.com/embed/G-xQNaqRdu4" frameborder="0" width="560" height="315"></iframe> </div>
+<p>In this series posts, I will be exploring what GraalVM can bring to JVM ecosystem. This is the first post in the series which introduces the GraalVM. You can read all the posts in the series <a href="/categories/graal-vm">here</a>.</p>
+
+<h2 id="what-is-graalvm">What is GraalVM</h2>
+
+<p>From GraalVM <a href="https://www.graalvm.org/docs/why-graal/">website</a></p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">GraalVM offers a comprehensive ecosystem supporting a large set of languages (Java and other JVM-based languages, JavaScript, Ruby, Python, R, WebAssembly, C/C++ and other LLVM-based languages) and running them in different deployment scenarios (OpenJDK, Node.js, Oracle Database, or standalone).</code></pre></div>
+
+<p>They are essentially saying that, it’s a ecosystem which has Java VM at it’s heart and want to support run wide variety of languages on top of it.</p>
+
+<h2 id="why-multiple-languages">Why Multiple Languages</h2>
+
+<p>Why does some one care about running their languages on JVM? The below are some reasons</p>
+
+<h3 id="server-tuned-vm">Server Tuned VM</h3>
+
+<p>JVM has been battle tested over years on server. This can benefit systems like Node.js, javascript server framework, which currently runs on V8 which is optimised for client environment like browser. Also languages like Ruby already do this. That’s why there are lot of companies which run JRuby implementation. GraalVM makes this much easier and supports more languages with less effort.</p>
+
+<h3 id="polyglot-support">Polyglot Support</h3>
+
+<p>As we can now run multiple languages on same VM, we can mix and match these languages. This is very powerful. For example, we can now extend capability of a compiled language like Java, with interpreted language like  Javascript. This combination makes it much more powerful than running single language. We will discuss more about this in future posts.</p>
+
+<h3 id="libraries-of-java-ecosystem">Libraries of Java Ecosystem</h3>
+
+<p>One of the reason Scala adopted JVM is for it’s rich ecosystem. Able to run on the JVM makes all the Java libraries available to Scala. Now they are going to be available to all the languages which run on graalVM.</p>
+
+<p>There are many more advantages to GraalVM than listed above. You can read more about it <a href="https://www.graalvm.org/docs/why-graal/">here</a>.</p>
+
+<h2 id="graalvm-architecture">GraalVM Architecture</h2>
+
+<p><img src="https://image.slidesharecdn.com/dopoledne-ignite-1-jaroslav-tulach-graalvm-180620154636/95/jaroslav-tulach-graalvm-z-vvoje-nejrychlejho-virtulnho-stroje-na-svt-15-638.jpg" alt="GraalVM Architecture" /></p>
+
+<p>The above picture shows the architecture of graalvm.</p>
+
+<p>From Above Architecture , the below are the main components</p>
+
+<ul>
+  <li>
+    <p>Java Hotspot VM : It’s heart of the architecture. Everything is powered by Java VM. Supported from Java 8 onwards.</p>
+  </li>
+  <li>
+    <p>Graal Compiler : The Graal Compiler which is responsible for generating the byte code from AST generated from above layers</p>
+  </li>
+  <li>
+    <p>Truffle Framework : A framework which allows defining interpreters for different languages in a AST model. This standard AST model between languages makes it polyglot</p>
+  </li>
+</ul>
+
+<h2 id="references">References</h2>
+
+<p><a href="https://stackoverflow.com/questions/54631823/implementing-a-programming-language-on-the-graalvm-architecture">https://stackoverflow.com/questions/54631823/implementing-a-programming-language-on-the-graalvm-architecture</a></p>
+
+<p><a href="https://www.graalvm.org/docs/why-graal/">https://www.graalvm.org/docs/why-graal/</a></p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>GraalVM brings a new era in VM’s. It’s positioning the JVM as center of all the popular language runtime. This makes JVM ecosystem exciting again.</p>
 
 </article>
 <div class="related">
@@ -81,12 +133,7 @@
          
 
             
-    
-    <li>    
-     <span class="post-date">15 Mar 2020</span>
-     &raquo; <a href="/graal-vm-part-1">Experiments with GraalVM - Part 1 : Introduction</a>    
-   </li>           
-         
+          
 
             
     
@@ -101,26 +148,13 @@
              
     
     <li>    
-     <span class="post-date">16 Dec 2019</span>
-     &raquo; <a href="/clickouse-clustering-spark-developer">ClickHouse Clustering for Spark Developer</a>    
+     <span class="post-date">15 Mar 2020</span>
+     &raquo; <a href="/graal-vm-part-2">Experiments with GraalVM - Part 2 : Polyglot JavaScript Hello World</a>    
    </li>           
          
 
             
-    
-    <li>    
-     <span class="post-date">02 Dec 2019</span>
-     &raquo; <a href="/data-modeling-spark-part-2">Data Modeling in Apache Spark - Part 2 : Working With Multiple Dates</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">27 Nov 2019</span>
-     &raquo; <a href="/data-modeling-spark-part-1">Data Modeling in Apache Spark - Part 1 : Date Dimension</a>    
-   </li>           
-         
+          
 
    
    

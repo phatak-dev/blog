@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Exploratory Data Analysis in Spark with Jupyter</title>
+    <title>Experiments with GraalVM - Part 2 : Polyglot JavaScript Hello World</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/exploratory-data-analysis-in-spark-with-jupyter">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/graal-vm-part-2">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,27 +45,70 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Exploratory Data Analysis in Spark with Jupyter</h1>
-  <p class="meta">May 22, 2018</p>
+  <h1>Experiments with GraalVM - Part 2 : Polyglot JavaScript Hello World</h1>
+  <p class="meta">Mar 15, 2020</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
-    <a href="/categories/spark"><span class="category">spark</span></a>
-    
-    <a href="/categories/statistical-data-exploration"><span class="category">statistical-data-exploration</span></a>
-    
-    <a href="/categories/talks"><span class="category">talks</span></a>
+    <a href="/categories/graal-vm"><span class="category">graal-vm</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>The below video is a recording of my talk on <em>Exploratory Data Analysis in Spark with Jupyter</em> in recent spark meetup. In this talk, I discuss about how you can use different tools and techniques to do statistical data analysis with spark and jupyter notebook.</p>
+  <p>GraalVM is a new open source project by Oracle which is trying to make Java VM an universal VM to run all the major languages. Before GraalVM, there were already few languages like Scala, Closure which targeted JVM as their runtime. This has been hugely successful for those languages. GraalVM takes this idea further and makes it easy to target JVM so that many more languages can coexist on JVM.</p>
 
-<p>Find the slides on <a href="https://www.slideshare.net/datamantra/exploratory-data-analysis-in-spark">slideshare</a> and code on <a href="https://github.com/phatak-dev/Statistical-Data-Exploration-Using-Spark-2.0">github</a>.</p>
+<p>GraalVM is around from 2014 as a research project. It’s been used in production by Twitter from 2017. But for general public, it became production ready in latter half of 2019.</p>
 
-<div class="video-container"> <iframe src="https://www.youtube.com/embed/G-xQNaqRdu4" frameborder="0" width="560" height="315"></iframe> </div>
+<p>In this series posts, I will be exploring what GraalVM can bring to JVM ecosystem. This is the second post in the series which starts exploring polyglot aspect of graalvm. You can read all the posts in the series <a href="/categories/graal-vm">here</a>.</p>
+
+<h2 id="polyglot-vm">Polyglot VM</h2>
+
+<p>One of the main advantages of GraalVM is the ability to mix and match multiple languages in same VM. From last post, we have seen that all languages running on the Graal go through same compiler. This makes using multiple languages in same VM much smoother.</p>
+
+<p>In this post, I will be showing how to setup an environment where we can mix Scala with JavaScript.</p>
+
+<h2 id="dependencies">Dependencies</h2>
+
+<p>To run, graalvm and truffle, we need to add below dependencies in our build.sbt. We need to run it on JDK 8.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="s">"org.graalvm.sdk"</span> <span class="o">%</span> <span class="s">"graal-sdk"</span> <span class="o">%</span> <span class="s">"20.0.0"</span><span class="o">,</span>
+<span class="s">"org.graalvm.truffle"</span> <span class="o">%</span> <span class="s">"truffle-api"</span> <span class="o">%</span> <span class="s">"20.0.0"</span></code></pre></div>
+
+<p>Here we are adding graal and truffle dependencies.</p>
+
+<p>Since we want to use JavaScript, we need to add the dependency from it’s truffle implementation.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="s">"org.graalvm.js"</span> <span class="o">%</span> <span class="s">"js"</span> <span class="o">%</span> <span class="s">"20.0.0"</span><span class="o">,</span></code></pre></div>
+<p>.</p>
+
+<h2 id="javascript-hello-world">JavaScript Hello World</h2>
+
+<p>Once all the dependencies are done, we are ready to write our first polyglot example. As programming tradition, we will be starting with hello world.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">polyglot</span> <span class="k">=</span> <span class="nc">Context</span><span class="o">.</span><span class="n">create</span><span class="o">()</span>
+<span class="n">polyglot</span><span class="o">.</span><span class="n">eval</span><span class="o">(</span><span class="s">"js"</span><span class="o">,</span><span class="s">"print('hello world from javascript')"</span><span class="o">)</span></code></pre></div>
+
+<p>In just two lines, we wrote a JS application within Java!!. Let’s see it’s parts</p>
+
+<h3 id="polyglot-context">Polyglot Context</h3>
+
+<p>For any language, we need to create a context. This context allows us to configure all the needed properties of that language. Here we are creating a simple context.</p>
+
+<h3 id="eval-function">Eval Function</h3>
+
+<p>Eval function on context takes a language source code and evaluates it. It’s as simple as that.</p>
+
+<p>Now we have written our first polyglot program on GraalVM.</p>
+
+<h2 id="code">Code</h2>
+
+<p>You can access complete code on <a href="https://github.com/phatak-dev/GraalVMExperiments/blob/master/src/main/scala/com/madhukaraphatak/graalvm/JsHelloWorld.scala">github</a>.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Polyglot nature of GraalVM makes it very attractive to mix and match different languages on same VM. In this post we saw how to write simple JavaScript Hello World using GraalVM polyglot API.</p>
 
 </article>
 <div class="related">
@@ -73,12 +116,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">15 Mar 2020</span>
-     &raquo; <a href="/graal-vm-part-2">Experiments with GraalVM - Part 2 : Polyglot JavaScript Hello World</a>    
-   </li>           
-         
+          
 
             
     
@@ -99,26 +137,13 @@
    
    
              
-    
-    <li>    
-     <span class="post-date">16 Dec 2019</span>
-     &raquo; <a href="/clickouse-clustering-spark-developer">ClickHouse Clustering for Spark Developer</a>    
-   </li>           
-         
+          
 
             
     
     <li>    
-     <span class="post-date">02 Dec 2019</span>
-     &raquo; <a href="/data-modeling-spark-part-2">Data Modeling in Apache Spark - Part 2 : Working With Multiple Dates</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">27 Nov 2019</span>
-     &raquo; <a href="/data-modeling-spark-part-1">Data Modeling in Apache Spark - Part 1 : Date Dimension</a>    
+     <span class="post-date">15 Mar 2020</span>
+     &raquo; <a href="/graal-vm-part-1">Experiments with GraalVM - Part 1 : Introduction</a>    
    </li>           
          
 
