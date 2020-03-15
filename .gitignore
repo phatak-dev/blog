@@ -7,3 +7,4 @@ project/target
 .sync/
 "Icon\r"
 *.swp
+*.swo
