@@ -7,6 +7,57 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Experiments with GraalVM - Part 3 : Invoke JS Functions from JVM</title>
+        <description>&lt;p&gt;GraalVM is a new open source project by Oracle which is trying to make Java VM an universal VM to run all the major languages. Before GraalVM, there were already few languages like Scala, Closure which targeted JVM as their runtime. This has been hugely successful for those languages. GraalVM takes this idea further and makes it easy to target JVM so that many more languages can coexist on JVM.&lt;/p&gt;
+
+&lt;p&gt;GraalVM is around from 2014 as a research project. It’s been used in production by Twitter from 2017. But for general public, it became production ready in latter half of 2019.&lt;/p&gt;
+
+&lt;p&gt;In this series posts, I will be exploring what GraalVM can bring to JVM ecosystem. This is the third post in the series which explores calling function defined in JS from Scala. You can read all the posts in the series &lt;a href=&quot;/categories/graal-vm&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;using-javascript-function-from-scala&quot;&gt;Using JavaScript Function From Scala&lt;/h2&gt;
+
+&lt;p&gt;In last post, we saw how to evaluate the JavaScript code from Scala. Just evaluating code is not enough if we want to mix and match different languages. To make use of the both languages we should be able to send and return values between them. In this post we will see how to return function from JS and use it from the Scala.&lt;/p&gt;
+
+&lt;p&gt;The below are the steps for achieving the same.&lt;/p&gt;
+
+&lt;h3 id=&quot;return-function-from-javascript-code&quot;&gt;Return Function from JavaScript Code&lt;/h3&gt;
+
+&lt;p&gt;The below code returns a function from JS.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;eval&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;js&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;x =&amp;gt; &#39;hello &#39;+x&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The type of &lt;strong&gt;function&lt;/strong&gt; variable in Scala is of a type &lt;strong&gt;Value&lt;/strong&gt;. This type stands for the return value after evaluating any code snippet. Using this return type, we can invoke the function.&lt;/p&gt;
+
+&lt;h3 id=&quot;execute-the-code&quot;&gt;Execute the code&lt;/h3&gt;
+
+&lt;p&gt;The below code runs the returned function using &lt;strong&gt;execute&lt;/strong&gt; method on Value class.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;execute&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;world&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;asString&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;asString&lt;/strong&gt; method converts the result of execution to Java type.&lt;/p&gt;
+
+&lt;p&gt;The result looks as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;hello world&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;By using simple execute function, we were able to communicate between two languages without any overhead. This is the power of GraalVM.&lt;/p&gt;
+
+&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/GraalVMExperiments/blob/master/src/main/scala/com/madhukaraphatak/graalvm/CallingFunctions.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Polyglot nature of GraalVM makes it very attractive to mix and match different languages on same VM. In this post we saw how to invoke a function defined in JS from Scala. This zero overhead interaction between languages makes GraalVM very powerful.&lt;/p&gt;
+</description>
+        <pubDate>Mon, 16 Mar 2020 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/graal-vm-part-3</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/graal-vm-part-3</guid>
+      </item>
+    
+      <item>
         <title>Experiments with GraalVM - Part 2 : Polyglot JavaScript Hello World</title>
         <description>&lt;p&gt;GraalVM is a new open source project by Oracle which is trying to make Java VM an universal VM to run all the major languages. Before GraalVM, there were already few languages like Scala, Closure which targeted JVM as their runtime. This has been hugely successful for those languages. GraalVM takes this idea further and makes it easy to target JVM so that many more languages can coexist on JVM.&lt;/p&gt;
 
@@ -858,71 +909,6 @@ Events:
         <pubDate>Wed, 30 Oct 2019 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/horizontal-scaling-k8s-part-2</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/horizontal-scaling-k8s-part-2</guid>
-      </item>
-    
-      <item>
-        <title>Auto Scaling Spark in Kubernetes - Part 1 : Introduction</title>
-        <description>&lt;p&gt;Kubernetes makes it easy to run services on scale. With kubernetes abstractions, it’s easy to setup a cluster of spark, hadoop or database on large number of nodes. Kubernetes takes care of handling tricky pieces like node assignment,service discovery, resource management of a distributed system. We have discussed how it can be used for spark clustering in our earlier &lt;a href=&quot;/categories/kubernetes-series&quot;&gt;series&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;As the services are becoming more and more dynamic, handling resource needs statically is becoming challenge. With cloud being prevalent, users expect their infrastructure to scale with usage. For example, spark cluster on kubernetes should be able to scale up or down depending upon the load.&lt;/p&gt;
-
-&lt;p&gt;Kubernetes system can scaled manually by increasing or decreasing the number of replicas. You can refer to &lt;a href=&quot;/scaling-spark-with-kubernetes-part-7&quot;&gt;this&lt;/a&gt; post for more information. But doing this manually means lot of work. Isn’t it better if kubernetes can auto manage the same?&lt;/p&gt;
-
-&lt;p&gt;Kubernetes Horizontal Pod AutoScaler(HPA) is one of the controller in the kubernetes which is built to the auto management of scaling. It’s very powerful tool which allows user to utilize resources of the cluster effectively.&lt;/p&gt;
-
-&lt;p&gt;In this series of post, I will be discussing about  HPA with respect to auto scaling spark. This is the first post in series which is an introduction to HPA. You can find all the posts in the series &lt;a href=&quot;/categories/k8s-horizontal-scaling&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;horizontal-pod-autoscaler&quot;&gt;Horizontal Pod AutoScaler&lt;/h2&gt;
-&lt;p&gt;The Horizontal Pod Autoscaler automatically scales the number of pods in a replication controller, deployment or replica set based on observed CPU utilization. Essentially it’s similar to YARN auto scaling which increases or decrease number of container by observing the resource utilization. HPA is more generic compared to YARN as HPA can auto scale any service which is running on kubernetes, where as YARN is more of a Hadoop focused tool.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://d33wubrfki0l68.cloudfront.net/4fe1ef7265a93f5f564bd3fbb0269ebd10b73b4e/1775d/images/docs/horizontal-pod-autoscaler.svg&quot; alt=&quot;HPA picture&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;HPA works as below&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;Continuously monitor the resource usage of a registered pod. 15 seconds is default polling time.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Compare the usage with defined threshold. 80 percent is default threshold.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Increase or decrease number of instances depending on the threshold.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;resource-monitoring-using-metric-server&quot;&gt;Resource Monitoring using Metric Server&lt;/h2&gt;
-
-&lt;p&gt;How does HPA gets the information about resource usage and how does it knows pod using more than it’s requested? We will answer these question in this section.&lt;/p&gt;
-
-&lt;h3 id=&quot;metric-server&quot;&gt;Metric Server&lt;/h3&gt;
-
-&lt;p&gt;Kubernetes uses metric server to collect the cpu or other resource metrics from each pod. Metric server is a cluster wide aggregator which collects the metrics from all the pods running and exposes the API’s for the same. You can read more about it in below link&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://kubernetes.io/docs/tasks/debug-application-cluster/resource-metrics-pipeline/#metrics-server&quot;&gt;https://kubernetes.io/docs/tasks/debug-application-cluster/resource-metrics-pipeline/#metrics-server&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;calculating-threshold&quot;&gt;Calculating Threshold&lt;/h3&gt;
-
-&lt;p&gt;Each pod in kubernetes can define how much resource it’s request using below format.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-yaml&quot; data-lang=&quot;yaml&quot;&gt;&lt;span class=&quot;na&quot;&gt;resources&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;limits&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;na&quot;&gt;cpu&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;1&quot;&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;requests&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;na&quot;&gt;cpu&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;1&quot;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above example, the pod is requesting for 1 cpu. HPA uses this information to how much of the requested resource is getting used. If the metric server says the resource usage is higher than the threshold, then HPA kicks in auto scaling.&lt;/p&gt;
-
-&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale&quot;&gt;https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-&lt;p&gt;HPA is one of the powerful tool provided by the kubernetes which allows user to auto scale their infrastructure based on usage. This leads to effective use of the infrastructure. In this post we discussed what is HPA and how it works.&lt;/p&gt;
-</description>
-        <pubDate>Wed, 30 Oct 2019 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/horizontal-scaling-k8s-part-1</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/horizontal-scaling-k8s-part-1</guid>
       </item>
     
   </channel>
