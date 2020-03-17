@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Migrating to Spark 2.0 - Part 1 : Scala Version and Dependencies</title>
+    <title>Experiments with GraalVM - Part 4 : JavaScript Object to Case Class</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/migrating-to-spark-two-part-1">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/graal-vm-part-4">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,90 +45,58 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Migrating to Spark 2.0 - Part 1 : Scala Version and Dependencies</h1>
-  <p class="meta">Apr 13, 2017</p>
+  <h1>Experiments with GraalVM - Part 4 : JavaScript Object to Case Class</h1>
+  <p class="meta">Mar 17, 2020</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
-    <a href="/categories/spark"><span class="category">spark</span></a>
-    
-    <a href="/categories/spark-two-migration-series"><span class="category">spark-two-migration-series</span></a>
+    <a href="/categories/graal-vm"><span class="category">graal-vm</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.</p>
+  <p>GraalVM is a new open source project by Oracle which is trying to make Java VM an universal VM to run all the major languages. Before GraalVM, there were already few languages like Scala, Closure which targeted JVM as their runtime. This has been hugely successful for those languages. GraalVM takes this idea further and makes it easy to target JVM so that many more languages can coexist on JVM.</p>
 
-<p>This is the first post in this series. In this post, we will discuss how to upgrade our dependencies to add right support for spark 2.0. You can access all the posts <a href="/categories/spark-two-migration-series">here</a>.</p>
+<p>GraalVM is around from 2014 as a research project. It’s been used in production by Twitter from 2017. But for general public, it became production ready in latter half of 2019.</p>
 
-<h2 id="choosing-right-scala-version">Choosing Right Scala Version</h2>
+<p>In this series posts, I will be exploring what GraalVM can bring to JVM ecosystem. This is the fourth post in the series which explores passing complex objects from JavaScript to Scala. You can read all the posts in the series <a href="/categories/graal-vm">here</a>.</p>
 
-<p>When you want to upgrade from spark 1.x to spark 2.x, first task is to pick the right scala version. In spark 1.x, spark was built using scala version 2.10.6. But from spark 2.0, the default version is changed to 2.11.8. 2.10 version is still supported even though it’s not default.</p>
+<h2 id="returning-complex-values">Returning Complex Values</h2>
 
-<p>Scala major versions are non binary compatible, i.e you cannot mix and match the libraries built using 2.10 and 2.11. So whenever you change the scala version of the project, you need to upgrade all the libraries of the project including non-spark ones. It’s a significant work as you need to comb through each and every dependency and make sure right version exist.</p>
+<p>In last post, we saw how to use a function from JavaScript in Scala. In many applications, sharing data between languages is important for interportablity. JavaScript encodes it data as JavaScript object. In Scala, we encode the data as the case classes. In this example, we will see how to convert a JavaScript object to case class.</p>
 
-<p>Initially I started the upgrade using Scala 2.10 as it was least resistance path. All the other external libraries needed no change and it was smooth. But I soon realised the distribution at spark download page <a href="https://spark.apache.org/downloads.html">https://spark.apache.org/downloads.html</a> is only built using scala 2.11. So to support 2.10 I have to build my own distribution. Also I came across the <a href="https://issues.apache.org/jira/browse/SPARK-19810">jira</a> which discusses about removing scala 2.10 support altogether in 2.3.0. So this meant investing in 2.10 will be not good as it will be obsolete in next few versions.</p>
+<h2 id="return-javascript-object-from-code">Return JavaScript Object from Code</h2>
 
-<p>So I chose <em>2.11.8</em> as my scala version for upgrade.</p>
+<p>The below code returns a JavaScript object after it’s evaluation</p>
 
-<h2 id="choosing-right-java-version">Choosing Right Java Version</h2>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">context</span> <span class="k">=</span> <span class="nc">Context</span><span class="o">.</span><span class="n">create</span><span class="o">()</span>
+<span class="k">val</span> <span class="n">result</span> <span class="k">=</span> <span class="n">context</span><span class="o">.</span><span class="n">eval</span><span class="o">(</span><span class="s">"js"</span><span class="o">,</span><span class="s">"({ 'name':'John', 'age':20})"</span><span class="o">)</span></code></pre></div>
 
-<p>From Spark 2.1.0 version, support for Java 7 has been deprecated. So I started using Java 8 for building and deploying the code.</p>
+<p>In this code, result will have the JavaScript object.</p>
 
-<h2 id="updating-external-dependencies">Updating External Dependencies</h2>
+<h2 id="define-scala-case-class">Define Scala Case Class</h2>
 
-<p>One of the major challenges of changing scala version is to update all the project dependencies. My project had a fair bit of them and luckily all of those libraries had scala 2.11 version. So please make sure that all the libraries have 2.11 version before you make decision to change scala version.</p>
+<p>The below code will define a Scala case class.</p>
 
-<h2 id="updating-connectors">Updating Connectors</h2>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">case</span> <span class="k">class</span> <span class="nc">Person</span><span class="o">(</span><span class="n">name</span><span class="k">:</span><span class="kt">String</span><span class="o">,</span> <span class="n">age</span><span class="k">:</span><span class="kt">Int</span><span class="o">)</span></code></pre></div>
 
-<p>There are major changes happened to the connector ecosystem in spark 2.0. So when you are upgrading to spark 2.0, you need to make sure that you use the right connectors.</p>
+<h2 id="converting-javascript-object-to-case-class">Converting JavaScript Object to Case Class</h2>
 
-<ul>
-  <li>
-    <h3 id="removal-of-built-in-streaming-connectors">Removal of Built in Streaming Connectors</h3>
-  </li>
-</ul>
+<p>The below code converts the result to case class object.</p>
 
-<p>Earlier spark had support for zeromq, twitter as part of spark streaming code base. But in spark 2.x, they have removed <a href="https://issues.apache.org/jira/browse/SPARK-13843">it</a>. No more these connectors are part of spark-streaming. This is done mostly to develop these connectors independent of spark versions. So if you are using these connector code will break.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">person</span> <span class="k">=</span> <span class="nc">Person</span><span class="o">(</span><span class="n">result</span><span class="o">.</span><span class="n">getMember</span><span class="o">(</span><span class="s">"name"</span><span class="o">).</span><span class="n">asString</span><span class="o">(),</span> <span class="n">result</span><span class="o">.</span><span class="n">getMember</span><span class="o">(</span><span class="s">"age"</span><span class="o">).</span><span class="n">asInt</span><span class="o">())</span></code></pre></div>
 
-<p>To fix this issue, you need to update the dependencies to point to <a href="https://github.com/apache/bahir">Apache Bahir</a>. Apache Bahir is new home to all of this deleted connectors. Follow the README of bahir repository to update the dependencies to bahir ones.</p>
+<p>The above code uses, <strong>getMember</strong> method available on <strong>Value</strong> object to read from the result returned by JavaScript. It acts as a getter method. Using this we can read the result and fill the same to our case class.</p>
 
-<ul>
-  <li>
-    <h3 id="spark-20-specific-connectors">Spark 2.0 specific connectors</h3>
-  </li>
-</ul>
+<h2 id="code">Code</h2>
 
-<p>Many popular connectors now give spark 2.0 specific connectors to build with. These connectors provide both scala 2.10 and 2.11 version. Choose the right one depending upon the scala version you have chosen. As I have chosen 2.11, the below are the some of updated connectors for some sources</p>
-
-<ul>
-  <li>
-    <h4 id="elastic-search">Elastic Search</h4>
-  </li>
-</ul>
-
-<p>Elastic search has a dedicated spark connector which was used to be called as elasticsearch-hadoop. You can access latest connector <a href="https://mvnrepository.com/artifact/org.elasticsearch/elasticsearch-spark-20_2.11/5.3.0">here</a>.</p>
-
-<ul>
-  <li>
-    <h4 id="csv-connector">Csv Connector</h4>
-  </li>
-</ul>
-
-<p>From Spark 2.0, csv is built in source. Earlier we used to use <a href="https://github.com/databricks/spark-csv">spark-csv</a>.</p>
-
-<p>If you are using any other connector, make sure they support 2.0. One thing to note that, if the connector is available in right scala version, it doesn’t need any code changes to support spark 2.x. Spark 2.x data source API is backward compatible with spark 1.x</p>
+<p>You can access complete code on <a href="https://github.com/phatak-dev/GraalVMExperiments/blob/master/src/main/scala/com/madhukaraphatak/graalvm/CaseClassFromJson.scala">github</a>.</p>
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>So by updating scala version, java version and using right connectors you can update your project build to use spark 2.x.</p>
-
-<h2 id="whats-next">What’s Next?</h2>
-
-<p>In next blog, we will be discuss about major changes in spark csv connector.</p>
-
+<p>Polyglot nature of GraalVM makes it very attractive to mix and match different languages on same VM. Sharing data between the languages without any overhead allows user to use capabilities of both the languages natively.</p>
 
 </article>
 <div class="related">
@@ -136,12 +104,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">17 Mar 2020</span>
-     &raquo; <a href="/graal-vm-part-4">Experiments with GraalVM - Part 4 : JavaScript Object to Case Class</a>    
-   </li>           
-         
+          
 
             
     
@@ -162,26 +125,21 @@
    
    
              
+          
+
+            
     
     <li>    
-     <span class="post-date">16 Dec 2019</span>
-     &raquo; <a href="/clickouse-clustering-spark-developer">ClickHouse Clustering for Spark Developer</a>    
+     <span class="post-date">16 Mar 2020</span>
+     &raquo; <a href="/graal-vm-part-3">Experiments with GraalVM - Part 3 : Invoke JS Functions from JVM</a>    
    </li>           
          
 
             
     
     <li>    
-     <span class="post-date">02 Dec 2019</span>
-     &raquo; <a href="/data-modeling-spark-part-2">Data Modeling in Apache Spark - Part 2 : Working With Multiple Dates</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">27 Nov 2019</span>
-     &raquo; <a href="/data-modeling-spark-part-1">Data Modeling in Apache Spark - Part 1 : Date Dimension</a>    
+     <span class="post-date">15 Mar 2020</span>
+     &raquo; <a href="/graal-vm-part-2">Experiments with GraalVM - Part 2 : Polyglot JavaScript Hello World</a>    
    </li>           
          
 

@@ -7,6 +7,54 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Experiments with GraalVM - Part 4 : JavaScript Object to Case Class</title>
+        <description>&lt;p&gt;GraalVM is a new open source project by Oracle which is trying to make Java VM an universal VM to run all the major languages. Before GraalVM, there were already few languages like Scala, Closure which targeted JVM as their runtime. This has been hugely successful for those languages. GraalVM takes this idea further and makes it easy to target JVM so that many more languages can coexist on JVM.&lt;/p&gt;
+
+&lt;p&gt;GraalVM is around from 2014 as a research project. It’s been used in production by Twitter from 2017. But for general public, it became production ready in latter half of 2019.&lt;/p&gt;
+
+&lt;p&gt;In this series posts, I will be exploring what GraalVM can bring to JVM ecosystem. This is the fourth post in the series which explores passing complex objects from JavaScript to Scala. You can read all the posts in the series &lt;a href=&quot;/categories/graal-vm&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;returning-complex-values&quot;&gt;Returning Complex Values&lt;/h2&gt;
+
+&lt;p&gt;In last post, we saw how to use a function from JavaScript in Scala. In many applications, sharing data between languages is important for interportablity. JavaScript encodes it data as JavaScript object. In Scala, we encode the data as the case classes. In this example, we will see how to convert a JavaScript object to case class.&lt;/p&gt;
+
+&lt;h2 id=&quot;return-javascript-object-from-code&quot;&gt;Return JavaScript Object from Code&lt;/h2&gt;
+
+&lt;p&gt;The below code returns a JavaScript object after it’s evaluation&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;eval&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;js&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;({ &#39;name&#39;:&#39;John&#39;, &#39;age&#39;:20})&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In this code, result will have the JavaScript object.&lt;/p&gt;
+
+&lt;h2 id=&quot;define-scala-case-class&quot;&gt;Define Scala Case Class&lt;/h2&gt;
+
+&lt;p&gt;The below code will define a Scala case class.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Person&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;converting-javascript-object-to-case-class&quot;&gt;Converting JavaScript Object to Case Class&lt;/h2&gt;
+
+&lt;p&gt;The below code converts the result to case class object.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;person&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Person&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getMember&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;name&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;asString&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getMember&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;age&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;asInt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above code uses, &lt;strong&gt;getMember&lt;/strong&gt; method available on &lt;strong&gt;Value&lt;/strong&gt; object to read from the result returned by JavaScript. It acts as a getter method. Using this we can read the result and fill the same to our case class.&lt;/p&gt;
+
+&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/GraalVMExperiments/blob/master/src/main/scala/com/madhukaraphatak/graalvm/CaseClassFromJson.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Polyglot nature of GraalVM makes it very attractive to mix and match different languages on same VM. Sharing data between the languages without any overhead allows user to use capabilities of both the languages natively.&lt;/p&gt;
+</description>
+        <pubDate>Tue, 17 Mar 2020 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/graal-vm-part-4</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/graal-vm-part-4</guid>
+      </item>
+    
+      <item>
         <title>Experiments with GraalVM - Part 3 : Invoke JS Functions from JVM</title>
         <description>&lt;p&gt;GraalVM is a new open source project by Oracle which is trying to make Java VM an universal VM to run all the major languages. Before GraalVM, there were already few languages like Scala, Closure which targeted JVM as their runtime. This has been hugely successful for those languages. GraalVM takes this idea further and makes it easy to target JVM so that many more languages can coexist on JVM.&lt;/p&gt;
 
@@ -773,142 +821,6 @@ Events:
         <pubDate>Wed, 30 Oct 2019 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/horizontal-scaling-k8s-part-3</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/horizontal-scaling-k8s-part-3</guid>
-      </item>
-    
-      <item>
-        <title>Auto Scaling Spark in Kubernetes - Part 2 : Spark Cluster Setup</title>
-        <description>&lt;p&gt;Kubernetes makes it easy to run services on scale. With kubernetes abstractions, it’s easy to setup a cluster of spark, hadoop or database on large number of nodes. Kubernetes takes care of handling tricky pieces like node assignment,service discovery, resource management of a distributed system. We have discussed how it can be used for spark clustering in our earlier &lt;a href=&quot;/categories/kubernetes-series&quot;&gt;series&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;As the services are becoming more and more dynamic, handling resource needs statically is becoming challenge. With cloud being prevalent, users expect their infrastructure to scale with usage. For example, spark cluster on kubernetes should be able to scale up or down depending upon the load.&lt;/p&gt;
-
-&lt;p&gt;Kubernetes system can scaled manually by increasing or decreasing the number of replicas. You can refer to &lt;a href=&quot;/scaling-spark-with-kubernetes-part-7&quot;&gt;this&lt;/a&gt; post for more information. But doing this manually means lot of work. Isn’t it better if kubernetes can auto manage the same?&lt;/p&gt;
-
-&lt;p&gt;Kubernetes Horizontal Pod AutoScaler(HPA) is one of the controller in the kubernetes which is built to the auto management of scaling. It’s very powerful tool which allows user to utilize resources of the cluster effectively.&lt;/p&gt;
-
-&lt;p&gt;In this series of post, I will be discussing about HPA with respect to auto scaling spark. This is the second post in the series which talks about how to setup spark cluster to use the auto scaling. You can find all the posts in the series &lt;a href=&quot;/categories/k8s-horizontal-scaling&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;spark-cluster-setup-on-kubernetes&quot;&gt;Spark Cluster Setup on Kubernetes&lt;/h2&gt;
-
-&lt;p&gt;In earlier series of posts we have discussed how to setup the spark cluster on kubernetes. If you have not read it, read it in below link before continuing.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;/categories/kubernetes-series/&quot;&gt;Spark Cluster Setup on Kubernetes&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;enabling-metrics-server-in-minikube&quot;&gt;Enabling Metrics Server in Minikube&lt;/h2&gt;
-
-&lt;p&gt;As we discussed in earlier post, metrics server is an important part of the auto scaling. In normal kubernetes clusters, it’s enabled by default. But if you are using minikube to test the HPA you need to enabled it explicitly.&lt;/p&gt;
-
-&lt;p&gt;The below is the command to enable. This needs minikube restart.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;minikube addons &lt;span class=&quot;nb&quot;&gt;enable &lt;/span&gt;metrics-server&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Once it’s enabled, you should be able to see it in the list of addons.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;minikube addons list&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;- addon-manager: enabled
-- dashboard: enabled
-- default-storageclass: enabled
-- efk: disabled
-- freshpod: disabled
-- gvisor: disabled
-- heapster: disabled
-- helm-tiller: disabled
-- ingress: disabled
-- ingress-dns: disabled
-- logviewer: disabled
-- metrics-server: enabled
-- nvidia-driver-installer: disabled
-- nvidia-gpu-device-plugin: disabled
-- registry: disabled
-- registry-creds: disabled
-- storage-provisioner: enabled
-- storage-provisioner-gluster: disabled&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;defining-the-resource-usage-for-spark-worker&quot;&gt;Defining the Resource Usage For Spark Worker&lt;/h2&gt;
-
-&lt;p&gt;In our spark setup, we need to auto scale spark worker. To auto scale the same, we need to define the it’s resource needs as below.&lt;/p&gt;
-
-&lt;h3 id=&quot;restricting-at-pod-level&quot;&gt;Restricting at Pod Level&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-yaml&quot; data-lang=&quot;yaml&quot;&gt;&lt;span class=&quot;na&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;apps/v1&lt;/span&gt;
-&lt;span class=&quot;na&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;Deployment&lt;/span&gt;
-&lt;span class=&quot;na&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;labels&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;spark-worker&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;spark-worker&lt;/span&gt;
-&lt;span class=&quot;na&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;replicas&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;1&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;selector&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;na&quot;&gt;matchLabels&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-       &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;spark-worker&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;template&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;na&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-      &lt;span class=&quot;na&quot;&gt;labels&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-        &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;spark-worker&lt;/span&gt;
-    &lt;span class=&quot;na&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-      &lt;span class=&quot;na&quot;&gt;containers&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;image&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;spark-2.1.0-bin-hadoop2.6&lt;/span&gt;
-        &lt;span class=&quot;na&quot;&gt;imagePullPolicy &lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;IfNotPresent&quot;&lt;/span&gt;
-        &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;spark-worker&lt;/span&gt;
-        &lt;span class=&quot;na&quot;&gt;ports&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-        &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;containerPort&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;7078&lt;/span&gt;
-          &lt;span class=&quot;na&quot;&gt;protocol&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;TCP&lt;/span&gt;
-        &lt;span class=&quot;na&quot;&gt;resources&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-          &lt;span class=&quot;na&quot;&gt;limits&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-            &lt;span class=&quot;na&quot;&gt;cpu&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;1&quot;&lt;/span&gt;
-          &lt;span class=&quot;na&quot;&gt;requests&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-            &lt;span class=&quot;na&quot;&gt;cpu&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;1&quot;&lt;/span&gt;
-        &lt;span class=&quot;na&quot;&gt;command&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-         &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;/bin/bash&quot;&lt;/span&gt;
-         &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;-c&quot;&lt;/span&gt;
-         &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;--&quot;&lt;/span&gt;
-        &lt;span class=&quot;na&quot;&gt;args &lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-                &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;./start-worker.sh;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;sleep&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;infinity&#39;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above YAML, we have request for the single cpu for every worker in our cluster.&lt;/p&gt;
-
-&lt;h3 id=&quot;restricting-at-spark-level&quot;&gt;Restricting at Spark Level&lt;/h3&gt;
-
-&lt;p&gt;By default spark doesn’t respect the resource restriction set by kubernetes. So we need to pass this information when we start the slave. So the below changes are done to our &lt;strong&gt;start-worker.sh&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;&lt;span class=&quot;c&quot;&gt;#!/bin/sh&lt;/span&gt;
-
-&lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt; /start-common.sh
-
-/opt/spark/sbin/start-slave.sh &lt;span class=&quot;nt&quot;&gt;--cores&lt;/span&gt; 1 spark://spark-master:7077&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above code, &lt;em&gt;–cores 1&lt;/em&gt; will tell to the spark that this slave should use only one core.&lt;/p&gt;
-
-&lt;h2 id=&quot;enabling-external-shuffle-service&quot;&gt;Enabling External Shuffle Service&lt;/h2&gt;
-
-&lt;p&gt;To use the automatically scaled pods, we need to run the spark in dynamic allocation mode. We will talk more about this mode in next post. One of the pre requisite for the dynamic allocation is external shuffle service. This is enabled in each worker node using below configuration in &lt;strong&gt;spark-default.conf&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;spark.shuffle.service.enabled   true&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;rebuilding-the-docker-image&quot;&gt;Rebuilding the Docker Image&lt;/h2&gt;
-
-&lt;p&gt;As we done number of changes to the our setup, we need to rebuild the docker image. You can read about building the image &lt;a href=&quot;/scaling-spark-with-kubernetes-part-5/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;starting-the-cluster&quot;&gt;Starting the Cluster&lt;/h2&gt;
-
-&lt;p&gt;Now we have done all the necessary changes. We can start the cluster. You can follow steps laid out &lt;a href=&quot;/scaling-spark-with-kubernetes-part-6&quot;&gt;here&lt;/a&gt; for the same.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-state-of-the-cluster&quot;&gt;The State of the Cluster&lt;/h2&gt;
-
-&lt;p&gt;Once the cluster is successfully started, you should be able to see one worker in spark master as shown below image.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/hpa/spark-master-single-slave.png&quot; alt=&quot;Spark Master with Single Slave&quot; /&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
-
-&lt;p&gt;You can access all the configuration and scripts on &lt;a href=&quot;https://github.com/phatak-dev/kubernetes-spark/tree/autoscaling&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-&lt;p&gt;In this post we discussed how to prepare spark cluster on kubernetes to be ready to make use of the auto scaling.&lt;/p&gt;
-</description>
-        <pubDate>Wed, 30 Oct 2019 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/horizontal-scaling-k8s-part-2</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/horizontal-scaling-k8s-part-2</guid>
       </item>
     
   </channel>
