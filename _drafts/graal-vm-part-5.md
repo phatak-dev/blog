@@ -1,65 +1,79 @@
 ---
 layout: post
-title: "Experiments with Graal VM : Part 4 - JS Object to Case Class"
-date : 2020-03-14
+title: "Experiments with GraalVM - Part 5 - Passing Scala Object to JavaScript"
+date : 2020-03-18
 categories: scala graal-vm
 ---
-GraalVM is new open source project by Oracle which is trying to make Java VM an universal VM to run all the different languages. Before Graal, there were already few languages like Scala, Closure which targetted JVM as their runtime. This has been hugely successful for those language. GraalVM takes this idea further and makes it easy to target JVM so that more languages can target JVM and it becomes the defacto VM to run all languages.
+GraalVM is a new open source project by Oracle which is trying to make Java VM an universal VM to run all the major languages. Before GraalVM, there were already few languages like Scala, Closure which targeted JVM as their runtime. This has been hugely successful for those languages. GraalVM takes this idea further and makes it easy to target JVM so that many more languages can coexist on JVM.
 
 GraalVM is around from 2014 as a research project. It's been used in production by Twitter from 2017. But for general public, it became production ready in latter half of 2019.
 
-In this series posts, I will be exploring what GraalVM can bring to JVM ecosystem. This is the fourth post in the series which explores passing complex objects from JS to Scala. You can read all the posts in the series [here](/categories/graal-vm)
+In this series posts, I will be exploring what GraalVM can bring to JVM ecosystem. This is the fifth post in the series which explores passing complex objects from Scala to JS. You can read all the posts in the series [here](/categories/graal-vm)
 
 
-## Returning Complex Values
+## Passing Values From Scala To JavaScript
 
-In last post, we saw how to use a function from JS in Scala. In many applications, sharing data between languages is important for interportablity. Javascript encodes it data as JS object. In Scala, we encode the data as the case classes. In this example, we will see how to convert a JS object to Case class.
+In last post, we saw how to consume JavaScript object inside the Scala program. In this post, we will be discussing about how to pass Scala objects to Javascript. 
 
 
-## Return JS Object from Code
+## Enable Allow Access on Context
 
-The below code returns a Javascript object after it's evaluation
+By default, the guest language, JavaScript in our example, doesn't have access to any objects from host langage, Scala in our case. This is done for security purposes. But we can override this by enabling access on the context level.
+
+The below code shows how to do that
 
 {% highlight scala %}
 
-val context = Context.create()
-val result = context.eval("js","({ 'name':'John', 'age':20})")
+val context = Context.newBuilder().allowAllAccess(true).build()
 
 {% endhighlight %}
 
-In this code, result will have the javascript object.
+Here we are using builder pattern of context to pass extra parameter. Using **allowAllAccess** method on context, we allow access to host environement. 
 
+## Create a Scala Object
 
-## Define Scala Case Class
-
-The below code will define a Scala case class.
+The below code creates a person object in Scala
 
 {% highlight scala %}
 
 case class Person(name:String, age:Int)
 
+val person = Person("John",20)
+
 {% endhighlight %}
 
+## Make Scala Object Available to JavaScript
 
-## Converting JS Object to Case Class
-
-The below code converts the result to case class object.
+Not every object created in Scala is available to JavaScript by default. It needs to be explicitely made availble.
 
 {% highlight scala %}
 
- val person = Person(result.getMember("name").asString(), result.getMember("age").asInt())
+context.getBindings("js").putMember("person",person)
 
 {% endhighlight %}
 
-The above code uses, **getMember** method available on **Value** object to read from the result returned by Javascript. It acts as a getter method. Using this we can read the result and fill the same to our case class.
+In above code, using **putMember** method, we make person object available for JavaScript.
+
+
+## Using Scala Object from JavaScript
+
+The below code show accessing the person object in JavaScript code.
+
+{% highlight scala %}
+
+ val result = context.eval("js","person.name() == 'John' && person.age() == 20").asBoolean()
+
+{% endhighlight %}
+
+As you can see from the code, we can access the person object as a normal JavaScript object.
 
 ## Code
 
 
-You can access complete code on [github]()
+You can access complete code on [github](https://github.com/phatak-dev/GraalVMExperiments/blob/master/src/main/scala/com/madhukaraphatak/graalvm/PassClassToJs.scala).
 
 
 ## Conclusion
 
 
-Polygot nature of GraalVM makes it very attractive to mix and match different languages on same VM. In this post we saw to write simple Javascript Hello World using GraalVM polygot API.
+Polygot nature of GraalVM makes it very attractive to mix and match different languages on same VM. Ability to pass values between different languages makes it seemless to do different computation in different languages. 
