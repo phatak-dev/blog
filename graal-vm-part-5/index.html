@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Akka HTTP Hello world</title>
+    <title>Experiments with GraalVM - Part 5 :Passing Scala Object to JavaScript</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/akka-http-helloworld">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/graal-vm-part-5">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,95 +45,69 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Akka HTTP Hello world</h1>
-  <p class="meta">Nov 13, 2015</p>
+  <h1>Experiments with GraalVM - Part 5 :Passing Scala Object to JavaScript</h1>
+  <p class="meta">Mar 18, 2020</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
-    <a href="/categories/akka-http"><span class="category">akka-http</span></a>
+    <a href="/categories/graal-vm"><span class="category">graal-vm</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>Akka HTTP is a akka based http library for building RESTful services in Scala.
-It’s is based on new Akka reactive streams library.</p>
+  <p>GraalVM is a new open source project by Oracle which is trying to make Java VM an universal VM to run all the major languages. Before GraalVM, there were already few languages like Scala, Closure which targeted JVM as their runtime. This has been hugely successful for those languages. GraalVM takes this idea further and makes it easy to target JVM so that many more languages can coexist on JVM.</p>
 
-<p>In this series of posts, I will be talking about how to build REST services using akka-http library.</p>
+<p>GraalVM is around from 2014 as a research project. It’s been used in production by Twitter from 2017. But for general public, it became production ready in latter half of 2019.</p>
 
-<p>This is the first post in the series, where I will be talking about setting up the project and running a hello world program.</p>
+<p>In this series of posts, I will be exploring what GraalVM can bring to JVM ecosystem. This is the fifth post in the series which explores passing complex objects from Scala to JavaScript. You can read all the posts in the series <a href="/categories/graal-vm">here</a></p>
 
-<p>TL;TR You can access complete code on <a href="https://github.com/phatak-dev/akka-http-examples">github</a>.</p>
+<h2 id="passing-values-from-scala-to-javascript">Passing Values From Scala To JavaScript</h2>
 
-<h2 id="adding-dependency">Adding dependency</h2>
+<p>In last post, we saw how to consume JavaScript object inside the Scala program. In this post, we will be discussing about how to pass Scala objects to JavaScript.</p>
 
-<p>To start using akka-http, you should add the following dependency to project. I am using sbt for build management. You can also use other build tools like maven.</p>
+<h2 id="enable-allow-access-on-context">Enable Allow Access on Context</h2>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="s">"com.typesafe.akka"</span> <span class="o">%%</span> <span class="s">"akka-http-experimental"</span> <span class="o">%</span> <span class="s">"1.0"</span></code></pre></div>
+<p>By default, the guest language, JavaScript, doesn’t have access to any objects from host language Scala. This is done for security purposes. But we can override this by enabling access on the context level.</p>
 
-<p>Though the artifact name says it’s experimental many companies are using it in the production.</p>
+<p>The below code shows how to do that</p>
 
-<p>You can access complete build.sbt <a href="https://github.com/phatak-dev/akka-http-examples/blob/master/build.sbt">here</a></p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">context</span> <span class="k">=</span> <span class="nc">Context</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span><span class="n">allowAllAccess</span><span class="o">(</span><span class="kc">true</span><span class="o">).</span><span class="n">build</span><span class="o">()</span></code></pre></div>
 
-<h2 id="helloworld-application">HelloWorld application</h2>
+<p>Here we are using builder pattern of context to pass extra parameter. Using <strong>allowAllAccess</strong> method on context, we allow access to host environment.</p>
 
-<p>The following are the steps to be followed to create a hello world application.</p>
+<h2 id="create-a-scala-object">Create a Scala Object</h2>
 
-<h3 id="create-actor-system">1. Create Actor System</h3>
+<p>The below code creates a person object in Scala</p>
 
-<p>Akka HTTP uses akka actors for handling concurrent requests. So in the first line we have to create akka actor system.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">case</span> <span class="k">class</span> <span class="nc">Person</span><span class="o">(</span><span class="n">name</span><span class="k">:</span><span class="kt">String</span><span class="o">,</span> <span class="n">age</span><span class="k">:</span><span class="kt">Int</span><span class="o">)</span>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">implicit</span> <span class="k">val</span> <span class="n">actorSystem</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">(</span><span class="s">"system"</span><span class="o">)</span></code></pre></div>
+<span class="k">val</span> <span class="n">person</span> <span class="k">=</span> <span class="nc">Person</span><span class="o">(</span><span class="s">"John"</span><span class="o">,</span><span class="mi">20</span><span class="o">)</span></code></pre></div>
 
-<h3 id="create-actorflowmaterilizer">2. Create ActorFlowMaterilizer</h3>
+<h2 id="make-scala-object-available-to-javascript">Make Scala Object Available to JavaScript</h2>
 
-<p>Akka HTTP uses akka reactive streams for stream processing on TPC. So in a reactive system,we need to specify flow materializer which specifies the how requests/repose flow get processed. In akka-http, actors will be used for handling request and response flows. So we use <em>ActorMaterializer</em> here.</p>
+<p>Not every object created in Scala is available to JavaScript by default. It needs to be explicitly made available.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">implicit</span> <span class="k">val</span> <span class="n">actorMaterializer</span> <span class="k">=</span> <span class="nc">ActorMaterializer</span><span class="o">()</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">context</span><span class="o">.</span><span class="n">getBindings</span><span class="o">(</span><span class="s">"js"</span><span class="o">).</span><span class="n">putMember</span><span class="o">(</span><span class="s">"person"</span><span class="o">,</span><span class="n">person</span><span class="o">)</span></code></pre></div>
 
-<p>Please make sure both of the variables are implicits. Otherwise you may get strange cryptic compilation errors.</p>
+<p>In above code, using <strong>putMember</strong> method, we make person object available for JavaScript.</p>
 
-<h3 id="defining-the-route">3. Defining the route</h3>
+<h2 id="using-scala-object-from-javascript">Using Scala Object from JavaScript</h2>
 
-<p>Route specifies the URI endpoints REST server exposing. It is combination of multiple paths.</p>
+<p>The below code show accessing the person object in JavaScript code.</p>
 
-<p>A simple path has the following three parts</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">result</span> <span class="k">=</span> <span class="n">context</span><span class="o">.</span><span class="n">eval</span><span class="o">(</span><span class="s">"js"</span><span class="o">,</span><span class="s">"person.name() == 'John' &amp;&amp; person.age() == 20"</span><span class="o">).</span><span class="n">asBoolean</span><span class="o">()</span></code></pre></div>
 
-<ul>
-  <li>Directive/URI</li>
-  <li>HTTP Method</li>
-  <li>Response</li>
-</ul>
+<p>As you can see from the code, we can access the person object as a normal JavaScript object.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">route</span> <span class="k">=</span>
-  <span class="n">pathSingleSlash</span> <span class="o">{</span>
-    <span class="n">get</span> <span class="o">{</span>
-      <span class="n">complete</span> <span class="o">{</span>
-        <span class="s">"Hello world"</span>
-      <span class="o">}</span>
-    <span class="o">}</span>
-  <span class="o">}</span></code></pre></div>
+<h2 id="code">Code</h2>
 
-<p>In above example, we are creating a route with following properties</p>
+<p>You can access complete code on <a href="https://github.com/phatak-dev/GraalVMExperiments/blob/master/src/main/scala/com/madhukaraphatak/graalvm/PassClassToJs.scala">github</a>.</p>
 
-<ul>
-  <li>/ is the directive</li>
-  <li>get is HTTP Method</li>
-  <li>Returns “hello world” as the response</li>
-</ul>
+<h2 id="conclusion">Conclusion</h2>
 
-<h3 id="bind">4. Bind</h3>
-
-<p>Once we have all pieces in place, we need to create a server and bind to this route, address and port.</p>
-
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="nc">Http</span><span class="o">().</span><span class="n">bindAndHandle</span><span class="o">(</span><span class="n">route</span><span class="o">,</span><span class="s">"localhost"</span><span class="o">,</span><span class="mi">8080</span><span class="o">)</span></code></pre></div>
-
-<p>This creates and runs a simple http server at <a href="http://localhost:8080">http://localhost:8080</a>.</p>
-
-<p>You can access complete code for this server <a href="https://github.com/phatak-dev/akka-http-examples/blob/master/src/main/scala/com/madhukaraphatak/akkahttp/AkkaHttpHelloWorld.scala">here</a>.</p>
-
-<p>Now we have a working simple http server using akka-http library.</p>
+<p>Polyglot nature of GraalVM makes it very attractive to mix and match different languages on same VM. Ability to pass values between different languages makes it seamless to do different computation in different languages.</p>
 
 </article>
 <div class="related">
@@ -141,12 +115,7 @@ It’s is based on new Akka reactive streams library.</p>
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">18 Mar 2020</span>
-     &raquo; <a href="/graal-vm-part-5">Experiments with GraalVM - Part 5 :Passing Scala Object to JavaScript</a>    
-   </li>           
-         
+          
 
             
     
@@ -167,23 +136,23 @@ It’s is based on new Akka reactive streams library.</p>
    
    
              
-    
-    <li>    
-     <span class="post-date">20 Nov 2015</span>
-     &raquo; <a href="/akka-http-testing">Akka HTTP testing</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">13 Nov 2015</span>
-     &raquo; <a href="/json-in-akka-http">JSON in Akka HTTP</a>    
-   </li>           
-         
-
-            
           
+
+            
+    
+    <li>    
+     <span class="post-date">17 Mar 2020</span>
+     &raquo; <a href="/graal-vm-part-4">Experiments with GraalVM - Part 4 : JavaScript Object to Case Class</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">16 Mar 2020</span>
+     &raquo; <a href="/graal-vm-part-3">Experiments with GraalVM - Part 3 : Invoke JS Functions from JVM</a>    
+   </li>           
+         
 
    
    
