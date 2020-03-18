@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Experiments with GraalVM - Part 5 - Passing Scala Object to JavaScript"
+title: "Experiments with GraalVM - Part 5 :Passing Scala Object to JavaScript"
 date : 2020-03-18
 categories: scala graal-vm
 ---
@@ -8,17 +8,17 @@ GraalVM is a new open source project by Oracle which is trying to make Java VM a
 
 GraalVM is around from 2014 as a research project. It's been used in production by Twitter from 2017. But for general public, it became production ready in latter half of 2019.
 
-In this series posts, I will be exploring what GraalVM can bring to JVM ecosystem. This is the fifth post in the series which explores passing complex objects from Scala to JS. You can read all the posts in the series [here](/categories/graal-vm)
+In this series of posts, I will be exploring what GraalVM can bring to JVM ecosystem. This is the fifth post in the series which explores passing complex objects from Scala to JavaScript. You can read all the posts in the series [here](/categories/graal-vm)
 
 
 ## Passing Values From Scala To JavaScript
 
-In last post, we saw how to consume JavaScript object inside the Scala program. In this post, we will be discussing about how to pass Scala objects to Javascript. 
+In last post, we saw how to consume JavaScript object inside the Scala program. In this post, we will be discussing about how to pass Scala objects to JavaScript. 
 
 
 ## Enable Allow Access on Context
 
-By default, the guest language, JavaScript in our example, doesn't have access to any objects from host langage, Scala in our case. This is done for security purposes. But we can override this by enabling access on the context level.
+By default, the guest language, JavaScript, doesn't have access to any objects from host language Scala. This is done for security purposes. But we can override this by enabling access on the context level.
 
 The below code shows how to do that
 
@@ -28,7 +28,7 @@ val context = Context.newBuilder().allowAllAccess(true).build()
 
 {% endhighlight %}
 
-Here we are using builder pattern of context to pass extra parameter. Using **allowAllAccess** method on context, we allow access to host environement. 
+Here we are using builder pattern of context to pass extra parameter. Using **allowAllAccess** method on context, we allow access to host environment. 
 
 ## Create a Scala Object
 
@@ -44,7 +44,7 @@ val person = Person("John",20)
 
 ## Make Scala Object Available to JavaScript
 
-Not every object created in Scala is available to JavaScript by default. It needs to be explicitely made availble.
+Not every object created in Scala is available to JavaScript by default. It needs to be explicitly made available.
 
 {% highlight scala %}
 
@@ -76,4 +76,4 @@ You can access complete code on [github](https://github.com/phatak-dev/GraalVMEx
 ## Conclusion
 
 
-Polygot nature of GraalVM makes it very attractive to mix and match different languages on same VM. Ability to pass values between different languages makes it seemless to do different computation in different languages. 
+Polyglot nature of GraalVM makes it very attractive to mix and match different languages on same VM. Ability to pass values between different languages makes it seamless to do different computation in different languages. 
