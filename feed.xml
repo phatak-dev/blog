@@ -7,6 +7,162 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Writing Apache Spark Programs in JavaScript</title>
+        <description>&lt;p&gt;Apache Spark supports programming in multiple languages like Scala, Java, Python and R. This multi-language support has made spark widely accessible for variety of users and use cases.&lt;/p&gt;
+
+&lt;p&gt;Not all the languages supported by Spark have equal API support. Scala and Java supports complete user facing and library development API’s. Python and R are more restricted for user facing API’s only. This discrepancy exist as adding support for new API in a language is lot of work. So the only essential API’s are ported to all languages.&lt;/p&gt;
+
+&lt;p&gt;What if we want to add support to new language for spark? It will be a lot of work in traditional approach. But with GraalVM we can have access to complete set of spark library in completely new language with minimum effort.&lt;/p&gt;
+
+&lt;h2 id=&quot;graalvm&quot;&gt;GraalVM&lt;/h2&gt;
+
+&lt;p&gt;GraalVM is a polyglot VM which allows user to run multiple languages on same VM. Not only it supports multiple languages, it allows user to bring the libraries from different languages to single platform. You can read more about graalvm &lt;a href=&quot;/graal-vm-part-1&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;One of the fascinating part of GraalVM is ability use Java libraries from any other supported languages. JavaScript is first class citizen on GraalVM with Node.js support. That made me thinking, what if I am able to use that to run spark on Node.js. If I am able to do the same, then I essentially have a JavaScript API for Apache Spark.&lt;/p&gt;
+
+&lt;p&gt;Let’s see how we go about it.&lt;/p&gt;
+
+&lt;h2 id=&quot;setup-for-running-nodejs-on-graalvm&quot;&gt;Setup for Running Node.js on GraalVM&lt;/h2&gt;
+
+&lt;p&gt;This section of the post we discuss how to setup the Node.js on GraalVM.&lt;/p&gt;
+
+&lt;h3 id=&quot;download-graalvm-binaries&quot;&gt;Download GraalVM Binaries&lt;/h3&gt;
+
+&lt;p&gt;To run Node.js programs on GraalVM, we need to download the graalvm binaries. You can download the appropriate one from below link&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.graalvm.org/downloads&quot;&gt;https://www.graalvm.org/downloads/&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;start-nodejs-interpreter&quot;&gt;Start Node.js Interpreter&lt;/h3&gt;
+
+&lt;p&gt;Once you downloaded the graalvm, you can start the Node.js interpreter using below command&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;bin/node &lt;span class=&quot;nt&quot;&gt;--jvm&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;strong&gt;–jvm&lt;/strong&gt; option says that we want to run on JVM mode. If we don’t specify the mode, it will run in native mode which is more optimised but doesn’t have polyglot features.&lt;/p&gt;
+
+&lt;p&gt;Once you run above command  you should show the below output&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;Welcome to Node.js v12.15.0.
+Type &quot;.help&quot; for more information.
+&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;run-sample-node-code&quot;&gt;Run Sample Node Code&lt;/h3&gt;
+
+&lt;p&gt;Once you have Node interpreter, you can run hello world code to see, are you really running a Node.js environment.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Hello World&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;It will output&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;hello world&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now we are running Node.js on JVM.&lt;/p&gt;
+
+&lt;h2 id=&quot;setting-up-spark-for-nodejs-environment&quot;&gt;Setting Up Spark for Node.js environment&lt;/h2&gt;
+
+&lt;p&gt;Once we have setup the Node.js environment, we need to setup the Spark environment for the same. This section of the document talks about the various steps.&lt;/p&gt;
+
+&lt;h3 id=&quot;download-spark-binary&quot;&gt;Download Spark Binary&lt;/h3&gt;
+
+&lt;p&gt;We need to download Spark Binary from below link and setup it’s path as SPARK_HOME&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://spark.apache.org/downloads.html&quot;&gt;https://spark.apache.org/downloads.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;You can check is SPARK_HOME is set or not using below command&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$SPARK_HOME&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;adding-all-the-spark-jars-to-the-classpath&quot;&gt;Adding all the Spark JARS to the classpath&lt;/h3&gt;
+
+&lt;p&gt;For accessing Spark from Node.js, we need to add all it’s jars to JVM classpath. Currently GraalVM doesn’t allow us to add a directory to it’s classpath. So we will use below shell script to generate a string which will have all the jars in spark binary.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;&lt;span class=&quot;nv&quot;&gt;CLASSPATH&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;find &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$SPARK_HOME&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/jars/&quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-name&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;*.jar&#39;&lt;/span&gt; | xargs &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;tr&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39; &#39;&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;:&#39;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above command generates a string with all the jars and stores it in &lt;strong&gt;CLASSPATH&lt;/strong&gt; environment variable&lt;/p&gt;
+
+&lt;h3 id=&quot;passing-classpath-to-nodejs&quot;&gt;Passing Classpath to Node.js&lt;/h3&gt;
+
+&lt;p&gt;Once the CLASSPATH variable is ready, we can pass the classpath to GraalVM as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;bin/node  &lt;span class=&quot;nt&quot;&gt;--jvm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--vm&lt;/span&gt;.cp &lt;span class=&quot;nv&quot;&gt;$CLASSPATH&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now we have environment ready for the spark.&lt;/p&gt;
+
+&lt;h2 id=&quot;spark-programming-in-javascript&quot;&gt;Spark Programming In JavaScript&lt;/h2&gt;
+
+&lt;p&gt;This section of the blog will discuss about how to write spark programs in JavaScript.&lt;/p&gt;
+
+&lt;h3 id=&quot;loading-sparksession-class&quot;&gt;Loading SparkSession Class&lt;/h3&gt;
+
+&lt;p&gt;First step of any spark program is to create a spark session.&lt;/p&gt;
+
+&lt;p&gt;But before creating spark session, we need to import the class. In GraalVM this means we need to make the class available to JavaScript. The below code does the same.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;sparkSessionType&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Java&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;org.apache.spark.sql.SparkSession&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above code, we are using &lt;strong&gt;Java.type&lt;/strong&gt; API to import a given Java class into JavaScript.&lt;/p&gt;
+
+&lt;h3 id=&quot;creating-sparksession&quot;&gt;Creating SparkSession&lt;/h3&gt;
+
+&lt;p&gt;Once the spark session is imported, now we can create the spark session using below code.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;sparkSession&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;sparkSessionType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;master&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;local[*]&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;appName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;example&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;getOrCreate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above code looks almost exactly like Scala code even though it’s written in JavaScript.&lt;/p&gt;
+
+&lt;h3 id=&quot;loading-data&quot;&gt;Loading Data&lt;/h3&gt;
+
+&lt;p&gt;Once we have created spark session, now we can use it to load the data. Replace the path with a csv from your system.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;csv&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;header&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;true&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;path to your csv&amp;gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Again code looks exactly like Scala. But one thing to note is, the &lt;strong&gt;read&lt;/strong&gt;. In Scala, it’s a val on &lt;strong&gt;SparkSession&lt;/strong&gt; class. But in JavaScript it’s treated as a function. &lt;strong&gt;So when we use any Java/Scala library in GraalVM all the public properties become the zero parameter methods in JavaScript&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;printing-data&quot;&gt;Printing Data&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;nx&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Once the data is loaded, the above method is used to show sample of data.&lt;/p&gt;
+
+&lt;h3 id=&quot;running-the-example&quot;&gt;Running the Example&lt;/h3&gt;
+
+&lt;p&gt;Save above code in a file named &lt;strong&gt;server.js&lt;/strong&gt;. Then run the below command&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;bin/node  &lt;span class=&quot;nt&quot;&gt;--jvm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--vm&lt;/span&gt;.cp &lt;span class=&quot;nv&quot;&gt;$CLASSPATH&lt;/span&gt; server.js&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now you can see that spark running inside the Node.js and printing sample of your csv.&lt;/p&gt;
+
+&lt;p&gt;We wrote our first spark program in JavaScript successfully.&lt;/p&gt;
+
+&lt;h2 id=&quot;serving-schema-over-nodejs-http-server&quot;&gt;Serving Schema Over Node.js http server&lt;/h2&gt;
+
+&lt;p&gt;Till now, we have written only spark code. Let’s mix it with Node.js code. This shows the real power of the integration. The below code prints the schema of the dataframe when user makes a get request on Node.js&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;http&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;require&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;http&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;nx&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;createServer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;writeHead&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Content-Type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;text/html&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+                &lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;schema&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;prettyJson&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;listen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Graal.js server running at http://127.0.0.1:8000/&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Adding above code to server.js and running it again, will start a web server in &lt;strong&gt;8000&lt;/strong&gt; port. When you access the &lt;strong&gt;http://127.0.0.1:8000/&lt;/strong&gt; you will see the schema of your dataset.&lt;/p&gt;
+
+&lt;p&gt;This shows how we are mixing Node code with spark on same VM.&lt;/p&gt;
+
+&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
+
+&lt;p&gt;You can access complete the code on &lt;a href=&quot;https://github.com/phatak-dev/GraalVMExperiments/blob/master/server.js&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://medium.com/graalvm/using-testcontainers-from-a-node-js-application-3aa2273bf3bb&quot;&gt;https://medium.com/graalvm/using-testcontainers-from-a-node-js-application-3aa2273bf3bb&lt;/a&gt;&lt;/p&gt;
+</description>
+        <pubDate>Thu, 19 Mar 2020 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/spark-in-javascript</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-in-javascript</guid>
+      </item>
+    
+      <item>
         <title>Experiments with GraalVM - Part 5 :Passing Scala Object to JavaScript</title>
         <description>&lt;p&gt;GraalVM is a new open source project by Oracle which is trying to make Java VM an universal VM to run all the major languages. Before GraalVM, there were already few languages like Scala, Closure which targeted JVM as their runtime. This has been hugely successful for those languages. GraalVM takes this idea further and makes it easy to target JVM so that many more languages can coexist on JVM.&lt;/p&gt;
 
@@ -701,62 +857,6 @@
         <pubDate>Wed, 27 Nov 2019 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/data-modeling-spark-part-1</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/data-modeling-spark-part-1</guid>
-      </item>
-    
-      <item>
-        <title>Dynamic Shuffle Partitions in Spark SQL</title>
-        <description>&lt;p&gt;In Apache Spark, shuffle is one of costliest operation. Effective parallelising of this operation gives good performing for spark jobs.&lt;/p&gt;
-
-&lt;h2 id=&quot;shuffle-partitions-in-spark-sql&quot;&gt;Shuffle Partitions in Spark SQL&lt;/h2&gt;
-
-&lt;p&gt;Shuffle partitions are the partitions in spark dataframe, which is created using a grouped or join operation. Number of partitions in this dataframe is different than the original dataframe partitions.&lt;/p&gt;
-
-&lt;p&gt;For example, the below code&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;csv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;src/main/resources/sales.csv&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partitions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;will print &lt;strong&gt;2&lt;/strong&gt; for small sales file. This indicates there are two partitions in the dataframe.&lt;/p&gt;
-
-&lt;p&gt;Now when we run the groupby operation on the same, the number of partitions will change&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;_c0&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partitions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above code prints &lt;strong&gt;200&lt;/strong&gt;. The &lt;em&gt;2&lt;/em&gt; partition increased to &lt;strong&gt;200&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;p&gt;This is because the parameter &lt;strong&gt;spark.sql.shuffle.partitions&lt;/strong&gt; which controls number of shuffle partitions is set to &lt;strong&gt;200&lt;/strong&gt; by default.&lt;/p&gt;
-
-&lt;h2 id=&quot;challenges-with-default-shuffle-partitions&quot;&gt;Challenges with Default Shuffle Partitions&lt;/h2&gt;
-
-&lt;p&gt;The number of shuffle partitions in spark is static. It doesn’t change with different data size. This will lead into below issues&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;For smaller data, 200 is a overkill which often leads to slower processing because of scheduling overheads.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;For large data, 200 is small and doesn’t effectively use the all resources in the cluster.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;To over come the issues mentioned above, we need to control shuffle partitions dynamically.&lt;/p&gt;
-
-&lt;h2 id=&quot;dynamically-setting-the-shuffle-partitions&quot;&gt;Dynamically Setting the Shuffle Partitions&lt;/h2&gt;
-
-&lt;p&gt;Spark allows changing the configuration of spark sql using &lt;em&gt;conf&lt;/em&gt; method on the &lt;em&gt;sparkSession&lt;/em&gt;. Using this method, we can set wide variety of configurations dynamically.&lt;/p&gt;
-
-&lt;p&gt;So if we need to reduce the number of shuffle partitions for a given dataset, we can do that by below code&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;conf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;spark.sql.shuffle.partitions&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;_c0&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partitions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above code will print &lt;strong&gt;100&lt;/strong&gt;. This shows how to set the number partitions dynamically.&lt;/p&gt;
-
-&lt;p&gt;The exact logic for coming up with number of shuffle partitions depends on actual analysis. You can typically set it to be 1.5 or 2 times of the initial partitions.&lt;/p&gt;
-</description>
-        <pubDate>Tue, 26 Nov 2019 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/dynamic-spark-shuffle-partitions</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/dynamic-spark-shuffle-partitions</guid>
       </item>
     
   </channel>
