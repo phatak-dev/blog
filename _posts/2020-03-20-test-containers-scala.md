@@ -1,25 +1,24 @@
 ---
 layout: post
 title: "Scala Integration Testing with TestContainers Library"
-date : 2020-03-16
+date : 2020-03-20
 categories: scala testing
 ---
-Many of the times when we write Scala unit test cases, we need access to external services like databases, redis etc. Even though mocking works well for most of the cases, it's the not the same thing. So it will be desirable to write test cases against the actual service. These test cases are known as integration test cases.
+Many of the times when we write Scala unit test cases, we need access to external services like databases, caches etc. Even though mocking works well for most of the cases, it's the not the same thing. So it will be desirable to write test cases against the actual services. These test cases are known as integration test cases.
 
 ## Challenge with Integration Test Cases
-One of the biggest challenge with integration test case is to setup the environment correctly. For example, if we need to write test cases again Mysql we need to setup the database and connection etc. Making it available every developer's environment including CI (Continours Integration) environments is tricky. This is one of the reasons where integration test are only in CI environments. But this discourages indivisual developers to write them and cycle of the writing and checking becomes longer.
+One of the biggest challenge with integration test case is to setup the environment correctly. For example, if we need to write test cases again Mysql we need to setup the database and connection etc. Making it available for every developer's environment including CI (continuous Integration) is tricky. This is one of the reasons where integration test are run only in CI environments. But this discourages individual developers to write them and test them in their local environments.
 
 ## Docker Based Environments
-In recent years, using docker for setting up environment is becoming popular. Most of the databases, caches make their tools as docker image. So most of the times CI tools will be setup using docker images. So if we need Mysql in CI, we will run the Mysql docker container. 
+In recent years, using docker for setting up environment is becoming popular. Most of the databases, caches make their tools available as docker images. Most of the times CI tools will be setup using docker images. So if we need Mysql in CI, we will run the Mysql docker container. 
 
-This still doens't help in running these test cases in local machine. Expecting every developer to run the containers with right setup is not ideal. So most of these setup will be limited to CI systems. 
-
+This still doesn't help in running these test cases in local machine. Expecting every developer to run the containers with right setup is not ideal. So most of these setup will be limited to CI systems. 
 
 ## Automating Docker Environment Setup
 
-What if we can automate this docker based setup where the indivsual developer doesn't need to worry about the same? This makes integration tests as easy as unit test cases as the developer doens't need to worry about setting up environments. Also now local and CI systems will behave exactly same. 
+What if we can automate this docker based setup where the individual developer doesn't need to worry about the same? This makes integration tests as easy as unit test cases as the developer doesn't need to worry about setting up environments. Also now local and CI systems will behave exactly same. 
 
-That's what **testcontainers** library tries to do. 
+That's what **testcontainers** library helps to do. 
 
 ## Test Containers Library
 
@@ -36,7 +35,7 @@ This section of the post, we will be discussing how to run integration tests in 
 
 ### Add Dependencies
 
-The below dependecies should be added to build.sbt.
+The below dependencies should be added to build.sbt.
 
 {% highlight scala %}
 val testcontainersScalaVersion = "0.36.0"
@@ -44,11 +43,11 @@ val testcontainersScalaVersion = "0.36.0"
 "com.dimafeng" %% "testcontainers-scala-mysql" % testcontainersScalaVersion % "test",
 {% endhighlight %}
 
-First dependency is the scala library with scala test integration. The second dependency is Mysql specific. There is builtin support for a lot more [databases](https://www.testcontainers.org/modules/databases/).
+First dependency is the scala library with scala test integration. The second dependency is Mysql specific. There is built-in support for a lot more [databases](https://www.testcontainers.org/modules/databases/).
 
 ### Mixing ForAllTestContainer Trait
 
-There are mainly two trait to create containers. **ForAllTestContainer** creates a container per test suite. **ForEachTestContainer** creates container for each test case. As creating and destroying mysql container for each test case is costly, we will be using the former one for our test cases.
+There are mainly two traits to create containers. **ForAllTestContainer** creates a container per test suite. **ForEachTestContainer** creates container for each test case. As creating and destroying mysql container for each test case is costly, we will be using the former one for our test cases.
 
 The below code is used for mixing the above trait in our test cases.
 
@@ -113,7 +112,7 @@ CONTAINER ID        IMAGE               COMMAND             CREATED             
 {% endhighlight %}
 
 
-When we run the test case, we can see the below by running same command
+When we run the test case, we can see the below containers by running same command
 
 {% highlight text %}
 
@@ -123,7 +122,7 @@ CONTAINER ID        IMAGE                               COMMAND                 
 
 {% endhighlight %}
 
-As you can see, we are running two containers. One containers is for our mysql and other one is for lifecycle managements. These containers automatically go away once test cases are done.
+As you can see, we are running two containers. One containers is for our mysql and other one is for life cycle management. These containers automatically go away once test cases are done.
 
 
 ### Reusing Containers in Test Suite
@@ -156,12 +155,10 @@ This test case passes as the same container will be preserved.
 
 ## Using Generic Container
 
-Let's say you may have service which doesn't have built in support like we had Mysql. Then what you can do?. 
+Let's say you may have service which doesn't have built in support like we had for Mysql. Then what you can do?. 
 
 The library exposes a generic container API called **GenericContainer** which allows running any container image. So you are not restricted by the built in services. You can read more about the same [here](https://www.testcontainers.org/features/creating_container/#examples).
 
 ## Code
 
-You can access complete code [here]().
-
-## Conclusion
+You can access complete code [here](https://github.com/phatak-dev/ScalaExperiments/blob/master/src/test/scala/com/madhukaraphatak/scala/testcontainers/MysqlTestSpec.scala).
