@@ -7,6 +7,53 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Data Source V2 API in Spark 3.0 - Part 1 : Motivation for New Abstractions</title>
+        <description>&lt;p&gt;Spark 3.0 is a major release of Apache Spark framework. It’s been in preview from last December and going to have  a stable release very soon. As part of major release, Spark has a habit of shaking up API’s to bring it to latest standards. There will be breaking changes also in these API’s. One of such API is Data source V2 API.&lt;/p&gt;
+
+&lt;p&gt;Data Source V2 API, a new data source API for spark, was introduced in spark 2.3. Then it’s been updated in spark 2.4. I have written detailed posts on same &lt;a href=&quot;/categories/datasource-v2-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;This API is going to be completely changed in Spark 3.0. Spark rarely change an API this frequently in between releases. But as data source are heart of the framework, they are improved constantly. Also in spark 2.4, these API’s were marked &lt;strong&gt;evolving&lt;/strong&gt;. This means they are meant to be changed in future.&lt;/p&gt;
+
+&lt;p&gt;The usage of the data sources have not changed in 3.0. So if you are a user of the third party data sources you don’t need to worry. These changes are geared mainly towards the developer of these sources. Also all the sources written V1 API going to work even in 3.0. So if your source is not updated, no need to panic. It’s going to work without latest optimisations.&lt;/p&gt;
+
+&lt;p&gt;These new changes in V2 API brings more control to data source developer and better integration with spark optimiser. Moving to this API makes third party sources more performant. So in these series of posts I will be discussing the new Data source V2 API in 3.0. This is the first post in the series where I will be discussing the motivation to update the API’s.You can find all the posts in the series &lt;a href=&quot;/categories/datasource-v2-spark-three&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;learning-from-experience&quot;&gt;Learning From Experience&lt;/h2&gt;
+
+&lt;p&gt;The biggest motivation to change the abstractions came from using Data source V2 API’s for real sources. When spark team used to implement the file sources like csv, parquet and other streaming sources like Kafka they started to see the gaps. These gaps where more in the abstractions than the actual implementation itself. From this learning experience, it made them to relook at the API and change the abstractions.&lt;/p&gt;
+
+&lt;p&gt;The below are some of the learnings&lt;/p&gt;
+
+&lt;h3 id=&quot;scan-execution-order-is-not-obvious&quot;&gt;Scan Execution Order is Not Obvious&lt;/h3&gt;
+
+&lt;p&gt;V2 Read API introduced the mixins interfaces for everything like operator pushdown, column pruning. One of the reason for these high level interfaces was to have flexibility of mixing the only ones needed. This was major selling point of these new interfaces.&lt;/p&gt;
+
+&lt;p&gt;Even though these gave a lot of flexibility they created confusion about order of their invocation. From the API it was not apparent which order these are called. Currently developer needed to depend upon the documentation. Depending upon the documentation means API is not good.&lt;/p&gt;
+
+&lt;h3 id=&quot;streaming-api-doesnt-play-well-with-the-batch-api&quot;&gt;Streaming API doesn’t Play Well with the Batch API&lt;/h3&gt;
+
+&lt;p&gt;Streaming API doesn’t support few of the features like FilterPushDown etc compared to batch API. But as the current API about mixins, it was hard to write a source which supports both streaming and batch as we need to skip some features selectively. So most of the cases it was handled by throwing exceptions for non supported features and handling it other places for streaming for API. This was more of a hack than an proper API design.&lt;/p&gt;
+
+&lt;h3 id=&quot;columnar-scan-should-not-be-mixin-trait&quot;&gt;Columnar Scan should not be Mixin Trait&lt;/h3&gt;
+
+&lt;p&gt;Columnar scan is a Data source V2 feature which allows reading data in columnar format. By default all the sources are implemented as row scan. As it’s exposed as additional trait, all the default methods assume row based scanning. Currently it’s not easy to define column scan only. The current hack is to throw exception when row scanning is tried and control is handed over columnar way. This is hacky and not right.&lt;/p&gt;
+
+&lt;p&gt;The above are some of the learnings. You can read more about the same in the design doc linked in reference material.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://docs.google.com/document/d/1DDXCTCrup4bKWByTalkXWgavcPdvur8a4eEu8x1BzPM/edit#&quot;&gt;Data Source V2 API Improvement Design Doc&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Data source V2 brings major change to the way we write spark data sources. In Spark 3.0, this API is going through a major overhaul to integrate the learnings from wild. In this post we learned about all the motivation.&lt;/p&gt;
+</description>
+        <pubDate>Sun, 22 Mar 2020 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/spark-3-datasource-v2-part-1</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-3-datasource-v2-part-1</guid>
+      </item>
+    
+      <item>
         <title>Scala Integration Testing with TestContainers Library</title>
         <description>&lt;p&gt;Many of the times when we write Scala unit test cases, we need access to external services like databases, caches etc. Even though mocking works well for most of the cases, it’s the not the same thing. So it will be desirable to write test cases against the actual services. These test cases are known as integration test cases.&lt;/p&gt;
 
@@ -742,65 +789,6 @@ Type &quot;.help&quot; for more information.
         <pubDate>Mon, 16 Dec 2019 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/clickouse-clustering-spark-developer</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/clickouse-clustering-spark-developer</guid>
-      </item>
-    
-      <item>
-        <title>Data Modeling in Apache Spark - Part 2 : Working With Multiple Dates</title>
-        <description>&lt;p&gt;Data modeling is one of the important aspect of data analysis. Having right kind of model, allows user to ask business questions easily. The data modeling techniques have been bedrock of the SQL data warehouses in past few decades.&lt;/p&gt;
-
-&lt;p&gt;As Apache Spark has become new warehousing technology, we should be able to use the earlier data modeling techniques in spark also. This makes Spark data pipelines much more effective.&lt;/p&gt;
-
-&lt;p&gt;In this series of posts, I will be discussing different data modeling in the context of spark. This is the second post in the series which discusses about handling multiple dates. You can access all the posts in the series &lt;a href=&quot;/categories/data-modeling&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;multiple-date-columns&quot;&gt;Multiple Date Columns&lt;/h2&gt;
-&lt;p&gt;In last post, we discussed how to handle date analysis for a single date column. Having single date column is common in many of the datasets. So the strategy discussed in earlier post works fine.&lt;/p&gt;
-
-&lt;p&gt;But there are datasets where we may want to analyse our data against multiple date columns. Then the strategy discussed in earlier post is not enough. So we need to extends date dimension logic to accommodate multiple date columns.&lt;/p&gt;
-
-&lt;h2 id=&quot;adding-issue-date-to-stock-data&quot;&gt;Adding Issue Date to Stock Data&lt;/h2&gt;
-
-&lt;p&gt;The below code adds a date column called &lt;strong&gt;issue_date&lt;/strong&gt; to stock data to emulate the scenario of multiple dates.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;appleStockDfWithIssueDate&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;appleStockDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;withColumn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;issue_date&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_months&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;appleStockDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Date&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;12&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Now if the user wants to analyse against &lt;strong&gt;Date&lt;/strong&gt; column which signifies transaction date and &lt;strong&gt;issue_date&lt;/strong&gt; which signifies the when a given stock is issued, we need to use multiple date dimensions.&lt;/p&gt;
-
-&lt;h2 id=&quot;date-dimension-with-new-prefix&quot;&gt;Date Dimension with New Prefix&lt;/h2&gt;
-
-&lt;p&gt;To analyse multiple dates, we need to join date dimension multiple times. We need to make a view out of data dimension with different prefix which allows us to do the same.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;issueDateSchema&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StructType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dateDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;schema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fields&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; 
-&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;copy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;issue_&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)))&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;issueDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createDataFrame&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dateDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;issueDateSchema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above code, we are creating new df called &lt;strong&gt;issueDf&lt;/strong&gt; which adds prefix called &lt;strong&gt;issue&lt;/strong&gt; for all the columns which signifies this date dimension is combined for &lt;strong&gt;issue_date&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;three-way-join&quot;&gt;Three way Join&lt;/h2&gt;
-
-&lt;p&gt;Once we have new date dimension ready, now we can join for both dates in stock data.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;twoJoinDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;appleStockDfWithIssueDate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dateDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;appleStockDfWithIssueDate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Date&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt;
-       &lt;span class=&quot;n&quot;&gt;dateDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;full_date_formatted&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-             &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;issueDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;appleStockDfWithIssueDate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;issue_date&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;issueDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;issue_full_date_formatted&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;analysis-on-issue-date&quot;&gt;Analysis on Issue Date&lt;/h2&gt;
-
-&lt;p&gt;Once we have done joins, we can analyse on issue date as below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;twoJoinDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;issue_year&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;issue_quarter&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;avg&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Close&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;sort&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;issue_year&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;issue_quarter&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-	          &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark2.0-examples/blob/2.4/src/main/scala/com/madhukaraphatak/examples/sparktwo/datamodeling/DateHandlingExample.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-</description>
-        <pubDate>Mon, 02 Dec 2019 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/data-modeling-spark-part-2</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/data-modeling-spark-part-2</guid>
       </item>
     
   </channel>
