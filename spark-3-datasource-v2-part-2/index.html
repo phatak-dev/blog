@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Data Source V2 API in Spark 3.0 - Part 1 : Motivation for New Abstractions</title>
+    <title>Data Source V2 API in Spark 3.0 - Part 2 : Anatomy of V2 Read API</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-3-datasource-v2-part-1">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-3-datasource-v2-part-2">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,8 +45,8 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Data Source V2 API in Spark 3.0 - Part 1 : Motivation for New Abstractions</h1>
-  <p class="meta">Mar 22, 2020</p>
+  <h1>Data Source V2 API in Spark 3.0 - Part 2 : Anatomy of V2 Read API</h1>
+  <p class="meta">Mar 24, 2020</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
@@ -69,37 +69,127 @@
 
 <p>The usage of the data sources have not changed in 3.0. So if you are a user of the third party data sources you don’t need to worry. These changes are geared mainly towards the developer of these sources. Also all the sources written V1 API going to work even in 3.0. So if your source is not updated, no need to panic. It’s going to work without latest optimisations.</p>
 
-<p>These new changes in V2 API brings more control to data source developer and better integration with spark optimiser. Moving to this API makes third party sources more performant. So in these series of posts I will be discussing the new Data source V2 API in 3.0. This is the first post in the series where I will be discussing the motivation to update the API’s.You can find all the posts in the series <a href="/categories/datasource-v2-spark-three">here</a>.</p>
+<p>These new changes in V2 API brings more control to data source developer and better integration with spark optimiser. Moving to this API makes third party sources more performant. So in these series of posts I will be discussing the new Data source V2 API in 3.0.</p>
 
-<h2 id="learning-from-experience">Learning From Experience</h2>
+<p>This is the second post in the series where we discuss about different interfaces to read data in V2 API.You can read all the posts in the series <a href="/categories/datasource-v2-spark-three">here</a>.</p>
 
-<p>The biggest motivation to change the abstractions came from using Data source V2 API’s for real sources. When spark team used to implement the file sources like csv, parquet and other streaming sources like Kafka they started to see the gaps. These gaps where more in the abstractions than the actual implementation itself. From this learning experience, it made them to relook at the API and change the abstractions.</p>
+<h2 id="java-interfaces">Java Interfaces</h2>
 
-<p>The below are some of the learnings</p>
+<p>One of the characteristics of V2 API’s is it’s exposed in terms of Java interfaces rather than scala traits. The primary reason for this is better interop with Java.</p>
 
-<h3 id="scan-execution-order-is-not-obvious">Scan Execution Order is Not Obvious</h3>
+<p>The below are the basic interfaces to read the data in V2 API.</p>
 
-<p>V2 Read API introduced the mixins interfaces for everything like operator pushdown, column pruning. One of the reason for these high level interfaces was to have flexibility of mixing the only ones needed. This was major selling point of these new interfaces.</p>
+<h2 id="tableprovider">TableProvider</h2>
 
-<p>Even though these gave a lot of flexibility they created confusion about order of their invocation. From the API it was not apparent which order these are called. Currently developer needed to depend upon the documentation. Depending upon the documentation means API is not good.</p>
+<p>TableProvider trait signifies it’s a source which can read or write a table. Here table is a structured dataset. It has single abstract method with below signature</p>
 
-<h3 id="streaming-api-doesnt-play-well-with-the-batch-api">Streaming API doesn’t Play Well with the Batch API</h3>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">override</span> <span class="k">def</span> <span class="n">getTable</span><span class="o">(</span><span class="n">options</span><span class="k">:</span> <span class="kt">CaseInsensitiveStringMap</span><span class="o">)</span><span class="k">:</span> <span class="kt">Table</span></code></pre></div>
 
-<p>Streaming API doesn’t support few of the features like FilterPushDown etc compared to batch API. But as the current API about mixins, it was hard to write a source which supports both streaming and batch as we need to skip some features selectively. So most of the cases it was handled by throwing exceptions for non supported features and handling it other places for streaming for API. This was more of a hack than an proper API design.</p>
+<p>The method <strong>getTable</strong> takes parameters from user options. Then it returns a <em>Table</em>.</p>
 
-<h3 id="columnar-scan-should-not-be-mixin-trait">Columnar Scan should not be Mixin Trait</h3>
+<h2 id="table">Table</h2>
 
-<p>Columnar scan is a Data source V2 feature which allows reading data in columnar format. By default all the sources are implemented as row scan. As it’s exposed as additional trait, all the default methods assume row based scanning. Currently it’s not easy to define column scan only. The current hack is to throw exception when row scanning is tried and control is handed over columnar way. This is hacky and not right.</p>
+<p>Table is an interface representing a logical structured data set of a data source. It exposes below three methods</p>
 
-<p>The above are some of the learnings. You can read more about the same in the design doc linked in reference material.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">name</span><span class="k">:</span><span class="kt">String</span>
+
+<span class="k">def</span> <span class="n">schema</span><span class="k">:</span><span class="kt">StructType</span>
+
+<span class="k">def</span> <span class="n">capabilities</span><span class="k">:</span> <span class="kt">TableCapability</span></code></pre></div>
+
+<p>The different methods are</p>
+
+<ul>
+  <li>
+    <p>name : A name to identify the table.</p>
+  </li>
+  <li>
+    <p>schema : Table Schema. An empty schema can be returned if schema inference needed.</p>
+  </li>
+  <li>
+    <p>capabilities : Capabilities exposed by the table. This is one of the unique feature added in spark 3.0. This allows to specifying what kind of operation table supports. Some capabilities like BATCH_READ, BATCH_WRITE. This helps spark to verify these before attempting to run the operations.</p>
+  </li>
+</ul>
+
+<h2 id="supportsread">SupportsRead</h2>
+
+<p>This interface indicates that source supports read. This has one abstract method that needs to be overridden.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">newScanBuilder</span><span class="o">(</span><span class="n">options</span><span class="k">:</span> <span class="kt">CaseInsensitiveStringMap</span><span class="o">)</span><span class="k">:</span> <span class="kt">ScanBuilder</span></code></pre></div>
+
+<h2 id="scanbuilder">ScanBuilder</h2>
+
+<p>An interface for building <strong>Scan</strong>. This interface can mix with filter push down to keep the needed information to push the filters to readers. The exposed abstract methods are</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">build</span><span class="o">()</span><span class="k">:</span> <span class="kt">Scan</span></code></pre></div>
+
+<h2 id="scan">Scan</h2>
+
+<p>Logical representation of a data source scan. This interface is used to provide logical information, like what the actual read schema is. This is a common scan for all different scanning like batch, micro batch etc. The needed methods to be overridden are</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">readSchema</span><span class="o">()</span><span class="k">:</span> <span class="kt">StructType</span>
+
+ <span class="k">def</span> <span class="n">toBatch</span><span class="k">:</span> <span class="kt">Batch</span></code></pre></div>
+
+<p>The methods are</p>
+
+<ul>
+  <li>
+    <p>readSchema - The actual schema of the source. This may look like repetitive from Table interface. The reason it is repeated because, after column pruning or other optimisation the schema may change or we may need inference of schema. This method returns actual schema of the data where as the Table one returns the initial schema.</p>
+  </li>
+  <li>
+    <p>toBatch - This method needs to be overridden to indicate that this scan configuration should be used for batch reading.</p>
+  </li>
+</ul>
+
+<h2 id="batch">Batch</h2>
+
+<p>A physical representation of a data source scan for batch queries. This interface is used to provide physical information, like how many partitions the scanned data has, and how to read records from the partitions.</p>
+
+<p>The methods that need to be overridden are</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">planInputPartitions</span><span class="o">()</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">InputPartition</span><span class="o">]</span> 
+
+<span class="k">def</span> <span class="n">createReaderFactory</span><span class="o">()</span><span class="k">:</span> <span class="kt">PartitionReaderFactory</span></code></pre></div>
+
+<p>The methods are</p>
+
+<ul>
+  <li>
+    <p>planInputPartitions : List of partitions for the table. This number decides number of partitions in Dataset.</p>
+  </li>
+  <li>
+    <p>createReaderFactory : Factory to create the readers</p>
+  </li>
+</ul>
+
+<h2 id="partitionreaderfactory">PartitionReaderFactory</h2>
+
+<p>It’s a factory class to create actual data readers. The data reader creation happens on the individual machines. It exposes single method.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">createReader</span><span class="o">(</span><span class="n">partition</span><span class="k">:</span> <span class="kt">InputPartition</span><span class="o">)</span><span class="k">:</span> <span class="kt">PartitionReader</span><span class="o">[</span><span class="kt">InternalRow</span><span class="o">]</span></code></pre></div>
+
+<p>As the name suggest, it creates data reader.</p>
+
+<h2 id="partitionreader">PartitionReader</h2>
+
+<p>Finally we have the interface which actually reads the data. The below are methods</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">next</span> <span class="k">:</span> <span class="kt">Boolean</span>
+
+<span class="k">def</span> <span class="n">get</span> <span class="k">:</span> <span class="kt">T</span>
+
+<span class="k">def</span> <span class="n">close</span><span class="o">()</span> <span class="k">:</span> <span class="kt">Unit</span></code></pre></div>
+
+<p>As you can see from interface, it looks as simple iterator based reader. Currently T can be only InternalRow.</p>
 
 <h2 id="references">References</h2>
 
-<p><a href="https://docs.google.com/document/d/1DDXCTCrup4bKWByTalkXWgavcPdvur8a4eEu8x1BzPM/edit#">Data Source V2 API Improvement Design Doc</a></p>
+<p><a href="https://github.com/apache/spark/pull/22009">https://github.com/apache/spark/pull/22009</a></p>
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>Data source V2 brings major change to the way we write spark data sources. In Spark 3.0, this API is going through a major overhaul to integrate the learnings from wild. In this post we learned about all the motivation.</p>
+<p>In this post we discussed some of the important interfaces from data source V2 API for reading data. You can see how this API is much different than earlier API.</p>
 
 </article>
 <div class="related">
@@ -107,15 +197,15 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">24 Mar 2020</span>
-     &raquo; <a href="/spark-3-datasource-v2-part-2">Data Source V2 API in Spark 3.0 - Part 2 : Anatomy of V2 Read API</a>    
-   </li>           
-         
+          
 
             
-          
+    
+    <li>    
+     <span class="post-date">22 Mar 2020</span>
+     &raquo; <a href="/spark-3-datasource-v2-part-1">Data Source V2 API in Spark 3.0 - Part 1 : Motivation for New Abstractions</a>    
+   </li>           
+         
 
             
     
@@ -128,15 +218,15 @@
    
    
              
-    
-    <li>    
-     <span class="post-date">24 Mar 2020</span>
-     &raquo; <a href="/spark-3-datasource-v2-part-2">Data Source V2 API in Spark 3.0 - Part 2 : Anatomy of V2 Read API</a>    
-   </li>           
-         
+          
 
             
-          
+    
+    <li>    
+     <span class="post-date">22 Mar 2020</span>
+     &raquo; <a href="/spark-3-datasource-v2-part-1">Data Source V2 API in Spark 3.0 - Part 1 : Motivation for New Abstractions</a>    
+   </li>           
+         
 
             
     
