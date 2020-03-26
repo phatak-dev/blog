@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Data Source V2 API in Spark 3.0 - Part 3 : In-Memory Data Source</title>
+    <title>Data Source V2 API in Spark 3.0 - Part 4 : In-Memory Data Source with Partitioning</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-3-datasource-v2-part-3">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-3-datasource-v2-part-4">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,8 +45,8 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Data Source V2 API in Spark 3.0 - Part 3 : In-Memory Data Source</h1>
-  <p class="meta">Mar 25, 2020</p>
+  <h1>Data Source V2 API in Spark 3.0 - Part 4 : In-Memory Data Source with Partitioning</h1>
+  <p class="meta">Mar 26, 2020</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
@@ -71,55 +71,18 @@
 
 <p>These new changes in V2 API brings more control to data source developer and better integration with spark optimiser. Moving to this API makes third party sources more performant. So in these series of posts I will be discussing the new Data source V2 API in 3.0.</p>
 
-<p>This is third post in the series where we discuss about building simple in-memory data source. You can read all the posts in the series <a href="/categories/datasource-v2-spark-three">here</a>.</p>
+<p>This is fourth post in the series where we discuss about adding partition support for in-memory data source we built in last post.You can read all the posts in the series <a href="/categories/datasource-v2-spark-three">here</a>.</p>
 
-<h2 id="in-memory-data-source">In-Memory Data Source</h2>
+<h2 id="partitions">Partitions</h2>
+<p>In spark, number of partitions for a given Dataframe is decided at the driver. As most of the partition logic is driven based on size of data, it’s a meta data operation.</p>
 
-<p>In this post we are going to build a data source which reads the data from an array. It will have single partition. This simple example helps us to understand how to implement all interfaces we discussed in last blog.</p>
+<p>The in-memory data source which we built in last post had only one partition. In this post, we will see how to add multiple partitions and how to read them.</p>
 
-<p>The below are the steps to implement a simple in memory data source.</p>
+<h2 id="adding-multiple-partitions">Adding Multiple Partitions</h2>
 
-<h2 id="create-unique-package">Create Unique Package</h2>
+<p>As we discussed in last blog, number of partitions for a given dataframe is decided by number of input partitions we create. That’s why it was an array. As these objects are created at driver, they should not be using actual data itself.</p>
 
-<p>All the data sources in spark are discovered using their packages. So as the first step we create a package for our data source.</p>
-
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">package</span> <span class="nn">com.madhukaraphatak.spark.sources.datasourcev2.simple</span></code></pre></div>
-
-<h2 id="defaultsource">DefaultSource</h2>
-
-<p>Spark searches for a class named <em>DefaultSource</em> in a given data source package. So we create <em>DefaultSource</em> class in the package. It should extend *TableProvider** interface.</p>
-
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">DefaultSource</span> <span class="k">extends</span> <span class="nc">TableProvider</span><span class="o">{</span>
-
-  <span class="k">override</span> <span class="k">def</span> <span class="n">getTable</span><span class="o">(</span><span class="n">options</span><span class="k">:</span> <span class="kt">CaseInsensitiveStringMap</span><span class="o">)</span><span class="k">:</span> <span class="kt">Table</span> <span class="o">=</span> 
-         <span class="k">new</span> <span class="nc">SimpleBatchTable</span><span class="o">()</span>
-<span class="o">}</span></code></pre></div>
-
-<h2 id="simplebatchtable">SimpleBatchTable</h2>
-
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">SimpleBatchTable</span> <span class="k">extends</span> <span class="nc">Table</span> <span class="k">with</span> <span class="nc">SupportsRead</span> <span class="o">{</span>
-  <span class="k">override</span> <span class="k">def</span> <span class="n">name</span><span class="o">()</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="k">this</span><span class="o">.</span><span class="n">getClass</span><span class="o">.</span><span class="n">toString</span>
-
-  <span class="k">override</span> <span class="k">def</span> <span class="n">schema</span><span class="o">()</span><span class="k">:</span> <span class="kt">StructType</span> <span class="o">=</span> <span class="nc">StructType</span><span class="o">(</span><span class="nc">Array</span><span class="o">(</span><span class="nc">StructField</span><span class="o">(</span><span class="s">"value"</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">)))</span>
-
-  <span class="k">override</span> <span class="k">def</span> <span class="n">capabilities</span><span class="o">()</span><span class="k">:</span> <span class="kt">util.Set</span><span class="o">[</span><span class="kt">TableCapability</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Set</span><span class="o">(</span><span class="nc">TableCapability</span><span class="o">.</span><span class="nc">BATCH_READ</span><span class="o">).</span><span class="n">asJava</span>
-
-  <span class="k">override</span> <span class="k">def</span> <span class="n">newScanBuilder</span><span class="o">(</span><span class="n">options</span><span class="k">:</span> <span class="kt">CaseInsensitiveStringMap</span><span class="o">)</span><span class="k">:</span> <span class="kt">ScanBuilder</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">SimpleScanBuilder</span><span class="o">()</span>
-<span class="o">}</span></code></pre></div>
-
-<p>In above code, we are hard coding the schema. Our data will have single column called <em>value</em>. Also <em>newScanBuilder</em> return our scanner. Also we are specifying the source has batch reading capabilities.</p>
-
-<h2 id="simplescanbuilder">SimpleScanBuilder</h2>
-
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">SimpleScanBuilder</span> <span class="k">extends</span> <span class="nc">ScanBuilder</span> <span class="o">{</span>
-  <span class="k">override</span> <span class="k">def</span> <span class="n">build</span><span class="o">()</span><span class="k">:</span> <span class="kt">Scan</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">SimpleScan</span>
-<span class="o">}</span></code></pre></div>
-
-<p>This code creates simple scan builder without any extra mixins.</p>
-
-<h2 id="scan-and-batch">Scan and Batch</h2>
-
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">SimplePartition</span> <span class="k">extends</span> <span class="nc">InputPartition</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">SimplePartition</span><span class="o">(</span><span class="k">val</span> <span class="n">start</span><span class="k">:</span><span class="kt">Int</span><span class="o">,</span> <span class="k">val</span> <span class="n">end</span><span class="k">:</span><span class="kt">Int</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">InputPartition</span>
 
 <span class="k">class</span> <span class="nc">SimpleScan</span> <span class="k">extends</span> <span class="nc">Scan</span> <span class="k">with</span> <span class="nc">Batch</span><span class="o">{</span>
   <span class="k">override</span> <span class="k">def</span> <span class="n">readSchema</span><span class="o">()</span><span class="k">:</span> <span class="kt">StructType</span> <span class="o">=</span>  <span class="nc">StructType</span><span class="o">(</span><span class="nc">Array</span><span class="o">(</span><span class="nc">StructField</span><span class="o">(</span><span class="s">"value"</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">)))</span>
@@ -127,29 +90,36 @@
   <span class="k">override</span> <span class="k">def</span> <span class="n">toBatch</span><span class="k">:</span> <span class="kt">Batch</span> <span class="o">=</span> <span class="k">this</span>
 
   <span class="k">override</span> <span class="k">def</span> <span class="n">planInputPartitions</span><span class="o">()</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">InputPartition</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
-    <span class="nc">Array</span><span class="o">(</span><span class="k">new</span> <span class="nc">SimplePartition</span><span class="o">())</span>
+    <span class="nc">Array</span><span class="o">(</span><span class="k">new</span> <span class="nc">SimplePartition</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span><span class="mi">4</span><span class="o">),</span>
+      <span class="k">new</span> <span class="nc">SimplePartition</span><span class="o">(</span><span class="mi">5</span><span class="o">,</span><span class="mi">9</span><span class="o">))</span>
   <span class="o">}</span>
   <span class="k">override</span> <span class="k">def</span> <span class="n">createReaderFactory</span><span class="o">()</span><span class="k">:</span> <span class="kt">PartitionReaderFactory</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">SimplePartitionReaderFactory</span><span class="o">()</span>
 <span class="o">}</span></code></pre></div>
 
-<p>As we have single partition in <strong>planInputPartitions</strong> there will be single partition in dataframe. By overriding <strong>toBatch</strong> we signified that, we are using this scan for reading in the batch mode.</p>
+<p>In above code, we have <strong>SimplePartition</strong> which remembers it’s start and end.</p>
 
-<h2 id="partitionreaderfactory">PartitionReaderFactory</h2>
+<p>Then in <strong>planInputPartitions</strong> we are creating two partitions with start and end indices. This signals to spark that we need two partitions in dataframe.</p>
+
+<h2 id="passing-partitions-to-partition-reader">Passing Partitions to Partition Reader</h2>
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">SimplePartitionReaderFactory</span> <span class="k">extends</span> <span class="nc">PartitionReaderFactory</span> <span class="o">{</span>
-  <span class="k">override</span> <span class="k">def</span> <span class="n">createReader</span><span class="o">(</span><span class="n">partition</span><span class="k">:</span> <span class="kt">InputPartition</span><span class="o">)</span>
-            <span class="k">:</span> <span class="kt">PartitionReader</span><span class="o">[</span><span class="kt">InternalRow</span><span class="o">]</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SimplePartitionReader</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">createReader</span><span class="o">(</span><span class="n">partition</span><span class="k">:</span> <span class="kt">InputPartition</span><span class="o">)</span><span class="k">:</span> <span class="kt">PartitionReader</span><span class="o">[</span><span class="kt">InternalRow</span><span class="o">]</span> <span class="k">=</span> <span class="k">new</span>
+      <span class="nc">SimplePartitionReader</span><span class="o">(</span><span class="n">partition</span><span class="o">.</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">SimplePartition</span><span class="o">])</span>
 <span class="o">}</span></code></pre></div>
 
-<h2 id="partition-reader">Partition Reader</h2>
+<p>In above code, by casting <strong>InputPartition* to **SimplePartition</strong> we are making sure that right partition is sent.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">SimplePartitionReader</span> <span class="k">extends</span> <span class="nc">PartitionReader</span><span class="o">[</span><span class="kt">InternalRow</span><span class="o">]</span> <span class="o">{</span>
+<h2 id="reading-from-partitions">Reading From Partitions</h2>
 
-  <span class="k">val</span> <span class="n">values</span> <span class="k">=</span> <span class="nc">Array</span><span class="o">(</span><span class="s">"1"</span><span class="o">,</span> <span class="s">"2"</span><span class="o">,</span> <span class="s">"3"</span><span class="o">,</span> <span class="s">"4"</span><span class="o">,</span> <span class="s">"5"</span><span class="o">)</span>
+<p>Once we define the partitions, we need to update our <em>PartitionReader</em> to read from specific partitions. The below is the code for the same</p>
 
-  <span class="k">var</span> <span class="n">index</span> <span class="k">=</span> <span class="mi">0</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">SimplePartitionReader</span><span class="o">(</span><span class="n">inputPartition</span><span class="k">:</span> <span class="kt">SimplePartition</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">PartitionReader</span><span class="o">[</span><span class="kt">InternalRow</span><span class="o">]</span> <span class="o">{</span>
 
-  <span class="k">def</span> <span class="n">next</span> <span class="k">=</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="n">values</span><span class="o">.</span><span class="n">length</span>
+  <span class="k">val</span> <span class="n">values</span> <span class="k">=</span> <span class="nc">Array</span><span class="o">(</span><span class="s">"1"</span><span class="o">,</span> <span class="s">"2"</span><span class="o">,</span> <span class="s">"3"</span><span class="o">,</span> <span class="s">"4"</span><span class="o">,</span> <span class="s">"5"</span><span class="o">,</span><span class="s">"6"</span><span class="o">,</span><span class="s">"7"</span><span class="o">,</span><span class="s">"8"</span><span class="o">,</span><span class="s">"9"</span><span class="o">,</span><span class="s">"10"</span><span class="o">)</span>
+
+  <span class="k">var</span> <span class="n">index</span> <span class="k">=</span> <span class="n">inputPartition</span><span class="o">.</span><span class="n">start</span>
+
+  <span class="k">def</span> <span class="n">next</span> <span class="k">=</span> <span class="n">index</span> <span class="o">&lt;=</span> <span class="n">inputPartition</span><span class="o">.</span><span class="n">end</span>
 
   <span class="k">def</span> <span class="n">get</span> <span class="k">=</span> <span class="o">{</span>
     <span class="k">val</span> <span class="n">stringValue</span> <span class="k">=</span> <span class="n">values</span><span class="o">(</span><span class="n">index</span><span class="o">)</span>
@@ -163,32 +133,17 @@
 
 <span class="o">}</span></code></pre></div>
 
-<p>In above code, <em>SimplePartitionReader</em> implements data reader interfaces. The data for the data source comes from <em>values</em> array.</p>
+<p>In the above code, we get start and end from the partition objects. These will be start and end indexes. Using these two we will know which are the indexes to read.</p>
 
-<p>Reader tracks the reading using <em>index</em> variable. In get method, we create <em>Row</em> object with single value from the array.</p>
-
-<h2 id="using-data-source">Using Data Source</h2>
-
-<p>The below is the code to read the data from this source</p>
-
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">simpleDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span>
-      <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">"com.madhukaraphatak.spark.sources.datasourcev2.simple"</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">load</span><span class="o">()</span></code></pre></div>
-
-<p>From above code it’s apparent that reading from v2 source is exactly same as v1 source. So for user of these connectors it will be transparent.</p>
-
-<p>We can print the data and number partitions with below code</p>
-
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">simpleDf</span><span class="o">.</span><span class="n">show</span><span class="o">()</span>
-    <span class="n">println</span><span class="o">(</span><span class="s">"number of partitions in simple source is "</span><span class="o">+</span><span class="n">simpleDf</span><span class="o">.</span><span class="n">rdd</span><span class="o">.</span><span class="n">getNumPartitions</span><span class="o">)</span></code></pre></div>
+<p>Now each of these readers will read distinct parts of the array thus giving partition level parallelism.</p>
 
 <h2 id="code">Code</h2>
 
-<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/sources/datasourcev2/SimpleDataSource.scala">github</a>.</p>
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/sources/datasourcev2/SimpleMultiDataSource.scala">github</a>.</p>
 
 <h2 id="conclusion">Conclusion</h2>
+<p>In this post, we discussed about how to add partitioning support for our in memory connector. The Scan API of the data source v3 allows us to separate partitioning concerns between driver and executor.</p>
 
-<p>In this post we discussed how to implement a simple in memory data source using new data source V2 API’s.</p>
 
 </article>
 <div class="related">
@@ -196,15 +151,15 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">26 Mar 2020</span>
-     &raquo; <a href="/spark-3-datasource-v2-part-4">Data Source V2 API in Spark 3.0 - Part 4 : In-Memory Data Source with Partitioning</a>    
-   </li>           
-         
+          
 
             
-          
+    
+    <li>    
+     <span class="post-date">25 Mar 2020</span>
+     &raquo; <a href="/spark-3-datasource-v2-part-3">Data Source V2 API in Spark 3.0 - Part 3 : In-Memory Data Source</a>    
+   </li>           
+         
 
             
     
@@ -217,15 +172,15 @@
    
    
              
-    
-    <li>    
-     <span class="post-date">26 Mar 2020</span>
-     &raquo; <a href="/spark-3-datasource-v2-part-4">Data Source V2 API in Spark 3.0 - Part 4 : In-Memory Data Source with Partitioning</a>    
-   </li>           
-         
+          
 
             
-          
+    
+    <li>    
+     <span class="post-date">25 Mar 2020</span>
+     &raquo; <a href="/spark-3-datasource-v2-part-3">Data Source V2 API in Spark 3.0 - Part 3 : In-Memory Data Source</a>    
+   </li>           
+         
 
             
     
