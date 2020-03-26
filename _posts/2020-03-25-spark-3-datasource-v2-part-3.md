@@ -38,11 +38,17 @@ package com.madhukaraphatak.spark.sources.datasourcev2.simple
 Spark searches for a class named *DefaultSource* in a given data source package. So we create *DefaultSource* class in the package. It should extend *TableProvider** interface.
 
 {% highlight scala %}
-
 class DefaultSource extends TableProvider{
 
-  override def getTable(options: CaseInsensitiveStringMap): Table = 
-         new SimpleBatchTable()
+  override def inferSchema(caseInsensitiveStringMap: CaseInsensitiveStringMap): StructType =
+    getTable(null,
+        Array.empty[Transform],
+          caseInsensitiveStringMap.asCaseSensitiveMap()).schema()
+
+   override def getTable(structType: StructType, 
+           transforms: Array[Transform], 
+           map: util.Map[String, String]): Table =
+    new SimpleBatchTable()
 }
 
 {% endhighlight %}

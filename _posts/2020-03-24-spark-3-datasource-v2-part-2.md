@@ -24,16 +24,23 @@ The below are the basic interfaces to read the data in V2 API.
 
 ## TableProvider
 
-TableProvider trait signifies it's a source which can read or write a table. Here table is a structured dataset. It has single abstract method with below signature
+TableProvider trait signifies it's a source which can read or write a table. Here table is a structured dataset. The below are the methods
 
 
 {% highlight scala %}
 
-override def getTable(options: CaseInsensitiveStringMap): Table
+def inferSchema(caseInsensitiveStringMap: CaseInsensitiveStringMap): StructType
+
+def getTable(structType: StructType, transforms: Array[Transform], map: util.Map[String, String])
 
 {% endhighlight %}
 
-The method **getTable** takes parameters from user options. Then it returns a *Table*.
+The methods are
+
+* inferSchema - The method takes parameter from user and tries to infer the schema
+
+* getTable - This is used for loading table with user specified schema and other transformations.
+
 
 ## Table
 
