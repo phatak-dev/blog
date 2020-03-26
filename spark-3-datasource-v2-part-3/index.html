@@ -91,8 +91,15 @@
 
 <div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">DefaultSource</span> <span class="k">extends</span> <span class="nc">TableProvider</span><span class="o">{</span>
 
-  <span class="k">override</span> <span class="k">def</span> <span class="n">getTable</span><span class="o">(</span><span class="n">options</span><span class="k">:</span> <span class="kt">CaseInsensitiveStringMap</span><span class="o">)</span><span class="k">:</span> <span class="kt">Table</span> <span class="o">=</span> 
-         <span class="k">new</span> <span class="nc">SimpleBatchTable</span><span class="o">()</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">inferSchema</span><span class="o">(</span><span class="n">caseInsensitiveStringMap</span><span class="k">:</span> <span class="kt">CaseInsensitiveStringMap</span><span class="o">)</span><span class="k">:</span> <span class="kt">StructType</span> <span class="o">=</span>
+    <span class="n">getTable</span><span class="o">(</span><span class="kc">null</span><span class="o">,</span>
+        <span class="nc">Array</span><span class="o">.</span><span class="n">empty</span><span class="o">[</span><span class="kt">Transform</span><span class="o">],</span>
+          <span class="n">caseInsensitiveStringMap</span><span class="o">.</span><span class="n">asCaseSensitiveMap</span><span class="o">()).</span><span class="n">schema</span><span class="o">()</span>
+
+   <span class="k">override</span> <span class="k">def</span> <span class="n">getTable</span><span class="o">(</span><span class="n">structType</span><span class="k">:</span> <span class="kt">StructType</span><span class="o">,</span> 
+           <span class="n">transforms</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">Transform</span><span class="o">],</span> 
+           <span class="n">map</span><span class="k">:</span> <span class="kt">util.Map</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">])</span><span class="k">:</span> <span class="kt">Table</span> <span class="o">=</span>
+    <span class="k">new</span> <span class="nc">SimpleBatchTable</span><span class="o">()</span>
 <span class="o">}</span></code></pre></div>
 
 <h2 id="simplebatchtable">SimpleBatchTable</h2>

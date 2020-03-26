@@ -81,11 +81,22 @@
 
 <h2 id="tableprovider">TableProvider</h2>
 
-<p>TableProvider trait signifies it’s a source which can read or write a table. Here table is a structured dataset. It has single abstract method with below signature</p>
+<p>TableProvider trait signifies it’s a source which can read or write a table. Here table is a structured dataset. The below are the methods</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">override</span> <span class="k">def</span> <span class="n">getTable</span><span class="o">(</span><span class="n">options</span><span class="k">:</span> <span class="kt">CaseInsensitiveStringMap</span><span class="o">)</span><span class="k">:</span> <span class="kt">Table</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">inferSchema</span><span class="o">(</span><span class="n">caseInsensitiveStringMap</span><span class="k">:</span> <span class="kt">CaseInsensitiveStringMap</span><span class="o">)</span><span class="k">:</span> <span class="kt">StructType</span>
 
-<p>The method <strong>getTable</strong> takes parameters from user options. Then it returns a <em>Table</em>.</p>
+<span class="k">def</span> <span class="n">getTable</span><span class="o">(</span><span class="n">structType</span><span class="k">:</span> <span class="kt">StructType</span><span class="o">,</span> <span class="n">transforms</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">Transform</span><span class="o">],</span> <span class="n">map</span><span class="k">:</span> <span class="kt">util.Map</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">])</span></code></pre></div>
+
+<p>The methods are</p>
+
+<ul>
+  <li>
+    <p>inferSchema - The method takes parameter from user and tries to infer the schema</p>
+  </li>
+  <li>
+    <p>getTable - This is used for loading table with user specified schema and other transformations.</p>
+  </li>
+</ul>
 
 <h2 id="table">Table</h2>
 
