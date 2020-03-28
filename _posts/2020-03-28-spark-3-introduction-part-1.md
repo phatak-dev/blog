@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Introduction to Spark 3.0 - Part 1 : Multi Character Delimiter in CSV Source"
-date : 2020-03-24
+date : 2020-03-28
 categories: scala spark spark-three 
 ---
 Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API's and libraries of the platform. This release sets the tone for next year's direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.
@@ -13,7 +13,7 @@ TL;DR All code examples are available on [github](https://github.com/phatak-dev/
 
 ## CSV Source
 
-CSV is one of most used data source in Apache Spark. So from spark 2.0, it has become bultin source. 
+CSV is one of most used data source in Apache Spark. So from spark 2.0, it has become built-in source. 
 
 Spark 3.0 brings one of the important improvement to this source by allowing user to specify the multi character delimiter.
 
@@ -22,7 +22,7 @@ Spark 3.0 brings one of the important improvement to this source by allowing use
 
 Till Spark 3.0, spark allowed only single character as the delimiter in CSV. 
 
-Let's try to load the below csv which has **\|\|** as it's seperator
+Let's try to load the below csv which has **\|\|** as it's delimiter.
 
 {% highlight text %}
 
@@ -32,7 +32,7 @@ a||b||c||d
 
 {% endhighlight %}
 
-using below code 
+Using below code 
 
 {% highlight scala %}
 
@@ -52,11 +52,11 @@ throws java.lang.IllegalArgumentException: Delimiter cannot be more than one cha
 {% endhighlight %}
 
 
-As you can see from the exception, spark only supports single character as the delimited. This made **user to process the csv outside the spark** which is highly convinient.
+As you can see from the exception, spark only supports single character as the delimited. This made **user to process the csv outside the spark** which is highly inconvenient.
 
 ## Multiple Character Delimiter Support in Spark 3.0
 
-Spark 3.0 has added an improvment now to support multiple characters in csv. So when you run the same code in 3.0, you will get below output
+Spark 3.0 has added an improvement now to support multiple characters in csv. So when you run the same code in 3.0, you will get below output
 
 {% highlight scala %}
 
@@ -69,7 +69,7 @@ Spark 3.0 has added an improvment now to support multiple characters in csv. So 
 
 {% endhighlight %}
 
-Even though it looks as a small improvement, it now alievates need of doing these kind of processing outside of spark which will be huge improvement for larger datasets.
+Even though it looks as a small improvement, it now alleviates need of doing these kind of processing outside of spark which will be huge improvement for larger datasets.
 
 ## Code
 
