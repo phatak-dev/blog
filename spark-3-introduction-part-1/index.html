@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>JSON in Akka HTTP</title>
+    <title>Introduction to Spark 3.0 - Part 1 : Multi Character Delimiter in CSV Source</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/json-in-akka-http">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-3-introduction-part-1">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,79 +45,76 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>JSON in Akka HTTP</h1>
-  <p class="meta">Nov 13, 2015</p>
+  <h1>Introduction to Spark 3.0 - Part 1 : Multi Character Delimiter in CSV Source</h1>
+  <p class="meta">Mar 28, 2020</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
-    <a href="/categories/akka-http"><span class="category">akka-http</span></a>
+    <a href="/categories/spark"><span class="category">spark</span></a>
+    
+    <a href="/categories/spark-three"><span class="category">spark-three</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>Akka-Http is a akka based http library for building RESTful services in scala. In this series of posts, I will be talking about using akka-http to build REST services. This is the second post in the series. You can access all the posts in this series <a href="/categories/akka-http/">here</a>.</p>
+  <p>Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.</p>
 
-<p>In this post, we are going to discuss how to use json with akka-http for communicating request and responses</p>
+<p>This is the first post in the series where I am going to talk about improvements in built in csv source. You can access all posts in this series <a href="/categories/spark-three">here</a>.</p>
 
-<p>TL;TR You can access complete project on <a href="https://github.com/phatak-dev/akka-http-examples">github</a>.</p>
+<p>TL;DR All code examples are available on <a href="https://github.com/phatak-dev/spark-3.0-examples">github</a>.</p>
 
-<h2 id="adding-dependency">Adding dependency</h2>
+<h2 id="csv-source">CSV Source</h2>
 
-<p>Akka HTTP uses the akka-http-spray-json library for parsing json request and responses. So add the following dependency to your project.</p>
+<p>CSV is one of most used data source in Apache Spark. So from spark 2.0, it has become built-in source.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="s">"com.typesafe.akka"</span> <span class="o">%%</span> <span class="s">"akka-http-spray-json-experimental"</span> <span class="o">%</span> <span class="s">"1.0"</span></code></pre></div>
+<p>Spark 3.0 brings one of the important improvement to this source by allowing user to specify the multi character delimiter.</p>
 
-<h2 id="rest-api-with-json">REST API with JSON</h2>
+<h2 id="delimiter-support-in-spark-2x">Delimiter Support in Spark 2.x</h2>
 
-<p>In this example, we are going to create an API which can add/list customers. The following are the steps to add the API.</p>
+<p>Till Spark 3.0, spark allowed only single character as the delimiter in CSV.</p>
 
-<h3 id="define-customer-model">1. Define customer model</h3>
+<p>Let’s try to load the below csv which has <strong>||</strong> as it’s delimiter.</p>
 
-<p>Akka HTTP uses case classes to define the models. So we define a simple customer model which has only name.</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">a||b||c||d
+1||2||3||4
+5||6||7||8</code></pre></div>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">case</span> <span class="k">class</span> <span class="nc">Customer</span><span class="o">(</span><span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span></code></pre></div>
+<p>Using below code</p>
 
-<h3 id="create-writerreader-for-the-model">2. Create Writer/Reader for the model</h3>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">df</span>  <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">read</span>
+      <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"delimiter"</span><span class="o">,</span><span class="s">"||"</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">option</span><span class="o">(</span><span class="s">"header"</span><span class="o">,</span><span class="s">"true"</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">csv</span><span class="o">(</span><span class="s">"src/main/resources/multicharacterseperator.csv"</span><span class="o">)</span></code></pre></div>
 
-<p>In spary-json, we have to define the write/reader for a given model in order to be used in the request/response. Most of the time it is very simple as defining the implicit as below.</p>
+<p>When you run the above code, you will get below exception</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">object</span> <span class="nc">ServiceJsonProtoocol</span> <span class="k">extends</span> <span class="nc">DefaultJsonProtocol</span> <span class="o">{</span>
-    <span class="k">implicit</span> <span class="k">val</span> <span class="n">customerProtocol</span> <span class="k">=</span> <span class="n">jsonFormat1</span><span class="o">(</span><span class="nc">Customer</span><span class="o">)</span>
-<span class="o">}</span></code></pre></div>
+<div class="highlight"><pre><code class="language-text" data-lang="text">throws java.lang.IllegalArgumentException: Delimiter cannot be more than one character: ||</code></pre></div>
 
-<p>In the above code snippet, we are creating a service protocol which extends the default protocol. Inside this protocol, we can define all the models. In above code, the number ‘1’ in jsonFormat1 signifies there is only one field in case class.</p>
+<p>As you can see from the exception, spark only supports single character as the delimited. This made <strong>user to process the csv outside the spark</strong> which is highly inconvenient.</p>
 
-<h3 id="defining-the-route">3. Defining the route</h3>
+<h2 id="multiple-character-delimiter-support-in-spark-30">Multiple Character Delimiter Support in Spark 3.0</h2>
 
-<p>Once we have the model and parser implicits, we can define a route which has post for adding a customer and get to get all the added customers.</p>
+<p>Spark 3.0 has added an improvement now to support multiple characters in csv. So when you run the same code in 3.0, you will get below output</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">route</span> <span class="k">=</span>
-    <span class="n">path</span><span class="o">(</span><span class="s">"customer"</span><span class="o">)</span> <span class="o">{</span>
-      <span class="n">post</span> <span class="o">{</span>
-        <span class="n">entity</span><span class="o">(</span><span class="n">as</span><span class="o">[</span><span class="kt">Customer</span><span class="o">])</span> <span class="o">{</span>
-          <span class="n">customer</span> <span class="k">=&gt;</span> <span class="n">complete</span> <span class="o">{</span>
-            <span class="n">list</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">customer</span><span class="o">)</span>
-              <span class="n">s</span><span class="s">"got customer with name ${customer.name}"</span>
-            <span class="o">}</span>
-          <span class="o">}</span>
-        <span class="o">}</span> <span class="o">~</span>
-        <span class="n">get</span> <span class="o">{</span>
-          <span class="n">complete</span> <span class="o">{</span>
-            <span class="n">list</span><span class="o">.</span><span class="n">asScala</span>
-        <span class="o">}</span>
-      <span class="o">}</span>
-    <span class="o">}</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="o">+---+---+---+---+</span>
+<span class="o">|</span>  <span class="n">a</span><span class="o">|</span>  <span class="n">b</span><span class="o">|</span>  <span class="n">c</span><span class="o">|</span>  <span class="n">d</span><span class="o">|</span>
+<span class="o">+---+---+---+---+</span>
+<span class="o">|</span>  <span class="mi">1</span><span class="o">|</span>  <span class="mi">2</span><span class="o">|</span>  <span class="mi">3</span><span class="o">|</span>  <span class="mi">4</span><span class="o">|</span>
+<span class="o">|</span>  <span class="mi">5</span><span class="o">|</span>  <span class="mi">6</span><span class="o">|</span>  <span class="mi">7</span><span class="o">|</span>  <span class="mi">8</span><span class="o">|</span>
+<span class="o">+---+---+---+---+</span></code></pre></div>
 
-<p>In above example, an entity is parsed in post request using entity(as).
-Once we have the customer, we are adding it to a concurrent queue.</p>
+<p>Even though it looks as a small improvement, it now alleviates need of doing these kind of processing outside of spark which will be huge improvement for larger datasets.</p>
 
-<p>In the get method, we are taking all the values in the list and converting to a JSArray.</p>
+<h2 id="code">Code</h2>
 
-<p>You can access complete code <a href="https://github.com/phatak-dev/akka-http-examples/blob/master/src/main/scala/com/madhukaraphatak/akkahttp/AkkaJsonParsing.scala">here</a>.</p>
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/sources/MultiCharacterDelimiterCSV.scala">github</a>.</p>
 
-<p>Now you have a working REST api in akka-http which can handle json data.</p>
+<h2 id="references">References</h2>
+
+<p><a href="https://issues.apache.org/jira/browse/SPARK-24540">https://issues.apache.org/jira/browse/SPARK-24540</a>.</p>
+
 
 </article>
 <div class="related">
@@ -125,12 +122,7 @@ Once we have the customer, we are adding it to a concurrent queue.</p>
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">28 Mar 2020</span>
-     &raquo; <a href="/spark-3-introduction-part-1">Introduction to Spark 3.0 - Part 1 : Multi Character Delimiter in CSV Source</a>    
-   </li>           
-         
+          
 
             
     
@@ -151,21 +143,21 @@ Once we have the customer, we are adding it to a concurrent queue.</p>
    
    
              
-    
-    <li>    
-     <span class="post-date">20 Nov 2015</span>
-     &raquo; <a href="/akka-http-testing">Akka HTTP testing</a>    
-   </li>           
-         
-
-            
           
 
             
     
     <li>    
-     <span class="post-date">13 Nov 2015</span>
-     &raquo; <a href="/akka-http-helloworld">Akka HTTP Hello world</a>    
+     <span class="post-date">26 Mar 2020</span>
+     &raquo; <a href="/spark-3-datasource-v2-part-4">Data Source V2 API in Spark 3.0 - Part 4 : In-Memory Data Source with Partitioning</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">25 Mar 2020</span>
+     &raquo; <a href="/spark-3-datasource-v2-part-3">Data Source V2 API in Spark 3.0 - Part 3 : In-Memory Data Source</a>    
    </li>           
          
 

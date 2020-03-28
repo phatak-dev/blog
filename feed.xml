@@ -7,6 +7,70 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Spark 3.0 - Part 1 : Multi Character Delimiter in CSV Source</title>
+        <description>&lt;p&gt;Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.&lt;/p&gt;
+
+&lt;p&gt;This is the first post in the series where I am going to talk about improvements in built in csv source. You can access all posts in this series &lt;a href=&quot;/categories/spark-three&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR All code examples are available on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;csv-source&quot;&gt;CSV Source&lt;/h2&gt;
+
+&lt;p&gt;CSV is one of most used data source in Apache Spark. So from spark 2.0, it has become built-in source.&lt;/p&gt;
+
+&lt;p&gt;Spark 3.0 brings one of the important improvement to this source by allowing user to specify the multi character delimiter.&lt;/p&gt;
+
+&lt;h2 id=&quot;delimiter-support-in-spark-2x&quot;&gt;Delimiter Support in Spark 2.x&lt;/h2&gt;
+
+&lt;p&gt;Till Spark 3.0, spark allowed only single character as the delimiter in CSV.&lt;/p&gt;
+
+&lt;p&gt;Let’s try to load the below csv which has &lt;strong&gt;||&lt;/strong&gt; as it’s delimiter.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;a||b||c||d
+1||2||3||4
+5||6||7||8&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Using below code&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;  &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;delimiter&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;||&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;header&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;true&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;csv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;src/main/resources/multicharacterseperator.csv&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;When you run the above code, you will get below exception&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;throws java.lang.IllegalArgumentException: Delimiter cannot be more than one character: ||&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;As you can see from the exception, spark only supports single character as the delimited. This made &lt;strong&gt;user to process the csv outside the spark&lt;/strong&gt; which is highly inconvenient.&lt;/p&gt;
+
+&lt;h2 id=&quot;multiple-character-delimiter-support-in-spark-30&quot;&gt;Multiple Character Delimiter Support in Spark 3.0&lt;/h2&gt;
+
+&lt;p&gt;Spark 3.0 has added an improvement now to support multiple characters in csv. So when you run the same code in 3.0, you will get below output&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;o&quot;&gt;+---+---+---+---+&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;d&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;+---+---+---+---+&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;  &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;  &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;  &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;  &lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;  &lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;  &lt;span class=&quot;mi&quot;&gt;6&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;  &lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;  &lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;+---+---+---+---+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Even though it looks as a small improvement, it now alleviates need of doing these kind of processing outside of spark which will be huge improvement for larger datasets.&lt;/p&gt;
+
+&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/sources/MultiCharacterDelimiterCSV.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-24540&quot;&gt;https://issues.apache.org/jira/browse/SPARK-24540&lt;/a&gt;.&lt;/p&gt;
+
+</description>
+        <pubDate>Sat, 28 Mar 2020 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/spark-3-introduction-part-1</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-3-introduction-part-1</guid>
+      </item>
+    
+      <item>
         <title>Data Source V2 API in Spark 3.0 - Part 4 : In-Memory Data Source with Partitioning</title>
         <description>&lt;p&gt;Spark 3.0 is a major release of Apache Spark framework. It’s been in preview from last December and going to have  a stable release very soon. As part of major release, Spark has a habit of shaking up API’s to bring it to latest standards. There will be breaking changes also in these API’s. One of such API is Data source V2 API.&lt;/p&gt;
 
@@ -882,66 +946,6 @@ Type &quot;.help&quot; for more information.
         <pubDate>Mon, 16 Mar 2020 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/graal-vm-part-3</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/graal-vm-part-3</guid>
-      </item>
-    
-      <item>
-        <title>Experiments with GraalVM - Part 2 : Polyglot JavaScript Hello World</title>
-        <description>&lt;p&gt;GraalVM is a new open source project by Oracle which is trying to make Java VM an universal VM to run all the major languages. Before GraalVM, there were already few languages like Scala, Closure which targeted JVM as their runtime. This has been hugely successful for those languages. GraalVM takes this idea further and makes it easy to target JVM so that many more languages can coexist on JVM.&lt;/p&gt;
-
-&lt;p&gt;GraalVM is around from 2014 as a research project. It’s been used in production by Twitter from 2017. But for general public, it became production ready in latter half of 2019.&lt;/p&gt;
-
-&lt;p&gt;In this series posts, I will be exploring what GraalVM can bring to JVM ecosystem. This is the second post in the series which starts exploring polyglot aspect of graalvm. You can read all the posts in the series &lt;a href=&quot;/categories/graal-vm&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;polyglot-vm&quot;&gt;Polyglot VM&lt;/h2&gt;
-
-&lt;p&gt;One of the main advantages of GraalVM is the ability to mix and match multiple languages in same VM. From last post, we have seen that all languages running on the Graal go through same compiler. This makes using multiple languages in same VM much smoother.&lt;/p&gt;
-
-&lt;p&gt;In this post, I will be showing how to setup an environment where we can mix Scala with JavaScript.&lt;/p&gt;
-
-&lt;h2 id=&quot;dependencies&quot;&gt;Dependencies&lt;/h2&gt;
-
-&lt;p&gt;To run, graalvm and truffle, we need to add below dependencies in our build.sbt. We need to run it on JDK 8.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;s&quot;&gt;&quot;org.graalvm.sdk&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;graal-sdk&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;20.0.0&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-&lt;span class=&quot;s&quot;&gt;&quot;org.graalvm.truffle&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;truffle-api&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;20.0.0&quot;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Here we are adding graal and truffle dependencies.&lt;/p&gt;
-
-&lt;p&gt;Since we want to use JavaScript, we need to add the dependency from it’s truffle implementation.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;s&quot;&gt;&quot;org.graalvm.js&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;js&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;20.0.0&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;javascript-hello-world&quot;&gt;JavaScript Hello World&lt;/h2&gt;
-
-&lt;p&gt;Once all the dependencies are done, we are ready to write our first polyglot example. As programming tradition, we will be starting with hello world.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;polyglot&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;polyglot&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;eval&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;js&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;print(&#39;hello world from javascript&#39;)&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In just two lines, we wrote a JS application within Java!!. Let’s see it’s parts&lt;/p&gt;
-
-&lt;h3 id=&quot;polyglot-context&quot;&gt;Polyglot Context&lt;/h3&gt;
-
-&lt;p&gt;For any language, we need to create a context. This context allows us to configure all the needed properties of that language. Here we are creating a simple context.&lt;/p&gt;
-
-&lt;h3 id=&quot;eval-function&quot;&gt;Eval Function&lt;/h3&gt;
-
-&lt;p&gt;Eval function on context takes a language source code and evaluates it. It’s as simple as that.&lt;/p&gt;
-
-&lt;p&gt;Now we have written our first polyglot program on GraalVM.&lt;/p&gt;
-
-&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/GraalVMExperiments/blob/master/src/main/scala/com/madhukaraphatak/graalvm/JsHelloWorld.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;Polyglot nature of GraalVM makes it very attractive to mix and match different languages on same VM. In this post we saw how to write simple JavaScript Hello World using GraalVM polyglot API.&lt;/p&gt;
-</description>
-        <pubDate>Sun, 15 Mar 2020 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/graal-vm-part-2</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/graal-vm-part-2</guid>
       </item>
     
   </channel>
