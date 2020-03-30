@@ -1,20 +1,18 @@
 ---
 layout: post
 title: "Introduction to Spark 3.0 - Part 2 : Multiple Column Feature Transformations in Spark ML"
-date : 2020-03-24
+date : 2020-03-30
 categories: scala spark spark-three 
 ---
 Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API's and libraries of the platform. This release sets the tone for next year's direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.
 
-
-This is the first post in the series where I am going to talk about multiple column feature transformation in Spark ML. You can access all posts in this series [here](/categories/spark-three).
+This is the second  post in the series where I am going to talk about multiple column feature transformation in Spark ML. You can access all posts in this series [here](/categories/spark-three).
 
 TL;DR All code examples are available on [github](https://github.com/phatak-dev/spark-3.0-examples).
 
 ## Multiple Column Feature Transformation in Spark 2.3
 
-Spark introduced multiple column support for Spark ML transformations in 2.3. But that time it was only limited for few transformation. You can read about the same [here](/multi-column-feature-transformation-spark-ml).
-
+Spark introduced multiple column support for Spark ML transformations in 2.3. But that time it was only limited for few transformations. You can read about the same [here](/multi-column-feature-transformation-spark-ml).
 
 ## Multiple Column Feature Transformation in Spark 3.0
 
@@ -40,7 +38,7 @@ String indexer now exposes new methods like **setInputCols** and **setOutputCols
 
 ## Performance
 
-Having support multiple column support in all the transformations bring a huge improvement for the datasets with lot of columns.
+Having support for multiple column support in all the transformations bring a huge improvement for the datasets with lot of columns.
 
 ## Code
 
