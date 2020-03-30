@@ -7,6 +7,52 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Spark 3.0 - Part 2 : Multiple Column Feature Transformations in Spark ML</title>
+        <description>&lt;p&gt;Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.&lt;/p&gt;
+
+&lt;p&gt;This is the second  post in the series where I am going to talk about multiple column feature transformation in Spark ML. You can access all posts in this series &lt;a href=&quot;/categories/spark-three&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR All code examples are available on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;multiple-column-feature-transformation-in-spark-23&quot;&gt;Multiple Column Feature Transformation in Spark 2.3&lt;/h2&gt;
+
+&lt;p&gt;Spark introduced multiple column support for Spark ML transformations in 2.3. But that time it was only limited for few transformations. You can read about the same &lt;a href=&quot;/multi-column-feature-transformation-spark-ml&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;multiple-column-feature-transformation-in-spark-30&quot;&gt;Multiple Column Feature Transformation in Spark 3.0&lt;/h2&gt;
+
+&lt;p&gt;From Spark 3.0, all the Spark ML transformation going to be supporting multiple columns. One of those important transformation is &lt;strong&gt;StringIndexer&lt;/strong&gt; which was not supported before.&lt;/p&gt;
+
+&lt;p&gt;The below code shows how to use the same&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;inputColumns&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;workclass&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;education&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;outputColumns&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;workclass_indexed&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;education_indexed&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stringIndexer&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StringIndexer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;stringIndexer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setInputCols&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;inputColumns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;stringIndexer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setOutputCols&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;outputColumns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;String indexer now exposes new methods like &lt;strong&gt;setInputCols&lt;/strong&gt; and &lt;strong&gt;setOutputCols&lt;/strong&gt; additional to single column counter parts. This allows spark developer to run string indexing on multiple columns together.&lt;/p&gt;
+
+&lt;h2 id=&quot;performance&quot;&gt;Performance&lt;/h2&gt;
+
+&lt;p&gt;Having support for multiple column support in all the transformations bring a huge improvement for the datasets with lot of columns.&lt;/p&gt;
+
+&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/ml/MultiColumnTransformer.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-11215&quot;&gt;https://issues.apache.org/jira/browse/SPARK-11215&lt;/a&gt;.&lt;/p&gt;
+
+</description>
+        <pubDate>Mon, 30 Mar 2020 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/spark-3-introduction-part-2</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-3-introduction-part-2</guid>
+      </item>
+    
+      <item>
         <title>Introduction to Spark 3.0 - Part 1 : Multi Character Delimiter in CSV Source</title>
         <description>&lt;p&gt;Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.&lt;/p&gt;
 
@@ -895,57 +941,6 @@ Type &quot;.help&quot; for more information.
         <pubDate>Tue, 17 Mar 2020 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/graal-vm-part-4</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/graal-vm-part-4</guid>
-      </item>
-    
-      <item>
-        <title>Experiments with GraalVM - Part 3 : Invoke JS Functions from JVM</title>
-        <description>&lt;p&gt;GraalVM is a new open source project by Oracle which is trying to make Java VM an universal VM to run all the major languages. Before GraalVM, there were already few languages like Scala, Closure which targeted JVM as their runtime. This has been hugely successful for those languages. GraalVM takes this idea further and makes it easy to target JVM so that many more languages can coexist on JVM.&lt;/p&gt;
-
-&lt;p&gt;GraalVM is around from 2014 as a research project. It’s been used in production by Twitter from 2017. But for general public, it became production ready in latter half of 2019.&lt;/p&gt;
-
-&lt;p&gt;In this series posts, I will be exploring what GraalVM can bring to JVM ecosystem. This is the third post in the series which explores calling function defined in JS from Scala. You can read all the posts in the series &lt;a href=&quot;/categories/graal-vm&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;using-javascript-function-from-scala&quot;&gt;Using JavaScript Function From Scala&lt;/h2&gt;
-
-&lt;p&gt;In last post, we saw how to evaluate the JavaScript code from Scala. Just evaluating code is not enough if we want to mix and match different languages. To make use of the both languages we should be able to send and return values between them. In this post we will see how to return function from JS and use it from the Scala.&lt;/p&gt;
-
-&lt;p&gt;The below are the steps for achieving the same.&lt;/p&gt;
-
-&lt;h3 id=&quot;return-function-from-javascript-code&quot;&gt;Return Function from JavaScript Code&lt;/h3&gt;
-
-&lt;p&gt;The below code returns a function from JS.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;eval&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;js&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;x =&amp;gt; &#39;hello &#39;+x&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The type of &lt;strong&gt;function&lt;/strong&gt; variable in Scala is of a type &lt;strong&gt;Value&lt;/strong&gt;. This type stands for the return value after evaluating any code snippet. Using this return type, we can invoke the function.&lt;/p&gt;
-
-&lt;h3 id=&quot;execute-the-code&quot;&gt;Execute the code&lt;/h3&gt;
-
-&lt;p&gt;The below code runs the returned function using &lt;strong&gt;execute&lt;/strong&gt; method on Value class.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;execute&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;world&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;asString&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;strong&gt;asString&lt;/strong&gt; method converts the result of execution to Java type.&lt;/p&gt;
-
-&lt;p&gt;The result looks as below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;hello world&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;By using simple execute function, we were able to communicate between two languages without any overhead. This is the power of GraalVM.&lt;/p&gt;
-
-&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/GraalVMExperiments/blob/master/src/main/scala/com/madhukaraphatak/graalvm/CallingFunctions.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;Polyglot nature of GraalVM makes it very attractive to mix and match different languages on same VM. In this post we saw how to invoke a function defined in JS from Scala. This zero overhead interaction between languages makes GraalVM very powerful.&lt;/p&gt;
-</description>
-        <pubDate>Mon, 16 Mar 2020 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/graal-vm-part-3</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/graal-vm-part-3</guid>
       </item>
     
   </channel>
