@@ -7,6 +7,69 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Spark 3.0 - Part 3 : Data Loading From Nested Folders</title>
+        <description>&lt;p&gt;Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.&lt;/p&gt;
+
+&lt;p&gt;This is the third post in the series where I am going to talk about data loading from nested folders. You can access all posts in this series &lt;a href=&quot;/categories/spark-three&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR All code examples are available on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;data-in-nested-folders&quot;&gt;Data in Nested Folders&lt;/h2&gt;
+
+&lt;p&gt;Many times we need to load data from a nested data directory. These nested data directories typically created when there is an ETL job which keep on putting data from different dates in different folder.&lt;/p&gt;
+
+&lt;p&gt;Let’s take below example&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/nestedfolder.png&quot; alt=&quot;nested folder&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;In above example, we have &lt;strong&gt;a.csv&lt;/strong&gt; in the first level and &lt;strong&gt;b.csv&lt;/strong&gt; which is inside &lt;strong&gt;folder1&lt;/strong&gt;. Now if user want to load both the files, what they need to do?.&lt;/p&gt;
+
+&lt;h2 id=&quot;loading-nested-folder-in-2x&quot;&gt;Loading Nested Folder in 2.x&lt;/h2&gt;
+
+&lt;p&gt;Till 3.0, there was no direct way to load both of these together. If we loaded the directory with below code, it loads only the files in first level.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;  &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;delimiter&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;||&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;header&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;true&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;csv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;src/main/resources/nested&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;assert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above assertion will pass, as there are 2 rows in &lt;strong&gt;a.csv&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;The workaround was to load both of these files separately and union them. This becomes cumbersome for large number of files.&lt;/p&gt;
+
+&lt;h2 id=&quot;recursive-loading-in-30&quot;&gt;Recursive Loading in 3.0&lt;/h2&gt;
+
+&lt;p&gt;In Spark 3.0, there is an improvement introduced for all file based sources to read from a nested directory. User can enable &lt;strong&gt;recursiveFileLookup&lt;/strong&gt; option in the read time which will make spark to read the files recursively.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;recursiveDf&lt;/span&gt;  &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;delimiter&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;||&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+       &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;recursiveFileLookup&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;true&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;header&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;true&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;csv&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;src/main/resources/nested&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;assert&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;recursiveDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now the spark will read data from the both files and count will be equal to 4.&lt;/p&gt;
+
+&lt;p&gt;This improvement makes loading data from nested folder much easier now. The same option is &lt;strong&gt;available for all the file based connectors like parquet, avro etc&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/sources/RecursiveFolderReadExample.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-27990&quot;&gt;https://issues.apache.org/jira/browse/SPARK-27990&lt;/a&gt;.&lt;/p&gt;
+
+</description>
+        <pubDate>Tue, 31 Mar 2020 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/spark-3-introduction-part-3</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-3-introduction-part-3</guid>
+      </item>
+    
+      <item>
         <title>Introduction to Spark 3.0 - Part 2 : Multiple Column Feature Transformations in Spark ML</title>
         <description>&lt;p&gt;Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.&lt;/p&gt;
 
@@ -893,54 +956,6 @@ Type &quot;.help&quot; for more information.
         <pubDate>Wed, 18 Mar 2020 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/graal-vm-part-5</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/graal-vm-part-5</guid>
-      </item>
-    
-      <item>
-        <title>Experiments with GraalVM - Part 4 : JavaScript Object to Case Class</title>
-        <description>&lt;p&gt;GraalVM is a new open source project by Oracle which is trying to make Java VM an universal VM to run all the major languages. Before GraalVM, there were already few languages like Scala, Closure which targeted JVM as their runtime. This has been hugely successful for those languages. GraalVM takes this idea further and makes it easy to target JVM so that many more languages can coexist on JVM.&lt;/p&gt;
-
-&lt;p&gt;GraalVM is around from 2014 as a research project. It’s been used in production by Twitter from 2017. But for general public, it became production ready in latter half of 2019.&lt;/p&gt;
-
-&lt;p&gt;In this series posts, I will be exploring what GraalVM can bring to JVM ecosystem. This is the fourth post in the series which explores passing complex objects from JavaScript to Scala. You can read all the posts in the series &lt;a href=&quot;/categories/graal-vm&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;returning-complex-values&quot;&gt;Returning Complex Values&lt;/h2&gt;
-
-&lt;p&gt;In last post, we saw how to use a function from JavaScript in Scala. In many applications, sharing data between languages is important for interportablity. JavaScript encodes it data as JavaScript object. In Scala, we encode the data as the case classes. In this example, we will see how to convert a JavaScript object to case class.&lt;/p&gt;
-
-&lt;h2 id=&quot;return-javascript-object-from-code&quot;&gt;Return JavaScript Object from Code&lt;/h2&gt;
-
-&lt;p&gt;The below code returns a JavaScript object after it’s evaluation&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;eval&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;js&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;({ &#39;name&#39;:&#39;John&#39;, &#39;age&#39;:20})&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In this code, result will have the JavaScript object.&lt;/p&gt;
-
-&lt;h2 id=&quot;define-scala-case-class&quot;&gt;Define Scala Case Class&lt;/h2&gt;
-
-&lt;p&gt;The below code will define a Scala case class.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Person&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;converting-javascript-object-to-case-class&quot;&gt;Converting JavaScript Object to Case Class&lt;/h2&gt;
-
-&lt;p&gt;The below code converts the result to case class object.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;person&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Person&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getMember&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;name&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;asString&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getMember&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;age&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;asInt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above code uses, &lt;strong&gt;getMember&lt;/strong&gt; method available on &lt;strong&gt;Value&lt;/strong&gt; object to read from the result returned by JavaScript. It acts as a getter method. Using this we can read the result and fill the same to our case class.&lt;/p&gt;
-
-&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/GraalVMExperiments/blob/master/src/main/scala/com/madhukaraphatak/graalvm/CaseClassFromJson.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;Polyglot nature of GraalVM makes it very attractive to mix and match different languages on same VM. Sharing data between the languages without any overhead allows user to use capabilities of both the languages natively.&lt;/p&gt;
-</description>
-        <pubDate>Tue, 17 Mar 2020 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/graal-vm-part-4</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/graal-vm-part-4</guid>
       </item>
     
   </channel>
