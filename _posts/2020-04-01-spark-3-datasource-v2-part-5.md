@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Data Source V2 API in Spark 3.0 - Part 5  : Anatomy of V2 Write API"
-date : 2020-03-31
+title: "Data Source V2 API in Spark 3.0 - Part 5 : Anatomy of V2 Write API"
+date : 2020-04-01
 categories: scala spark spark-three datasource-v2-spark-three
 ---
 Spark 3.0 is a major release of Apache Spark framework. It's been in preview from last December and going to have  a stable release very soon. As part of major release, Spark has a habit of shaking up API's to bring it to latest standards. There will be breaking changes also in these API's. One of such API is Data source V2 API.
@@ -14,7 +14,7 @@ The usage of the data sources have not changed in 3.0. So if you are a user of t
 
 These new changes in V2 API brings more control to data source developer and better integration with spark optimiser. Moving to this API makes third party sources more performant. So in these series of posts I will be discussing the new Data source V2 API in 3.0.
 
-This is fifth blog in the series where we discuss about different interfaces to write data in V2 API.You can read all the post in the series [here](/categories/datasource-v2-spark-three).
+This is fifth post in the series where we discuss about different interfaces to write data in V2 API.You can read all the post in the series [here](/categories/datasource-v2-spark-three).
 
 ## Write API  with Transactions
 
@@ -33,14 +33,15 @@ This interface indicates that source supports write. This has one abstract metho
 
 {% highlight scala %}
 
- def newWriteBuilder(logicalWriteInfo: LogicalWriteInfo): WriteBuilder = new MysqlWriterBuilder
+ def newWriteBuilder(logicalWriteInfo: LogicalWriteInfo): WriteBuilder
 
 {% endhighlight %}
 
+The above method builds new write builder.
 
 ## WriteBuilder
 
-WriteBuilder  is interface which builds configuration. We need to override one interface for batch writing.
+WriteBuilder is interface which builds configuration for writing. We need to override one interface for batch writing.
 
 {% highlight scala %}
 
@@ -51,7 +52,7 @@ def buildForBatch(): BatchWrite
 
 ## BatchWrite
 
-An interface which creates the factories for writes. 
+An interface which creates the factories for batch writes. 
 
 {% highlight scala %}
 
@@ -118,4 +119,4 @@ The *WriterCommitMessage* sent by commit method in this interface are the one wh
 
 ## Conclusion
 
-
+In this post we saw the abstractions and interfaces for write in Data Source V2 API.
