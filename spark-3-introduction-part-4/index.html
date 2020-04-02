@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Introduction to Spark Structured Streaming - Part 8 : Time Abstraction</title>
+    <title>Introduction to Spark 3.0 - Part 4 : Handling Class Imbalance Using Weights</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-spark-structured-streaming-part-8">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-3-introduction-part-4">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,84 +45,101 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Introduction to Spark Structured Streaming - Part 8 : Time Abstraction</h1>
-  <p class="meta">Aug 31, 2017</p>
+  <h1>Introduction to Spark 3.0 - Part 4 : Handling Class Imbalance Using Weights</h1>
+  <p class="meta">Apr 2, 2020</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
     <a href="/categories/spark"><span class="category">spark</span></a>
     
-    <a href="/categories/introduction-structured-streaming"><span class="category">introduction-structured-streaming</span></a>
+    <a href="/categories/spark-three"><span class="category">spark-three</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>Structured Streaming is a new streaming API, introduced in spark 2.0, rethinks stream processing in spark land. It models stream
-as an infinite table, rather than discrete collection of data. It’s a radical departure from models of other stream processing frameworks like
-storm, beam, flink etc. Structured Streaming is the first API to build stream processing on top of SQL engine.</p>
+  <p>Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.</p>
 
-<p>Structured Streaming was in alpha in 2.0 and 2.1. But with release 2.2 it has hit stable status. In next few releases,
-it’s going to be de facto way of doing stream processing in spark. So it will be right time to make ourselves familiarise
-with this new API.</p>
+<p>This is the forth post in the series where I am going to talk about handling class imbalance using weights. You can access all posts in this series <a href="/categories/spark-three">here</a>.</p>
 
-<p>In this series of posts, I will be discussing about the different aspects of the structured streaming API. I will be discussing about
-new API’s, patterns and abstractions to solve common stream processing tasks.</p>
+<p>TL;DR All code examples are available on <a href="https://github.com/phatak-dev/spark-3.0-examples">github</a>.</p>
 
-<p>This is the eighth post in the series. In this post, we discuss about time abstraction in structured streaming. You 
-can read all the posts in the series <a href="/categories/introduction-structured-streaming">here</a>.</p>
+<h2 id="class-imbalance-in-credit-card-fraud-data">Class Imbalance in Credit Card Fraud Data</h2>
 
-<p>TL;DR You can access code on <a href="https://github.com/phatak-dev/spark2.0-examples/tree/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/streaming">github</a>.</p>
+<p>I have discussed in detail about what is class imbalance and how to handle it using undersampling in <a href="/categories/class-imbalance/">these posts</a>. Please read the same before proceeding.</p>
 
-<h2 id="concept-of-time-in-streaming-application">Concept of Time in Streaming Application</h2>
+<h2 id="challenges-with-sampling">Challenges with Sampling</h2>
 
-<p>A streaming application is an always running application. So in order to understand the behavior of the application over time, we need to take snapshots of the stream in various points. Normally these various points are defined using a time component.</p>
+<p>In earlier post, I had recommended doing undersampling as the resolution to handle class imbalance. Even though it works, it’s very costly to do on a large amount of data. This often involves lots of shuffling and has a big impact on overall performance.</p>
 
-<p>Time in streaming application is way to correlate different events in the stream to extract some meaningful insights. For example, when we say count of words in a word count example for last 10 seconds, we normally mean to collect all the records arrived in that point of time and run a word count on it.</p>
+<p>So is there any alternative way to handle the imbalance? That’s what we are going to discuss in this post.</p>
 
-<p>In DStream API,spark supported one concept of time. But structured streaming API support multiple different ones.</p>
+<h2 id="class-weights">Class Weights</h2>
 
-<h2 id="time-in-structured-streaming">Time in Structured Streaming</h2>
+<p>We can handle class imbalance  by giving weights to the classes. By default a machine algorithm treats each class as equal. By giving different weights make it handle them differently. We can use this weights to handle the imbalance.</p>
 
-<p>When we say, last 10 seconds what it means in structured streaming? it depends. It can be one of three following</p>
+<p>The class weight feature was only available for <strong>Logistic Regression from 1.6 version</strong>. But from 3.0, this feature has been made available to all classification models. So from 3.0 version we can use this feature with any classification algorithm to handle imbalance.</p>
 
-<ul>
-  <li>
-    <h3 id="processing-time">Processing Time</h3>
-  </li>
-</ul>
+<h2 id="handling-class-imbalance-using-class-weights">Handling Class Imbalance using Class Weights</h2>
 
-<p>This concept of time is very familiar to most of the users. In this, time is tracked using a clock run by the processing engine. So in this time, last 10 seconds means the records arrived in last 10 seconds for the processing. Here we only use the semantics of when the records came for processing. DStream supported this abstraction of time in it’s API.</p>
+<p>This section of the post will discuss how to apply the same for credit card fraud data.</p>
 
-<p>Though processing time is good time measure to have,it’s not always enough. For example, if we want to calculate state of sensors at given point of time, we want to collect events that happened in that time range. But if the events arrive lately to processing system due to various reasons, we may miss some of the events as processing clock does not care about the actual time of events. To address this, structured streaming support another kind of time called event time.</p>
+<h3 id="calculate-the-ratio">1. Calculate the Ratio</h3>
 
-<ul>
-  <li>
-    <h3 id="event-time">Event Time</h3>
-  </li>
-</ul>
+<p>To give the class weights, we need to calculate the ratio of fraud observations to total observations</p>
 
-<p>Event time is the time embed in the data that is coming into the system. So here 10 seconds means, all the records generated in those 10 seconds at the source. These may come out of order to processing. This time is independent of the clock that is kept by the processing engine.Event time is extremely useful for handling the late arrival events.</p>
+<p>The below code calculates the same</p>
 
-<ul>
-  <li>
-    <h3 id="ingestion-time">Ingestion Time</h3>
-  </li>
-</ul>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">getRatio</span><span class="o">(</span><span class="n">df</span><span class="k">:</span><span class="kt">DataFrame</span><span class="o">)</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">val</span> <span class="n">fraudDf</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="s">"Class=1.0"</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">sampleRatio</span> <span class="k">=</span> <span class="n">fraudDf</span><span class="o">.</span><span class="n">count</span><span class="o">().</span><span class="n">toDouble</span> <span class="o">/</span> <span class="n">df</span><span class="o">.</span><span class="n">count</span><span class="o">().</span><span class="n">toDouble</span>
+    <span class="n">sampleRatio</span>
+  <span class="o">}</span></code></pre></div>
 
-<p>Ingestion time is the time when events ingested into the system. This time is in between of the event time and processing time. Normally in processing time, each machine in cluster is used to assign the time stamp to track events. This may result in little inconsistent view of the data, as there may be delays in time across the cluster. But ingestion time, time stamp is assigned in ingestion so that all the machines in the cluster have exact same view. These are useful to calculate results on data that arrive in order at the level of ingestion.</p>
+<h3 id="calculate-the-weight">2.Calculate the Weight</h3>
 
-<h2 id="watermarks">WaterMarks</h2>
+<p>Once we have calculated the  ratio, we can calculate the weight of each label as below</p>
 
-<p>As structured streaming supports multiple concept of time, how it keep tracks of time?. Because in the normal processing time, a system clock can be used. But you cannot use the system clock in case of the event time and ingestion time. So there has to be a generic mechanism to handle this.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">ratioOfFraud</span> <span class="k">=</span> <span class="n">getRatio</span><span class="o">(</span><span class="n">df</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">fraudWeight</span>  <span class="k">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ratioOfFraud</span>
+<span class="k">val</span> <span class="n">nonFraudWeight</span> <span class="k">=</span> <span class="n">ratioOfFraud</span></code></pre></div>
 
-<p>Watermarks is the mechanism used by the structured streaming in order to signify the passing of time in stream. Watermarks are implemented using partial aggregations and the update output mode. Watermarks allow us to implement both tracking time and handle late events.We will discuss more about water marks in upcoming posts.</p>
+<h3 id="add-weight-column-to-dataframe">3. Add Weight Column to DataFrame</h3>
 
-<p>Now we understand different time abstractions supported by structured streaming. In upcoming blogs, we will discuss how to work with these different abstractions.</p>
+<p>Once we have calculated the weight, we need to add this as a column to dataframe. As it’s a row level operation, no shuffle will be performed.</p>
 
-<h2 id="conclusion">Conclusion</h2>
-<p>Structured streaming has a rich time abstractions which makes modeling different stream processing applications much easier than earlier API.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">weightedDF</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">withColumn</span><span class="o">(</span><span class="s">"weight"</span><span class="o">,</span>
+      <span class="n">when</span><span class="o">(</span><span class="n">df</span><span class="o">.</span><span class="n">col</span><span class="o">(</span><span class="s">"Class"</span><span class="o">).===(</span><span class="s">"1.0"</span><span class="o">),</span><span class="n">fraudWeight</span><span class="o">)</span>
+     <span class="o">.</span><span class="n">otherwise</span><span class="o">(</span><span class="n">nonFraudWeight</span><span class="o">))</span></code></pre></div>
+
+<h3 id="enable-weight-column-in-algorithm">4. Enable Weight Column in Algorithm</h3>
+
+<p>Once we have added the weight column, we need to specify it in the algorithm also.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">logisticRegression</span><span class="o">.</span><span class="n">setWeightCol</span><span class="o">(</span><span class="s">"weight"</span><span class="o">)</span></code></pre></div>
+
+<h2 id="results">Results</h2>
+
+<p>Once we run with above modification, we can observe the below results.</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">for imbalanced data
+test accuracy with pipeline 0.9992379567862879
+test recall for 1.0 is 0.6206896551724138
+for balanced data
+test accuracy with pipeline 0.977155091285526
+test recall for 1.0 is 0.8910256410256411</code></pre></div>
+
+<p>As you can observe from the above output, recall is improved for the balanced data.</p>
+
+<h2 id="code">Code</h2>
+
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/ml/WeightedLogisticRegression.scala">github</a>.</p>
+
+<h2 id="references">References</h2>
+
+<p><a href="https://issues.apache.org/jira/browse/SPARK-9610">https://issues.apache.org/jira/browse/SPARK-9610</a>.</p>
+
 
 </article>
 <div class="related">
@@ -130,12 +147,7 @@ can read all the posts in the series <a href="/categories/introduction-structure
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">02 Apr 2020</span>
-     &raquo; <a href="/spark-3-introduction-part-4">Introduction to Spark 3.0 - Part 4 : Handling Class Imbalance Using Weights</a>    
-   </li>           
-         
+          
 
             
     
@@ -156,12 +168,7 @@ can read all the posts in the series <a href="/categories/introduction-structure
    
    
              
-    
-    <li>    
-     <span class="post-date">02 Apr 2020</span>
-     &raquo; <a href="/spark-3-introduction-part-4">Introduction to Spark 3.0 - Part 4 : Handling Class Imbalance Using Weights</a>    
-   </li>           
-         
+          
 
             
     

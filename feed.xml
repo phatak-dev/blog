@@ -7,6 +7,95 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Spark 3.0 - Part 4 : Handling Class Imbalance Using Weights</title>
+        <description>&lt;p&gt;Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.&lt;/p&gt;
+
+&lt;p&gt;This is the forth post in the series where I am going to talk about handling class imbalance using weights. You can access all posts in this series &lt;a href=&quot;/categories/spark-three&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR All code examples are available on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;class-imbalance-in-credit-card-fraud-data&quot;&gt;Class Imbalance in Credit Card Fraud Data&lt;/h2&gt;
+
+&lt;p&gt;I have discussed in detail about what is class imbalance and how to handle it using undersampling in &lt;a href=&quot;/categories/class-imbalance/&quot;&gt;these posts&lt;/a&gt;. Please read the same before proceeding.&lt;/p&gt;
+
+&lt;h2 id=&quot;challenges-with-sampling&quot;&gt;Challenges with Sampling&lt;/h2&gt;
+
+&lt;p&gt;In earlier post, I had recommended doing undersampling as the resolution to handle class imbalance. Even though it works, it’s very costly to do on a large amount of data. This often involves lots of shuffling and has a big impact on overall performance.&lt;/p&gt;
+
+&lt;p&gt;So is there any alternative way to handle the imbalance? That’s what we are going to discuss in this post.&lt;/p&gt;
+
+&lt;h2 id=&quot;class-weights&quot;&gt;Class Weights&lt;/h2&gt;
+
+&lt;p&gt;We can handle class imbalance  by giving weights to the classes. By default a machine algorithm treats each class as equal. By giving different weights make it handle them differently. We can use this weights to handle the imbalance.&lt;/p&gt;
+
+&lt;p&gt;The class weight feature was only available for &lt;strong&gt;Logistic Regression from 1.6 version&lt;/strong&gt;. But from 3.0, this feature has been made available to all classification models. So from 3.0 version we can use this feature with any classification algorithm to handle imbalance.&lt;/p&gt;
+
+&lt;h2 id=&quot;handling-class-imbalance-using-class-weights&quot;&gt;Handling Class Imbalance using Class Weights&lt;/h2&gt;
+
+&lt;p&gt;This section of the post will discuss how to apply the same for credit card fraud data.&lt;/p&gt;
+
+&lt;h3 id=&quot;calculate-the-ratio&quot;&gt;1. Calculate the Ratio&lt;/h3&gt;
+
+&lt;p&gt;To give the class weights, we need to calculate the ratio of fraud observations to total observations&lt;/p&gt;
+
+&lt;p&gt;The below code calculates the same&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getRatio&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;DataFrame&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fraudDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;filter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Class=1.0&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sampleRatio&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fraudDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toDouble&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toDouble&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;sampleRatio&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;calculate-the-weight&quot;&gt;2.Calculate the Weight&lt;/h3&gt;
+
+&lt;p&gt;Once we have calculated the  ratio, we can calculate the weight of each label as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ratioOfFraud&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getRatio&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fraudWeight&lt;/span&gt;  &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ratioOfFraud&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nonFraudWeight&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ratioOfFraud&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;add-weight-column-to-dataframe&quot;&gt;3. Add Weight Column to DataFrame&lt;/h3&gt;
+
+&lt;p&gt;Once we have calculated the weight, we need to add this as a column to dataframe. As it’s a row level operation, no shuffle will be performed.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weightedDF&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withColumn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;weight&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;when&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Class&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).===(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;1.0&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fraudWeight&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;otherwise&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nonFraudWeight&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;enable-weight-column-in-algorithm&quot;&gt;4. Enable Weight Column in Algorithm&lt;/h3&gt;
+
+&lt;p&gt;Once we have added the weight column, we need to specify it in the algorithm also.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;logisticRegression&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setWeightCol&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;weight&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;results&quot;&gt;Results&lt;/h2&gt;
+
+&lt;p&gt;Once we run with above modification, we can observe the below results.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;for imbalanced data
+test accuracy with pipeline 0.9992379567862879
+test recall for 1.0 is 0.6206896551724138
+for balanced data
+test accuracy with pipeline 0.977155091285526
+test recall for 1.0 is 0.8910256410256411&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;As you can observe from the above output, recall is improved for the balanced data.&lt;/p&gt;
+
+&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/ml/WeightedLogisticRegression.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-9610&quot;&gt;https://issues.apache.org/jira/browse/SPARK-9610&lt;/a&gt;.&lt;/p&gt;
+
+</description>
+        <pubDate>Thu, 02 Apr 2020 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/spark-3-introduction-part-4</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-3-introduction-part-4</guid>
+      </item>
+    
+      <item>
         <title>Data Source V2 API in Spark 3.0 - Part 5 : Anatomy of V2 Write API</title>
         <description>&lt;p&gt;Spark 3.0 is a major release of Apache Spark framework. It’s been in preview from last December and going to have  a stable release very soon. As part of major release, Spark has a habit of shaking up API’s to bring it to latest standards. There will be breaking changes also in these API’s. One of such API is Data source V2 API.&lt;/p&gt;
 
@@ -859,162 +948,6 @@
         <pubDate>Fri, 20 Mar 2020 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/test-containers-scala</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/test-containers-scala</guid>
-      </item>
-    
-      <item>
-        <title>Writing Apache Spark Programs in JavaScript</title>
-        <description>&lt;p&gt;Apache Spark supports programming in multiple languages like Scala, Java, Python and R. This multi-language support has made spark widely accessible for variety of users and use cases.&lt;/p&gt;
-
-&lt;p&gt;Not all the languages supported by Spark have equal API support. Scala and Java supports complete user facing and library development API’s. Python and R are more restricted for user facing API’s only. This discrepancy exist as adding support for new API in a language is lot of work. So the only essential API’s are ported to all languages.&lt;/p&gt;
-
-&lt;p&gt;What if we want to add support to new language for spark? It will be a lot of work in traditional approach. But with GraalVM we can have access to complete set of spark library in completely new language with minimum effort.&lt;/p&gt;
-
-&lt;h2 id=&quot;graalvm&quot;&gt;GraalVM&lt;/h2&gt;
-
-&lt;p&gt;GraalVM is a polyglot VM which allows user to run multiple languages on same VM. Not only it supports multiple languages, it allows user to bring the libraries from different languages to single platform. You can read more about graalvm &lt;a href=&quot;/graal-vm-part-1&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;One of the fascinating part of GraalVM is ability use Java libraries from any other supported languages. JavaScript is first class citizen on GraalVM with Node.js support. That made me thinking, what if I am able to use that to run spark on Node.js. If I am able to do the same, then I essentially have a JavaScript API for Apache Spark.&lt;/p&gt;
-
-&lt;p&gt;Let’s see how we go about it.&lt;/p&gt;
-
-&lt;h2 id=&quot;setup-for-running-nodejs-on-graalvm&quot;&gt;Setup for Running Node.js on GraalVM&lt;/h2&gt;
-
-&lt;p&gt;This section of the post we discuss how to setup the Node.js on GraalVM.&lt;/p&gt;
-
-&lt;h3 id=&quot;download-graalvm-binaries&quot;&gt;Download GraalVM Binaries&lt;/h3&gt;
-
-&lt;p&gt;To run Node.js programs on GraalVM, we need to download the graalvm binaries. You can download the appropriate one from below link&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://www.graalvm.org/downloads&quot;&gt;https://www.graalvm.org/downloads/&lt;/a&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;start-nodejs-interpreter&quot;&gt;Start Node.js Interpreter&lt;/h3&gt;
-
-&lt;p&gt;Once you downloaded the graalvm, you can start the Node.js interpreter using below command&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;bin/node &lt;span class=&quot;nt&quot;&gt;--jvm&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The &lt;strong&gt;–jvm&lt;/strong&gt; option says that we want to run on JVM mode. If we don’t specify the mode, it will run in native mode which is more optimised but doesn’t have polyglot features.&lt;/p&gt;
-
-&lt;p&gt;Once you run above command  you should show the below output&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;Welcome to Node.js v12.15.0.
-Type &quot;.help&quot; for more information.
-&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;run-sample-node-code&quot;&gt;Run Sample Node Code&lt;/h3&gt;
-
-&lt;p&gt;Once you have Node interpreter, you can run hello world code to see, are you really running a Node.js environment.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Hello World&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;It will output&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;hello world&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Now we are running Node.js on JVM.&lt;/p&gt;
-
-&lt;h2 id=&quot;setting-up-spark-for-nodejs-environment&quot;&gt;Setting Up Spark for Node.js environment&lt;/h2&gt;
-
-&lt;p&gt;Once we have setup the Node.js environment, we need to setup the Spark environment for the same. This section of the document talks about the various steps.&lt;/p&gt;
-
-&lt;h3 id=&quot;download-spark-binary&quot;&gt;Download Spark Binary&lt;/h3&gt;
-
-&lt;p&gt;We need to download Spark Binary from below link and setup it’s path as SPARK_HOME&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://spark.apache.org/downloads.html&quot;&gt;https://spark.apache.org/downloads.html&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;You can check is SPARK_HOME is set or not using below command&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$SPARK_HOME&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;adding-all-the-spark-jars-to-the-classpath&quot;&gt;Adding all the Spark JARS to the classpath&lt;/h3&gt;
-
-&lt;p&gt;For accessing Spark from Node.js, we need to add all it’s jars to JVM classpath. Currently GraalVM doesn’t allow us to add a directory to it’s classpath. So we will use below shell script to generate a string which will have all the jars in spark binary.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;&lt;span class=&quot;nv&quot;&gt;CLASSPATH&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;find &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$SPARK_HOME&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/jars/&quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-name&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;*.jar&#39;&lt;/span&gt; | xargs &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;tr&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39; &#39;&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;:&#39;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above command generates a string with all the jars and stores it in &lt;strong&gt;CLASSPATH&lt;/strong&gt; environment variable&lt;/p&gt;
-
-&lt;h3 id=&quot;passing-classpath-to-nodejs&quot;&gt;Passing Classpath to Node.js&lt;/h3&gt;
-
-&lt;p&gt;Once the CLASSPATH variable is ready, we can pass the classpath to GraalVM as below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;bin/node  &lt;span class=&quot;nt&quot;&gt;--jvm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--vm&lt;/span&gt;.cp &lt;span class=&quot;nv&quot;&gt;$CLASSPATH&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Now we have environment ready for the spark.&lt;/p&gt;
-
-&lt;h2 id=&quot;spark-programming-in-javascript&quot;&gt;Spark Programming In JavaScript&lt;/h2&gt;
-
-&lt;p&gt;This section of the blog will discuss about how to write spark programs in JavaScript.&lt;/p&gt;
-
-&lt;h3 id=&quot;loading-sparksession-class&quot;&gt;Loading SparkSession Class&lt;/h3&gt;
-
-&lt;p&gt;First step of any spark program is to create a spark session.&lt;/p&gt;
-
-&lt;p&gt;But before creating spark session, we need to import the class. In GraalVM this means we need to make the class available to JavaScript. The below code does the same.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;sparkSessionType&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Java&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;org.apache.spark.sql.SparkSession&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above code, we are using &lt;strong&gt;Java.type&lt;/strong&gt; API to import a given Java class into JavaScript.&lt;/p&gt;
-
-&lt;h3 id=&quot;creating-sparksession&quot;&gt;Creating SparkSession&lt;/h3&gt;
-
-&lt;p&gt;Once the spark session is imported, now we can create the spark session using below code.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;sparkSession&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;sparkSessionType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;master&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;local[*]&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;appName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;example&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;getOrCreate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The above code looks almost exactly like Scala code even though it’s written in JavaScript.&lt;/p&gt;
-
-&lt;h3 id=&quot;loading-data&quot;&gt;Loading Data&lt;/h3&gt;
-
-&lt;p&gt;Once we have created spark session, now we can use it to load the data. Replace the path with a csv from your system.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;csv&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;header&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;true&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;path to your csv&amp;gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Again code looks exactly like Scala. But one thing to note is, the &lt;strong&gt;read&lt;/strong&gt;. In Scala, it’s a val on &lt;strong&gt;SparkSession&lt;/strong&gt; class. But in JavaScript it’s treated as a function. &lt;strong&gt;So when we use any Java/Scala library in GraalVM all the public properties become the zero parameter methods in JavaScript&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;printing-data&quot;&gt;Printing Data&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;nx&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Once the data is loaded, the above method is used to show sample of data.&lt;/p&gt;
-
-&lt;h3 id=&quot;running-the-example&quot;&gt;Running the Example&lt;/h3&gt;
-
-&lt;p&gt;Save above code in a file named &lt;strong&gt;server.js&lt;/strong&gt;. Then run the below command&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;bin/node  &lt;span class=&quot;nt&quot;&gt;--jvm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--vm&lt;/span&gt;.cp &lt;span class=&quot;nv&quot;&gt;$CLASSPATH&lt;/span&gt; server.js&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Now you can see that spark running inside the Node.js and printing sample of your csv.&lt;/p&gt;
-
-&lt;p&gt;We wrote our first spark program in JavaScript successfully.&lt;/p&gt;
-
-&lt;h2 id=&quot;serving-schema-over-nodejs-http-server&quot;&gt;Serving Schema Over Node.js http server&lt;/h2&gt;
-
-&lt;p&gt;Till now, we have written only spark code. Let’s mix it with Node.js code. This shows the real power of the integration. The below code prints the schema of the dataframe when user makes a get request on Node.js&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;http&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;require&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;http&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-&lt;span class=&quot;nx&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;createServer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;writeHead&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Content-Type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;text/html&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
-                &lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;schema&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;prettyJson&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;listen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Graal.js server running at http://127.0.0.1:8000/&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Adding above code to server.js and running it again, will start a web server in &lt;strong&gt;8000&lt;/strong&gt; port. When you access the &lt;strong&gt;http://127.0.0.1:8000/&lt;/strong&gt; you will see the schema of your dataset.&lt;/p&gt;
-
-&lt;p&gt;This shows how we are mixing Node code with spark on same VM.&lt;/p&gt;
-
-&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
-
-&lt;p&gt;You can access complete the code on &lt;a href=&quot;https://github.com/phatak-dev/GraalVMExperiments/blob/master/server.js&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://medium.com/graalvm/using-testcontainers-from-a-node-js-application-3aa2273bf3bb&quot;&gt;https://medium.com/graalvm/using-testcontainers-from-a-node-js-application-3aa2273bf3bb&lt;/a&gt;&lt;/p&gt;
-</description>
-        <pubDate>Thu, 19 Mar 2020 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-in-javascript</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-in-javascript</guid>
       </item>
     
   </channel>
