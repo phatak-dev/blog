@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Introduction to Spark 3.0 - Part 5 : Easier Debugging with Cache Data Frames"
+title: "Introduction to Spark 3.0 - Part 5 : Easier Debugging of Cached Data Frames"
 date : 2020-04-03
 categories: scala spark spark-three 
 ---
