@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Exploring Spark Data Source V2 - Part 1  : Limitations of Data Source V1 API</title>
+    <title>Introduction to Spark 3.0 - Part 5 : Easier Debugging with Cache Data Frames</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-datasource-v2-part-1">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-3-introduction-part-5">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,79 +45,85 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Exploring Spark Data Source V2 - Part 1  : Limitations of Data Source V1 API</h1>
-  <p class="meta">Apr 11, 2018</p>
+  <h1>Introduction to Spark 3.0 - Part 5 : Easier Debugging with Cache Data Frames</h1>
+  <p class="meta">Apr 3, 2020</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
     <a href="/categories/spark"><span class="category">spark</span></a>
     
-    <a href="/categories/datasource-v2-series"><span class="category">datasource-v2-series</span></a>
+    <a href="/categories/spark-three"><span class="category">spark-three</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>In spark, data source is one of the foundational API for structured data analysis. Combined with dataframe and spark SQL abstractions, it makes spark one of the most complete structured data engine out there. You can read more about structured data analysis in spark <a href="/categories/datasource-series">here</a>.</p>
+  <p>Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.</p>
 
-<p>Data source API was introduced in spark 1.3 along with dataframe abstraction. After that release, spark has undergone tremendous change. Spark has moved to custom memory management and with 2.0 we got Dataset , a better dataframe, abstraction. With these tremendous changes data source API needed to revisited.</p>
+<p>This is the fifth post in the series where I am going to talk about improvements in the debugging cached dataframes. You can access all posts in this series <a href="/categories/spark-three">here</a>.</p>
 
-<p>So in 2.3 version, spark has released new version of data source API known as as data source V2. This API reflects all the learning spark developers learnt in last few releases. This API will be foundation for next few years of spark data source connectivity.</p>
+<p>TL;DR All code examples are available on <a href="https://github.com/phatak-dev/spark-3.0-examples">github</a>.</p>
 
-<p>In this series of posts, I will be discussing about different parts of the API. We will be learning API by building data sources for different sources like flat file, relational databases etc.</p>
+<h2 id="challenges-with-debugging-spark-sql">Challenges with Debugging Spark SQL</h2>
 
-<p>This is first blog in the series where we discuss about the limitations of existing data source API. It will helps us to understand the motivation for new API.You can read all the post in the series <a href="/categories/datasource-v2-series">here</a>.</p>
+<p>Lets say you are running joins on multiple datasets and trying to debug the which joins are taking time.</p>
 
-<h2 id="limitations-of-data-source-v1-api">Limitations of Data Source V1 API</h2>
+<p>Let’s run below join code in 2.0</p>
 
-<h3 id="dependence-on-sql-context-and-dataframe">1. Dependence on SQL Context and DataFrame</h3>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">firstDF</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">createDataFrame</span><span class="o">(</span><span class="nc">Seq</span><span class="o">(</span>
+      <span class="o">(</span><span class="s">"1"</span><span class="o">,</span> <span class="mi">10</span><span class="o">),</span>
+      <span class="o">(</span><span class="s">"2"</span><span class="o">,</span> <span class="mi">20</span><span class="o">)</span>
+    <span class="o">)).</span><span class="n">toDF</span><span class="o">(</span><span class="s">"id"</span><span class="o">,</span> <span class="s">"sales"</span><span class="o">)</span>
 
-<p>Typically data sources are lowest level abstractions in a data analysis stack. In data source v1, this layer depended upon higher level API likes SQLContext , Dataframes and RDD.</p>
+    <span class="n">firstDF</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="o">(</span><span class="s">"firstDf"</span><span class="o">)</span>
 
-<p>The below are few of the interfaces of v1 API.</p>
+    <span class="n">sparkSession</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">cacheTable</span><span class="o">(</span><span class="s">"firstDf"</span><span class="o">)</span>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">override</span> <span class="k">def</span> <span class="n">createRelation</span><span class="o">(</span><span class="n">sqlContext</span><span class="k">:</span> <span class="kt">SQLContext</span><span class="o">,</span> <span class="n">parameters</span><span class="k">:</span> <span class="kt">Map</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">])</span><span class="k">:</span> <span class="kt">BaseRelation</span>
+    <span class="k">val</span> <span class="n">secondDF</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">createDataFrame</span><span class="o">(</span><span class="nc">Seq</span><span class="o">(</span>
+      <span class="o">(</span><span class="s">"1"</span><span class="o">,</span> <span class="mi">40</span><span class="o">),</span>
+      <span class="o">(</span><span class="s">"2"</span><span class="o">,</span> <span class="mi">50</span><span class="o">)</span>
+    <span class="o">)).</span><span class="n">toDF</span><span class="o">(</span><span class="s">"id"</span><span class="o">,</span> <span class="s">"volume"</span><span class="o">)</span>
 
-<span class="k">override</span> <span class="k">def</span> <span class="n">buildScan</span><span class="o">()</span><span class="k">:</span> <span class="kt">RDD</span><span class="o">[</span><span class="kt">Row</span><span class="o">]</span></code></pre></div>
+    <span class="n">secondDF</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="o">(</span><span class="s">"secondDf"</span><span class="o">)</span>
+    <span class="n">sparkSession</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">cacheTable</span><span class="o">(</span><span class="s">"secondDf"</span><span class="o">)</span>
 
-<p>As you can see in the above code, these API’s are using higher level user facing API’s.</p>
+ <span class="k">val</span> <span class="n">thirdDF</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">createDataFrame</span><span class="o">(</span><span class="nc">Seq</span><span class="o">(</span>
+      <span class="o">(</span><span class="s">"1"</span><span class="o">,</span> <span class="mi">70</span><span class="o">),</span>
+      <span class="o">(</span><span class="s">"2"</span><span class="o">,</span> <span class="mi">80</span><span class="o">)</span>
+    <span class="o">)).</span><span class="n">toDF</span><span class="o">(</span><span class="s">"id"</span><span class="o">,</span> <span class="s">"value"</span><span class="o">)</span>
 
-<p>In spark 2.0 SQLContext got deprecated. It got replaced by SparkSession. Also DataFrame superseded by Dataset API. But spark has not able to update data source API to reflect these changes.</p>
+    <span class="n">thirdDF</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="o">(</span><span class="s">"thirdDf"</span><span class="o">)</span>
+    <span class="n">sparkSession</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">cacheTable</span><span class="o">(</span><span class="s">"thirdDf"</span><span class="o">)</span>
 
-<p>So as we can see high level API’s evolve over time. Having data source , which is a lower layer abstraction, depending upon the higher level abstractions is not a good idea.</p>
+    <span class="k">val</span> <span class="n">joinDF</span> <span class="k">=</span> <span class="n">firstDF</span><span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">secondDF</span><span class="o">,</span> <span class="s">"id"</span><span class="o">).</span><span class="n">join</span><span class="o">(</span><span class="n">thirdDF</span><span class="o">,</span><span class="s">"id"</span><span class="o">)</span></code></pre></div>
 
-<h3 id="lack-of-support-for-columnar-read">2. Lack of Support for Columnar Read</h3>
+<p>In above code, we are loading three dataframes and caching them. Then doing a simple join.</p>
 
-<p>As you can see from above <em>buildScan</em> API, spark data source reads data in Row format. Even though internal spark engine supports columnar data representation it’s not exposed to data sources. But many data sources used for analytics are columnar by nature. So there is unnecessary translation of columnar data source to row in connector and back to columnar in spark engine.</p>
+<p>If we go to spark UI, we can see the below plan in SQL tab</p>
 
-<p>To avoid this in internal columnar format like parquet spark uses internal API’s. But it’s not possible for third party libraries.This impacts their performance.</p>
+<p><img src="/images/inmemoryscan/withoutname.png" alt="without name" /></p>
 
-<h3 id="lack-of-partitioning-and-sorting-info">3. Lack of Partitioning and Sorting Info</h3>
+<p>In UI everything is named as , *InMemoryTableScan**. Without name it’s very difficult to figure which tables are getting joined. If we know the join sequence its ok otherwise we need to do lot of guess work.</p>
 
-<p>In data source v1 API, a data source cannot pass the partition information to spark engine. This is not good for databases like Hbase/ Cassandra which have optimised for partition access. In data source V1 API , when spark reads data from these sources it will not try to co locate the processing with partitions which will result in poor performance.</p>
+<h2 id="improvements-to-debugging-in-spark-30">Improvements to Debugging in Spark 3.0</h2>
 
-<p>Spark built in sources overcome this limitation using the internal API’s. That’s why spark inbuilt sources much more performant than third party ones</p>
+<p>Spark 3.0 has added an improvement where it shows the name of cached table in SQL plan as below image. This greatly helps in debugging.</p>
 
-<h3 id="no-transaction-support-in-write-interface">4. No transaction support in Write Interface</h3>
+<p><img src="/images/inmemoryscan/withname.png" alt="with name" />.</p>
 
-<p>Current write interface is very generic. It was built primarily to support to store data in systems like HDFS. But more sophisticated sinks like databases needed more control over data write. For example, when data is written to partially to database and job aborts, it will not cleanup those rows. It’s not an issue in HDFS because it will track non successful writes using <em>_successful</em> file . But those facilities are not there in databases. So in this scenario, database will be in inconsistent state. Databases handle these scenarios using transactions which is not supported in current data source API’s.</p>
+<h2 id="only-works-with-cachetable-on-catalog-api">Only Works with CacheTable on Catalog API</h2>
 
-<h3 id="limited-extendability">5. Limited Extendability</h3>
+<p>One thing to note that, this only work if you cache the data with <strong>catalog.cacheTable</strong> API. If you cache the dataframe with <strong>cache</strong> API , these names will not show up.</p>
 
-<p>Current data source API only supports filter push down and column pruning. But many smart sources, data sources with processing power, do more capabilities than that. Currently data source API doesn’t good mechanism to push more catalyst expressions to underneath source.</p>
+<h2 id="code">Code</h2>
 
-<p>As we can see from above points, current data source API is not adequate for these new generation data sources.</p>
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/sql/InMemoryTableScanExample.scala">github</a>.</p>
 
 <h2 id="references">References</h2>
 
-<p><a href="https://issues.apache.org/jira/browse/SPARK-15689">Spark Jira For Data Source V2</a>.</p>
+<p><a href="https://issues.apache.org/jira/browse/SPARK-27639">https://issues.apache.org/jira/browse/SPARK-27639</a>.</p>
 
-<p><a href="https://databricks.com/blog/2018/02/28/introducing-apache-spark-2-3.html">DataBricks blog on 2.3</a>.</p>
-
-<h2 id="conclusion">Conclusion</h2>
-
-<p>Data source API is one of the foundation API of spark. It need to be evolved to support new territory spark is going with 2.0 . In this post we discussed about different limitations of current data source API which will be motivation for new API.</p>
 
 </article>
 <div class="related">
@@ -125,12 +131,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">03 Apr 2020</span>
-     &raquo; <a href="/spark-3-introduction-part-5">Introduction to Spark 3.0 - Part 5 : Easier Debugging with Cache Data Frames</a>    
-   </li>           
-         
+          
 
             
     
@@ -151,12 +152,7 @@
    
    
              
-    
-    <li>    
-     <span class="post-date">03 Apr 2020</span>
-     &raquo; <a href="/spark-3-introduction-part-5">Introduction to Spark 3.0 - Part 5 : Easier Debugging with Cache Data Frames</a>    
-   </li>           
-         
+          
 
             
     
