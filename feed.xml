@@ -7,7 +7,7 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
-        <title>Introduction to Spark 3.0 - Part 5 : Easier Debugging with Cache Data Frames</title>
+        <title>Introduction to Spark 3.0 - Part 5 : Easier Debugging of Cached Data Frames</title>
         <description>&lt;p&gt;Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.&lt;/p&gt;
 
 &lt;p&gt;This is the fifth post in the series where I am going to talk about improvements in the debugging cached dataframes. You can access all posts in this series &lt;a href=&quot;/categories/spark-three&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
