@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Introduction to Spark 3.0 - Part 6 : Min and Max By Functions"
-date : 2020-04-05
+date : 2020-04-06
 categories: scala spark spark-three 
 ---
 Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API's and libraries of the platform. This release sets the tone for next year's direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.
@@ -15,7 +15,6 @@ TL;DR All code examples are available on [github](https://github.com/phatak-dev/
 Let's say we have data as below  with a id and value columns
 
 {% highlight scala %}
-
     val df = sparkSession.createDataFrame(Seq(
       ("1", 10),
       ("2", 20),
@@ -24,11 +23,11 @@ Let's say we have data as below  with a id and value columns
     )).toDF("id","value")
 {% endhighlight %}
 
-Let's say we want to find an id with least value. We can easily find minmimum value with **min** method but it's not easy to find it's associated id. We need to use complicated functions in Spark 2.x
+Let's say we want to find the id with least value. We can easily find minimum value with **min** method but it's not easy to find it's associated id. We need to use complicated window functions in Spark 2.x
 
 ## MinBy in Spark 2.x
 
-The below code calculates the minimum id by it's value using a window spec.
+The below code calculates the minimum id by it's value using window API.
 
 {% highlight scala %}
 
@@ -56,9 +55,7 @@ val resultDf = sparkSession.sql("select max_by(id,value) max_id, min_by(id,value
 
 {% endhighlight %}
 
-These functions take two parameters. The first parameter is minimum/maximumn we want to find and second parameter the value on which we want to find. It's that simple.
-
-These functions greatly simplify calculating these things in spark.
+These functions take two parameters. The first parameter is minimum/maximum we want to find and second parameter the value on which we want to find. It's that simple.
 
 
 ## Code
