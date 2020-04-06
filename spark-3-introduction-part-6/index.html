@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Migrating to Spark 2.0 - Part 5 : Meetup Talk</title>
+    <title>Introduction to Spark 3.0 - Part 6 : Min and Max By Functions</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/migrating-to-spark-two-part-5">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-3-introduction-part-6">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,30 +45,70 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Migrating to Spark 2.0 - Part 5 : Meetup Talk</h1>
-  <p class="meta">Jun 7, 2017</p>
+  <h1>Introduction to Spark 3.0 - Part 6 : Min and Max By Functions</h1>
+  <p class="meta">Apr 6, 2020</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
     <a href="/categories/spark"><span class="category">spark</span></a>
     
-    <a href="/categories/spark-two-migration-series"><span class="category">spark-two-migration-series</span></a>
+    <a href="/categories/spark-three"><span class="category">spark-three</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>In last few blog posts we have discussed about different aspects of the migrating to spark 2.0. 
-Recently I gave a talk on these topics in a our spark <a href="https://www.meetup.com/Bangalore-Apache-Spark-Meetup/">meetup</a>. It was first part
-of two part series.</p>
+  <p>Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.</p>
 
-<p>In this fifth blog of the series, I will be sharing recording of that talk with slides and code.
-You can access all the posts in the series <a href="/categories/spark-two-migration-series">here</a>.</p>
+<p>This is the sixth post in the series where I am going to talk about min and max by SQL functions. You can access all posts in this series <a href="/categories/spark-three">here</a>.</p>
 
-<p>Find the slides on <a href="https://www.slideshare.net/datamantra/migrating-to-spark-20">slideshare</a> and code on <a href="https://github.com/phatak-dev/spark-two-migration">github</a>.</p>
+<p>TL;DR All code examples are available on <a href="https://github.com/phatak-dev/spark-3.0-examples">github</a>.</p>
 
-<div class="video-container"> <iframe src="https://www.youtube.com/embed/jyXEUXCYGwo" frameborder="0" width="560" height="315"></iframe> </div>
+<h2 id="finding-minimum-and-maximum-id-using-its-value">Finding Minimum and Maximum ID using It’s Value</h2>
+
+<p>Let’s say we have data as below  with a id and value columns</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">createDataFrame</span><span class="o">(</span><span class="nc">Seq</span><span class="o">(</span>
+      <span class="o">(</span><span class="s">"1"</span><span class="o">,</span> <span class="mi">10</span><span class="o">),</span>
+      <span class="o">(</span><span class="s">"2"</span><span class="o">,</span> <span class="mi">20</span><span class="o">),</span>
+      <span class="o">(</span><span class="s">"3"</span><span class="o">,</span> <span class="mi">30</span><span class="o">),</span>
+      <span class="o">(</span><span class="s">"4"</span><span class="o">,</span> <span class="mi">40</span><span class="o">)</span>
+    <span class="o">)).</span><span class="n">toDF</span><span class="o">(</span><span class="s">"id"</span><span class="o">,</span><span class="s">"value"</span><span class="o">)</span></code></pre></div>
+
+<p>Let’s say we want to find the id with least value. We can easily find minimum value with <strong>min</strong> method but it’s not easy to find it’s associated id. We need to use complicated window functions in Spark 2.x</p>
+
+<h2 id="minby-in-spark-2x">MinBy in Spark 2.x</h2>
+
+<p>The below code calculates the minimum id by it’s value using window API.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">orderedDf</span> <span class="k">=</span> <span class="nc">Window</span><span class="o">.</span><span class="n">orderBy</span><span class="o">(</span><span class="n">df</span><span class="o">.</span><span class="n">col</span><span class="o">(</span><span class="s">"value"</span><span class="o">))</span>
+<span class="k">val</span> <span class="n">rankedDf</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">withColumn</span><span class="o">(</span><span class="s">"rank"</span><span class="o">,</span> <span class="n">dense_rank</span><span class="o">.</span><span class="n">over</span><span class="o">(</span><span class="n">orderedDf</span><span class="o">))</span>
+<span class="k">val</span> <span class="n">minDf</span> <span class="k">=</span> <span class="n">rankedDf</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="s">"rank == 1"</span><span class="o">)</span>
+<span class="n">minDf</span><span class="o">.</span><span class="n">show</span><span class="o">()</span></code></pre></div>
+
+<p>In above code, we first create a window where the values are ordered and then create a rank by <strong>dense_rank</strong> function. Then we filter the values by <strong>rank==1</strong>. This gives us the minimum id.</p>
+
+<p>This is all way complicated for a simple operation. So there is a new easy way introduced in 3.0</p>
+
+<h2 id="minby-and-maxby-sql-function-in-30">MinBy and MaxBy SQL Function in 3.0</h2>
+
+<p>Spark 3.0 add two function <strong>min_by</strong> and <strong>max_by</strong> to compute the min and max by a column. They are simple to use and doesn’t need all the complexity of window operations.</p>
+
+<p>Let’s calculate the same with these new functions</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">df</span><span class="o">.</span><span class="n">createOrReplaceTempView</span><span class="o">(</span><span class="s">"table"</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">resultDf</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">sql</span><span class="o">(</span><span class="s">"select max_by(id,value) max_id, min_by(id,value) min_id from table"</span><span class="o">)</span></code></pre></div>
+
+<p>These functions take two parameters. The first parameter is minimum/maximum we want to find and second parameter the value on which we want to find. It’s that simple.</p>
+
+<h2 id="code">Code</h2>
+
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/sql/MinAndMaxByExample.scala">github</a>.</p>
+
+<h2 id="references">References</h2>
+
+<p><a href="https://issues.apache.org/jira/browse/SPARK-27653">https://issues.apache.org/jira/browse/SPARK-27653</a></p>
 
 
 </article>
@@ -77,12 +117,7 @@ You can access all the posts in the series <a href="/categories/spark-two-migrat
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">06 Apr 2020</span>
-     &raquo; <a href="/spark-3-introduction-part-6">Introduction to Spark 3.0 - Part 6 : Min and Max By Functions</a>    
-   </li>           
-         
+          
 
             
     
@@ -103,12 +138,7 @@ You can access all the posts in the series <a href="/categories/spark-two-migrat
    
    
              
-    
-    <li>    
-     <span class="post-date">06 Apr 2020</span>
-     &raquo; <a href="/spark-3-introduction-part-6">Introduction to Spark 3.0 - Part 6 : Min and Max By Functions</a>    
-   </li>           
-         
+          
 
             
     

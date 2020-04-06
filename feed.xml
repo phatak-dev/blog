@@ -7,6 +7,65 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Spark 3.0 - Part 6 : Min and Max By Functions</title>
+        <description>&lt;p&gt;Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.&lt;/p&gt;
+
+&lt;p&gt;This is the sixth post in the series where I am going to talk about min and max by SQL functions. You can access all posts in this series &lt;a href=&quot;/categories/spark-three&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR All code examples are available on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;finding-minimum-and-maximum-id-using-its-value&quot;&gt;Finding Minimum and Maximum ID using It’s Value&lt;/h2&gt;
+
+&lt;p&gt;Let’s say we have data as below  with a id and value columns&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createDataFrame&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Seq&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;1&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;2&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;3&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;30&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;4&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;40&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;)).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toDF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;id&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;value&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Let’s say we want to find the id with least value. We can easily find minimum value with &lt;strong&gt;min&lt;/strong&gt; method but it’s not easy to find it’s associated id. We need to use complicated window functions in Spark 2.x&lt;/p&gt;
+
+&lt;h2 id=&quot;minby-in-spark-2x&quot;&gt;MinBy in Spark 2.x&lt;/h2&gt;
+
+&lt;p&gt;The below code calculates the minimum id by it’s value using window API.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;orderedDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Window&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;orderBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;value&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rankedDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withColumn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;rank&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dense_rank&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;over&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;orderedDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;minDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rankedDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;filter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;rank == 1&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;minDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above code, we first create a window where the values are ordered and then create a rank by &lt;strong&gt;dense_rank&lt;/strong&gt; function. Then we filter the values by &lt;strong&gt;rank==1&lt;/strong&gt;. This gives us the minimum id.&lt;/p&gt;
+
+&lt;p&gt;This is all way complicated for a simple operation. So there is a new easy way introduced in 3.0&lt;/p&gt;
+
+&lt;h2 id=&quot;minby-and-maxby-sql-function-in-30&quot;&gt;MinBy and MaxBy SQL Function in 3.0&lt;/h2&gt;
+
+&lt;p&gt;Spark 3.0 add two function &lt;strong&gt;min_by&lt;/strong&gt; and &lt;strong&gt;max_by&lt;/strong&gt; to compute the min and max by a column. They are simple to use and doesn’t need all the complexity of window operations.&lt;/p&gt;
+
+&lt;p&gt;Let’s calculate the same with these new functions&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createOrReplaceTempView&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;table&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;resultDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sql&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;select max_by(id,value) max_id, min_by(id,value) min_id from table&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;These functions take two parameters. The first parameter is minimum/maximum we want to find and second parameter the value on which we want to find. It’s that simple.&lt;/p&gt;
+
+&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/sql/MinAndMaxByExample.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-27653&quot;&gt;https://issues.apache.org/jira/browse/SPARK-27653&lt;/a&gt;&lt;/p&gt;
+
+</description>
+        <pubDate>Mon, 06 Apr 2020 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/spark-3-introduction-part-6</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-3-introduction-part-6</guid>
+      </item>
+    
+      <item>
         <title>Introduction to Spark 3.0 - Part 5 : Easier Debugging of Cached Data Frames</title>
         <description>&lt;p&gt;Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.&lt;/p&gt;
 
@@ -839,53 +898,6 @@ test recall for 1.0 is 0.8910256410256411&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
         <pubDate>Tue, 24 Mar 2020 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/spark-3-datasource-v2-part-2</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-3-datasource-v2-part-2</guid>
-      </item>
-    
-      <item>
-        <title>Data Source V2 API in Spark 3.0 - Part 1 : Motivation for New Abstractions</title>
-        <description>&lt;p&gt;Spark 3.0 is a major release of Apache Spark framework. It’s been in preview from last December and going to have  a stable release very soon. As part of major release, Spark has a habit of shaking up API’s to bring it to latest standards. There will be breaking changes also in these API’s. One of such API is Data source V2 API.&lt;/p&gt;
-
-&lt;p&gt;Data Source V2 API, a new data source API for spark, was introduced in spark 2.3. Then it’s been updated in spark 2.4. I have written detailed posts on same &lt;a href=&quot;/categories/datasource-v2-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;This API is going to be completely changed in Spark 3.0. Spark rarely change an API this frequently in between releases. But as data source are heart of the framework, they are improved constantly. Also in spark 2.4, these API’s were marked &lt;strong&gt;evolving&lt;/strong&gt;. This means they are meant to be changed in future.&lt;/p&gt;
-
-&lt;p&gt;The usage of the data sources have not changed in 3.0. So if you are a user of the third party data sources you don’t need to worry. These changes are geared mainly towards the developer of these sources. Also all the sources written V1 API going to work even in 3.0. So if your source is not updated, no need to panic. It’s going to work without latest optimisations.&lt;/p&gt;
-
-&lt;p&gt;These new changes in V2 API brings more control to data source developer and better integration with spark optimiser. Moving to this API makes third party sources more performant. So in these series of posts I will be discussing the new Data source V2 API in 3.0. This is the first post in the series where I will be discussing the motivation to update the API’s.You can find all the posts in the series &lt;a href=&quot;/categories/datasource-v2-spark-three&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;learning-from-experience&quot;&gt;Learning From Experience&lt;/h2&gt;
-
-&lt;p&gt;The biggest motivation to change the abstractions came from using Data source V2 API’s for real sources. When spark team used to implement the file sources like csv, parquet and other streaming sources like Kafka they started to see the gaps. These gaps where more in the abstractions than the actual implementation itself. From this learning experience, it made them to relook at the API and change the abstractions.&lt;/p&gt;
-
-&lt;p&gt;The below are some of the learnings&lt;/p&gt;
-
-&lt;h3 id=&quot;scan-execution-order-is-not-obvious&quot;&gt;Scan Execution Order is Not Obvious&lt;/h3&gt;
-
-&lt;p&gt;V2 Read API introduced the mixins interfaces for everything like operator pushdown, column pruning. One of the reason for these high level interfaces was to have flexibility of mixing the only ones needed. This was major selling point of these new interfaces.&lt;/p&gt;
-
-&lt;p&gt;Even though these gave a lot of flexibility they created confusion about order of their invocation. From the API it was not apparent which order these are called. Currently developer needed to depend upon the documentation. Depending upon the documentation means API is not good.&lt;/p&gt;
-
-&lt;h3 id=&quot;streaming-api-doesnt-play-well-with-the-batch-api&quot;&gt;Streaming API doesn’t Play Well with the Batch API&lt;/h3&gt;
-
-&lt;p&gt;Streaming API doesn’t support few of the features like FilterPushDown etc compared to batch API. But as the current API about mixins, it was hard to write a source which supports both streaming and batch as we need to skip some features selectively. So most of the cases it was handled by throwing exceptions for non supported features and handling it other places for streaming for API. This was more of a hack than an proper API design.&lt;/p&gt;
-
-&lt;h3 id=&quot;columnar-scan-should-not-be-mixin-trait&quot;&gt;Columnar Scan should not be Mixin Trait&lt;/h3&gt;
-
-&lt;p&gt;Columnar scan is a Data source V2 feature which allows reading data in columnar format. By default all the sources are implemented as row scan. As it’s exposed as additional trait, all the default methods assume row based scanning. Currently it’s not easy to define column scan only. The current hack is to throw exception when row scanning is tried and control is handed over columnar way. This is hacky and not right.&lt;/p&gt;
-
-&lt;p&gt;The above are some of the learnings. You can read more about the same in the design doc linked in reference material.&lt;/p&gt;
-
-&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://docs.google.com/document/d/1DDXCTCrup4bKWByTalkXWgavcPdvur8a4eEu8x1BzPM/edit#&quot;&gt;Data Source V2 API Improvement Design Doc&lt;/a&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;Data source V2 brings major change to the way we write spark data sources. In Spark 3.0, this API is going through a major overhaul to integrate the learnings from wild. In this post we learned about all the motivation.&lt;/p&gt;
-</description>
-        <pubDate>Sun, 22 Mar 2020 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-3-datasource-v2-part-1</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-3-datasource-v2-part-1</guid>
       </item>
     
   </channel>
