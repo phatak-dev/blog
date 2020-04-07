@@ -1,37 +1,110 @@
 ---
 layout: post
-title: "Introduction to Spark Plugin Framework - Part 1 : Introduction"
+title: "Introduction to Spark Plugin Framework - Part 2 : API's"
 date : 2020-04-05
 categories: scala spark spark-three spark-plugin
 ---
 Spark 3.0 brings a new plugin framework to spark. This plugin framework allows users to plugin custom code at the driver and workers. This will allow for advanced monitoring and custom metrics tracking. This set of API's are going to help tune spark better than before.
 
-In this series of posts I will be discussing about the different aspects of plugin framework. This is the first post in the series, where we will understand the motivation behind the framework. You can read all the posts in the series [here](/categories/spark-plugin).
+In this series of posts I will be discussing about the different aspects of plugin framework. This is the second post in the series, where we will understand the different API's exposed in framework. You can read all the posts in the series [here](/categories/spark-plugin).
 
 
-## Spark Plugin Framework
+## Spark Plugin Interface
 
-Spark plugin is a new set of API's which allows users to run the custom code in the driver and executor side. This allows user to control the initialisation of driver and executor JVM's for different  use cases.
+The top interface of the framework in SparkPlugin. It exposes below two methods
 
-## Need of Plugin Framework
+{% highlight scala %}
 
-This section of the post talks about what are the needs of plugin framework
+def driverPlugin(): DriverPlugin
 
-### Support for Custom Metrics
+def executorPlugin(): ExecutorPlugin 
 
-Spark exposes wide variety of metrics like memory consumption, GC overhead etc which are very useful for the application tuning. But let's say we want to add our own metrics and track it using spark metrics framework? Currently it's not possible because the code needs to run inside the executor JVM to calculate all this. But with spark plugin it's possible to write code which collects the application specific metrics and integrate with spark metrics system.
+{% endhighlight %}
 
-
-### Ability to Push Dynamic Events to Driver and Executor
-
-Spark plugin framework allows user to run arbitary listeners on driver or executor side. This allows for a communication to spark JVM's from the external application. As these plugins have spark context, this will allow for dynamic control of the execution from outside which is very powerful. 
+From the name of methods, we can figure out that these are entry points to specify the driver and executor plugin. If user wants to implement only one, then they can specify null in other method.
 
 
-### Ability to Communicate Between Driver and Executor
+## DriverPlugin Interface
 
-Spark plugin framework exposes a RPC communication option between driver and executor plugins. This communication can be used to send any user defined messages between executors and driver.
+This is the interface for the driver side plugin. It has below methods. All are optional to override
 
-The above are the some of the use cases for the spark plugin framework. These will become clear when we discuss the same with examples.
+
+### Init Method
+
+{% highlight scala %}
+
+def init(sc: SparkContext, pluginContext: PluginContext): util.Map[String, String] 
+
+{% endhighlight %}
+
+This method is called at the beginning of driver initialisation. It has access to spark context and plugin context. The method returns a map which will be passed to executor plugin.
+
+### RegisterMetrics Method
+
+{% highlight scala %}
+
+def registerMetrics(appId: String, pluginContext: PluginContext): Unit 
+
+{% endhighlight %}
+
+This method is used for the tracking custom metrics in driver side.
+
+### Recieve Method
+
+{% highlight scala %}
+def receive(message: scala.Any): AnyRef 
+{% endhighlight %}
+
+This method is used for recieving RPC messages sent by the exeutors.
+
+
+### Shutdown Method
+
+{% highlight scala %}
+
+def shutdown(): Unit
+
+{% endhighlight %}
+
+This method is called when driver getting shutdown.
+
+
+## ExecutorPlugin Interface
+
+The below are methods exposed in the executor plugin interface.
+
+
+### Init Method
+
+{% highlight scala %}
+
+ def init(ctx: PluginContext, extraConf: util.Map[String, String]):Unit
+
+{% endhighlight %}
+
+This method is called when an executor is ran. **extraConf** are the parameter sent by driver.
+
+### Shutdown Method
+
+{% highlight scala %}
+
+def shutdown(): Unit 
+
+{% endhighlight %}
+
+This method is called when executor shutdown.
+
+
+## Adding Spark Plugin
+
+We can add our custom spark plugins to a spark session by setting **spark.plugins** configuration on spark session
+
+{% highlight scala %}
+
+sparkSession.set(""spark.plugins","full package name of plugin")
+
+{% endhighlight %}
+
 
 
 ## References
@@ -41,4 +114,4 @@ The above are the some of the use cases for the spark plugin framework. These wi
 
 ## Conclusion
 
-Spark plugin framework brings a powerful customization to spark ecosystem. Users can use this framework to add custom metric listeners and build a dynamic dispacth event system. 
+Spark plugin framework brings a powerful customization to spark ecosystem. In this post, we discussed about different interfaces provided by the plugin framework.
