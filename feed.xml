@@ -7,6 +7,47 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Spark Plugin Framework in 3.0 - Part 1: Introduction</title>
+        <description>&lt;p&gt;Spark 3.0 brings a new plugin framework to spark. This plugin framework allows users to plugin custom code at the driver and workers. This will allow for advanced monitoring and custom metrics tracking. This set of API’s are going to help tune spark better than before.&lt;/p&gt;
+
+&lt;p&gt;In this series of posts I will be discussing about the different aspects of plugin framework. This is the first post in the series, where we will understand the motivation behind the framework. You can read all the posts in the series &lt;a href=&quot;/categories/spark-plugin&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;spark-plugin-framework-in-30&quot;&gt;Spark Plugin Framework in 3.0&lt;/h2&gt;
+
+&lt;p&gt;Spark plugin framework is a new set of API’s which allows users to run the custom code in the driver and executor side. This allows user to control the initialisation of driver and executor JVM’s for different use cases.&lt;/p&gt;
+
+&lt;h2 id=&quot;uses-of-plugin-framework&quot;&gt;Uses of Plugin Framework&lt;/h2&gt;
+
+&lt;p&gt;This section of the post talks about what are the different use cases for plugin framework.&lt;/p&gt;
+
+&lt;h3 id=&quot;support-for-custom-metrics&quot;&gt;Support for Custom Metrics&lt;/h3&gt;
+
+&lt;p&gt;Spark exposes wide variety of metrics like memory consumption, GC overhead etc which are very useful for the application tuning. But let’s say user want to add their own metrics and track it using spark metrics framework?. Currently it’s not possible because the code needs to run inside the executor/driver JVM to calculate the metrics.Also even if user calculates it using application code, those will not integrate with standard spark metrics. But with spark plugin it’s possible to write code which collects the application specific metrics and integrate with spark metrics system.&lt;/p&gt;
+
+&lt;h3 id=&quot;ability-to-push-dynamic-events-to-driver-and-executor&quot;&gt;Ability to Push Dynamic Events to Driver and Executor&lt;/h3&gt;
+
+&lt;p&gt;Spark plugin framework allows user to run arbitrary listeners on driver or executor side. This allows for a communication to spark JVM’s from the external application. As these plugins have access to spark context, this will allow for dynamic control of the execution from outside which is very powerful.&lt;/p&gt;
+
+&lt;h3 id=&quot;ability-to-communicate-between-driver-and-executor&quot;&gt;Ability to Communicate Between Driver and Executor&lt;/h3&gt;
+
+&lt;p&gt;Spark plugin framework exposes a RPC communication option between driver and executor plugins. This communication can be used to send any user defined messages between executors and driver.&lt;/p&gt;
+
+&lt;p&gt;The above are the some of the use cases for the spark plugin framework. These will become clear when we discuss the same with examples.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-29397&quot;&gt;https://issues.apache.org/jira/browse/SPARK-29397&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Spark plugin framework brings a powerful customization to spark ecosystem. Users can use this framework to add custom metric listeners and build a dynamic dispacth event system for their spark jobs.&lt;/p&gt;
+</description>
+        <pubDate>Tue, 07 Apr 2020 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/spark-plugin-part-1</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-plugin-part-1</guid>
+      </item>
+    
+      <item>
         <title>Introduction to Spark 3.0 - Part 6 : Min and Max By Functions</title>
         <description>&lt;p&gt;Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.&lt;/p&gt;
 
@@ -750,154 +791,6 @@ test recall for 1.0 is 0.8910256410256411&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
         <pubDate>Wed, 25 Mar 2020 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/spark-3-datasource-v2-part-3</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-3-datasource-v2-part-3</guid>
-      </item>
-    
-      <item>
-        <title>Data Source V2 API in Spark 3.0 - Part 2 : Anatomy of V2 Read API</title>
-        <description>&lt;p&gt;Spark 3.0 is a major release of Apache Spark framework. It’s been in preview from last December and going to have  a stable release very soon. As part of major release, Spark has a habit of shaking up API’s to bring it to latest standards. There will be breaking changes also in these API’s. One of such API is Data source V2 API.&lt;/p&gt;
-
-&lt;p&gt;Data Source V2 API, a new data source API for spark, was introduced in spark 2.3. Then it’s been updated in spark 2.4. I have written detailed posts on same &lt;a href=&quot;/categories/datasource-v2-series&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;This API is going to be completely changed in Spark 3.0. Spark rarely change an API this frequently in between releases. But as data source are heart of the framework, they are improved constantly. Also in spark 2.4, these API’s were marked &lt;strong&gt;evolving&lt;/strong&gt;. This means they are meant to be changed in future.&lt;/p&gt;
-
-&lt;p&gt;The usage of the data sources have not changed in 3.0. So if you are a user of the third party data sources you don’t need to worry. These changes are geared mainly towards the developer of these sources. Also all the sources written V1 API going to work even in 3.0. So if your source is not updated, no need to panic. It’s going to work without latest optimisations.&lt;/p&gt;
-
-&lt;p&gt;These new changes in V2 API brings more control to data source developer and better integration with spark optimiser. Moving to this API makes third party sources more performant. So in these series of posts I will be discussing the new Data source V2 API in 3.0.&lt;/p&gt;
-
-&lt;p&gt;This is the second post in the series where we discuss about different interfaces to read data in V2 API.You can read all the posts in the series &lt;a href=&quot;/categories/datasource-v2-spark-three&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;java-interfaces&quot;&gt;Java Interfaces&lt;/h2&gt;
-
-&lt;p&gt;One of the characteristics of V2 API’s is it’s exposed in terms of Java interfaces rather than scala traits. The primary reason for this is better interop with Java.&lt;/p&gt;
-
-&lt;p&gt;The below are the basic interfaces to read the data in V2 API.&lt;/p&gt;
-
-&lt;h2 id=&quot;tableprovider&quot;&gt;TableProvider&lt;/h2&gt;
-
-&lt;p&gt;TableProvider trait signifies it’s a source which can read or write a table. Here table is a structured dataset. The below are the methods&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;inferSchema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;caseInsensitiveStringMap&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;CaseInsensitiveStringMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;StructType&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getTable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;structType&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;StructType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;transforms&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Transform&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;util.Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;])&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The methods are&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;inferSchema - The method takes parameter from user and tries to infer the schema&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;getTable - This is used for loading table with user specified schema and other transformations.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;table&quot;&gt;Table&lt;/h2&gt;
-
-&lt;p&gt;Table is an interface representing a logical structured data set of a data source. It exposes below three methods&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;schema&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;StructType&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;capabilities&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;TableCapability&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The different methods are&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;name : A name to identify the table.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;schema : Table Schema. An empty schema can be returned if schema inference needed.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;capabilities : Capabilities exposed by the table. This is one of the unique feature added in spark 3.0. This allows to specifying what kind of operation table supports. Some capabilities like BATCH_READ, BATCH_WRITE. This helps spark to verify these before attempting to run the operations.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;supportsread&quot;&gt;SupportsRead&lt;/h2&gt;
-
-&lt;p&gt;This interface indicates that source supports read. This has one abstract method that needs to be overridden.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;newScanBuilder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;CaseInsensitiveStringMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;ScanBuilder&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;scanbuilder&quot;&gt;ScanBuilder&lt;/h2&gt;
-
-&lt;p&gt;An interface for building &lt;strong&gt;Scan&lt;/strong&gt;. This interface can mix with filter push down to keep the needed information to push the filters to readers. The exposed abstract methods are&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Scan&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;scan&quot;&gt;Scan&lt;/h2&gt;
-
-&lt;p&gt;Logical representation of a data source scan. This interface is used to provide logical information, like what the actual read schema is. This is a common scan for all different scanning like batch, micro batch etc. The needed methods to be overridden are&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;readSchema&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;StructType&lt;/span&gt;
-
- &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;toBatch&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Batch&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The methods are&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;readSchema - The actual schema of the source. This may look like repetitive from Table interface. The reason it is repeated because, after column pruning or other optimisation the schema may change or we may need inference of schema. This method returns actual schema of the data where as the Table one returns the initial schema.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;toBatch - This method needs to be overridden to indicate that this scan configuration should be used for batch reading.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;batch&quot;&gt;Batch&lt;/h2&gt;
-
-&lt;p&gt;A physical representation of a data source scan for batch queries. This interface is used to provide physical information, like how many partitions the scanned data has, and how to read records from the partitions.&lt;/p&gt;
-
-&lt;p&gt;The methods that need to be overridden are&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;planInputPartitions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;InputPartition&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; 
-
-&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createReaderFactory&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PartitionReaderFactory&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;The methods are&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;planInputPartitions : List of partitions for the table. This number decides number of partitions in Dataset.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;createReaderFactory : Factory to create the readers&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;partitionreaderfactory&quot;&gt;PartitionReaderFactory&lt;/h2&gt;
-
-&lt;p&gt;It’s a factory class to create actual data readers. The data reader creation happens on the individual machines. It exposes single method.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createReader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;partition&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;InputPartition&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PartitionReader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;InternalRow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As the name suggest, it creates data reader.&lt;/p&gt;
-
-&lt;h2 id=&quot;partitionreader&quot;&gt;PartitionReader&lt;/h2&gt;
-
-&lt;p&gt;Finally we have the interface which actually reads the data. The below are methods&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;next&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Boolean&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;get&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;T&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;close&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Unit&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As you can see from interface, it looks as simple iterator based reader. Currently T can be only InternalRow.&lt;/p&gt;
-
-&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://github.com/apache/spark/pull/22009&quot;&gt;https://github.com/apache/spark/pull/22009&lt;/a&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;In this post we discussed some of the important interfaces from data source V2 API for reading data. You can see how this API is much different than earlier API.&lt;/p&gt;
-</description>
-        <pubDate>Tue, 24 Mar 2020 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-3-datasource-v2-part-2</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-3-datasource-v2-part-2</guid>
       </item>
     
   </channel>

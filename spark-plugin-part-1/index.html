@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Scalable Spark Deployment using Kubernetes - Part 9 : Service Update and Rollback</title>
+    <title>Spark Plugin Framework in 3.0 - Part 1: Introduction</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-9">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-plugin-part-1">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,104 +45,55 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Scalable Spark Deployment using Kubernetes - Part 9 : Service Update and Rollback</h1>
-  <p class="meta">May 3, 2017</p>
+  <h1>Spark Plugin Framework in 3.0 - Part 1: Introduction</h1>
+  <p class="meta">Apr 7, 2020</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
     <a href="/categories/spark"><span class="category">spark</span></a>
     
-    <a href="/categories/kubernetes-series"><span class="category">kubernetes-series</span></a>
+    <a href="/categories/spark-three"><span class="category">spark-three</span></a>
+    
+    <a href="/categories/spark-plugin"><span class="category">spark-plugin</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>In last few blog posts on kubernetes, we have discussed about how to build and scale spark cluster. Once services are deployed, we also
-need to update services time to time. When we update a service, we need to make sure that, it don’t interrupt the working of other
-services. Kubernetes has built in support for the service update and rollbacks. This makes changing services on kubernetes
-much easier than doing them manually in other platforms.</p>
+  <p>Spark 3.0 brings a new plugin framework to spark. This plugin framework allows users to plugin custom code at the driver and workers. This will allow for advanced monitoring and custom metrics tracking. This set of API’s are going to help tune spark better than before.</p>
 
-<p>In this ninth blog of the series, I will be discussing about service update and rollback in kubernetes.
-You can access all the posts in the series <a href="/categories/kubernetes-series">here</a>.</p>
+<p>In this series of posts I will be discussing about the different aspects of plugin framework. This is the first post in the series, where we will understand the motivation behind the framework. You can read all the posts in the series <a href="/categories/spark-plugin">here</a>.</p>
 
-<h2 id="updating-service">Updating Service</h2>
+<h2 id="spark-plugin-framework-in-30">Spark Plugin Framework in 3.0</h2>
 
-<p>In our discussion of deployment abstraction, I told that deployment helps us to handle life cycle of a service. Currently,
-we are running the spark version 2.1.0. Let’s say we want to change it to 1.6.3 without changing the 
-configuration. We can use deployment abstraction for achieving the same.</p>
+<p>Spark plugin framework is a new set of API’s which allows users to run the custom code in the driver and executor side. This allows user to control the initialisation of driver and executor JVM’s for different use cases.</p>
 
-<p>The below are the steps to change spark version from 2.1.0 to 1.6.3 using deployment abstraction.</p>
+<h2 id="uses-of-plugin-framework">Uses of Plugin Framework</h2>
 
-<h3 id="generate-spark-image-for-163">1. Generate Spark Image for 1.6.3</h3>
+<p>This section of the post talks about what are the different use cases for plugin framework.</p>
 
-<p>As we did for spark 2.1.0, we first need to have an image of the spark 1.6.3. This can be easily done by changing docker file as below.</p>
+<h3 id="support-for-custom-metrics">Support for Custom Metrics</h3>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">ENV spark_ver 1.6.3</code></pre></div>
+<p>Spark exposes wide variety of metrics like memory consumption, GC overhead etc which are very useful for the application tuning. But let’s say user want to add their own metrics and track it using spark metrics framework?. Currently it’s not possible because the code needs to run inside the executor/driver JVM to calculate the metrics.Also even if user calculates it using application code, those will not integrate with standard spark metrics. But with spark plugin it’s possible to write code which collects the application specific metrics and integrate with spark metrics system.</p>
 
-<p>Once we update the docker file, we need to build new image with below command.</p>
+<h3 id="ability-to-push-dynamic-events-to-driver-and-executor">Ability to Push Dynamic Events to Driver and Executor</h3>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">docker build <span class="nt">-t</span> spark-1.6.3-bin-hadoop2.6 .</code></pre></div>
+<p>Spark plugin framework allows user to run arbitrary listeners on driver or executor side. This allows for a communication to spark JVM’s from the external application. As these plugins have access to spark context, this will allow for dynamic control of the execution from outside which is very powerful.</p>
 
-<p>Now we have  our new spark image ready.</p>
+<h3 id="ability-to-communicate-between-driver-and-executor">Ability to Communicate Between Driver and Executor</h3>
 
-<h3 id="set-images-to-deployment">2. Set Images to Deployment</h3>
+<p>Spark plugin framework exposes a RPC communication option between driver and executor plugins. This communication can be used to send any user defined messages between executors and driver.</p>
 
-<p>The below two commands sets new images to already running spark-master and spark-worker deployments</p>
+<p>The above are the some of the use cases for the spark plugin framework. These will become clear when we discuss the same with examples.</p>
 
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl <span class="nb">set </span>image deployment/spark-master spark-master<span class="o">=</span>spark-1.6.3-bin-hadoop2.6
+<h2 id="references">References</h2>
 
-kubectl <span class="nb">set </span>image deployment/spark-worker spark-worker<span class="o">=</span>spark-1.6.3-bin-hadoop2.6</code></pre></div>
-
-<p>In the command, we are setting the image for <em>spark-master</em>  and <em>spark-worker</em> container inside the deployment. This helps only update needed containers
-inside deployment rather than updating all.</p>
-
-<p>This only sets new images. It has not updated the service yet. We need to use roll out command for that.</p>
-
-<h3 id="rollout-the-deployment">3. Rollout the Deployment</h3>
-
-<p>The below commands rolls out the changes to deployment.</p>
-
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl rollout status deployment/spark-master
-kubectl rollout status deployment/spark-worker</code></pre></div>
-
-<p>When you roll out changes, kubernetes first brings up new pods with 1.6.3 version. Then once they are running
-the old pods will be deleted.</p>
-
-<p>This shown in the below output.</p>
-
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">NAME                               READY     STATUS        RESTARTS   AGE
-nginx-deployment-619952658-16z1h   1/1       Running       1          11d
-spark-master-1095292607-mb0xh      1/1       Running       0          37s
-spark-worker-1610799992-4f701      0/1       Pending       0          25s
-spark-worker-671341425-xxlxn       1/1       Terminating   0          53s</code></pre></div>
-
-<p>As part of the roll out, kubernetes will update all dns entries to point to new pods.</p>
-
-<p>This graceful switch over from older version to new version of pods makes sures that service is least interrupted when we
-update services.</p>
-
-<p>You can verify the spark version using <em>spark-ui</em> or logging into one of the pods.</p>
-
-<h2 id="service-rollback">Service Rollback</h2>
-
-<p>As part of the service update, kubernetes remembers state of last two deployments. This helps us to roll back the changes
-we made it to deployment using <em>undo</em> command.</p>
-
-<p>If we want to undo our change of spark version, we can run the below commands</p>
-
-<div class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl rollout undo deployment/spark-master
-kubectl rollout undo deployment/spark-worker</code></pre></div>
-
-<p>The above commands reverses the spark version back to 2.1.0. This ability to quickly undo the service is
-powerful. If something goes wrong, we can rollback the service to it’s previous state without much effort.</p>
+<p><a href="https://issues.apache.org/jira/browse/SPARK-29397">https://issues.apache.org/jira/browse/SPARK-29397</a>.</p>
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>Kubernetes has native support for service update and rollback. Using deployment abstraction we can easily roll out the changes to
-our services without effecting other services.</p>
-
+<p>Spark plugin framework brings a powerful customization to spark ecosystem. Users can use this framework to add custom metric listeners and build a dynamic dispacth event system for their spark jobs.</p>
 
 </article>
 <div class="related">
@@ -150,12 +101,7 @@ our services without effecting other services.</p>
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">07 Apr 2020</span>
-     &raquo; <a href="/spark-plugin-part-1">Spark Plugin Framework in 3.0 - Part 1: Introduction</a>    
-   </li>           
-         
+          
 
             
     
@@ -176,12 +122,7 @@ our services without effecting other services.</p>
    
    
              
-    
-    <li>    
-     <span class="post-date">07 Apr 2020</span>
-     &raquo; <a href="/spark-plugin-part-1">Spark Plugin Framework in 3.0 - Part 1: Introduction</a>    
-   </li>           
-         
+          
 
             
     
