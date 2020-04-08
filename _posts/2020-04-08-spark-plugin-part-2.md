@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Introduction to Spark Plugin Framework - Part 2 : API's"
-date : 2020-04-05
+title: "Spark Plugin Framework in 3.0 - Part 2 : Anatomy of the API"
+date : 2020-04-08
 categories: scala spark spark-three spark-plugin
 ---
 Spark 3.0 brings a new plugin framework to spark. This plugin framework allows users to plugin custom code at the driver and workers. This will allow for advanced monitoring and custom metrics tracking. This set of API's are going to help tune spark better than before.
@@ -21,12 +21,12 @@ def executorPlugin(): ExecutorPlugin
 
 {% endhighlight %}
 
-From the name of methods, we can figure out that these are entry points to specify the driver and executor plugin. If user wants to implement only one, then they can specify null in other method.
+From the name of methods, we can figure out that these are entry points to specify the driver and executor plugin. If user wants to implement only one, then they can return null in other method.
 
 
 ## DriverPlugin Interface
 
-This is the interface for the driver side plugin. It has below methods. All are optional to override
+This is the interface for the driver side plugin. It has below methods. All are optional to override.
 
 
 ### Init Method
@@ -49,13 +49,13 @@ def registerMetrics(appId: String, pluginContext: PluginContext): Unit
 
 This method is used for the tracking custom metrics in driver side.
 
-### Recieve Method
+### Receive Method
 
 {% highlight scala %}
 def receive(message: scala.Any): AnyRef 
 {% endhighlight %}
 
-This method is used for recieving RPC messages sent by the exeutors.
+This method is used for receiving RPC messages sent by the executors.
 
 
 ### Shutdown Method
@@ -73,7 +73,6 @@ This method is called when driver getting shutdown.
 
 The below are methods exposed in the executor plugin interface.
 
-
 ### Init Method
 
 {% highlight scala %}
@@ -82,7 +81,7 @@ The below are methods exposed in the executor plugin interface.
 
 {% endhighlight %}
 
-This method is called when an executor is ran. **extraConf** are the parameter sent by driver.
+This method is called when an executor is started. **extraConf** are the parameters sent by driver.
 
 ### Shutdown Method
 
@@ -94,17 +93,15 @@ def shutdown(): Unit
 
 This method is called when executor shutdown.
 
-
 ## Adding Spark Plugin
 
-We can add our custom spark plugins to a spark session by setting **spark.plugins** configuration on spark session
+We can add our custom spark plugins to a spark session by setting **spark.plugins** configuration on spark session.
 
 {% highlight scala %}
 
 sparkSession.set(""spark.plugins","full package name of plugin")
 
 {% endhighlight %}
-
 
 
 ## References
