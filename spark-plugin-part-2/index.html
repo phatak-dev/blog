@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Fold in spark</title>
+    <title>Spark Plugin Framework in 3.0 - Part 2 : Anatomy of the API</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-rdd-fold">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-plugin-part-2">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,70 +45,93 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Fold in spark</h1>
-  <p class="meta">Jul 30, 2014</p>
+  <h1>Spark Plugin Framework in 3.0 - Part 2 : Anatomy of the API</h1>
+  <p class="meta">Apr 8, 2020</p>
   <div class="catagories">
     
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
     <a href="/categories/spark"><span class="category">spark</span></a>
+    
+    <a href="/categories/spark-three"><span class="category">spark-three</span></a>
+    
+    <a href="/categories/spark-plugin"><span class="category">spark-plugin</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>Fold is a very powerful operation in spark which allows you to calculate many important values in O(n) time. If you are familiar with Scala collection it will be like using fold operation on collection. Even if you not used fold in Scala, this post will make you comfortable in using fold.</p>
+  <p>Spark 3.0 brings a new plugin framework to spark. This plugin framework allows users to plugin custom code at the driver and workers. This will allow for advanced monitoring and custom metrics tracking. This set of API’s are going to help tune spark better than before.</p>
 
-<h3 id="syntax">Syntax</h3>
+<p>In this series of posts I will be discussing about the different aspects of plugin framework. This is the second post in the series, where we will understand the different API’s exposed in framework. You can read all the posts in the series <a href="/categories/spark-plugin">here</a>.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">fold</span><span class="o">[</span><span class="kt">T</span><span class="o">](</span><span class="n">acc</span><span class="k">:</span><span class="kt">T</span><span class="o">)((</span><span class="n">acc</span><span class="o">,</span><span class="n">value</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">acc</span><span class="o">)</span></code></pre></div>
+<h2 id="spark-plugin-interface">Spark Plugin Interface</h2>
 
-<p>The above is kind of high level view of fold api. It has following three things</p>
+<p>The top interface of the framework in SparkPlugin. It exposes below two methods</p>
 
-<ol>
-  <li>T is the data type of RDD</li>
-  <li>acc is accumulator of type T which will be return value of the fold operation</li>
-  <li>A function , which will be called for each element in rdd with previous accumulator.</li>
-</ol>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">driverPlugin</span><span class="o">()</span><span class="k">:</span> <span class="kt">DriverPlugin</span>
 
-<p>Let’s see some examples of fold</p>
+<span class="k">def</span> <span class="n">executorPlugin</span><span class="o">()</span><span class="k">:</span> <span class="kt">ExecutorPlugin</span></code></pre></div>
 
-<h3 id="finding-max-in-a-given-rdd">Finding max in a given RDD</h3>
+<p>From the name of methods, we can figure out that these are entry points to specify the driver and executor plugin. If user wants to implement only one, then they can return null in other method.</p>
 
-<p>Let’s first build a RDD</p>
+<h2 id="driverplugin-interface">DriverPlugin Interface</h2>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sparkContext</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkContext</span><span class="o">(</span><span class="s">"local"</span><span class="o">,</span> <span class="s">"functional"</span><span class="o">)</span>
- <span class="k">val</span> <span class="n">employeeData</span> <span class="k">=</span> <span class="nc">List</span><span class="o">((</span><span class="s">"Jack"</span><span class="o">,</span><span class="mf">1000.0</span><span class="o">),(</span><span class="s">"Bob"</span><span class="o">,</span><span class="mf">2000.0</span><span class="o">),(</span><span class="s">"Carl"</span><span class="o">,</span><span class="mf">7000.0</span><span class="o">))</span>
- <span class="k">val</span> <span class="n">employeeRDD</span> <span class="k">=</span> <span class="n">sparkContext</span><span class="o">.</span><span class="n">makeRDD</span><span class="o">(</span><span class="n">employeeData</span><span class="o">)</span></code></pre></div>
+<p>This is the interface for the driver side plugin. It has below methods. All are optional to override.</p>
 
-<p>Now we want to find an employee, with maximum salary. We can do that using fold.</p>
+<h3 id="init-method">Init Method</h3>
 
-<p>To use fold we need a start value. The following code defines a dummy employee as starting accumulator.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">init</span><span class="o">(</span><span class="n">sc</span><span class="k">:</span> <span class="kt">SparkContext</span><span class="o">,</span> <span class="n">pluginContext</span><span class="k">:</span> <span class="kt">PluginContext</span><span class="o">)</span><span class="k">:</span> <span class="kt">util.Map</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">]</span></code></pre></div>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">dummyEmployee</span> <span class="k">=</span> <span class="o">(</span><span class="s">"dummy"</span><span class="o">,</span><span class="mf">0.0</span><span class="o">);</span></code></pre></div>
+<p>This method is called at the beginning of driver initialisation. It has access to spark context and plugin context. The method returns a map which will be passed to executor plugin.</p>
 
-<p>Now using fold, we can find the employee with maximum salary.</p>
+<h3 id="registermetrics-method">RegisterMetrics Method</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">maxSalaryEmployee</span> <span class="k">=</span> <span class="n">employeeRDD</span><span class="o">.</span><span class="n">fold</span><span class="o">(</span><span class="n">dummyEmployee</span><span class="o">)((</span><span class="n">acc</span><span class="o">,</span><span class="n">employee</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">{</span> 
-<span class="k">if</span><span class="o">(</span><span class="n">acc</span><span class="o">.</span><span class="n">_2</span> <span class="o">&lt;</span> <span class="n">employee</span><span class="o">.</span><span class="n">_2</span><span class="o">)</span> <span class="n">employee</span> <span class="k">else</span> <span class="n">acc</span><span class="o">})</span>
-<span class="n">println</span><span class="o">(</span><span class="s">"employee with maximum salary is"</span><span class="o">+</span><span class="n">maxSalaryEmployee</span><span class="o">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">registerMetrics</span><span class="o">(</span><span class="n">appId</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">pluginContext</span><span class="k">:</span> <span class="kt">PluginContext</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span></code></pre></div>
 
-<h3 id="fold-by-key">Fold by key</h3>
-<p>In Map/Reduce key plays a role of grouping values. We can use foldByKey operation to aggregate values based on keys.</p>
+<p>This method is used for the tracking custom metrics in driver side.</p>
 
-<p>In this example, employees are grouped by department name. If you want to find the maximum salaries in a given department we can use following code.</p>
+<h3 id="receive-method">Receive Method</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">deptEmployees</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span>
-      <span class="o">(</span><span class="s">"cs"</span><span class="o">,(</span><span class="s">"jack"</span><span class="o">,</span><span class="mf">1000.0</span><span class="o">)),</span>
-      <span class="o">(</span><span class="s">"cs"</span><span class="o">,(</span><span class="s">"bron"</span><span class="o">,</span><span class="mf">1200.0</span><span class="o">)),</span>
-      <span class="o">(</span><span class="s">"phy"</span><span class="o">,(</span><span class="s">"sam"</span><span class="o">,</span><span class="mf">2200.0</span><span class="o">)),</span>
-      <span class="o">(</span><span class="s">"phy"</span><span class="o">,(</span><span class="s">"ronaldo"</span><span class="o">,</span><span class="mf">500.0</span><span class="o">))</span>
-    <span class="o">)</span>
-  <span class="k">val</span> <span class="n">employeeRDD</span> <span class="k">=</span> <span class="n">sparkContext</span><span class="o">.</span><span class="n">makeRDD</span><span class="o">(</span><span class="n">deptEmployees</span><span class="o">)</span>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">receive</span><span class="o">(</span><span class="n">message</span><span class="k">:</span> <span class="kt">scala.Any</span><span class="o">)</span><span class="k">:</span> <span class="kt">AnyRef</span></code></pre></div>
 
-  <span class="k">val</span> <span class="n">maxByDept</span> <span class="k">=</span> <span class="n">employeeRDD</span><span class="o">.</span><span class="n">foldByKey</span><span class="o">((</span><span class="s">"dummy"</span><span class="o">,</span><span class="mf">0.0</span><span class="o">))</span>
-  <span class="o">((</span><span class="n">acc</span><span class="o">,</span><span class="n">element</span><span class="o">)</span><span class="k">=&gt;</span> <span class="k">if</span><span class="o">(</span><span class="n">acc</span><span class="o">.</span><span class="n">_2</span> <span class="o">&gt;</span> <span class="n">element</span><span class="o">.</span><span class="n">_2</span><span class="o">)</span> <span class="n">acc</span> <span class="k">else</span> <span class="n">element</span><span class="o">)</span>
-  
-  <span class="n">println</span><span class="o">(</span><span class="s">"maximum salaries in each dept"</span> <span class="o">+</span> <span class="n">maxByDept</span><span class="o">.</span><span class="n">collect</span><span class="o">().</span><span class="n">toList</span><span class="o">)</span></code></pre></div>
+<p>This method is used for receiving RPC messages sent by the executors.</p>
 
+<h3 id="shutdown-method">Shutdown Method</h3>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">shutdown</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span></code></pre></div>
+
+<p>This method is called when driver getting shutdown.</p>
+
+<h2 id="executorplugin-interface">ExecutorPlugin Interface</h2>
+
+<p>The below are methods exposed in the executor plugin interface.</p>
+
+<h3 id="init-method-1">Init Method</h3>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">init</span><span class="o">(</span><span class="n">ctx</span><span class="k">:</span> <span class="kt">PluginContext</span><span class="o">,</span> <span class="n">extraConf</span><span class="k">:</span> <span class="kt">util.Map</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">])</span><span class="k">:</span><span class="kt">Unit</span></code></pre></div>
+
+<p>This method is called when an executor is started. <strong>extraConf</strong> are the parameters sent by driver.</p>
+
+<h3 id="shutdown-method-1">Shutdown Method</h3>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">shutdown</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span></code></pre></div>
+
+<p>This method is called when executor shutdown.</p>
+
+<h2 id="adding-spark-plugin">Adding Spark Plugin</h2>
+
+<p>We can add our custom spark plugins to a spark session by setting <strong>spark.plugins</strong> configuration on spark session.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">sparkSession</span><span class="o">.</span><span class="n">set</span><span class="o">(</span><span class="s">""</span><span class="n">spark</span><span class="o">.</span><span class="n">plugins</span><span class="s">","</span><span class="n">full</span> <span class="k">package</span> <span class="nn">name</span> <span class="n">of</span> <span class="n">plugin</span><span class="err">"</span><span class="o">)</span></code></pre></div>
+
+<h2 id="references">References</h2>
+
+<p><a href="https://issues.apache.org/jira/browse/SPARK-29397">https://issues.apache.org/jira/browse/SPARK-29397</a>.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Spark plugin framework brings a powerful customization to spark ecosystem. In this post, we discussed about different interfaces provided by the plugin framework.</p>
 
 </article>
 <div class="related">
@@ -116,12 +139,28 @@
   <ul>
     
              
+          
+
+            
     
     <li>    
-     <span class="post-date">08 Apr 2020</span>
-     &raquo; <a href="/spark-plugin-part-2">Spark Plugin Framework in 3.0 - Part 2 : Anatomy of the API</a>    
+     <span class="post-date">07 Apr 2020</span>
+     &raquo; <a href="/spark-plugin-part-1">Spark Plugin Framework in 3.0 - Part 1: Introduction</a>    
    </li>           
          
+
+            
+    
+    <li>    
+     <span class="post-date">06 Apr 2020</span>
+     &raquo; <a href="/spark-3-introduction-part-6">Introduction to Spark 3.0 - Part 6 : Min and Max By Functions</a>    
+   </li>           
+         
+
+   
+   
+             
+          
 
             
     
