@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Experiments with GraalVM - Part 2 : Polyglot JavaScript Hello World</title>
+    <title>Introduction to Spark 3.0 - Part 7 : Dynamic Allocation Without External Shuffle Service</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/graal-vm-part-2">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-3-introduction-part-7">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,70 +45,51 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Experiments with GraalVM - Part 2 : Polyglot JavaScript Hello World</h1>
-  <p class="meta">Mar 15, 2020</p>
+  <h1>Introduction to Spark 3.0 - Part 7 : Dynamic Allocation Without External Shuffle Service</h1>
+  <p class="meta">Apr 9, 2020</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
-    <a href="/categories/graal-vm"><span class="category">graal-vm</span></a>
+    <a href="/categories/spark"><span class="category">spark</span></a>
+    
+    <a href="/categories/spark-three"><span class="category">spark-three</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>GraalVM is a new open source project by Oracle which is trying to make Java VM an universal VM to run all the major languages. Before GraalVM, there were already few languages like Scala, Closure which targeted JVM as their runtime. This has been hugely successful for those languages. GraalVM takes this idea further and makes it easy to target JVM so that many more languages can coexist on JVM.</p>
+  <p>Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.</p>
 
-<p>GraalVM is around from 2014 as a research project. It’s been used in production by Twitter from 2017. But for general public, it became production ready in latter half of 2019.</p>
+<p>This is the seventh post in the series where I am going to talk about improvements in dynamic allocation. You can access all posts in this series <a href="/categories/spark-three">here</a>.</p>
 
-<p>In this series posts, I will be exploring what GraalVM can bring to JVM ecosystem. This is the second post in the series which starts exploring polyglot aspect of graalvm. You can read all the posts in the series <a href="/categories/graal-vm">here</a>.</p>
+<p>TL;DR All code examples are available on <a href="https://github.com/phatak-dev/spark-2.0-examples">github</a>.</p>
 
-<h2 id="polyglot-vm">Polyglot VM</h2>
+<h2 id="dynamic-allocation-and-external-shuffle-service">Dynamic Allocation and External Shuffle Service</h2>
 
-<p>One of the main advantages of GraalVM is the ability to mix and match multiple languages in same VM. From last post, we have seen that all languages running on the Graal go through same compiler. This makes using multiple languages in same VM much smoother.</p>
+<p>In spark 2.x, if the user wants to use dynamic allocation of executors, then external shuffle service was a pre requisite. This pre requisite was needed as the spark needed to make sure that the removal of the executors doesn’t remove shuffle data. Having an external shuffle service make sure that all the data is stored outside of executors.</p>
 
-<p>In this post, I will be showing how to setup an environment where we can mix Scala with JavaScript.</p>
+<h2 id="challenges-with-external-shuffle-service">Challenges with External Shuffle Service</h2>
 
-<h2 id="dependencies">Dependencies</h2>
+<p>External shuffle service is implemented differently for different deployments like Standalone, YARN etc. So whenever there is new deployment option like kubernetes, then the shuffle service needs to implemented to support dynamic allocation.</p>
 
-<p>To run, graalvm and truffle, we need to add below dependencies in our build.sbt. We need to run it on JDK 8.</p>
+<p>Also having separate storage for external shuffle service is not attractive in dynamic clusters like kubernetes. So there was need for an improvement here.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="s">"org.graalvm.sdk"</span> <span class="o">%</span> <span class="s">"graal-sdk"</span> <span class="o">%</span> <span class="s">"20.0.0"</span><span class="o">,</span>
-<span class="s">"org.graalvm.truffle"</span> <span class="o">%</span> <span class="s">"truffle-api"</span> <span class="o">%</span> <span class="s">"20.0.0"</span></code></pre></div>
+<h2 id="dynamic-allocation-improvement-in-30">Dynamic Allocation Improvement in 3.0</h2>
 
-<p>Here we are adding graal and truffle dependencies.</p>
+<p>In 3.0, spark has introduced a beta feature where dynamic allocation can be run without external shuffle service. This is achieved by adding intelligence within spark dynamic scaler to track the location of shuffle data and removing executors accordingly. This feature can be enabled using <strong>spark.dynamicAllocation.shuffleTracking.enabled</strong>.</p>
 
-<p>Since we want to use JavaScript, we need to add the dependency from it’s truffle implementation.</p>
+<h2 id="example">Example</h2>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="s">"org.graalvm.js"</span> <span class="o">%</span> <span class="s">"js"</span> <span class="o">%</span> <span class="s">"20.0.0"</span><span class="o">,</span></code></pre></div>
-<p>.</p>
+<p>The below is a command where we are running spark PI examples in dynamic allocation mode without an external shuffle service.</p>
 
-<h2 id="javascript-hello-world">JavaScript Hello World</h2>
+<div class="highlight"><pre><code class="language-sh" data-lang="sh">bin/spark-submit <span class="nt">--class</span> org.apache.spark.examples.SparkPi <span class="nt">--master</span> spark://localhost:7077  <span class="nt">--executor-memory</span> 2G <span class="nt">--num-executors</span> 1  <span class="nt">--conf</span> spark.dynamicAllocation.maxExecutors<span class="o">=</span>3 <span class="nt">--conf</span> spark.executor.cores<span class="o">=</span>1  <span class="nt">--conf</span> spark.dynamicAllocation.enabled<span class="o">=</span><span class="nb">true</span> <span class="nt">--conf</span> spark.dynamicAllocation.shuffleTracking.enabled<span class="o">=</span><span class="nb">true </span>examples/jars/spark-examples_2.12-3.0.0-preview2.jar 10000</code></pre></div>
 
-<p>Once all the dependencies are done, we are ready to write our first polyglot example. As programming tradition, we will be starting with hello world.</p>
+<p>From the above command, you can observe that <strong>spark.dynamicAllocation.shuffleTracking.enable</strong> is set and no external shuffle service is set.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">polyglot</span> <span class="k">=</span> <span class="nc">Context</span><span class="o">.</span><span class="n">create</span><span class="o">()</span>
-<span class="n">polyglot</span><span class="o">.</span><span class="n">eval</span><span class="o">(</span><span class="s">"js"</span><span class="o">,</span><span class="s">"print('hello world from javascript')"</span><span class="o">)</span></code></pre></div>
+<h2 id="references">References</h2>
 
-<p>In just two lines, we wrote a JS application within Java!!. Let’s see it’s parts</p>
-
-<h3 id="polyglot-context">Polyglot Context</h3>
-
-<p>For any language, we need to create a context. This context allows us to configure all the needed properties of that language. Here we are creating a simple context.</p>
-
-<h3 id="eval-function">Eval Function</h3>
-
-<p>Eval function on context takes a language source code and evaluates it. It’s as simple as that.</p>
-
-<p>Now we have written our first polyglot program on GraalVM.</p>
-
-<h2 id="code">Code</h2>
-
-<p>You can access complete code on <a href="https://github.com/phatak-dev/GraalVMExperiments/blob/master/src/main/scala/com/madhukaraphatak/graalvm/JsHelloWorld.scala">github</a>.</p>
-
-<h2 id="conclusion">Conclusion</h2>
-
-<p>Polyglot nature of GraalVM makes it very attractive to mix and match different languages on same VM. In this post we saw how to write simple JavaScript Hello World using GraalVM polyglot API.</p>
+<p><a href="https://issues.apache.org/jira/browse/SPARK-27963">https://issues.apache.org/jira/browse/SPARK-27963</a>.</p>
 
 </article>
 <div class="related">
@@ -116,12 +97,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">09 Apr 2020</span>
-     &raquo; <a href="/spark-3-introduction-part-7">Introduction to Spark 3.0 - Part 7 : Dynamic Allocation Without External Shuffle Service</a>    
-   </li>           
-         
+          
 
             
     
@@ -142,26 +118,21 @@
    
    
              
+          
+
+            
     
     <li>    
-     <span class="post-date">19 Mar 2020</span>
-     &raquo; <a href="/spark-in-javascript">Writing Apache Spark Programs in JavaScript</a>    
+     <span class="post-date">08 Apr 2020</span>
+     &raquo; <a href="/spark-plugin-part-2">Spark Plugin Framework in 3.0 - Part 2 : Anatomy of the API</a>    
    </li>           
          
 
             
     
     <li>    
-     <span class="post-date">18 Mar 2020</span>
-     &raquo; <a href="/graal-vm-part-5">Experiments with GraalVM - Part 5 :Passing Scala Object to JavaScript</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">17 Mar 2020</span>
-     &raquo; <a href="/graal-vm-part-4">Experiments with GraalVM - Part 4 : JavaScript Object to Case Class</a>    
+     <span class="post-date">07 Apr 2020</span>
+     &raquo; <a href="/spark-plugin-part-1">Spark Plugin Framework in 3.0 - Part 1: Introduction</a>    
    </li>           
          
 
