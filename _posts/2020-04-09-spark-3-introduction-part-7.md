@@ -8,7 +8,7 @@ Spark 3.0 is the next major release of Apache Spark. This release brings major c
 
 This is the seventh post in the series where I am going to talk about improvements in dynamic allocation. You can access all posts in this series [here](/categories/spark-three).
 
-TL;DR All code examples are available on [github](https://github.com/phatak-dev/spark-2.0-examples).
+TL;DR All code examples are available on [github](https://github.com/phatak-dev/spark-3.0-examples).
 
 
 ## Dynamic Allocation and External Shuffle Service
