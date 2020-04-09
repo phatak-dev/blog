@@ -12,7 +12,7 @@
 
 &lt;p&gt;This is the seventh post in the series where I am going to talk about improvements in dynamic allocation. You can access all posts in this series &lt;a href=&quot;/categories/spark-three&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
-&lt;p&gt;TL;DR All code examples are available on &lt;a href=&quot;https://github.com/phatak-dev/spark-2.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;TL;DR All code examples are available on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
 
 &lt;h2 id=&quot;dynamic-allocation-and-external-shuffle-service&quot;&gt;Dynamic Allocation and External Shuffle Service&lt;/h2&gt;
 
