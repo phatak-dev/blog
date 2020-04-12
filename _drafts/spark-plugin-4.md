@@ -155,6 +155,12 @@ plugin.com.madhukaraphatak.spark.core.plugins.custommetrics
 
 Now our custom metric is flowing as part of the spark metrics system.
 
+## References
+
+[https://issues.apache.org/jira/browse/SPARK-24918](https://issues.apache.org/jira/browse/SPARK-24918)
+
+[https://github.com/cerndb/SparkPlugins](https://github.com/cerndb/SparkPlugins)
+
 ## Conclusion
 
 Spark plugin framework brings a powerful customization to spark ecosystem. In this post, we discussed how to use executor plugin to implement custom metrics for our programs.
