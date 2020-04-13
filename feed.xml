@@ -7,6 +7,138 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Spark Plugin Framework in 3.0 - Part 4 : Custom Metrics</title>
+        <description>&lt;p&gt;Spark 3.0 brings a new plugin framework to spark. This plugin framework allows users to plugin custom code at the driver and workers. This will allow for advanced monitoring and custom metrics tracking. This set of API’s are going to help tune spark better than before.&lt;/p&gt;
+
+&lt;p&gt;In this series of posts I will be discussing about the different aspects of plugin framework. This is the fourth post in the series, where we will discuss about how to implement the customer metrics. You can read all the posts in the series &lt;a href=&quot;/categories/spark-plugin&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;need-for-custom-metrics&quot;&gt;Need For Custom Metrics&lt;/h2&gt;
+
+&lt;p&gt;Spark exposes wide variety of metrics for external consumption. These metrics include things like resource usage, scheduling delay, executor time etc. These metrics can be consumed using wide variety of sinks for further analysis. You can read about built-in metrics &lt;a href=&quot;https://spark.apache.org/docs/latest/monitoring.html#executor-task-metrics&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Even though these metrics are very useful, there are cases where you want to track your own metrics. These metrics may be amount of time a given condition is met or may be amount of data written to specific source. This kind of custom application specific metrics allow developers to optimise things specific to their applications.&lt;/p&gt;
+
+&lt;p&gt;Till spark 2.x, developers needed to build their own infrastructure to track these custom metrics. They were not able to reuse the spark metrics infrastructure for the custom metrics. But in 3.0 it’s going to change.&lt;/p&gt;
+
+&lt;h2 id=&quot;custom-metrics-support-in-30&quot;&gt;Custom Metrics Support in 3.0&lt;/h2&gt;
+
+&lt;p&gt;Spark added supported for tracking custom metrics using plugin framework from 3.0. Using custom plugin, we can track our own metrics and plug it into the spark metrics system.&lt;/p&gt;
+
+&lt;p&gt;The rest of post talks about how to define and consume custom metrics&lt;/p&gt;
+
+&lt;h2 id=&quot;even-number-custom-metrics&quot;&gt;Even Number Custom Metrics&lt;/h2&gt;
+
+&lt;p&gt;Let’s say we have a dataframe which contains number from 0 to 5000. We can create Dataframe as below.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5000&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;repartition&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;As operation we want to increment the each of the value by 1. In doing so, we also like to keep track how many even numbers are processed by the each executor. This tracking will be our custom metrics called &lt;strong&gt;even number metrics&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;custom-executor-plugin-for-custom-metrics&quot;&gt;Custom Executor Plugin for Custom Metrics&lt;/h2&gt;
+
+&lt;p&gt;To track the above metrics, we need to run code in each executor spark spawns. Executor plugin will be helpful here.&lt;/p&gt;
+
+&lt;p&gt;The below are the steps for the same.&lt;/p&gt;
+
+&lt;h3 id=&quot;defining-a-custom-spark-plugin&quot;&gt;Defining a Custom Spark Plugin&lt;/h3&gt;
+
+&lt;p&gt;In below code we define the custom spark plugin.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CustomMetricSparkPlugin&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SparkPlugin&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;return-empty-driver-plugin&quot;&gt;Return Empty Driver Plugin&lt;/h3&gt;
+
+&lt;p&gt;For this use case, we don’t need a driver plugin so we return null for the same.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;driverPlugin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;DriverPlugin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;define-singleton-atomic-value-to-track-metric&quot;&gt;Define Singleton Atomic Value to Track Metric&lt;/h3&gt;
+
+&lt;p&gt;We use a simple singleton in plugin code to track the latest value of the metric&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CustomMetricSparkPlugin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Counter&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We define a counter which keeps our metric latest value. Counter is one of kind of metric type supported by spark. There are others also. You can read more about there &lt;a href=&quot;https://metrics.dropwizard.io/3.1.0/getting-started/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;There will one copy of this plugin for each executor spark runs.&lt;/p&gt;
+
+&lt;h3 id=&quot;define-executor-plugin&quot;&gt;Define Executor Plugin&lt;/h3&gt;
+
+&lt;p&gt;The below code defines a executor plugin and sets up custom metrics&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;executorPlugin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;ExecutorPlugin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ExecutorPlugin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+   &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;init&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PluginContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;extraConf&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;util.Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;])&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Unit&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;metricRegistry&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;metricRegistry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;metricRegistry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;register&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;evenMetrics&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;CustomMetricSparkPlugin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+   &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above code, we register a metrics using &lt;strong&gt;register&lt;/strong&gt; method on MetricRegistery. We give a name called &lt;strong&gt;evenMetrics&lt;/strong&gt;. The value of metric will take from the counter defined above. This counter will be polled for every 1s by default.&lt;/p&gt;
+
+&lt;h2 id=&quot;using-custom-metrics-from-code&quot;&gt;Using Custom Metrics From Code&lt;/h2&gt;
+
+&lt;p&gt;Once we setup the executor plugin and the metrics, we need to update the same from our code.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;incrementedDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mapPartitions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iterator&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;evenCount&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;incrementedIterator&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;iterator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;evenCount&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;evenCount&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;}).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toIterator&lt;/span&gt;
+      &lt;span class=&quot;nc&quot;&gt;CustomMetricSparkPlugin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;inc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;evenCount&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;incrementedIterator&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;})&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above code, we are running our increment operation and also updating the metric value using &lt;strong&gt;inc&lt;/strong&gt; operator. Also note that, we are going over data only once for both operation and metric calculation.&lt;/p&gt;
+
+&lt;h2 id=&quot;setting-up-sink&quot;&gt;Setting Up Sink&lt;/h2&gt;
+
+&lt;p&gt;To consume the metrics in spark, we need to specify it’s settings in &lt;strong&gt;metrics.properties&lt;/strong&gt; file. The below code shows sample of the same.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-txt&quot; data-lang=&quot;txt&quot;&gt;*.sink.console.class=org.apache.spark.metrics.sink.ConsoleSink&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above line, we specify our sink as console which means we want to print the metrics to console.&lt;/p&gt;
+
+&lt;h2 id=&quot;passing-metrics-file-in-spark-session&quot;&gt;Passing Metrics File in Spark Session&lt;/h2&gt;
+
+&lt;p&gt;We need to specify the path of metrics files using &lt;strong&gt;spark.metrics.conf&lt;/strong&gt; property. We can set the property as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;spark.metrics.conf&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;src/main/resources/metrics.properties&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples/tree/master/src/main/scala/com/madhukaraphatak/spark/core/plugins/custommetrics&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;output&quot;&gt;Output&lt;/h2&gt;
+
+&lt;p&gt;When you run the above example, you will observe the custom metrics with other spark metrics like as below&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;plugin.com.madhukaraphatak.spark.core.plugins.custommetrics
+                       .CustomMetricSparkPlugin.evenMetrics
+             count = 2500&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;As we are running on local, there is only one executor. That’s why all the even numbers are coming to single executor. But if you run the same code on cluster, you will see different numbers in different executors.&lt;/p&gt;
+
+&lt;p&gt;Now our custom metric is flowing as part of the spark metrics system.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-24918&quot;&gt;https://issues.apache.org/jira/browse/SPARK-24918&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/cerndb/SparkPlugins&quot;&gt;https://github.com/cerndb/SparkPlugins&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Spark plugin framework brings a powerful customization to spark ecosystem. In this post, we discussed how to use executor plugin to implement custom metrics for our programs.&lt;/p&gt;
+</description>
+        <pubDate>Mon, 13 Apr 2020 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/spark-plugin-part-4</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-plugin-part-4</guid>
+      </item>
+    
+      <item>
         <title>Spark Plugin Framework in 3.0 - Part 3 : Dynamic Stream Configuration using Driver Plugin</title>
         <description>&lt;p&gt;Spark 3.0 brings a new plugin framework to spark. This plugin framework allows users to plugin custom code at the driver and workers. This will allow for advanced monitoring and custom metrics tracking. This set of API’s are going to help tune spark better than before.&lt;/p&gt;
 
@@ -744,52 +876,6 @@ test recall for 1.0 is 0.8910256410256411&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
         <pubDate>Tue, 31 Mar 2020 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/spark-3-introduction-part-3</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-3-introduction-part-3</guid>
-      </item>
-    
-      <item>
-        <title>Introduction to Spark 3.0 - Part 2 : Multiple Column Feature Transformations in Spark ML</title>
-        <description>&lt;p&gt;Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.&lt;/p&gt;
-
-&lt;p&gt;This is the second  post in the series where I am going to talk about multiple column feature transformation in Spark ML. You can access all posts in this series &lt;a href=&quot;/categories/spark-three&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;TL;DR All code examples are available on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;multiple-column-feature-transformation-in-spark-23&quot;&gt;Multiple Column Feature Transformation in Spark 2.3&lt;/h2&gt;
-
-&lt;p&gt;Spark introduced multiple column support for Spark ML transformations in 2.3. But that time it was only limited for few transformations. You can read about the same &lt;a href=&quot;/multi-column-feature-transformation-spark-ml&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;multiple-column-feature-transformation-in-spark-30&quot;&gt;Multiple Column Feature Transformation in Spark 3.0&lt;/h2&gt;
-
-&lt;p&gt;From Spark 3.0, all the Spark ML transformation going to be supporting multiple columns. One of those important transformation is &lt;strong&gt;StringIndexer&lt;/strong&gt; which was not supported before.&lt;/p&gt;
-
-&lt;p&gt;The below code shows how to use the same&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;inputColumns&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;workclass&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;education&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;outputColumns&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;workclass_indexed&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;education_indexed&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stringIndexer&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StringIndexer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;stringIndexer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setInputCols&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;inputColumns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;stringIndexer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setOutputCols&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;outputColumns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;String indexer now exposes new methods like &lt;strong&gt;setInputCols&lt;/strong&gt; and &lt;strong&gt;setOutputCols&lt;/strong&gt; additional to single column counter parts. This allows spark developer to run string indexing on multiple columns together.&lt;/p&gt;
-
-&lt;h2 id=&quot;performance&quot;&gt;Performance&lt;/h2&gt;
-
-&lt;p&gt;Having support for multiple column support in all the transformations bring a huge improvement for the datasets with lot of columns.&lt;/p&gt;
-
-&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/ml/MultiColumnTransformer.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-11215&quot;&gt;https://issues.apache.org/jira/browse/SPARK-11215&lt;/a&gt;.&lt;/p&gt;
-
-</description>
-        <pubDate>Mon, 30 Mar 2020 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-3-introduction-part-2</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-3-introduction-part-2</guid>
       </item>
     
   </channel>
