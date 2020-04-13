@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Spark Plugin Framework in 3.0 - Part 4 : Custom Metrics"
-date : 2020-04-12
+date : 2020-04-13
 categories: scala spark spark-three spark-plugin
 ---
 Spark 3.0 brings a new plugin framework to spark. This plugin framework allows users to plugin custom code at the driver and workers. This will allow for advanced monitoring and custom metrics tracking. This set of API's are going to help tune spark better than before.
@@ -11,38 +11,40 @@ In this series of posts I will be discussing about the different aspects of plug
 
 ## Need For Custom Metrics
 
-Spark exposes wide variety of metrics for external consumption. The metrics include resource usage, scheduling delay, executor time etc. These metrics can be consumed using wide variety of sinks to further analysis. You can read about builtin metrics [here](https://spark.apache.org/docs/latest/monitoring.html#executor-task-metrics).
+Spark exposes wide variety of metrics for external consumption. These metrics include things like resource usage, scheduling delay, executor time etc. These metrics can be consumed using wide variety of sinks for further analysis. You can read about built-in metrics [here](https://spark.apache.org/docs/latest/monitoring.html#executor-task-metrics).
 
-Even though these metrics are good, there are cases where you want to track your own metrics. These metrics may be amount of time a given condition is met or may be amount of data written to specific source. This kind of custom application specific metrics allow developers to optimise things specific to their applications.
+Even though these metrics are very useful, there are cases where you want to track your own metrics. These metrics may be amount of time a given condition is met or may be amount of data written to specific source. This kind of custom application specific metrics allow developers to optimise things specific to their applications.
 
-Till spark 2.x, developers needed to build their own infrastructure to track custom metrics. They were not able to reuse the spark metrics infrastructure for the customm metrics. But 3.0 it's going to change.
+Till spark 2.x, developers needed to build their own infrastructure to track these custom metrics. They were not able to reuse the spark metrics infrastructure for the custom metrics. But in 3.0 it's going to change.
 
 
 ## Custom Metrics Support in 3.0
 
-Spark added supported for tracking custom metrics using plugin framework from 3.0. Using custom plugins, we can track our own metrics and plug it into the spark metricssystem.
+Spark added supported for tracking custom metrics using plugin framework from 3.0. Using custom plugin, we can track our own metrics and plug it into the spark metrics system.
 
 The rest of post talks about how to define and consume custom metrics 
 
 ## Even Number Custom Metrics
 
-Let's say we have a dataframe which contains number from 0 to 5000. We can create define Dataframe as below.
+Let's say we have a dataframe which contains number from 0 to 5000. We can create Dataframe as below.
 
 {% highlight scala %}
  val df = sparkSession.range(5000).repartition(5)
 
 {% endhighlight %}
 
-As operation we want to increment the each of the value by 1. In doing so, we also like to keep track how many even numbers are processed by the each executor. This tracking will be our **even number metrics**.
+As operation we want to increment the each of the value by 1. In doing so, we also like to keep track how many even numbers are processed by the each executor. This tracking will be our custom metrics called **even number metrics**.
 
 
 ## Custom Executor Plugin for Custom Metrics
 
-This section of the post discusses about creating a executor plugin to track of custom metrics.
+To track the above metrics, we need to run code in each executor spark spawns. Executor plugin will be helpful here.
+
+The below are the steps for the same.
 
 ### Defining a Custom Spark Plugin
 
-Below Code we define the custom spark plugin.
+In below code we define the custom spark plugin.
 
 {% highlight scala %}
 
@@ -72,7 +74,9 @@ object CustomMetricSparkPlugin {
 
 {% endhighlight %}
 
-We define a counter which keeps our metric latest value. There will one copy of this plugin for each executor spark runs.
+We define a counter which keeps our metric latest value. Counter is one of kind of metric type supported by spark. There are others also. You can read more about there [here](https://metrics.dropwizard.io/3.1.0/getting-started/).
+
+There will one copy of this plugin for each executor spark runs. 
 
 ### Define Executor Plugin
 
@@ -89,7 +93,7 @@ override def executorPlugin(): ExecutorPlugin = new ExecutorPlugin {
 
 {% endhighlight %} 
 
-In above code, we register a metrics using **register** method on MetricRegistery. We give a name called **evenMetrics**.
+In above code, we register a metrics using **register** method on MetricRegistery. We give a name called **evenMetrics**. The value of metric will take from the counter defined above. This counter will be polled for every 1s by default.
 
 
 ## Using Custom Metrics From Code
@@ -115,7 +119,7 @@ In above code, we are running our increment operation and also updating the metr
 
 ## Setting Up Sink
 
-To cosume the metrics in spark, we need to specify it's settings in **metrics.properties** file. The below code shows sample of the same.
+To consume the metrics in spark, we need to specify it's settings in **metrics.properties** file. The below code shows sample of the same.
 
 {% highlight txt %}
 
@@ -123,7 +127,7 @@ To cosume the metrics in spark, we need to specify it's settings in **metrics.pr
 
 {% endhighlight %}
 
-In above line, we specify our sink as console. Which means we want to print the metrics to console.
+In above line, we specify our sink as console which means we want to print the metrics to console.
 
 
 ## Passing Metrics File in Spark Session
@@ -152,6 +156,8 @@ plugin.com.madhukaraphatak.spark.core.plugins.custommetrics
              count = 2500
 
 {% endhighlight %}
+
+As we are running on local, there is only one executor. That's why all the even numbers are coming to single executor. But if you run the same code on cluster, you will see different numbers in different executors.
 
 Now our custom metric is flowing as part of the spark metrics system.
 
