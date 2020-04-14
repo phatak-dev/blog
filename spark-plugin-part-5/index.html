@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Spark Plugin Framework in 3.0 - Part 2 : Anatomy of the API</title>
+    <title>Spark Plugin Framework in 3.0 - Part 5: RPC Communication</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-plugin-part-2">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-plugin-part-5">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,8 +45,8 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Spark Plugin Framework in 3.0 - Part 2 : Anatomy of the API</h1>
-  <p class="meta">Apr 8, 2020</p>
+  <h1>Spark Plugin Framework in 3.0 - Part 5: RPC Communication</h1>
+  <p class="meta">Apr 14, 2020</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
@@ -63,75 +63,85 @@
 <article class="post-content">
   <p>Spark 3.0 brings a new plugin framework to spark. This plugin framework allows users to plugin custom code at the driver and workers. This will allow for advanced monitoring and custom metrics tracking. This set of API’s are going to help tune spark better than before.</p>
 
-<p>In this series of posts I will be discussing about the different aspects of plugin framework. This is the second post in the series, where we will understand the different API’s exposed in framework. You can read all the posts in the series <a href="/categories/spark-plugin">here</a>.</p>
+<p>In this series of posts I will be discussing about the different aspects of plugin framework. This is the fifth post in the series, where we will discuss about rpc communication. You can read all the posts in the series <a href="/categories/spark-plugin">here</a>.</p>
 
-<h2 id="spark-plugin-interface">Spark Plugin Interface</h2>
+<h2 id="rpc-communication">RPC Communication</h2>
 
-<p>The top interface of the framework in SparkPlugin. It exposes below two methods</p>
+<p>Spark plugin framework allows driver and executor plugin to communicate to each using RPC messages. This facility is useful to send status or ask details from the driver for some initialisation of the configuration.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">driverPlugin</span><span class="o">()</span><span class="k">:</span> <span class="kt">DriverPlugin</span>
+<p>In this post, we will discuss about how to use the RPC communication of the plugin framework.</p>
 
-<span class="k">def</span> <span class="n">executorPlugin</span><span class="o">()</span><span class="k">:</span> <span class="kt">ExecutorPlugin</span></code></pre></div>
+<h2 id="types-of-communication">Types of Communication</h2>
 
-<p>From the name of methods, we can figure out that these are entry points to specify the driver and executor plugin. If user wants to implement only one, then they can return null in other method.</p>
+<p>RPC framework allows two types of communication. One is synchronous, where executor sends a message and waits for response. Another one is asynchronous where the executor follows fire and forget. Currently only executor plugin can initiate the communication.</p>
 
-<h2 id="driverplugin-interface">DriverPlugin Interface</h2>
+<h2 id="synchronous-message-passing">Synchronous Message Passing</h2>
 
-<p>This is the interface for the driver side plugin. It has below methods. All are optional to override.</p>
+<p>This section of the post discusses about how the synchronous communication works.</p>
 
-<h3 id="init-method">Init Method</h3>
+<h3 id="define-messages">Define Messages</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">init</span><span class="o">(</span><span class="n">sc</span><span class="k">:</span> <span class="kt">SparkContext</span><span class="o">,</span> <span class="n">pluginContext</span><span class="k">:</span> <span class="kt">PluginContext</span><span class="o">)</span><span class="k">:</span> <span class="kt">util.Map</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">]</span></code></pre></div>
+<p>The below code defines the two messages. One request and one response</p>
 
-<p>This method is called at the beginning of driver initialisation. It has access to spark context and plugin context. The method returns a map which will be passed to executor plugin.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">case</span> <span class="k">object</span> <span class="nc">InitialConfigRequest</span> <span class="k">extends</span>  <span class="nc">Serializable</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">InitialConfigResponse</span><span class="o">(</span><span class="n">value</span><span class="k">:</span><span class="kt">Int</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Serializable</span></code></pre></div>
 
-<h3 id="registermetrics-method">RegisterMetrics Method</h3>
+<p>All messages need to implement the <strong>Serializable</strong>.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">registerMetrics</span><span class="o">(</span><span class="n">appId</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">pluginContext</span><span class="k">:</span> <span class="kt">PluginContext</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span></code></pre></div>
+<h3 id="sending-message-from-executor-plugin">Sending Message from Executor Plugin</h3>
 
-<p>This method is used for the tracking custom metrics in driver side.</p>
+<p>The below code shows how to send a message from executor plugin</p>
 
-<h3 id="receive-method">Receive Method</h3>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">override</span> <span class="k">def</span> <span class="n">executorPlugin</span><span class="o">()</span><span class="k">:</span> <span class="kt">ExecutorPlugin</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ExecutorPlugin</span> <span class="o">{</span>
+    <span class="k">var</span> <span class="n">pluginContext</span><span class="k">:</span><span class="kt">PluginContext</span> <span class="o">=</span> <span class="kc">null</span>
+    <span class="k">var</span> <span class="n">initialConfiguration</span><span class="k">:</span><span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">receive</span><span class="o">(</span><span class="n">message</span><span class="k">:</span> <span class="kt">scala.Any</span><span class="o">)</span><span class="k">:</span> <span class="kt">AnyRef</span></code></pre></div>
+    <span class="k">override</span> <span class="k">def</span> <span class="n">init</span><span class="o">(</span><span class="n">ctx</span><span class="k">:</span> <span class="kt">PluginContext</span><span class="o">,</span> <span class="n">extraConf</span><span class="k">:</span> <span class="kt">util.Map</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">])</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+      <span class="n">pluginContext</span> <span class="k">=</span> <span class="n">ctx</span>
+      <span class="n">initialConfiguration</span> <span class="k">=</span> <span class="n">pluginContext</span><span class="o">.</span><span class="n">ask</span><span class="o">(</span><span class="nc">InitialConfigRequest</span><span class="o">)</span>
+             <span class="o">.</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">InitialConfigResponse</span><span class="o">].</span><span class="n">value</span>
+      <span class="n">println</span><span class="o">(</span><span class="s">"the initial configuration is "</span> <span class="o">+</span> <span class="n">initialConfiguration</span><span class="o">)</span>
+    <span class="o">}</span></code></pre></div>
 
-<p>This method is used for receiving RPC messages sent by the executors.</p>
+<p>In above code, we are using <strong>pluginContext.ask</strong> method to send a message. The return value will be stored as the configuration. As the name suggest, <strong>ask</strong> is a synchronous API.</p>
 
-<h3 id="shutdown-method">Shutdown Method</h3>
+<h3 id="handling-messages-in-driver-plugin">Handling Messages in Driver Plugin</h3>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">shutdown</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span></code></pre></div>
+<p>The below code shows to how to handle these messages in driver plugin</p>
 
-<p>This method is called when driver getting shutdown.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">override</span> <span class="k">def</span> <span class="n">driverPlugin</span><span class="o">()</span><span class="k">:</span> <span class="kt">DriverPlugin</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">DriverPlugin</span> <span class="o">{</span>
+   <span class="k">override</span> <span class="k">def</span> <span class="n">receive</span><span class="o">(</span><span class="n">message</span><span class="k">:</span> <span class="kt">scala.Any</span><span class="o">)</span><span class="k">:</span> <span class="kt">AnyRef</span> <span class="o">=</span> <span class="o">{</span>
+     <span class="n">message</span> <span class="k">match</span> <span class="o">{</span>
+       <span class="k">case</span> <span class="nc">InitialConfigRequest</span> <span class="k">=&gt;</span> <span class="nc">InitialConfigResponse</span><span class="o">(</span><span class="mi">10</span><span class="o">)</span></code></pre></div>
 
-<h2 id="executorplugin-interface">ExecutorPlugin Interface</h2>
+<p>In driver plugin, we override <strong>receive</strong> method to receive the message. Then using pattern matching we respond to different messages. In this code, we are responding to the initial configuration message.</p>
 
-<p>The below are methods exposed in the executor plugin interface.</p>
+<h2 id="asynchronous-messaging">Asynchronous Messaging</h2>
 
-<h3 id="init-method-1">Init Method</h3>
+<p>In the last section we looked at how to do synchronous messaging. In this section, we will discuss about how to do the asynchronous ones.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">init</span><span class="o">(</span><span class="n">ctx</span><span class="k">:</span> <span class="kt">PluginContext</span><span class="o">,</span> <span class="n">extraConf</span><span class="k">:</span> <span class="kt">util.Map</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">])</span><span class="k">:</span><span class="kt">Unit</span></code></pre></div>
+<h3 id="send-method">Send Method</h3>
 
-<p>This method is called when an executor is started. <strong>extraConf</strong> are the parameters sent by driver.</p>
+<p>We will use <strong>send</strong> method rather than ask in executor plugin to send the message.</p>
 
-<h3 id="shutdown-method-1">Shutdown Method</h3>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">rpcMessage</span> <span class="k">=</span> <span class="nc">FinalValueResponse</span><span class="o">(</span><span class="mi">10</span> <span class="o">*</span> <span class="n">initialConfiguration</span><span class="o">)</span>
+<span class="n">pluginContext</span><span class="o">.</span><span class="n">send</span><span class="o">(</span><span class="n">rpcMessage</span><span class="o">)</span></code></pre></div>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">def</span> <span class="n">shutdown</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span></code></pre></div>
+<p>As we can see from the code, we are not waiting for results.</p>
 
-<p>This method is called when executor shutdown.</p>
+<h3 id="handling-messages-in-driver-plugin-1">Handling Messages in Driver Plugin</h3>
 
-<h2 id="adding-spark-plugin">Adding Spark Plugin</h2>
+<p>Handling messages in driver remains same. Rather than returning value, we return <strong>Unit</strong> to signify that there is no return value</p>
 
-<p>We can add our custom spark plugins to a spark session by setting <strong>spark.plugins</strong> configuration on spark session.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">case</span> <span class="nc">FinalValueResponse</span><span class="o">(</span><span class="n">value</span><span class="o">)</span>  <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">"the final value is "</span><span class="o">+</span> <span class="n">value</span><span class="o">);</span> <span class="nc">Unit</span></code></pre></div>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">sparkSession</span><span class="o">.</span><span class="n">set</span><span class="o">(</span><span class="s">""</span><span class="n">spark</span><span class="o">.</span><span class="n">plugins</span><span class="s">","</span><span class="n">full</span> <span class="k">package</span> <span class="nn">name</span> <span class="n">of</span> <span class="n">plugin</span><span class="err">"</span><span class="o">)</span></code></pre></div>
+<h2 id="code">Code</h2>
 
-<h2 id="references">References</h2>
-
-<p><a href="https://issues.apache.org/jira/browse/SPARK-29397">https://issues.apache.org/jira/browse/SPARK-29397</a>.</p>
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-3.0-examples/tree/master/src/main/scala/com/madhukaraphatak/spark/core/plugins/rpccommunication">github</a>.</p>
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>Spark plugin framework brings a powerful customization to spark ecosystem. In this post, we discussed about different interfaces provided by the plugin framework.</p>
+<p>Spark plugin framework brings a powerful customization to spark ecosystem. In this post, we discussed how to do communication between driver and executor plugins.</p>
 
 </article>
 <div class="related">
@@ -139,12 +149,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">14 Apr 2020</span>
-     &raquo; <a href="/spark-plugin-part-5">Spark Plugin Framework in 3.0 - Part 5: RPC Communication</a>    
-   </li>           
-         
+          
 
             
     
@@ -165,12 +170,7 @@
    
    
              
-    
-    <li>    
-     <span class="post-date">14 Apr 2020</span>
-     &raquo; <a href="/spark-plugin-part-5">Spark Plugin Framework in 3.0 - Part 5: RPC Communication</a>    
-   </li>           
-         
+          
 
             
     
