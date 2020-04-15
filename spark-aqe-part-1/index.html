@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Apache Spark is not a one-trick pony : Going beyond in-memory processing</title>
+    <title>Adaptive Query Execution in Spark 3.0 - Part 1 : Introduction</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/apache-spark-not-a-one-trick-pony">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-aqe-part-1">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,59 +45,58 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Apache Spark is not a one-trick pony : Going beyond in-memory processing</h1>
-  <p class="meta">Feb 26, 2015</p>
+  <h1>Adaptive Query Execution in Spark 3.0 - Part 1 : Introduction</h1>
+  <p class="meta">Apr 15, 2020</p>
   <div class="catagories">
     
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
     <a href="/categories/spark"><span class="category">spark</span></a>
+    
+    <a href="/categories/spark-three"><span class="category">spark-three</span></a>
+    
+    <a href="/categories/spark-aqe"><span class="category">spark-aqe</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>At <a href="http://datamantra.io">DataMantra</a>, whenever we suggest Apache Spark to our customers, they respond <em>“it just in-memory thing right?”</em>. There is a misconception about Spark,  that it’s just about in-memory computation. Even creators of spark acknowledge it. In one of their recent <a href="https://databricks.com/blog/2014/10/10/spark-petabyte-sort.html">blog post</a> they say</p>
+  <p>Spark catalyst is one of the most important layer of spark SQL which does all the query optimisation. These optimisations are expressed as list of rules which will be executed on the query plan before executing the query itself. This makes sure Spark SQL can do lot more automatic optimisation compared to hand written RDD code.</p>
 
-<blockquote>
-  <p>This has always been one of the most common misconceptions about Spark, especially for people new to the community. Spark is well known for its in-memory performance, but from its inception Spark was designed to be a general execution engine that works both in-memory and on-disk. Almost all Spark operators perform external operations when data does not fit in memory. More generally, Spark’s operators are a strict superset of MapReduce.</p>
-</blockquote>
+<p>Even though spark catalyst does lot of heavy lifting, it’s all done before query execution. So that means once the physical plan is created and execution of the plan started, it will not do any optimisation there after. So it cannot do some of the optimisation which is based on metrics it sees when the execution is going on.</p>
 
-<p>Though in-memory is an important feature, it’s not only thing that makes Spark special. So in this blog post, I am going to discuss about few of the other important features that make Spark stand out.</p>
+<p>In 3.0, spark has introduced an additional layer of optimisation. This layer is known as adaptive query execution. This layer tries to optimise the queries depending upon the metrics that are collected as part of the execution.</p>
 
-<p>(Note : This post originally published in DataMantra <a href="http://datamantra.io/blog/2015/02/16/apache-spark-not-a-one-trick-pony/">blog</a>)</p>
+<p>In this series of posts, I will be discussing about different part of adaptive execution. This is the first post in the series where I will be discussing the goals of this layer. You can find all the posts in the series <a href="/categories/spark-aqe">here</a>.</p>
 
-<h2 id="one-platform-for-all-big-data-loads">1. One platform for all Big data loads</h2>
+<h2 id="adaptive-query-execution">Adaptive Query Execution</h2>
 
-<p>Big data analysis has different data loads. Different use cases need different kind of analysis. Most of the big data analysis need both batch processing and real time capabilities. Not only that, they have structured, unstructured, graph analysis and other advanced processing needs too. So a big data processing framework has to cater to all of this needs.</p>
+<p>Adaptive Query Execution, AQE,  is a layer on top of the spark catalyst which will modify the spark plan on the fly. This allows spark to do some of the things which are not possible to do in catalyst today.</p>
 
-<p>Hadoop M/R, current leading big data processing framework,  is only optimized for batch processing. So in hadoop, you need to go to other frameworks like Storm for real time and Apache Giraph for graph processing capabilities. Having multiple different frameworks is a pain for development and maintenance. Though introduction of YARN has solved few issues, YARN is too low level to be used in applications.</p>
+<p>The different optimisation available in AQE as below.</p>
 
-<p>In case of Spark, it was designed to cater to multiple data loads from day one. Batch processing and real time capabilities are built in to the core of Spark. Not only that many advanced graph and machine learning libraries are built in so that it can cater to wide variety of data analysis needs.</p>
+<h3 id="adaptive-number-of-shuffle-partitions-or-reducers">Adaptive Number of Shuffle Partitions or Reducers</h3>
 
-<h2 id="one-abstraction-to-rule-them-all">2. One abstraction to rule them all</h2>
+<p>In spark sql, number of shuffle partitions are set using <strong>spark.sql.shuffle.partitions</strong> which defaults to <strong>200</strong>. In most of the cases, this number is too high for smaller data and too small for bigger data. Selecting right value becomes always tricky for the developer.</p>
 
-<p>In Spark, all APIs and libraries talk same abstraction called RDD. RDD stands for Resilient Distributed Dataset. It’s just a big collection of immutable data which is sitting in some storage. But what’s the advantage if all libraries talk in RDD?</p>
+<p>When AQE is enabled, the number of shuffle partitions are automatically adjusted depending upon the output of mapping stage. This means if map stage of the query outputted less data, spark will run less number of reducers and vice versa. This makes it performant depending upon data size.</p>
 
-<p>The advantage is that you can mix and match different kind of processing in same application. You can take a stream of data from spark real time system and can run sql queries using SparkSQL. Then take the output of SparkSQL and feed it to machine learning algorithm using MLLib. All of this is done without ever have to convert or store intermediate result. This is very powerful to build complex data flow systems.</p>
+<h3 id="handling-skew-joins">Handling Skew Joins</h3>
 
-<h2 id="runs-everywhere">3. Runs everywhere</h2>
+<p>Today whenever there is skew in joins, spark creates a skewed task which lags compared to other tasks. This often result in slower execution times.</p>
 
-<p>Spark runs everywhere. It is designed to run on different platforms and different distributed systems. You can run Spark on Hadoop 1.0, Hadoop 2.0, Apache Mesos or stand alone spark cluster. This flexibility of deployment is very attractive to customers, as it allows them to harness power of spark using their existing infrastructure investments.</p>
+<p>When adaptive execution is enabled, spark can recognise this query and then automatically redistribute the data to go join faster. This will make skew join go faster than normal joins.</p>
 
-<h2 id="small-and-simple">4. Small and Simple</h2>
-<p>The original release of Spark contained only 1600 lines of Scala code. It was designed to be extremely modular. So today you can add or remove capabilities to your spark application simply by changing your build file. Also having a small code base makes extend the framework easy.</p>
+<h3 id="converting-sort-merge-join-to-broadcast-join">Converting Sort Merge Join to BroadCast Join</h3>
 
-<p>Spark API thrives for simplicity. If you ever seen a spark word count vs Map/Reduce word count you will understand how simple API is. There is a lot of thought gone in to the API to make it more approachable and consistent. Contrast to that Java API of Map/Reduce is a mess. There is too much verbosity.</p>
+<p>AQE converts sort-merge join to broadcast hash join when the runtime statistics of any join side is smaller than the broadcast hash join threshold. This allows spark to automatically adjust join type when the data may reduce when after filter etc.</p>
 
-<h2 id="prospering-ecosystem">5. Prospering Ecosystem</h2>
-<p>In Hadoop, ecosystem was an after thought. The ecosystem projects like Hive and Pig dint have access to Map/Reduce abstractions. All they can do was generate Map/Reduce programs on the fly and run it on cluster. This severely effected their performance.</p>
+<p>The above are the some of the optimisation done by AQE.</p>
 
-<p>Where as in Spark, there was a plan for ecosystem from day one. The ecosystem libraries Pregel and MLLib were developed side by side with core spark. So in Spark, all libraries have access to same level of abstraction as main API. This makes them first class citizen on the platform.</p>
+<h2 id="references">References</h2>
 
-<h2 id="multi-language-api">6. Multi language API</h2>
+<p><a href="https://github.com/apache/spark/pull/27616">https://github.com/apache/spark/pull/27616</a>.</p>
 
-<p>Spark officially supports Scala, Java and Python API’s. This makes it more attractable to many developers compared to java only M/R. Though M/R supported C++ and other API’s they are not up to date like Java API. So Spark is great option for developers with different backgrounds.</p>
-
-<p>Now you know spark is not just about in-memory processing. Let’s break this myth by sharing this article with everyone.</p>
 
 </article>
 <div class="related">
@@ -105,12 +104,28 @@
   <ul>
     
              
+          
+
+            
     
     <li>    
-     <span class="post-date">15 Apr 2020</span>
-     &raquo; <a href="/spark-aqe-part-1">Adaptive Query Execution in Spark 3.0 - Part 1 : Introduction</a>    
+     <span class="post-date">14 Apr 2020</span>
+     &raquo; <a href="/spark-plugin-part-5">Spark Plugin Framework in 3.0 - Part 5: RPC Communication</a>    
    </li>           
          
+
+            
+    
+    <li>    
+     <span class="post-date">13 Apr 2020</span>
+     &raquo; <a href="/spark-plugin-part-4">Spark Plugin Framework in 3.0 - Part 4 : Custom Metrics</a>    
+   </li>           
+         
+
+   
+   
+             
+          
 
             
     
