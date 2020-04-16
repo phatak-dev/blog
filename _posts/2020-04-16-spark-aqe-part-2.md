@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Adaptive Query Execution in Spark 3.0 - Part 2 : Optimising Shuffle Partitions"
-date : 2020-04-15
+date : 2020-04-16
 categories: scala spark spark-three spark-aqe
 ---
 Spark catalyst is one of the most important layer of spark SQL which does all the query optimisation. These optimisations are expressed as list of rules which will be executed on the query plan before executing the query itself. This makes sure Spark SQL can do lot more automatic optimisation compared to hand written RDD code.
