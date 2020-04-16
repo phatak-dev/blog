@@ -7,6 +7,106 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Adaptive Query Execution in Spark 3.0 - Part 2 : Optimising Shuffle Partitions</title>
+        <description>&lt;p&gt;Spark catalyst is one of the most important layer of spark SQL which does all the query optimisation. These optimisations are expressed as list of rules which will be executed on the query plan before executing the query itself. This makes sure Spark SQL can do lot more automatic optimisation compared to hand written RDD code.&lt;/p&gt;
+
+&lt;p&gt;Even though spark catalyst does lot of heavy lifting, it’s all done before query execution. So that means once the physical plan is created and execution of the plan started, it will not do any optimisation there after. So it cannot do some of the optimisation which is based on metrics it sees when the execution is going on.&lt;/p&gt;
+
+&lt;p&gt;In 3.0, spark has introduced an additional layer of optimisation. This layer is known as adaptive query execution. This layer tries to optimise the queries depending upon the metrics that are collected as part of the execution.&lt;/p&gt;
+
+&lt;p&gt;In this series of posts, I will be discussing about different part of adaptive execution. This is the second post in the series where I will be discussing about optimising shuffle partitions. You can find all the posts in the series &lt;a href=&quot;/categories/spark-aqe&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;spark-sql-shuffle-partitions&quot;&gt;Spark SQL Shuffle Partitions&lt;/h2&gt;
+
+&lt;p&gt;In Spark sql, number of shuffle partitions are set using &lt;strong&gt;spark.sql.shuffle.partitions&lt;/strong&gt; which defaults to &lt;strong&gt;200&lt;/strong&gt;. In most of the cases, this number is too high for smaller data and too small for bigger data. Selecting right value becomes always tricky for the developer.&lt;/p&gt;
+
+&lt;p&gt;So we need an ability to coalesce the shuffle partitions by looking at the mapper output. If the mapping generates small number of partitions, we want to reduce the overall shuffle partitions so it will improve the performance.&lt;/p&gt;
+
+&lt;h2 id=&quot;shuffle-partitions-without-aqe&quot;&gt;Shuffle Partitions without AQE&lt;/h2&gt;
+
+&lt;p&gt;Before we see how to optimise the shuffle partitions, let’s see what is the problem we are trying to solve. Let’s take below example&lt;/p&gt;
+
+&lt;h3 id=&quot;read-csv-and-increase-input-partitions&quot;&gt;Read CSV and Increase Input Partitions&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;csv&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;header&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;true&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;inferSchema&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;true&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;src/main/resources/sales.csv&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;repartition&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;500&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above code, I am reading a small file and increasing the partitions to 500. This increase is to force the spark to use maximum shuffle partitions.&lt;/p&gt;
+
+&lt;h3 id=&quot;groupby-for-shuffle&quot;&gt;GroupBy for Shuffle&lt;/h3&gt;
+
+&lt;p&gt;Once we have dataframe, let’s add group by to create shuffle&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groupBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;customerId&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;observing-stages&quot;&gt;Observing Stages&lt;/h3&gt;
+
+&lt;p&gt;The below image shows the stages of the jobs.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/aqe/nonoptimisegroupbyjobs.png&quot; alt=&quot;Non optimised Shuffle Stages&quot; /&gt;.&lt;/p&gt;
+
+&lt;p&gt;As you can observe from the image, stage id 4, 200 tasks ran even the data was very less.&lt;/p&gt;
+
+&lt;h3 id=&quot;observing-dag&quot;&gt;Observing DAG&lt;/h3&gt;
+
+&lt;p&gt;The below image shows the DAG of count Job&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/aqe/nonoptimisedgroupbydag.png&quot; alt=&quot;Non optimised Job DAG&quot; /&gt;.&lt;/p&gt;
+
+&lt;p&gt;From the image, you can observe that there was lot of shuffle.&lt;/p&gt;
+
+&lt;h2 id=&quot;optimising-shuffle-partitions-in-aqe&quot;&gt;Optimising Shuffle Partitions in AQE&lt;/h2&gt;
+
+&lt;p&gt;In this section of the document we talk about how to optimise the shuffle partitions using the AQE.&lt;/p&gt;
+
+&lt;h3 id=&quot;enabling-the-configuration&quot;&gt;Enabling the configuration&lt;/h3&gt;
+
+&lt;p&gt;To use AQE we need to set &lt;strong&gt;spark.sql.adaptive.enabled&lt;/strong&gt; to true.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sparkConf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;spark.sql.adaptive.enabled&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;true&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;To use the shuffle partitions optimisation we need to set &lt;strong&gt;spark.sql.adaptive.coalescePartitions.enabled&lt;/strong&gt;  to true.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sparkConf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;spark.sql.adaptive.coalescePartitions.enabled&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;true&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;Rest of the code remains exactly same as above&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;observing-stages-1&quot;&gt;Observing Stages&lt;/h3&gt;
+
+&lt;p&gt;The below image shows the stages of the jobs.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/aqe/optimisedgroupbyjobs.png&quot; alt=&quot;Optimised Shuffle Stages&quot; /&gt;.&lt;/p&gt;
+
+&lt;p&gt;From the image you can observe that, most of the stages are skipped all together as spark figured out that most of the partitions are empty.&lt;/p&gt;
+
+&lt;h3 id=&quot;observing-dag-1&quot;&gt;Observing DAG&lt;/h3&gt;
+
+&lt;p&gt;The below image shows the DAG of count Job&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/aqe/optimisedgroupbydag.png&quot; alt=&quot;Optimised Job DAG&quot; /&gt;.&lt;/p&gt;
+
+&lt;p&gt;From the image, you can observe most of the shuffle was skipped. There is a &lt;strong&gt;CoalescedShuffleReader&lt;/strong&gt; which is combining all the shuffle partitions to 1.&lt;/p&gt;
+
+&lt;p&gt;So by just enabling few configuration we can dynamically optimise the shuffle partitions in AQE.&lt;/p&gt;
+
+&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
+
+&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples/tree/master/src/main/scala/com/madhukaraphatak/spark/sql/adaptive/shuffle&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-28177&quot;&gt;https://issues.apache.org/jira/browse/SPARK-28177&lt;/a&gt;.&lt;/p&gt;
+
+</description>
+        <pubDate>Wed, 15 Apr 2020 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/spark-aqe-part-2</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-aqe-part-2</guid>
+      </item>
+    
+      <item>
         <title>Adaptive Query Execution in Spark 3.0 - Part 1 : Introduction</title>
         <description>&lt;p&gt;Spark catalyst is one of the most important layer of spark SQL which does all the query optimisation. These optimisations are expressed as list of rules which will be executed on the query plan before executing the query itself. This makes sure Spark SQL can do lot more automatic optimisation compared to hand written RDD code.&lt;/p&gt;
 
@@ -739,95 +839,6 @@
         <pubDate>Fri, 03 Apr 2020 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/spark-3-introduction-part-5</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-3-introduction-part-5</guid>
-      </item>
-    
-      <item>
-        <title>Introduction to Spark 3.0 - Part 4 : Handling Class Imbalance Using Weights</title>
-        <description>&lt;p&gt;Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.&lt;/p&gt;
-
-&lt;p&gt;This is the forth post in the series where I am going to talk about handling class imbalance using weights. You can access all posts in this series &lt;a href=&quot;/categories/spark-three&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;TL;DR All code examples are available on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;class-imbalance-in-credit-card-fraud-data&quot;&gt;Class Imbalance in Credit Card Fraud Data&lt;/h2&gt;
-
-&lt;p&gt;I have discussed in detail about what is class imbalance and how to handle it using undersampling in &lt;a href=&quot;/categories/class-imbalance/&quot;&gt;these posts&lt;/a&gt;. Please read the same before proceeding.&lt;/p&gt;
-
-&lt;h2 id=&quot;challenges-with-sampling&quot;&gt;Challenges with Sampling&lt;/h2&gt;
-
-&lt;p&gt;In earlier post, I had recommended doing undersampling as the resolution to handle class imbalance. Even though it works, it’s very costly to do on a large amount of data. This often involves lots of shuffling and has a big impact on overall performance.&lt;/p&gt;
-
-&lt;p&gt;So is there any alternative way to handle the imbalance? That’s what we are going to discuss in this post.&lt;/p&gt;
-
-&lt;h2 id=&quot;class-weights&quot;&gt;Class Weights&lt;/h2&gt;
-
-&lt;p&gt;We can handle class imbalance  by giving weights to the classes. By default a machine algorithm treats each class as equal. By giving different weights make it handle them differently. We can use this weights to handle the imbalance.&lt;/p&gt;
-
-&lt;p&gt;The class weight feature was only available for &lt;strong&gt;Logistic Regression from 1.6 version&lt;/strong&gt;. But from 3.0, this feature has been made available to all classification models. So from 3.0 version we can use this feature with any classification algorithm to handle imbalance.&lt;/p&gt;
-
-&lt;h2 id=&quot;handling-class-imbalance-using-class-weights&quot;&gt;Handling Class Imbalance using Class Weights&lt;/h2&gt;
-
-&lt;p&gt;This section of the post will discuss how to apply the same for credit card fraud data.&lt;/p&gt;
-
-&lt;h3 id=&quot;calculate-the-ratio&quot;&gt;1. Calculate the Ratio&lt;/h3&gt;
-
-&lt;p&gt;To give the class weights, we need to calculate the ratio of fraud observations to total observations&lt;/p&gt;
-
-&lt;p&gt;The below code calculates the same&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getRatio&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;DataFrame&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fraudDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;filter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Class=1.0&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sampleRatio&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fraudDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toDouble&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toDouble&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;sampleRatio&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;calculate-the-weight&quot;&gt;2.Calculate the Weight&lt;/h3&gt;
-
-&lt;p&gt;Once we have calculated the  ratio, we can calculate the weight of each label as below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ratioOfFraud&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getRatio&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fraudWeight&lt;/span&gt;  &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ratioOfFraud&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nonFraudWeight&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ratioOfFraud&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;add-weight-column-to-dataframe&quot;&gt;3. Add Weight Column to DataFrame&lt;/h3&gt;
-
-&lt;p&gt;Once we have calculated the weight, we need to add this as a column to dataframe. As it’s a row level operation, no shuffle will be performed.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weightedDF&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withColumn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;weight&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;when&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Class&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).===(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;1.0&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fraudWeight&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-     &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;otherwise&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nonFraudWeight&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;enable-weight-column-in-algorithm&quot;&gt;4. Enable Weight Column in Algorithm&lt;/h3&gt;
-
-&lt;p&gt;Once we have added the weight column, we need to specify it in the algorithm also.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;logisticRegression&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setWeightCol&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;weight&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;results&quot;&gt;Results&lt;/h2&gt;
-
-&lt;p&gt;Once we run with above modification, we can observe the below results.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;for imbalanced data
-test accuracy with pipeline 0.9992379567862879
-test recall for 1.0 is 0.6206896551724138
-for balanced data
-test accuracy with pipeline 0.977155091285526
-test recall for 1.0 is 0.8910256410256411&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As you can observe from the above output, recall is improved for the balanced data.&lt;/p&gt;
-
-&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/ml/WeightedLogisticRegression.scala&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-9610&quot;&gt;https://issues.apache.org/jira/browse/SPARK-9610&lt;/a&gt;.&lt;/p&gt;
-
-</description>
-        <pubDate>Thu, 02 Apr 2020 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-3-introduction-part-4</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-3-introduction-part-4</guid>
       </item>
     
   </channel>
