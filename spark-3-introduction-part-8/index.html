@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Introduction to Machine learning with Spark</title>
+    <title>Introduction to Spark 3.0 - Part 8 : DataFrame Tail Function</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/machine-learning-with-spark">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-3-introduction-part-8">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,27 +45,62 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Introduction to Machine learning with Spark</h1>
-  <p class="meta">Sep 19, 2015</p>
+  <h1>Introduction to Spark 3.0 - Part 8 : DataFrame Tail Function</h1>
+  <p class="meta">Apr 20, 2020</p>
   <div class="catagories">
-    
-    <a href="/categories/spark"><span class="category">spark</span></a>
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
-    <a href="/categories/talks"><span class="category">talks</span></a>
+    <a href="/categories/spark"><span class="category">spark</span></a>
+    
+    <a href="/categories/spark-three"><span class="category">spark-three</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>The below video is a recording of my talk on Introduction to machine learning with Spark in recent spark meet up. It’s a talk about how machine learning is implemented using Spark RDD concepts and how to use built in libraries like MLLib.</p>
+  <p>Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.</p>
 
-<p>Find the slides on <a href="http://www.slideshare.net/datamantra/introduction-to-machine-learning-with-spark">slideshare</a> and code on <a href="https://github.com/phatak-dev/introduction_to_ml_with_spark">github</a>.</p>
+<p>This is the eighth post in the series where I am going to talk about dataframe tail function. You can access all posts in this series <a href="/categories/spark-three">here</a>.</p>
 
-<div class="video-container"> <iframe src="https://www.youtube.com/embed/gRg2m_95c-0" frameborder="0" width="560" height="315"></iframe> </div>
+<p>TL;DR All code examples are available on <a href="https://github.com/phatak-dev/spark-3.0-examples">github</a>.</p>
 
-<div class="video-container"> <iframe src="https://www.youtube.com/embed/pehFa-biOyE" frameborder="0" width="560" height="315"></iframe> </div>
+<h2 id="dataframe-head-function">DataFrame Head Function</h2>
+
+<p>In many times in our code, we would like to read few rows from the dataframe. This is typically used for exploratory use cases. For this, we use <strong>head</strong> function on top of the dataframe. This is same as <strong>head</strong> function on a scala list.</p>
+
+<p>The below code example shows use of head function</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">range</span><span class="o">(</span><span class="mi">100</span><span class="o">)</span>
+<span class="n">println</span><span class="o">(</span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="o">(</span><span class="mi">2</span><span class="o">).</span><span class="n">toList</span><span class="o">)</span></code></pre></div>
+
+<p>In the above code, we are reading the first 2 rows of the dataset.</p>
+
+<p>Internally this is implemented by reading only needed number of items by accessing one partition at a time from beginning. This will limit the number of partitions that needed to be read.</p>
+
+<h2 id="need-of-tail-function">Need of Tail Function</h2>
+
+<p>In many use cases, particularly when data is sorted in some way, it will be useful to see the last few values. It will give an idea how the data is distributed. For these use cases, a tail function needed. This will behave same as Scala List tail function.</p>
+
+<h2 id="tail-function-in-spark-30">Tail Function in Spark 3.0</h2>
+
+<p>In spark 3.0, a new function is introduced for reading values from the end of a dataframe. The below example shows the same</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">println(df.tail(5).toList)</code></pre></div>
+
+<p>In above code, we are reading last 5 values.</p>
+
+<h2 id="implementation-of-tail-function">Implementation of Tail Function</h2>
+
+<p>To implement tail, spark does the reverse of head. Rather than reading from the first partition, in tail implementation spark starts reading from last partition. It will read till number of items are retrieved.</p>
+
+<h2 id="code">Code</h2>
+
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/sql/DataFrameTail.scala">github</a>.</p>
+
+<h2 id="references">References</h2>
+
+<p><a href="https://issues.apache.org/jira/browse/SPARK-30185">https://issues.apache.org/jira/browse/SPARK-30185</a>.</p>
 
 </article>
 <div class="related">
@@ -73,12 +108,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">20 Apr 2020</span>
-     &raquo; <a href="/spark-3-introduction-part-8">Introduction to Spark 3.0 - Part 8 : DataFrame Tail Function</a>    
-   </li>           
-         
+          
 
             
     
@@ -99,12 +129,7 @@
    
    
              
-    
-    <li>    
-     <span class="post-date">20 Apr 2020</span>
-     &raquo; <a href="/spark-3-introduction-part-8">Introduction to Spark 3.0 - Part 8 : DataFrame Tail Function</a>    
-   </li>           
-         
+          
 
             
     
