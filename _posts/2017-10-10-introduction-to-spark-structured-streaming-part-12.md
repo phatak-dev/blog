@@ -25,7 +25,7 @@ TL;DR You can access code on [github](https://github.com/phatak-dev/spark2.0-exa
 In last [post](/introduction-to-spark-structured-streaming-part-11/) we discussed about the event time abstraction. By default, spark remembers all the windows forever and waits for the late events forever. This may be good for the small volume data, but as volume increases keeping around all the state becomes problematic. As the time goes, the number of windows increases and resource usage will shoot upward. So we need a mechanism which allows us to control state in bounded way. Watermarks are one of those mechanisms.
 
 ## Watermarks
-Watermarks is a threshold , which defines the how long we wait for the late events. Combining watermarks with automatic source time tracking ( event time) spark can automatically drop the state and keep it in bounded way. When you enable watermarks, for a specific window starting at time T, spark will maintain state and allow late data to update the state until **(max event time seen by the engine - late threshold > T)**. In other words, late data within the threshold will be aggregated, but data later than the threshold will be dropped.
+Watermarks is a threshold , which defines the how long we wait for the late events. Combining watermarks with automatic source time tracking ( event time) spark can automatically drop the state and keep it in bounded way. When you enable watermarks, for a specific window ending at time T, spark will maintain state and allow late data to update the state until **(max event time seen by the engine - late threshold > T)**. In other words, late data within the threshold will be aggregated, but data later than the threshold will be dropped.
 
 ## Analysing Stock Data 
 
