@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Data Source V2 API in Spark 3.0 - Part 6 : Mysql Write"
+title: "Data Source V2 API in Spark 3.0 - Part 6 : MySQL Source"
 date : 2020-04-22
 categories: scala spark spark-three datasource-v2-spark-three
 ---
@@ -14,7 +14,7 @@ The usage of the data sources have not changed in 3.0. So if you are a user of t
 
 These new changes in V2 API brings more control to data source developer and better integration with spark optimiser. Moving to this API makes third party sources more performant. So in these series of posts I will be discussing the new Data source V2 API in 3.0.
 
-This is sixth post in the series where we discuss about implementing datasource which can write to MySQL.You can read all the post in the series [here](/categories/datasource-v2-spark-three).
+This is sixth post in the series where we discuss about implementing data source which can write to MySQL.You can read all the post in the series [here](/categories/datasource-v2-spark-three).
 
 
 ## DefaultSource Implementation
@@ -33,7 +33,7 @@ class DefaultSource extends TableProvider{
       transforms: Array[Transform], map: util.Map[String, String]): Table ={
       new MysqlTable
     }
-}
+
 
 {% endhighlight %}
 
@@ -56,13 +56,13 @@ class MysqlTable extends SupportsWrite{
   override def capabilities(): util.Set[TableCapability] = Set(TableCapability.BATCH_WRITE,
     TableCapability.TRUNCATE).asJava
 
-  override def newWriteBuilder(logicalWriteInfo: LogicalWriteInfo): WriteBuilder = new MysqlWriterBuilder
+  override def newWriteBuilder(logicalWriteInfo: LogicalWriteInfo): WriteBuilder 
+           = new MysqlWriterBuilder
 }
 
 {% endhighlight %}
 
-Here we are hardcoding the table schema. Also we are exposing the wrtite capabalities as **BATCH_WRITE** and **TRUNCATE**.
-
+Here we are hard coding the table schema. Also we are exposing the write capabilities as **BATCH_WRITE** and **TRUNCATE**.
 
 ## MysqlWriterBuilder
 
@@ -78,7 +78,7 @@ class MysqlWriterBuilder extends WriteBuilder{
 
 ## MysqlBatchWriter
 
-MysqlBatchWriter create writer factories for our source.
+MysqlBatchWriter creates writer factories for our source.
 
 {% highlight scala %}
 
@@ -95,7 +95,7 @@ class MysqlBatchWriter extends BatchWrite{
 
 ## MysqlDataWriterFactory
 
-MysqlDataWriterFactory generates writers for the source. Here we don't need to specify the list as the number of parittions is already determined by the input data.
+MysqlDataWriterFactory generates writers for the source. Here we don't need to specify the list as the number of partitions is already determined by the input data.
 
 {% highlight scala %}
 
@@ -107,7 +107,7 @@ class MysqlDataWriterFactory extends DataWriterFactory {
 
 ##MysqlWriter
 
-MysqlWriter is the one which actually writes the data to mysql using JDBC API.
+MysqlWriter is the one which actually writes the data to MySQL using JDBC API.
 
 {% highlight scala %}
 
@@ -137,8 +137,7 @@ class MysqlWriter extends DataWriter[InternalRow] {
 
 {% endhighlight %}
 
-In this code, credentials are hardcode. Update them according to your source.
-
+In this code, credentials are hard coded. Update them according to your source.
 
 ## Using the Mysql Source
 
@@ -153,8 +152,6 @@ simpleMysqlDf.write
       .save()
 
 {% endhighlight%}
-
-
 
 ## Code
 
