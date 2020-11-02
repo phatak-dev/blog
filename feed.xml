@@ -7,6 +7,44 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Introduction to Spark 3.0 - Part 10 : Ignoring Data Locality in Spark</title>
+        <description>&lt;p&gt;Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.&lt;/p&gt;
+
+&lt;p&gt;This is the tenth post in the series where I am going to talk about ignoring data locality in spark. You can access all posts in this series &lt;a href=&quot;/categories/spark-three&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;TL;DR All code examples are available on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;data-locality-in-apache-spark&quot;&gt;Data Locality in Apache Spark&lt;/h2&gt;
+
+&lt;p&gt;Data locality in spark helps spark scheduler to run the tasks of compute or caching on the machines where the data is available. This concept came from Hadoop Map/Reduce where data in HDFS will be used to place map operation. This avoided the data movement over network in HDFS. So whenever spark connects to sources like HDFS, s3 it captures the locations of files.&lt;/p&gt;
+
+&lt;h2 id=&quot;remote-hdfs-and-s3&quot;&gt;Remote HDFS and S3&lt;/h2&gt;
+
+&lt;p&gt;The above approach makes sense when spark cluster is co-located with distributed file system like HDFS. But there are many use cases where user may be processing data from a remote HDFS with separate spark cluster. This also applicable for other HDFS like file systems like s3. In these cases, reading locations of files is not useful as spark schedule can’t use this information for co-locating the processing.&lt;/p&gt;
+
+&lt;p&gt;Till 3.0, there was no option to disable it and it was wasting a lot of time initially to figure all block location of remote files just to discard them in future. This has changed in 3.0&lt;/p&gt;
+
+&lt;h2 id=&quot;configuration-to-disable-the-data-locality&quot;&gt;Configuration to Disable the Data Locality&lt;/h2&gt;
+
+&lt;p&gt;In Spark 3.0, there is a new configuration added to disable this data locality.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;spark.sql.sources.ignoreDataLocality.enabled&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;By default this configuration will be set to false. Using this configuration, we can instruct spark not to read data location.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-29189&quot;&gt;https://issues.apache.org/jira/browse/SPARK-29189&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;Data Locality Ignore configuration helps developer improve the spark data reading when the source is remote to the spark cluster.&lt;/p&gt;
+</description>
+        <pubDate>Mon, 02 Nov 2020 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/spark-3-introduction-part-10</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-3-introduction-part-10</guid>
+      </item>
+    
+      <item>
         <title>Data Source V2 API in Spark 3.0 - Part 6 : MySQL Source</title>
         <description>&lt;p&gt;Spark 3.0 is a major release of Apache Spark framework. It’s been in preview from last December and going to have  a stable release very soon. As part of major release, Spark has a habit of shaking up API’s to bring it to latest standards. There will be breaking changes also in these API’s. One of such API is Data source V2 API.&lt;/p&gt;
 
@@ -866,85 +904,6 @@
         <pubDate>Thu, 09 Apr 2020 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/spark-3-introduction-part-7</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-3-introduction-part-7</guid>
-      </item>
-    
-      <item>
-        <title>Spark Plugin Framework in 3.0 - Part 2 : Anatomy of the API</title>
-        <description>&lt;p&gt;Spark 3.0 brings a new plugin framework to spark. This plugin framework allows users to plugin custom code at the driver and workers. This will allow for advanced monitoring and custom metrics tracking. This set of API’s are going to help tune spark better than before.&lt;/p&gt;
-
-&lt;p&gt;In this series of posts I will be discussing about the different aspects of plugin framework. This is the second post in the series, where we will understand the different API’s exposed in framework. You can read all the posts in the series &lt;a href=&quot;/categories/spark-plugin&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;spark-plugin-interface&quot;&gt;Spark Plugin Interface&lt;/h2&gt;
-
-&lt;p&gt;The top interface of the framework in SparkPlugin. It exposes below two methods&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;driverPlugin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;DriverPlugin&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;executorPlugin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;ExecutorPlugin&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;From the name of methods, we can figure out that these are entry points to specify the driver and executor plugin. If user wants to implement only one, then they can return null in other method.&lt;/p&gt;
-
-&lt;h2 id=&quot;driverplugin-interface&quot;&gt;DriverPlugin Interface&lt;/h2&gt;
-
-&lt;p&gt;This is the interface for the driver side plugin. It has below methods. All are optional to override.&lt;/p&gt;
-
-&lt;h3 id=&quot;init-method&quot;&gt;Init Method&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;init&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;SparkContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pluginContext&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PluginContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;util.Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;This method is called at the beginning of driver initialisation. It has access to spark context and plugin context. The method returns a map which will be passed to executor plugin.&lt;/p&gt;
-
-&lt;h3 id=&quot;registermetrics-method&quot;&gt;RegisterMetrics Method&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;registerMetrics&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;appId&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pluginContext&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PluginContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Unit&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;This method is used for the tracking custom metrics in driver side.&lt;/p&gt;
-
-&lt;h3 id=&quot;receive-method&quot;&gt;Receive Method&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;receive&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;scala.Any&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;AnyRef&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;This method is used for receiving RPC messages sent by the executors.&lt;/p&gt;
-
-&lt;h3 id=&quot;shutdown-method&quot;&gt;Shutdown Method&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;shutdown&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Unit&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;This method is called when driver getting shutdown.&lt;/p&gt;
-
-&lt;h2 id=&quot;executorplugin-interface&quot;&gt;ExecutorPlugin Interface&lt;/h2&gt;
-
-&lt;p&gt;The below are methods exposed in the executor plugin interface.&lt;/p&gt;
-
-&lt;h3 id=&quot;init-method-1&quot;&gt;Init Method&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;init&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PluginContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;extraConf&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;util.Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;])&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Unit&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;This method is called when an executor is started. &lt;strong&gt;extraConf&lt;/strong&gt; are the parameters sent by driver.&lt;/p&gt;
-
-&lt;h3 id=&quot;shutdown-method-1&quot;&gt;Shutdown Method&lt;/h3&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;shutdown&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Unit&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;This method is called when executor shutdown.&lt;/p&gt;
-
-&lt;h2 id=&quot;adding-spark-plugin&quot;&gt;Adding Spark Plugin&lt;/h2&gt;
-
-&lt;p&gt;We can add our custom spark plugins to a spark session by setting &lt;strong&gt;spark.plugins&lt;/strong&gt; configuration on spark session.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;spark&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;,&quot;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;full&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;package&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;of&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;plugin&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-29397&quot;&gt;https://issues.apache.org/jira/browse/SPARK-29397&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;Spark plugin framework brings a powerful customization to spark ecosystem. In this post, we discussed about different interfaces provided by the plugin framework.&lt;/p&gt;
-</description>
-        <pubDate>Wed, 08 Apr 2020 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-plugin-part-2</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-plugin-part-2</guid>
       </item>
     
   </channel>

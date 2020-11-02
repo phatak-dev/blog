@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Madhukar's Blog</title>
+    <title>Introduction to Spark 3.0 - Part 10 : Ignoring Data Locality in Spark</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/page18/">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-3-introduction-part-10">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -43,108 +43,121 @@
 
     <div class="page-content">
       <div class="wrap">
-      <div class="home">
-	
+      <div class="post">
+ <header class="post-header">
+  <h1>Introduction to Spark 3.0 - Part 10 : Ignoring Data Locality in Spark</h1>
+  <p class="meta">Nov 2, 2020</p>
+  <div class="catagories">
+    
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
+    <a href="/categories/spark"><span class="category">spark</span></a>
+    
+    <a href="/categories/spark-three"><span class="category">spark-three</span></a>
+    
+  </div>
+</header> 
 
-	<ul class="posts">
-		
-		<li>           
-			<span class="post-date">Sep 26, 2014</span>             
-			<div>
-				<a class="post-link" href="/boot-custom-recovery-">Boot custom recovery without flashing
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Aug 18, 2014</span>             
-			<div>
-				<a class="post-link" href="/sbt-on-ubuntu">Sbt on ubuntu
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Aug 3, 2014</span>             
-			<div>
-				<a class="post-link" href="/scala-for-android">Google, it's time - We want Scala for Android
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Jul 30, 2014</span>             
-			<div>
-				<a class="post-link" href="/spark-rdd-fold">Fold in spark
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Jul 29, 2014</span>             
-			<div>
-				<a class="post-link" href="/dogfight-book-review">Dog fight - How Apple and Google Went to War and Started a Revolution
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Jun 29, 2014</span>             
-			<div>
-				<a class="post-link" href="/matfile-to-rdd">Converting Matlab file to Spark RDD
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Jun 27, 2014</span>             
-			<div>
-				<a class="post-link" href="/glom-in-spark">Glom in spark
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Jun 27, 2014</span>             
-			<div>
-				<a class="post-link" href="/converting-java-collections-to-scala">Converting Java collections to Scala
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Feb 1, 2014</span>             
-			<div>
-				<a class="post-link" href="/gradient-descent-for-logistic-regression-in-octave">Gradient descent for Logistic regression in octave
-				</a> 
-			</div>                                  
-		</li>        
-		
-		<li>           
-			<span class="post-date">Dec 31, 2013</span>             
-			<div>
-				<a class="post-link" href="/secondary-namenode---what-it-really-do">Secondary Namenode - What it really do?
-				</a> 
-			</div>                                  
-		</li>        
-		
-	</ul>
+<article class="post-content">
+  <p>Spark 3.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 3.0.</p>
 
-</div>
+<p>This is the tenth post in the series where I am going to talk about ignoring data locality in spark. You can access all posts in this series <a href="/categories/spark-three">here</a>.</p>
+
+<p>TL;DR All code examples are available on <a href="https://github.com/phatak-dev/spark-3.0-examples">github</a>.</p>
+
+<h2 id="data-locality-in-apache-spark">Data Locality in Apache Spark</h2>
+
+<p>Data locality in spark helps spark scheduler to run the tasks of compute or caching on the machines where the data is available. This concept came from Hadoop Map/Reduce where data in HDFS will be used to place map operation. This avoided the data movement over network in HDFS. So whenever spark connects to sources like HDFS, s3 it captures the locations of files.</p>
+
+<h2 id="remote-hdfs-and-s3">Remote HDFS and S3</h2>
+
+<p>The above approach makes sense when spark cluster is co-located with distributed file system like HDFS. But there are many use cases where user may be processing data from a remote HDFS with separate spark cluster. This also applicable for other HDFS like file systems like s3. In these cases, reading locations of files is not useful as spark schedule can’t use this information for co-locating the processing.</p>
+
+<p>Till 3.0, there was no option to disable it and it was wasting a lot of time initially to figure all block location of remote files just to discard them in future. This has changed in 3.0</p>
+
+<h2 id="configuration-to-disable-the-data-locality">Configuration to Disable the Data Locality</h2>
+
+<p>In Spark 3.0, there is a new configuration added to disable this data locality.</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">spark.sql.sources.ignoreDataLocality.enabled</code></pre></div>
+
+<p>By default this configuration will be set to false. Using this configuration, we can instruct spark not to read data location.</p>
+
+<h2 id="references">References</h2>
+
+<p><a href="https://issues.apache.org/jira/browse/SPARK-29189">https://issues.apache.org/jira/browse/SPARK-29189</a>.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+<p>Data Locality Ignore configuration helps developer improve the spark data reading when the source is remote to the spark cluster.</p>
+
+</article>
+<div class="related">
+  <h2>Related posts</h2>
+  <ul>
+    
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">22 Apr 2020</span>
+     &raquo; <a href="/spark-3-datasource-v2-part-6">Data Source V2 API in Spark 3.0 - Part 6 : MySQL Source</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">21 Apr 2020</span>
+     &raquo; <a href="/spark-3-introduction-part-9">Introduction to Spark 3.0 - Part 9 : Join Hints in Spark SQL</a>    
+   </li>           
+         
+
+   
+   
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">22 Apr 2020</span>
+     &raquo; <a href="/spark-3-datasource-v2-part-6">Data Source V2 API in Spark 3.0 - Part 6 : MySQL Source</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">21 Apr 2020</span>
+     &raquo; <a href="/spark-3-introduction-part-9">Introduction to Spark 3.0 - Part 9 : Join Hints in Spark SQL</a>    
+   </li>           
+         
+
+   
+   
+ </ul>
 
 
+ 
+<!--     
+    <div id="disqus_thread" style="padding-top:4%;"></div>
+     <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'personalblogmadhukar'; // required: replace example with your forum shortname
+        var disqus_developer = 1;
 
-<div class="pagination">
-
-	
-	<a href="/page17" class="previous">Previous</a>
-	
-	<span class="page_number ">Page: 18 of 22</span>
-	
-	<a href="/page19" class="next ">Next</a>
-	
-</div>
-
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+   
+</div> -->
 
       </div>
     </div>
