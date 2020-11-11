@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Handling empty batches in Spark streaming</title>
+    <title>Barrier Execution Mode in Spark 3.0 - Part 1 : Introduction</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/handling-empty-rdd-in-spark-streaming">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/barrier-execution-mode-part-1">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,37 +45,93 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Handling empty batches in Spark streaming</h1>
-  <p class="meta">Apr 6, 2015</p>
+  <h1>Barrier Execution Mode in Spark 3.0 - Part 1 : Introduction</h1>
+  <p class="meta">Nov 11, 2020</p>
   <div class="catagories">
+    
+    <a href="/categories/barrier-execution"><span class="category">barrier-execution</span></a>
     
     <a href="/categories/spark"><span class="category">spark</span></a>
     
-    <a href="/categories/scala"><span class="category">scala</span></a>
+    <a href="/categories/spark-three"><span class="category">spark-three</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>Spark streaming is a near real time tiny batch processing system. For given interval, spark streaming generates new batch and runs some processing. Each of these batch data is represented as RDD. But what happens there is no data for a given batch? Spark generates a special kind of RDD called <em>EmptyRDD</em>.</p>
+  <p>Barrier execution mode is a new execution mode added to spark in 3.0 version. This marks a significant change to platform which had only supported Map/Reduce based execution till now. This will allow spark to diversify the kind of workloads it can support on it’s platform.</p>
 
-<p>This empty RDD makes sure that processing is consistent across multiple batches. But having an empty RDD sometimes may create some issues. For example, let’s say you want to save the data of a stream to HDFS.</p>
+<p>In this series posts we will discuss about this execution mode in detail.This is the first post in the series. In this post we will discuss about what is barrier execution mode and why it is needed. You can access all the posts in this series <a href="/categories/barrier-execution">here</a>.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">ssc</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">StreamingContext</span><span class="o">(</span><span class="n">args</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span><span class="s">"test"</span><span class="o">,</span><span class="nc">Seconds</span><span class="o">(</span><span class="mi">10</span><span class="o">))</span>
-<span class="k">val</span> <span class="n">socketStream</span> <span class="k">=</span> <span class="n">ssc</span><span class="o">.</span><span class="n">socketTextStream</span><span class="o">(</span><span class="s">"localhost"</span><span class="o">,</span><span class="mi">50050</span><span class="o">)</span>
-<span class="k">val</span> <span class="n">outputDir</span> <span class="k">=</span> <span class="n">args</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
-<span class="n">socketStream</span><span class="o">.</span><span class="n">foreachRDD</span><span class="o">(</span><span class="n">rdd</span> <span class="k">=&gt;</span> <span class="o">{</span>
-  <span class="n">rdd</span><span class="o">.</span><span class="n">saveAsTextFile</span><span class="o">(</span><span class="n">outputDir</span><span class="o">)</span>
-<span class="o">})</span></code></pre></div>
+<h2 id="execution-mode">Execution Mode</h2>
 
-<p>The above code generates empty files for empty batches. If you have many empty batches, unnecessarily too many empty folders will be created.</p>
+<p>An execution mode in spark is way of executing the jobs in platform. The mode will dictate how jobs are divided into multiple parallel tasks and how they are scheduled. The execution mode defines what kind of processing can be handled in platform.</p>
 
-<p>We can avoid this by checking, is a given RDD is empty RDD.</p>
+<p>Map/Reduce been a popular execution mode in majority of big data frameworks including spark. This execution mode is flexible enough to handle wide variety workloads like ETL, SQL and ML etc.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">if</span><span class="o">(!</span><span class="n">rdd</span><span class="o">.</span><span class="n">partitions</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span>
-   <span class="n">rdd</span><span class="o">.</span><span class="n">saveAsTextFile</span><span class="o">(</span><span class="n">outputDir</span><span class="o">)</span></code></pre></div>
+<h2 id="mapreduce-execution-mode">Map/Reduce Execution Mode</h2>
 
-<p>The empty rdd has no partitions. Using this logic, we check for partition array of RDD. If partition array is empty, then its an EmptyRDD. This way we can avoid saving empty batches to HDFS.</p>
+<p>In this section of the post we will look into the Map/Reduce from a execution point of view. Understanding this will help us how its different from the barrier execution mode.</p>
+
+<p>In Map/ Reduce</p>
+
+<ul>
+  <li>
+    <p>A job is collection of stages. Each stage can be Map or Reduce. Between these stages there will usually be shuffling.</p>
+  </li>
+  <li>
+    <p>Each stage is collection of tasks. These tasks are independent of each other. This approach is called <strong>shared nothing</strong>. This allows system to scale as more resources are available.</p>
+  </li>
+  <li>
+    <p>As the tasks are independent of each other, when one of the tasks is failed only that task is retried.</p>
+  </li>
+  <li>
+    <p>Number of tasks in Map task is determined by amount of data and number of tasks in reduce phase is determined by developer</p>
+  </li>
+</ul>
+
+<p>The above points summarises the Map/Reduce approach in very high level. Even though there are  many implementation details, this information is enough for our discussion.</p>
+
+<h2 id="need-for-new-execution-mode">Need for New Execution Mode</h2>
+
+<p>Map/Reduce execution mode has served well for many years for different workloads. Why we need different execution mode now?</p>
+
+<p>One of the reasons is to support deep learning frameworks on spark. Deep learning frameworks don’t lend themselves to Map/Reduce model. They work well with other kind of execution model called MPI ( Message Passing Interface). For example, Horovod, an open source framework to do deep learning on scale by Uber, uses the MPI to implement the distributed deep learning for variety of DL frameworks. You can learn more <a href="https://github.com/horovod/horovod#documentation">here</a>.</p>
+
+<p>In order to support the deep learning natively, spark need to support an execution model that is different than Map/Reduce. The new execution Model is modeled after MPI</p>
+
+<h2 id="barrier-execution-mode">Barrier Execution Mode</h2>
+
+<p>The below are how the barrier execution model, which is inspired from MPI, different from the Map/Reduce execution model.</p>
+
+<ul>
+  <li>
+    <p>A job is collection of stages. Between these stages there will usually shuffling. This remains same as Map/Reduce model</p>
+  </li>
+  <li>
+    <p>Each stage is collection of tasks. These tasks are all started together and they are dependent. This is one of major departure compared to Map/Reduce. In MPI model the tasks can communicate to each other and dependent. So they need to be started together.</p>
+  </li>
+  <li>
+    <p>As the tasks are dependent of each other, when one of the tasks are failed all tasks are retried. Again this is different from Map/Reduce model.</p>
+  </li>
+  <li>
+    <p>Number of tasks is always decided by developer. This is because even though data may be small the computation may be much more complicated and may need more resource than typical processing. Also there should be enough resources to run all tasks together.</p>
+  </li>
+</ul>
+
+<p>From above points you can see how barrier execution mode is much different than standard Map/Reduce mode.</p>
+
+<h2 id="references">References</h2>
+
+<p><a href="https://www.mcs.anl.gov/~itf/dbpp/text/node95.html">https://www.mcs.anl.gov/~itf/dbpp/text/node95.html</a></p>
+
+<p><a href="https://eng.uber.com/horovod/">https://eng.uber.com/horovod/</a></p>
+
+<p><a href="https://issues.apache.org/jira/browse/SPARK-24374">https://issues.apache.org/jira/browse/SPARK-24374</a></p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Barrier execution mode brings a new execution mode to spark in last 10 years. This bring new kind of capabilities to the platform.</p>
 
 </article>
 <div class="related">
@@ -91,44 +147,26 @@
          
 
             
-    
-    <li>    
-     <span class="post-date">11 Nov 2020</span>
-     &raquo; <a href="/barrier-execution-mode-part-1">Barrier Execution Mode in Spark 3.0 - Part 1 : Introduction</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">04 Nov 2020</span>
-     &raquo; <a href="/tensorflow-on-spark-3.0">Distributed TensorFlow on Apache Spark 3.0</a>    
-   </li>           
-         
+          
 
    
    
              
     
     <li>    
-     <span class="post-date">02 Nov 2020</span>
-     &raquo; <a href="/spark-3-introduction-part-10">Introduction to Spark 3.0 - Part 10 : Ignoring Data Locality in Spark</a>    
+     <span class="post-date">11 Nov 2020</span>
+     &raquo; <a href="/barrier-execution-mode-part-2">Barrier Execution Mode in Spark 3.0 - Part 2 : Barrier RDD</a>    
    </li>           
          
 
             
-    
-    <li>    
-     <span class="post-date">22 Apr 2020</span>
-     &raquo; <a href="/spark-3-datasource-v2-part-6">Data Source V2 API in Spark 3.0 - Part 6 : MySQL Source</a>    
-   </li>           
-         
+          
 
             
     
     <li>    
-     <span class="post-date">21 Apr 2020</span>
-     &raquo; <a href="/spark-3-introduction-part-9">Introduction to Spark 3.0 - Part 9 : Join Hints in Spark SQL</a>    
+     <span class="post-date">04 Nov 2020</span>
+     &raquo; <a href="/tensorflow-on-spark-3.0">Distributed TensorFlow on Apache Spark 3.0</a>    
    </li>           
          
 

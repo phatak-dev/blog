@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Handling empty batches in Spark streaming</title>
+    <title>Barrier Execution Mode in Spark 3.0 - Part 2 : Barrier RDD</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/handling-empty-rdd-in-spark-streaming">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/barrier-execution-mode-part-2">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,37 +45,84 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Handling empty batches in Spark streaming</h1>
-  <p class="meta">Apr 6, 2015</p>
+  <h1>Barrier Execution Mode in Spark 3.0 - Part 2 : Barrier RDD</h1>
+  <p class="meta">Nov 11, 2020</p>
   <div class="catagories">
+    
+    <a href="/categories/barrier-execution"><span class="category">barrier-execution</span></a>
     
     <a href="/categories/spark"><span class="category">spark</span></a>
     
-    <a href="/categories/scala"><span class="category">scala</span></a>
+    <a href="/categories/spark-three"><span class="category">spark-three</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>Spark streaming is a near real time tiny batch processing system. For given interval, spark streaming generates new batch and runs some processing. Each of these batch data is represented as RDD. But what happens there is no data for a given batch? Spark generates a special kind of RDD called <em>EmptyRDD</em>.</p>
+  <p>Barrier execution mode is a new execution mode added to spark in 3.0 version. This marks a significant change to platform which had only supported Map/Reduce based execution till now. This will allow spark to diversify the kind of workloads it can support on it’s platform.</p>
 
-<p>This empty RDD makes sure that processing is consistent across multiple batches. But having an empty RDD sometimes may create some issues. For example, let’s say you want to save the data of a stream to HDFS.</p>
+<p>In this series posts we will discuss about this execution mode in detail.This is the second post in the series. In this post we will discuss the basic API for barrier execution mode. You can access all the posts in this series <a href="/categories/barrier-execution">here</a>.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">ssc</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">StreamingContext</span><span class="o">(</span><span class="n">args</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span><span class="s">"test"</span><span class="o">,</span><span class="nc">Seconds</span><span class="o">(</span><span class="mi">10</span><span class="o">))</span>
-<span class="k">val</span> <span class="n">socketStream</span> <span class="k">=</span> <span class="n">ssc</span><span class="o">.</span><span class="n">socketTextStream</span><span class="o">(</span><span class="s">"localhost"</span><span class="o">,</span><span class="mi">50050</span><span class="o">)</span>
-<span class="k">val</span> <span class="n">outputDir</span> <span class="k">=</span> <span class="n">args</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
-<span class="n">socketStream</span><span class="o">.</span><span class="n">foreachRDD</span><span class="o">(</span><span class="n">rdd</span> <span class="k">=&gt;</span> <span class="o">{</span>
-  <span class="n">rdd</span><span class="o">.</span><span class="n">saveAsTextFile</span><span class="o">(</span><span class="n">outputDir</span><span class="o">)</span>
-<span class="o">})</span></code></pre></div>
+<h2 id="rddbarrier">RDDBarrier</h2>
 
-<p>The above code generates empty files for empty batches. If you have many empty batches, unnecessarily too many empty folders will be created.</p>
+<p>Spark 3.0 has introduced a new type of RDD called <strong>RDDBarrier[T]</strong> which signifies the RDD needs to be handled using the barrier execution mode. This RDD exposes new capabilities that are not available in normal RDD.</p>
 
-<p>We can avoid this by checking, is a given RDD is empty RDD.</p>
+<h2 id="creating-a-rddbarrier-rdd">Creating a RDDBarrier Rdd</h2>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">if</span><span class="o">(!</span><span class="n">rdd</span><span class="o">.</span><span class="n">partitions</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span>
-   <span class="n">rdd</span><span class="o">.</span><span class="n">saveAsTextFile</span><span class="o">(</span><span class="n">outputDir</span><span class="o">)</span></code></pre></div>
+<p>The below code shows how to convert a normal RDD to barrier RDD</p>
 
-<p>The empty rdd has no partitions. Using this logic, we check for partition array of RDD. If partition array is empty, then its an EmptyRDD. This way we can avoid saving empty batches to HDFS.</p>
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">df</span> <span class="k">=</span> <span class="n">sparkSession</span><span class="o">.</span><span class="n">range</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span><span class="mi">100</span><span class="o">).</span><span class="n">repartition</span><span class="o">(</span><span class="mi">4</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">barrierRdd</span> <span class="k">=</span> <span class="n">df</span><span class="o">.</span><span class="n">rdd</span><span class="o">.</span><span class="n">barrier</span><span class="o">()</span></code></pre></div>
+
+<p>In above code, we create a dataframe with 4 partitions. Then we are using <strong>barrier()</strong> method to convert the normal RDD to barrier RDD.</p>
+
+<h2 id="mappartitions-method">mapPartitions method</h2>
+
+<p>Once barrier rdd, it exposes a <strong>mapPartitions</strong> function to run custom code for each of the partition. In this simple example, we will not do much.</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">count</span> <span class="k">=</span> <span class="n">barrierRdd</span><span class="o">.</span><span class="n">mapPartitions</span><span class="o">(</span><span class="n">v</span> <span class="k">=&gt;</span> <span class="n">v</span><span class="o">).</span><span class="n">count</span><span class="o">()</span>
+
+<span class="n">println</span><span class="o">(</span><span class="s">"count is "</span> <span class="o">+</span> <span class="n">count</span><span class="o">)</span></code></pre></div>
+
+<p><strong>mapPartitions</strong> function return a normal RDD on which we can call methods like count.</p>
+
+<h2 id="executing-code-with-single-thread">Executing code with Single Thread</h2>
+
+<p>Let’s run the above code with below spark session</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sparkSession</span> <span class="k">=</span> <span class="nc">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span>
+          <span class="n">master</span><span class="o">(</span><span class="s">"local"</span><span class="o">)</span>
+          <span class="o">.</span><span class="n">appName</span><span class="o">(</span><span class="s">"example"</span><span class="o">)</span>
+          <span class="o">.</span><span class="n">getOrCreate</span><span class="o">()</span></code></pre></div>
+
+<p>In above code, we are running the program in which master which has single thread. When you run the code, you will see below warnings</p>
+
+<div class="highlight"><pre><code class="language-text" data-lang="text">20/11/09 16:57:40 WARN DAGScheduler: Barrier stage in job 0 requires 4 slots, but only 1 are available. Will retry up to 40 more times
+20/11/09 16:57:55 WARN DAGScheduler: Barrier stage in job 0 requires 4 slots, but only 1 are available. Will retry up to 39 more times</code></pre></div>
+
+<p>The above code is not executing. The reasons for this is as we discussed in last post, all the tasks in barrier execution mode start together. In our example, we have four partitions which need four threads but we have just one. If this was normal Map/Reduce execution, it would have ran one after another. But in barrier execution mode it doesn’t work like that.</p>
+
+<h2 id="executing-code-with-multiple-threads">Executing code with Multiple Threads</h2>
+
+<p>We can fix above code using below spark session</p>
+
+<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">sparkSession</span> <span class="k">=</span> <span class="nc">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span>
+          <span class="n">master</span><span class="o">(</span><span class="s">"local[4]"</span><span class="o">)</span>
+          <span class="o">.</span><span class="n">appName</span><span class="o">(</span><span class="s">"example"</span><span class="o">)</span>
+          <span class="o">.</span><span class="n">getOrCreate</span><span class="o">()</span></code></pre></div>
+
+<p>Now we have four threads. When you execute the code now it works fine.</p>
+
+<h2 id="code">Code</h2>
+
+<p><a href="https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/barrier/BarrierExceptionExample.scala">Execution with Single Thread</a>.</p>
+
+<p><a href="https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/barrier/BarrierRddExample.scala">Execution with Multiple Threads</a>.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>RDDBarrier is a new RDD added to the spark API to support the barrier execution mode. Using this RDD we can implement all different capabilities of this mode.</p>
 
 </article>
 <div class="related">
@@ -83,12 +130,20 @@
   <ul>
     
              
+          
+
+            
     
     <li>    
      <span class="post-date">11 Nov 2020</span>
-     &raquo; <a href="/barrier-execution-mode-part-2">Barrier Execution Mode in Spark 3.0 - Part 2 : Barrier RDD</a>    
+     &raquo; <a href="/barrier-execution-mode-part-1">Barrier Execution Mode in Spark 3.0 - Part 1 : Introduction</a>    
    </li>           
          
+
+   
+   
+             
+          
 
             
     
@@ -103,32 +158,6 @@
     <li>    
      <span class="post-date">04 Nov 2020</span>
      &raquo; <a href="/tensorflow-on-spark-3.0">Distributed TensorFlow on Apache Spark 3.0</a>    
-   </li>           
-         
-
-   
-   
-             
-    
-    <li>    
-     <span class="post-date">02 Nov 2020</span>
-     &raquo; <a href="/spark-3-introduction-part-10">Introduction to Spark 3.0 - Part 10 : Ignoring Data Locality in Spark</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">22 Apr 2020</span>
-     &raquo; <a href="/spark-3-datasource-v2-part-6">Data Source V2 API in Spark 3.0 - Part 6 : MySQL Source</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">21 Apr 2020</span>
-     &raquo; <a href="/spark-3-introduction-part-9">Introduction to Spark 3.0 - Part 9 : Join Hints in Spark SQL</a>    
    </li>           
          
 

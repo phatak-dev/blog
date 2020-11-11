@@ -7,6 +7,159 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Barrier Execution Mode in Spark 3.0 - Part 2 : Barrier RDD</title>
+        <description>&lt;p&gt;Barrier execution mode is a new execution mode added to spark in 3.0 version. This marks a significant change to platform which had only supported Map/Reduce based execution till now. This will allow spark to diversify the kind of workloads it can support on it’s platform.&lt;/p&gt;
+
+&lt;p&gt;In this series posts we will discuss about this execution mode in detail.This is the second post in the series. In this post we will discuss the basic API for barrier execution mode. You can access all the posts in this series &lt;a href=&quot;/categories/barrier-execution&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;rddbarrier&quot;&gt;RDDBarrier&lt;/h2&gt;
+
+&lt;p&gt;Spark 3.0 has introduced a new type of RDD called &lt;strong&gt;RDDBarrier[T]&lt;/strong&gt; which signifies the RDD needs to be handled using the barrier execution mode. This RDD exposes new capabilities that are not available in normal RDD.&lt;/p&gt;
+
+&lt;h2 id=&quot;creating-a-rddbarrier-rdd&quot;&gt;Creating a RDDBarrier Rdd&lt;/h2&gt;
+
+&lt;p&gt;The below code shows how to convert a normal RDD to barrier RDD&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;repartition&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;barrierRdd&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;barrier&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above code, we create a dataframe with 4 partitions. Then we are using &lt;strong&gt;barrier()&lt;/strong&gt; method to convert the normal RDD to barrier RDD.&lt;/p&gt;
+
+&lt;h2 id=&quot;mappartitions-method&quot;&gt;mapPartitions method&lt;/h2&gt;
+
+&lt;p&gt;Once barrier rdd, it exposes a &lt;strong&gt;mapPartitions&lt;/strong&gt; function to run custom code for each of the partition. In this simple example, we will not do much.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;barrierRdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mapPartitions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;count is &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;mapPartitions&lt;/strong&gt; function return a normal RDD on which we can call methods like count.&lt;/p&gt;
+
+&lt;h2 id=&quot;executing-code-with-single-thread&quot;&gt;Executing code with Single Thread&lt;/h2&gt;
+
+&lt;p&gt;Let’s run the above code with below spark session&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;
+          &lt;span class=&quot;n&quot;&gt;master&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;local&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+          &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;appName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;example&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+          &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getOrCreate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above code, we are running the program in which master which has single thread. When you run the code, you will see below warnings&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;20/11/09 16:57:40 WARN DAGScheduler: Barrier stage in job 0 requires 4 slots, but only 1 are available. Will retry up to 40 more times
+20/11/09 16:57:55 WARN DAGScheduler: Barrier stage in job 0 requires 4 slots, but only 1 are available. Will retry up to 39 more times&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The above code is not executing. The reasons for this is as we discussed in last post, all the tasks in barrier execution mode start together. In our example, we have four partitions which need four threads but we have just one. If this was normal Map/Reduce execution, it would have ran one after another. But in barrier execution mode it doesn’t work like that.&lt;/p&gt;
+
+&lt;h2 id=&quot;executing-code-with-multiple-threads&quot;&gt;Executing code with Multiple Threads&lt;/h2&gt;
+
+&lt;p&gt;We can fix above code using below spark session&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;
+          &lt;span class=&quot;n&quot;&gt;master&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;local[4]&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+          &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;appName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;example&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+          &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getOrCreate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now we have four threads. When you execute the code now it works fine.&lt;/p&gt;
+
+&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/barrier/BarrierExceptionExample.scala&quot;&gt;Execution with Single Thread&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/barrier/BarrierRddExample.scala&quot;&gt;Execution with Multiple Threads&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;RDDBarrier is a new RDD added to the spark API to support the barrier execution mode. Using this RDD we can implement all different capabilities of this mode.&lt;/p&gt;
+</description>
+        <pubDate>Wed, 11 Nov 2020 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/barrier-execution-mode-part-2</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/barrier-execution-mode-part-2</guid>
+      </item>
+    
+      <item>
+        <title>Barrier Execution Mode in Spark 3.0 - Part 1 : Introduction</title>
+        <description>&lt;p&gt;Barrier execution mode is a new execution mode added to spark in 3.0 version. This marks a significant change to platform which had only supported Map/Reduce based execution till now. This will allow spark to diversify the kind of workloads it can support on it’s platform.&lt;/p&gt;
+
+&lt;p&gt;In this series posts we will discuss about this execution mode in detail.This is the first post in the series. In this post we will discuss about what is barrier execution mode and why it is needed. You can access all the posts in this series &lt;a href=&quot;/categories/barrier-execution&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;execution-mode&quot;&gt;Execution Mode&lt;/h2&gt;
+
+&lt;p&gt;An execution mode in spark is way of executing the jobs in platform. The mode will dictate how jobs are divided into multiple parallel tasks and how they are scheduled. The execution mode defines what kind of processing can be handled in platform.&lt;/p&gt;
+
+&lt;p&gt;Map/Reduce been a popular execution mode in majority of big data frameworks including spark. This execution mode is flexible enough to handle wide variety workloads like ETL, SQL and ML etc.&lt;/p&gt;
+
+&lt;h2 id=&quot;mapreduce-execution-mode&quot;&gt;Map/Reduce Execution Mode&lt;/h2&gt;
+
+&lt;p&gt;In this section of the post we will look into the Map/Reduce from a execution point of view. Understanding this will help us how its different from the barrier execution mode.&lt;/p&gt;
+
+&lt;p&gt;In Map/ Reduce&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;A job is collection of stages. Each stage can be Map or Reduce. Between these stages there will usually be shuffling.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Each stage is collection of tasks. These tasks are independent of each other. This approach is called &lt;strong&gt;shared nothing&lt;/strong&gt;. This allows system to scale as more resources are available.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;As the tasks are independent of each other, when one of the tasks is failed only that task is retried.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Number of tasks in Map task is determined by amount of data and number of tasks in reduce phase is determined by developer&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The above points summarises the Map/Reduce approach in very high level. Even though there are  many implementation details, this information is enough for our discussion.&lt;/p&gt;
+
+&lt;h2 id=&quot;need-for-new-execution-mode&quot;&gt;Need for New Execution Mode&lt;/h2&gt;
+
+&lt;p&gt;Map/Reduce execution mode has served well for many years for different workloads. Why we need different execution mode now?&lt;/p&gt;
+
+&lt;p&gt;One of the reasons is to support deep learning frameworks on spark. Deep learning frameworks don’t lend themselves to Map/Reduce model. They work well with other kind of execution model called MPI ( Message Passing Interface). For example, Horovod, an open source framework to do deep learning on scale by Uber, uses the MPI to implement the distributed deep learning for variety of DL frameworks. You can learn more &lt;a href=&quot;https://github.com/horovod/horovod#documentation&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In order to support the deep learning natively, spark need to support an execution model that is different than Map/Reduce. The new execution Model is modeled after MPI&lt;/p&gt;
+
+&lt;h2 id=&quot;barrier-execution-mode&quot;&gt;Barrier Execution Mode&lt;/h2&gt;
+
+&lt;p&gt;The below are how the barrier execution model, which is inspired from MPI, different from the Map/Reduce execution model.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;A job is collection of stages. Between these stages there will usually shuffling. This remains same as Map/Reduce model&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Each stage is collection of tasks. These tasks are all started together and they are dependent. This is one of major departure compared to Map/Reduce. In MPI model the tasks can communicate to each other and dependent. So they need to be started together.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;As the tasks are dependent of each other, when one of the tasks are failed all tasks are retried. Again this is different from Map/Reduce model.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Number of tasks is always decided by developer. This is because even though data may be small the computation may be much more complicated and may need more resource than typical processing. Also there should be enough resources to run all tasks together.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;From above points you can see how barrier execution mode is much different than standard Map/Reduce mode.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.mcs.anl.gov/~itf/dbpp/text/node95.html&quot;&gt;https://www.mcs.anl.gov/~itf/dbpp/text/node95.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://eng.uber.com/horovod/&quot;&gt;https://eng.uber.com/horovod/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-24374&quot;&gt;https://issues.apache.org/jira/browse/SPARK-24374&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Barrier execution mode brings a new execution mode to spark in last 10 years. This bring new kind of capabilities to the platform.&lt;/p&gt;
+</description>
+        <pubDate>Wed, 11 Nov 2020 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/barrier-execution-mode-part-1</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/barrier-execution-mode-part-1</guid>
+      </item>
+    
+      <item>
         <title>Distributed TensorFlow on Apache Spark 3.0</title>
         <description>&lt;p&gt;TensorFlow is a popular deep learning framework used across the industry. TensorFlow supports the distributed training on a CPU or GPU cluster. This distributed training allows users to run it on a large amount of data with lot of deep layers.&lt;/p&gt;
 
@@ -670,317 +823,6 @@
         <pubDate>Tue, 14 Apr 2020 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/spark-plugin-part-5</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-plugin-part-5</guid>
-      </item>
-    
-      <item>
-        <title>Spark Plugin Framework in 3.0 - Part 4 : Custom Metrics</title>
-        <description>&lt;p&gt;Spark 3.0 brings a new plugin framework to spark. This plugin framework allows users to plugin custom code at the driver and workers. This will allow for advanced monitoring and custom metrics tracking. This set of API’s are going to help tune spark better than before.&lt;/p&gt;
-
-&lt;p&gt;In this series of posts I will be discussing about the different aspects of plugin framework. This is the fourth post in the series, where we will discuss about how to implement the customer metrics. You can read all the posts in the series &lt;a href=&quot;/categories/spark-plugin&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;need-for-custom-metrics&quot;&gt;Need For Custom Metrics&lt;/h2&gt;
-
-&lt;p&gt;Spark exposes wide variety of metrics for external consumption. These metrics include things like resource usage, scheduling delay, executor time etc. These metrics can be consumed using wide variety of sinks for further analysis. You can read about built-in metrics &lt;a href=&quot;https://spark.apache.org/docs/latest/monitoring.html#executor-task-metrics&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Even though these metrics are very useful, there are cases where you want to track your own metrics. These metrics may be amount of time a given condition is met or may be amount of data written to specific source. This kind of custom application specific metrics allow developers to optimise things specific to their applications.&lt;/p&gt;
-
-&lt;p&gt;Till spark 2.x, developers needed to build their own infrastructure to track these custom metrics. They were not able to reuse the spark metrics infrastructure for the custom metrics. But in 3.0 it’s going to change.&lt;/p&gt;
-
-&lt;h2 id=&quot;custom-metrics-support-in-30&quot;&gt;Custom Metrics Support in 3.0&lt;/h2&gt;
-
-&lt;p&gt;Spark added supported for tracking custom metrics using plugin framework from 3.0. Using custom plugin, we can track our own metrics and plug it into the spark metrics system.&lt;/p&gt;
-
-&lt;p&gt;The rest of post talks about how to define and consume custom metrics&lt;/p&gt;
-
-&lt;h2 id=&quot;even-number-custom-metrics&quot;&gt;Even Number Custom Metrics&lt;/h2&gt;
-
-&lt;p&gt;Let’s say we have a dataframe which contains number from 0 to 5000. We can create Dataframe as below.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5000&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;repartition&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As operation we want to increment the each of the value by 1. In doing so, we also like to keep track how many even numbers are processed by the each executor. This tracking will be our custom metrics called &lt;strong&gt;even number metrics&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;custom-executor-plugin-for-custom-metrics&quot;&gt;Custom Executor Plugin for Custom Metrics&lt;/h2&gt;
-
-&lt;p&gt;To track the above metrics, we need to run code in each executor spark spawns. Executor plugin will be helpful here.&lt;/p&gt;
-
-&lt;p&gt;The below are the steps for the same.&lt;/p&gt;
-
-&lt;h3 id=&quot;defining-a-custom-spark-plugin&quot;&gt;Defining a Custom Spark Plugin&lt;/h3&gt;
-
-&lt;p&gt;In below code we define the custom spark plugin.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CustomMetricSparkPlugin&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SparkPlugin&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;return-empty-driver-plugin&quot;&gt;Return Empty Driver Plugin&lt;/h3&gt;
-
-&lt;p&gt;For this use case, we don’t need a driver plugin so we return null for the same.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;driverPlugin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;DriverPlugin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;define-singleton-atomic-value-to-track-metric&quot;&gt;Define Singleton Atomic Value to Track Metric&lt;/h3&gt;
-
-&lt;p&gt;We use a simple singleton in plugin code to track the latest value of the metric&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CustomMetricSparkPlugin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Counter&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;We define a counter which keeps our metric latest value. Counter is one of kind of metric type supported by spark. There are others also. You can read more about there &lt;a href=&quot;https://metrics.dropwizard.io/3.1.0/getting-started/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;There will one copy of this plugin for each executor spark runs.&lt;/p&gt;
-
-&lt;h3 id=&quot;define-executor-plugin&quot;&gt;Define Executor Plugin&lt;/h3&gt;
-
-&lt;p&gt;The below code defines a executor plugin and sets up custom metrics&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;executorPlugin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;ExecutorPlugin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ExecutorPlugin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-   &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;init&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PluginContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;extraConf&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;util.Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;])&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Unit&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;metricRegistry&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;metricRegistry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;metricRegistry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;register&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;evenMetrics&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;CustomMetricSparkPlugin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-   &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above code, we register a metrics using &lt;strong&gt;register&lt;/strong&gt; method on MetricRegistery. We give a name called &lt;strong&gt;evenMetrics&lt;/strong&gt;. The value of metric will take from the counter defined above. This counter will be polled for every 1s by default.&lt;/p&gt;
-
-&lt;h2 id=&quot;using-custom-metrics-from-code&quot;&gt;Using Custom Metrics From Code&lt;/h2&gt;
-
-&lt;p&gt;Once we setup the executor plugin and the metrics, we need to update the same from our code.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;incrementedDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mapPartitions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iterator&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;evenCount&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;incrementedIterator&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;iterator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;evenCount&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;evenCount&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toIterator&lt;/span&gt;
-      &lt;span class=&quot;nc&quot;&gt;CustomMetricSparkPlugin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;inc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;evenCount&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;incrementedIterator&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;})&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above code, we are running our increment operation and also updating the metric value using &lt;strong&gt;inc&lt;/strong&gt; operator. Also note that, we are going over data only once for both operation and metric calculation.&lt;/p&gt;
-
-&lt;h2 id=&quot;setting-up-sink&quot;&gt;Setting Up Sink&lt;/h2&gt;
-
-&lt;p&gt;To consume the metrics in spark, we need to specify it’s settings in &lt;strong&gt;metrics.properties&lt;/strong&gt; file. The below code shows sample of the same.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-txt&quot; data-lang=&quot;txt&quot;&gt;*.sink.console.class=org.apache.spark.metrics.sink.ConsoleSink&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above line, we specify our sink as console which means we want to print the metrics to console.&lt;/p&gt;
-
-&lt;h2 id=&quot;passing-metrics-file-in-spark-session&quot;&gt;Passing Metrics File in Spark Session&lt;/h2&gt;
-
-&lt;p&gt;We need to specify the path of metrics files using &lt;strong&gt;spark.metrics.conf&lt;/strong&gt; property. We can set the property as below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;spark.metrics.conf&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;src/main/resources/metrics.properties&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples/tree/master/src/main/scala/com/madhukaraphatak/spark/core/plugins/custommetrics&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;output&quot;&gt;Output&lt;/h2&gt;
-
-&lt;p&gt;When you run the above example, you will observe the custom metrics with other spark metrics like as below&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;plugin.com.madhukaraphatak.spark.core.plugins.custommetrics
-                       .CustomMetricSparkPlugin.evenMetrics
-             count = 2500&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As we are running on local, there is only one executor. That’s why all the even numbers are coming to single executor. But if you run the same code on cluster, you will see different numbers in different executors.&lt;/p&gt;
-
-&lt;p&gt;Now our custom metric is flowing as part of the spark metrics system.&lt;/p&gt;
-
-&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-24918&quot;&gt;https://issues.apache.org/jira/browse/SPARK-24918&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://github.com/cerndb/SparkPlugins&quot;&gt;https://github.com/cerndb/SparkPlugins&lt;/a&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;Spark plugin framework brings a powerful customization to spark ecosystem. In this post, we discussed how to use executor plugin to implement custom metrics for our programs.&lt;/p&gt;
-</description>
-        <pubDate>Mon, 13 Apr 2020 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-plugin-part-4</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-plugin-part-4</guid>
-      </item>
-    
-      <item>
-        <title>Spark Plugin Framework in 3.0 - Part 3 : Dynamic Stream Configuration using Driver Plugin</title>
-        <description>&lt;p&gt;Spark 3.0 brings a new plugin framework to spark. This plugin framework allows users to plugin custom code at the driver and workers. This will allow for advanced monitoring and custom metrics tracking. This set of API’s are going to help tune spark better than before.&lt;/p&gt;
-
-&lt;p&gt;In this series of posts I will be discussing about the different aspects of plugin framework. This is the third post in the series, where we will discuss about how to implement the dynamic configuration in spark streaming using driver plugin. You can read all the posts in the series &lt;a href=&quot;/categories/spark-plugin&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;dynamic-configuration-in-spark-streaming&quot;&gt;Dynamic Configuration in Spark Streaming&lt;/h2&gt;
-
-&lt;p&gt;Spark Streaming is a long running application which processes the incoming data. The streaming applications usually start with an initial configuration. But that configuration may change as the time goes. User doesn’t want to stop and restart the spark streaming application for these changes. They would like to it to be updated on the fly.&lt;/p&gt;
-
-&lt;p&gt;Currently this is implemented by reading configurations from an external service on every micro batch. But this introduces the additional delay in the processing. It will be nice to have asynchronous update to the configuration which can be picked up at the time execution.&lt;/p&gt;
-
-&lt;p&gt;This post shows how to implement this using driver plugin of spark plugin framework.&lt;/p&gt;
-
-&lt;h2 id=&quot;defining-a-configuration&quot;&gt;Defining a Configuration&lt;/h2&gt;
-
-&lt;p&gt;The below code defines a simple configuration which holds a single value. In real world scenario, this can be complex object like JSON.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Configuration&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-
-  &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;
-
-  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getConfig&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;
-
-  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;changeConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;newValue&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;newValue&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above code, there is initial value and then methods to read/write new configuration.&lt;/p&gt;
-
-&lt;h2 id=&quot;defining-a-custom-spark-plugin&quot;&gt;Defining a Custom Spark Plugin&lt;/h2&gt;
-
-&lt;p&gt;The below code defines a custom spark plugin&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CustomConfigSparkPlugin&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SparkPlugin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;driverPlugin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;DriverPlugin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CustomConfigDriverPlugin&lt;/span&gt;
-
-  &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;executorPlugin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;ExecutorPlugin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As we need to only change configuration from the driver, we return &lt;strong&gt;null&lt;/strong&gt; fro executor plugin.&lt;/p&gt;
-
-&lt;h2 id=&quot;implementing-driver-plugin&quot;&gt;Implementing Driver Plugin&lt;/h2&gt;
-
-&lt;p&gt;This section of the post we will discussing different parts of the driver plugin implementation.&lt;/p&gt;
-
-&lt;h3 id=&quot;implementing-driver-plugin-interface&quot;&gt;Implementing Driver Plugin Interface&lt;/h3&gt;
-
-&lt;p&gt;First step is to implement driver plugin interface.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CustomConfigDriverPlugin&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DriverPlugin&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;overriding-init-method&quot;&gt;Overriding Init Method&lt;/h3&gt;
-
-&lt;p&gt;Once we extend the driver plugin interface, we override init method.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;init&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;SparkContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pluginContext&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PluginContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;util.Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sparkContext&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sparkContext&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;runningThread&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Thread&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(){&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Unit&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ServerSocketListener&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;runningThread&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-
-    &lt;span class=&quot;k&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;init&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pluginContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In the init method, we run a socket listener in new thread. This runs in new thread so that it doesn’t block the driver operations. We start the thread and leave till it shutdown.&lt;/p&gt;
-
-&lt;h3 id=&quot;socket-listener-for-configuration-changes&quot;&gt;Socket Listener for Configuration Changes&lt;/h3&gt;
-
-&lt;p&gt;The below code shows a simple socket listener which changes configuration whenever it’s contacted. Here we are doing an incremental to configuration changes to keep it simple.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ServerSocketListener&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;port&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;9999&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;listener&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ServerSocket&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;socket&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;listener&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;accept&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Thread&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Unit&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-          &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;currentValue&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Configuration&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getConfig&lt;/span&gt;
-          &lt;span class=&quot;nc&quot;&gt;Configuration&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;changeConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;currentValue&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-          &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;response&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;HTTP/1.1 200 OK \r\n\r\n &quot;&lt;/span&gt;
-             &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot; the latest configuration is ${Configuration.getConfig}&quot;&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;socket&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getOutputStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getBytes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;UTF-8&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;socket&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getOutputStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flush&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;socket&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;close&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;overriding-shut-down-method&quot;&gt;Overriding Shut Down Method&lt;/h3&gt;
-
-&lt;p&gt;When driver shut downs, we stops the listener&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;shutdown&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Unit&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;runningThread&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;interrupt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exit&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shutdown&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;setting-custom-spark-plugin-in-spark-session&quot;&gt;Setting Custom Spark Plugin in Spark Session&lt;/h2&gt;
-
-&lt;p&gt;The below code is added in main program, to add the spark plugin to spark session&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkConf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SparkConf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setMaster&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;local[2]&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;spark.plugins&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;com.madhukaraphatak.spark.core
-           .plugins.dynamicconfig.CustomConfigSparkPlugin&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setAppName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;executor plugin example&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;using-configuration-in-spark-streaming&quot;&gt;Using Configuration in Spark Streaming&lt;/h2&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readStream&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;socket&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;host&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;localhost&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;port&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8888&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;as&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;returnDf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Configuration&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;query&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;returnDf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;writeStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;queryName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;something&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;console&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;outputMode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;OutputMode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Append&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above code, we are reading the data from a socket. For every data received, we are printing the latest configuration.&lt;/p&gt;
-
-&lt;h2 id=&quot;running-example&quot;&gt;Running Example&lt;/h2&gt;
-
-&lt;p&gt;This section shows how the changes of configuration is shown.&lt;/p&gt;
-
-&lt;h3 id=&quot;initial-run&quot;&gt;Initial Run&lt;/h3&gt;
-
-&lt;p&gt;When the first message **hello world ** is sent on socket, then you can see the below result.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;o&quot;&gt;+-------------+&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;+-------------+&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hello&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;world10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;+-------------+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;updating-configuration&quot;&gt;Updating Configuration&lt;/h3&gt;
-
-&lt;p&gt;You can update configuration by sending curl request at &lt;a href=&quot;http://localhost:9999&quot;&gt;http://localhost:9999&lt;/a&gt;&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;curl localhost:9999&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;It will print&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;latest configuration is 20&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;new-configuration-in-spark-streaming&quot;&gt;New Configuration in Spark Streaming,&lt;/h3&gt;
-
-&lt;p&gt;If you send the &lt;strong&gt;hello world&lt;/strong&gt; again in the socket, you will get below result&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;+-------------+
-|        value|
-+-------------+
-|hello world20|
-+-------------+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As you can see that streaming program has latest configuration now.&lt;/p&gt;
-
-&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples/tree/master/src/main/scala/com/madhukaraphatak/spark/core/plugins/dynamicconfig&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;Spark plugin framework brings a powerful customization to spark ecosystem. In this post, we discussed how to use driver plugin to implement dynamic configuration spark streaming.&lt;/p&gt;
-</description>
-        <pubDate>Fri, 10 Apr 2020 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-plugin-part-3</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-plugin-part-3</guid>
       </item>
     
   </channel>
