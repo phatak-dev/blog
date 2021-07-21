@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Multiple Column Feature Transformations in Spark ML</title>
+    <title>Pandas API on Apache Spark- Part 1: Introduction</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/multi-column-feature-transformation-spark-ml">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-pandas-part-1">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,60 +45,56 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Multiple Column Feature Transformations in Spark ML</h1>
-  <p class="meta">Jun 6, 2019</p>
+  <h1>Pandas API on Apache Spark- Part 1: Introduction</h1>
+  <p class="meta">Jul 21, 2021</p>
   <div class="catagories">
     
     <a href="/categories/spark"><span class="category">spark</span></a>
     
-    <a href="/categories/scala"><span class="category">scala</span></a>
+    <a href="/categories/python"><span class="category">python</span></a>
+    
+    <a href="/categories/spark-pandas"><span class="category">spark-pandas</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>Feature transformations are one of the most important and time consuming part of any machine learning pipeline. As number of columns increases, these transformations also grow with it. So having improvement in performance in these will improve the overall performance of the machine learning system.</p>
+  <p>Apache Spark has revolutionised the data science field with it’s support for big data. With it support for multiple languages like Scala, Python it has made big data analysis available to wide variety of developers.</p>
 
-<h2 id="spark-ml-feature-transformations-before-spark-23">Spark ML Feature Transformations Before Spark 2.3</h2>
+<p>Python is the leading language preferred by the data science community. Even with in Spark community, python API has seen tremendous upsurge in last few years. According to databricks, company behind the Apache Spark, 60% of the commands written on their notebook is python compared to 23% of them in Scala.</p>
 
-<p>Till spark 2.3, most of the ML transformations supported single column at a time.</p>
+<p>Spark has excellent support for python with Pyspark project. Pyspark allows developers to access all different parts of spark like SQL,ML etc using python language.<br />
+Still it has not yet reached wider python community. The reason is majority of python data developers prefer Pandas API.</p>
 
-<p>The below code show one example of such transformation.</p>
+<h2 id="pyspark-vs-pandas">PySpark vs Pandas</h2>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">singleColumnOneHotEncoder</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">OneHotEncoder</span><span class="o">()</span>
-<span class="n">singleColumnOneHotEncoder</span><span class="o">.</span><span class="n">setInputCol</span><span class="o">(</span><span class="s">"workclass_index"</span><span class="o">)</span>
-<span class="n">singleColumnOneHotEncoder</span><span class="o">.</span><span class="n">setOutputCol</span><span class="o">(</span><span class="s">"workclass_onehot"</span><span class="o">)</span></code></pre></div>
+<p>Pandas is the de facto library for python data science community to manipulate data in python. Also pandas integrates seamlessly with other python libraries like plotly, scikit learn. So most developers are very comfortable with it’s API.</p>
 
-<p>In above code, we are one hot encoding one column. If we have 20 categorical columns, we need to create 20 one hot encoders, which will run one after another. This is highly time consuming.</p>
+<p>Whereas Pyspark is completely different API which is modeled after Spark dataframe DSL. Even though it can work on large data in distributed manner and has almost similar functionalities like pandas, there is steep learning to understand these API’s. Also pyspark doesn’t play well with other python data libraries. So adoption of pyspark in wider data science community is significantly less.</p>
 
-<h2 id="multi-column-ml-transformations-from-spark-23">Multi-Column ML Transformations from Spark 2.3</h2>
+<h2 id="koalas">Koalas</h2>
 
-<p>Combining multiple columns together for feature transformations improve the overall performance of the pipeline. So from 2.3, spark has started supporting multiple column transformations for few of the built in transformations.</p>
+<p>To address this gap databricks released a library called <a href="https://koalas.readthedocs.io/en/latest/">Koalas</a>. It is a spark library which brought the pandas API on top spark dataframe.</p>
 
-<p>So from Spark 2.3 version, we can do all the one hot encoding in one shot as shown in the below code</p>
+<p>Koalas allows python developers to write pandas API code on top spark dataframe which gives best of both worlds. Now developers can write code in pandas API and get all the performance benefits of spark.</p>
 
-<div class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">singleOneHotEncoder</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">OneHotEncoderEstimator</span><span class="o">()</span>
-<span class="n">singleOneHotEncoder</span><span class="o">.</span><span class="n">setInputCols</span><span class="o">(</span><span class="n">stringColumns</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span> <span class="o">+</span> <span class="s">"_index"</span><span class="o">))</span>
-<span class="n">singleOneHotEncoder</span><span class="o">.</span><span class="n">setOutputCols</span><span class="o">(</span><span class="n">outputColumns</span><span class="o">)</span></code></pre></div>
+<p>Koalas has been quite successful with python community. Now this support going to become even better with Spark 3.2</p>
 
-<p>In above code, we can observe that <strong>setInputCols</strong> allows us to set multiple columns at same time. This make sure that we run all the one hot encoding for multiple columns together.</p>
+<h2 id="pandas-api-on-pyspark">Pandas API on Pyspark</h2>
 
-<h2 id="missing-transformations">Missing Transformations</h2>
+<p>From spark 3.2, pandas API will be added to mainline spark project. No more need of third party library. So pandas API going to be yet another API with Dataframe DSL and SQL API to manipulate data in spark.</p>
 
-<p>In Spark 2.3 and 2.4 only few of the built-in transformations support the multiple columns. Few of the the missing ones are</p>
+<p>This support suddenly opens up wide variety of use cases for python developers and is one of the very powerful API introduction in Apache spark project.</p>
 
-<p>• StringIndexer</p>
+<p>In next series of blogs, I will be discussing about this API and use cases for the same. You can read all the posts <a href="/categories/spark-pandas">here</a>.</p>
 
-<p>• Binarizer</p>
+<h2 id="references">References</h2>
 
-<p>Support for these will be added in spark 3.0.</p>
-
-<h2 id="code">Code</h2>
-
-<p>You can access complete code on <a href="https://github.com/phatak-dev/spark2.0-examples/blob/2.4/src/main/scala/com/madhukaraphatak/examples/sparktwo/ml/MultiColumnTransformation.scala">github</a>.</p>
-
-<h2 id="conclusion">Conclusion</h2>
-<p>From Spark 2.3, spark supports multi-column feature transformations. These greatly speedup the real world ML pipelines.</p>
+<ul>
+  <li><a href="https://issues.apache.org/jira/browse/SPARK-34849">https://issues.apache.org/jira/browse/SPARK-34849</a></li>
+  <li><a href="https://docs.google.com/document/d/1tk24aq6FV5Wu2bX_Ym606doLFnrZsh4FdUd52FqojZU/edit">Koalas Design Doc</a></li>
+  <li><a href="https://www.youtube.com/watch?v=8P-lWuMm2UQ">Spark Summit Talk</a></li>
+</ul>
 
 </article>
 <div class="related">
@@ -106,12 +102,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">21 Jul 2021</span>
-     &raquo; <a href="/spark-pandas-part-1">Pandas API on Apache Spark- Part 1: Introduction</a>    
-   </li>           
-         
+          
 
             
     
@@ -132,26 +123,21 @@
    
    
              
+          
+
+            
     
     <li>    
-     <span class="post-date">02 Nov 2020</span>
-     &raquo; <a href="/spark-3-introduction-part-10">Introduction to Spark 3.0 - Part 10 : Ignoring Data Locality in Spark</a>    
+     <span class="post-date">04 Nov 2020</span>
+     &raquo; <a href="/tensorflow-on-spark-3.0">Distributed TensorFlow on Apache Spark 3.0</a>    
    </li>           
          
 
             
     
     <li>    
-     <span class="post-date">22 Apr 2020</span>
-     &raquo; <a href="/spark-3-datasource-v2-part-6">Data Source V2 API in Spark 3.0 - Part 6 : MySQL Source</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">21 Apr 2020</span>
-     &raquo; <a href="/spark-3-introduction-part-9">Introduction to Spark 3.0 - Part 9 : Join Hints in Spark SQL</a>    
+     <span class="post-date">13 Mar 2018</span>
+     &raquo; <a href="/spark-vector-to-numpy">Converting Spark ML Vector to Numpy Array</a>    
    </li>           
          
 

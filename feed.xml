@@ -7,6 +7,50 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Pandas API on Apache Spark- Part 1: Introduction</title>
+        <description>&lt;p&gt;Apache Spark has revolutionised the data science field with it’s support for big data. With it support for multiple languages like Scala, Python it has made big data analysis available to wide variety of developers.&lt;/p&gt;
+
+&lt;p&gt;Python is the leading language preferred by the data science community. Even with in Spark community, python API has seen tremendous upsurge in last few years. According to databricks, company behind the Apache Spark, 60% of the commands written on their notebook is python compared to 23% of them in Scala.&lt;/p&gt;
+
+&lt;p&gt;Spark has excellent support for python with Pyspark project. Pyspark allows developers to access all different parts of spark like SQL,ML etc using python language.&lt;br /&gt;
+Still it has not yet reached wider python community. The reason is majority of python data developers prefer Pandas API.&lt;/p&gt;
+
+&lt;h2 id=&quot;pyspark-vs-pandas&quot;&gt;PySpark vs Pandas&lt;/h2&gt;
+
+&lt;p&gt;Pandas is the de facto library for python data science community to manipulate data in python. Also pandas integrates seamlessly with other python libraries like plotly, scikit learn. So most developers are very comfortable with it’s API.&lt;/p&gt;
+
+&lt;p&gt;Whereas Pyspark is completely different API which is modeled after Spark dataframe DSL. Even though it can work on large data in distributed manner and has almost similar functionalities like pandas, there is steep learning to understand these API’s. Also pyspark doesn’t play well with other python data libraries. So adoption of pyspark in wider data science community is significantly less.&lt;/p&gt;
+
+&lt;h2 id=&quot;koalas&quot;&gt;Koalas&lt;/h2&gt;
+
+&lt;p&gt;To address this gap databricks released a library called &lt;a href=&quot;https://koalas.readthedocs.io/en/latest/&quot;&gt;Koalas&lt;/a&gt;. It is a spark library which brought the pandas API on top spark dataframe.&lt;/p&gt;
+
+&lt;p&gt;Koalas allows python developers to write pandas API code on top spark dataframe which gives best of both worlds. Now developers can write code in pandas API and get all the performance benefits of spark.&lt;/p&gt;
+
+&lt;p&gt;Koalas has been quite successful with python community. Now this support going to become even better with Spark 3.2&lt;/p&gt;
+
+&lt;h2 id=&quot;pandas-api-on-pyspark&quot;&gt;Pandas API on Pyspark&lt;/h2&gt;
+
+&lt;p&gt;From spark 3.2, pandas API will be added to mainline spark project. No more need of third party library. So pandas API going to be yet another API with Dataframe DSL and SQL API to manipulate data in spark.&lt;/p&gt;
+
+&lt;p&gt;This support suddenly opens up wide variety of use cases for python developers and is one of the very powerful API introduction in Apache spark project.&lt;/p&gt;
+
+&lt;p&gt;In next series of blogs, I will be discussing about this API and use cases for the same. You can read all the posts &lt;a href=&quot;/categories/spark-pandas&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-34849&quot;&gt;https://issues.apache.org/jira/browse/SPARK-34849&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://docs.google.com/document/d/1tk24aq6FV5Wu2bX_Ym606doLFnrZsh4FdUd52FqojZU/edit&quot;&gt;Koalas Design Doc&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.youtube.com/watch?v=8P-lWuMm2UQ&quot;&gt;Spark Summit Talk&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Wed, 21 Jul 2021 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/spark-pandas-part-1</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-pandas-part-1</guid>
+      </item>
+    
+      <item>
         <title>Barrier Execution Mode in Spark 3.0 - Part 2 : Barrier RDD</title>
         <description>&lt;p&gt;Barrier execution mode is a new execution mode added to spark in 3.0 version. This marks a significant change to platform which had only supported Map/Reduce based execution till now. This will allow spark to diversify the kind of workloads it can support on it’s platform.&lt;/p&gt;
 
@@ -734,95 +778,6 @@
         <pubDate>Wed, 15 Apr 2020 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/spark-aqe-part-1</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-aqe-part-1</guid>
-      </item>
-    
-      <item>
-        <title>Spark Plugin Framework in 3.0 - Part 5: RPC Communication</title>
-        <description>&lt;p&gt;Spark 3.0 brings a new plugin framework to spark. This plugin framework allows users to plugin custom code at the driver and workers. This will allow for advanced monitoring and custom metrics tracking. This set of API’s are going to help tune spark better than before.&lt;/p&gt;
-
-&lt;p&gt;In this series of posts I will be discussing about the different aspects of plugin framework. This is the fifth post in the series, where we will discuss about rpc communication. You can read all the posts in the series &lt;a href=&quot;/categories/spark-plugin&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;rpc-communication&quot;&gt;RPC Communication&lt;/h2&gt;
-
-&lt;p&gt;Spark plugin framework allows driver and executor plugin to communicate to each using RPC messages. This facility is useful to send status or ask details from the driver for some initialisation of the configuration.&lt;/p&gt;
-
-&lt;p&gt;In this post, we will discuss about how to use the RPC communication of the plugin framework.&lt;/p&gt;
-
-&lt;h2 id=&quot;types-of-communication&quot;&gt;Types of Communication&lt;/h2&gt;
-
-&lt;p&gt;RPC framework allows two types of communication. One is synchronous, where executor sends a message and waits for response. Another one is asynchronous where the executor follows fire and forget. Currently only executor plugin can initiate the communication.&lt;/p&gt;
-
-&lt;h2 id=&quot;synchronous-message-passing&quot;&gt;Synchronous Message Passing&lt;/h2&gt;
-
-&lt;p&gt;This section of the post discusses about how the synchronous communication works.&lt;/p&gt;
-
-&lt;h3 id=&quot;define-messages&quot;&gt;Define Messages&lt;/h3&gt;
-
-&lt;p&gt;The below code defines the two messages. One request and one response&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;InitialConfigRequest&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;extends&lt;/span&gt;  &lt;span class=&quot;nc&quot;&gt;Serializable&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;InitialConfigResponse&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Serializable&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;All messages need to implement the &lt;strong&gt;Serializable&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;sending-message-from-executor-plugin&quot;&gt;Sending Message from Executor Plugin&lt;/h3&gt;
-
-&lt;p&gt;The below code shows how to send a message from executor plugin&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;executorPlugin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;ExecutorPlugin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ExecutorPlugin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pluginContext&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;PluginContext&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;initialConfiguration&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
-
-    &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;init&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;PluginContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;extraConf&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;util.Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;])&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Unit&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;pluginContext&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;initialConfiguration&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pluginContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ask&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;InitialConfigRequest&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-             &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;asInstanceOf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;InitialConfigResponse&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;].&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;the initial configuration is &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;initialConfiguration&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In above code, we are using &lt;strong&gt;pluginContext.ask&lt;/strong&gt; method to send a message. The return value will be stored as the configuration. As the name suggest, &lt;strong&gt;ask&lt;/strong&gt; is a synchronous API.&lt;/p&gt;
-
-&lt;h3 id=&quot;handling-messages-in-driver-plugin&quot;&gt;Handling Messages in Driver Plugin&lt;/h3&gt;
-
-&lt;p&gt;The below code shows to how to handle these messages in driver plugin&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;driverPlugin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;DriverPlugin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DriverPlugin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-   &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;receive&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;scala.Any&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;AnyRef&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-     &lt;span class=&quot;n&quot;&gt;message&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;match&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-       &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;InitialConfigRequest&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;InitialConfigResponse&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;In driver plugin, we override &lt;strong&gt;receive&lt;/strong&gt; method to receive the message. Then using pattern matching we respond to different messages. In this code, we are responding to the initial configuration message.&lt;/p&gt;
-
-&lt;h2 id=&quot;asynchronous-messaging&quot;&gt;Asynchronous Messaging&lt;/h2&gt;
-
-&lt;p&gt;In the last section we looked at how to do synchronous messaging. In this section, we will discuss about how to do the asynchronous ones.&lt;/p&gt;
-
-&lt;h3 id=&quot;send-method&quot;&gt;Send Method&lt;/h3&gt;
-
-&lt;p&gt;We will use &lt;strong&gt;send&lt;/strong&gt; method rather than ask in executor plugin to send the message.&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rpcMessage&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;FinalValueResponse&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;initialConfiguration&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;pluginContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rpcMessage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As we can see from the code, we are not waiting for results.&lt;/p&gt;
-
-&lt;h3 id=&quot;handling-messages-in-driver-plugin-1&quot;&gt;Handling Messages in Driver Plugin&lt;/h3&gt;
-
-&lt;p&gt;Handling messages in driver remains same. Rather than returning value, we return &lt;strong&gt;Unit&lt;/strong&gt; to signify that there is no return value&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;FinalValueResponse&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;  &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;the final value is &quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Unit&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples/tree/master/src/main/scala/com/madhukaraphatak/spark/core/plugins/rpccommunication&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;Spark plugin framework brings a powerful customization to spark ecosystem. In this post, we discussed how to do communication between driver and executor plugins.&lt;/p&gt;
-</description>
-        <pubDate>Tue, 14 Apr 2020 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-plugin-part-5</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-plugin-part-5</guid>
       </item>
     
   </channel>
