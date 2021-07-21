@@ -51,6 +51,65 @@ Still it has not yet reached wider python community. The reason is majority of p
       </item>
     
       <item>
+        <title>Pandas API on Apache Spark - Part 2: Hello World</title>
+        <description>&lt;p&gt;Pandas API on Apache Spark brings the familiar python Pandas API on top of distributed spark framework. This combination allows python developers to write code in their favorite pandas API with all the performance and distributed benefits of spark. This marriage of API and Platform is one of the biggest improvement landing in Apache spark in recent time. This feature will be available in spark 3.2.&lt;/p&gt;
+
+&lt;p&gt;In these series posts we will be discussing different aspects of this integration. This is second post in the series where we will write our first hello world example. You can access other posts in the series &lt;a href=&quot;/categories/spark-pandas&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;setup&quot;&gt;Setup&lt;/h2&gt;
+
+&lt;p&gt;Running pandas API on spark needs Spark 3.2. At the time of this blog is written, spark 3.2 is still in the development. So to run these examples you need to build the spark tar from code. Once 3.2 is released in stable version you can use it as any other pyspark program.&lt;/p&gt;
+
+&lt;p&gt;You can find more details how to build code from source in below link.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://spark.apache.org/docs/latest/building-spark.html&quot;&gt;https://spark.apache.org/docs/latest/building-spark.html&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Also you need to install the below libraries in your venv of python&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;mf&quot;&gt;1.&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Pandas&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.23&lt;/span&gt;
+&lt;span class=&quot;mf&quot;&gt;2.&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PyArrow&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1.0&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;hello-world&quot;&gt;Hello World&lt;/h2&gt;
+
+&lt;p&gt;As our programming tradition, we always start with hello world example. This example can be run from pyspark console or Jupyter notebook.&lt;/p&gt;
+
+&lt;p&gt;The below are the steps&lt;/p&gt;
+
+&lt;h3 id=&quot;import-pandas&quot;&gt;Import Pandas&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pyspark.pandas&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ps&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;As first step, we import pandas from pyspark project.&lt;/p&gt;
+
+&lt;h3 id=&quot;create-pandas-dataframe-on-spark&quot;&gt;Create Pandas Dataframe on Spark&lt;/h3&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ps&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DataFrame&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;columns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;a&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In above code, we create pandas dataframe using some array. As you can observe the API is exactly same python Pandas.&lt;/p&gt;
+
+&lt;p&gt;To make sure its using spark on pandas rather than normal pandas we can check it on spark UI.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/pandasonspark/pandasplan&quot; alt=&quot;/images/pandasonspark/pandasplan&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;From above image, we can observe the above dataframe creation ran a SQL query on spark.&lt;/p&gt;
+
+&lt;h2 id=&quot;print-data&quot;&gt;Print Data&lt;/h2&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;As with normal pandas, above code prints the dataframe data.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In this post, we looked at how to write a simple example pandas code using Pandas API on Apache Spark.&lt;/p&gt;
+</description>
+        <pubDate>Fri, 16 Jul 2021 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/spark-pandas-part-2</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-pandas-part-2</guid>
+      </item>
+    
+      <item>
         <title>Barrier Execution Mode in Spark 3.0 - Part 2 : Barrier RDD</title>
         <description>&lt;p&gt;Barrier execution mode is a new execution mode added to spark in 3.0 version. This marks a significant change to platform which had only supported Map/Reduce based execution till now. This will allow spark to diversify the kind of workloads it can support on it’s platform.&lt;/p&gt;
 
@@ -734,50 +793,6 @@ Still it has not yet reached wider python community. The reason is majority of p
         <pubDate>Thu, 16 Apr 2020 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/spark-aqe-part-2</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-aqe-part-2</guid>
-      </item>
-    
-      <item>
-        <title>Adaptive Query Execution in Spark 3.0 - Part 1 : Introduction</title>
-        <description>&lt;p&gt;Spark catalyst is one of the most important layer of spark SQL which does all the query optimisation. These optimisations are expressed as list of rules which will be executed on the query plan before executing the query itself. This makes sure Spark SQL can do lot more automatic optimisation compared to hand written RDD code.&lt;/p&gt;
-
-&lt;p&gt;Even though spark catalyst does lot of heavy lifting, it’s all done before query execution. So that means once the physical plan is created and execution of the plan started, it will not do any optimisation there after. So it cannot do some of the optimisation which is based on metrics it sees when the execution is going on.&lt;/p&gt;
-
-&lt;p&gt;In 3.0, spark has introduced an additional layer of optimisation. This layer is known as adaptive query execution. This layer tries to optimise the queries depending upon the metrics that are collected as part of the execution.&lt;/p&gt;
-
-&lt;p&gt;In this series of posts, I will be discussing about different part of adaptive execution. This is the first post in the series where I will be discussing the goals of this layer. You can find all the posts in the series &lt;a href=&quot;/categories/spark-aqe&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;adaptive-query-execution&quot;&gt;Adaptive Query Execution&lt;/h2&gt;
-
-&lt;p&gt;Adaptive Query Execution, AQE,  is a layer on top of the spark catalyst which will modify the spark plan on the fly. This allows spark to do some of the things which are not possible to do in catalyst today.&lt;/p&gt;
-
-&lt;p&gt;The different optimisation available in AQE as below.&lt;/p&gt;
-
-&lt;h3 id=&quot;adaptive-number-of-shuffle-partitions-or-reducers&quot;&gt;Adaptive Number of Shuffle Partitions or Reducers&lt;/h3&gt;
-
-&lt;p&gt;In spark sql, number of shuffle partitions are set using &lt;strong&gt;spark.sql.shuffle.partitions&lt;/strong&gt; which defaults to &lt;strong&gt;200&lt;/strong&gt;. In most of the cases, this number is too high for smaller data and too small for bigger data. Selecting right value becomes always tricky for the developer.&lt;/p&gt;
-
-&lt;p&gt;When AQE is enabled, the number of shuffle partitions are automatically adjusted depending upon the output of mapping stage. This means if map stage of the query outputted less data, spark will run less number of reducers and vice versa. This makes it performant depending upon data size.&lt;/p&gt;
-
-&lt;h3 id=&quot;handling-skew-joins&quot;&gt;Handling Skew Joins&lt;/h3&gt;
-
-&lt;p&gt;Today whenever there is skew in joins, spark creates a skewed task which lags compared to other tasks. This often result in slower execution times.&lt;/p&gt;
-
-&lt;p&gt;When adaptive execution is enabled, spark can recognise this query and then automatically redistribute the data to go join faster. This will make skew join go faster than normal joins.&lt;/p&gt;
-
-&lt;h3 id=&quot;converting-sort-merge-join-to-broadcast-join&quot;&gt;Converting Sort Merge Join to BroadCast Join&lt;/h3&gt;
-
-&lt;p&gt;AQE converts sort-merge join to broadcast hash join when the runtime statistics of any join side is smaller than the broadcast hash join threshold. This allows spark to automatically adjust join type when the data may reduce when after filter etc.&lt;/p&gt;
-
-&lt;p&gt;The above are the some of the optimisation done by AQE.&lt;/p&gt;
-
-&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://github.com/apache/spark/pull/27616&quot;&gt;https://github.com/apache/spark/pull/27616&lt;/a&gt;.&lt;/p&gt;
-
-</description>
-        <pubDate>Wed, 15 Apr 2020 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-aqe-part-1</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-aqe-part-1</guid>
       </item>
     
   </channel>
