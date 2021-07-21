@@ -7,7 +7,7 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
-        <title>Pandas API on Apache Spark- Part 1: Introduction</title>
+        <title>Pandas API on Apache Spark - Part 1: Introduction</title>
         <description>&lt;p&gt;Apache Spark has revolutionised the data science field with it’s support for big data. With it support for multiple languages like Scala, Python it has made big data analysis available to wide variety of developers.&lt;/p&gt;
 
 &lt;p&gt;Python is the leading language preferred by the data science community. Even with in Spark community, python API has seen tremendous upsurge in last few years. According to databricks, company behind the Apache Spark, 60% of the commands written on their notebook is python compared to 23% of them in Scala.&lt;/p&gt;
