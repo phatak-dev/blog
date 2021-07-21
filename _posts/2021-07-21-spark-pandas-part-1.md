@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Pandas API on Apache Spark- Part 1: Introduction"
+title: "Pandas API on Apache Spark - Part 1: Introduction"
 date : 2021-07-21
 categories: spark python spark-pandas
 ---
