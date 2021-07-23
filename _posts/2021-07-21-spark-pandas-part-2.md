@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Pandas API on Apache Spark - Part 2: Hello World"
-date : 2021-07-16	
+date : 2021-07-21	
 categories: spark python spark-pandas
 ---
 Pandas API on Apache Spark brings the familiar python Pandas API on top of distributed spark framework. This combination allows python developers to write code in their favorite pandas API with all the performance and distributed benefits of spark. This marriage of API and Platform is one of the biggest improvement landing in Apache spark in recent time. This feature will be available in spark 3.2.
