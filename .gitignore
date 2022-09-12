@@ -8,3 +8,4 @@ project/target
 "Icon\r"
 *.swp
 *.swo
+*.jekyll-cache
