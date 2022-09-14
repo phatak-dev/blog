@@ -7,6 +7,73 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Latest Java Features from a Scala Dev Perspective - Part 1: Type Inference</title>
+        <description>&lt;p&gt;I started my career as a Java developer back in 2011. I  developed most of my code in the 1.7 version of Java. Around 2014, I switched to full-time Scala and have not programmed in Java ever since.&lt;/p&gt;
+
+&lt;p&gt;Java used to be a slow-moving language that had started lagging behind the other languages. Scala kind of filled that gap of modern language on a JVM. But in the last few years, it has changed. There is a new version of Java every 6 months and it has been getting new features at a very rapid pace. So I thought it will be interesting to go back to Java now and see how it has evolved compared to Java 7.&lt;/p&gt;
+
+&lt;p&gt;So in this series of posts, I will be talking about new features of Java from a Scala developer’s point of view. I will be using &lt;strong&gt;Java 17&lt;/strong&gt;, the latest LTS version, for these examples.&lt;/p&gt;
+
+&lt;p&gt;This is the first post in the series where I will be talking about type inference improvements added to Java. You can find all the posts in the series &lt;a href=&quot;/categories/latest-java&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;java-and-verbosity&quot;&gt;Java and Verbosity&lt;/h2&gt;
+
+&lt;p&gt;One of the main complaints of any Java developer is its verbosity. This verbosity is very evident in the type declaration.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;list&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;();&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;In the above example, we are telling the type of list as String multiple times which leads to a lot of verbosity.&lt;/p&gt;
+
+&lt;h2 id=&quot;type-inference-in-scala&quot;&gt;Type Inference in Scala&lt;/h2&gt;
+
+&lt;p&gt;Scala greatly simplifies this verbosity using type inference&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;list&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]()&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;10.0&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Here using val, we are telling Scala the type only once or infer from the value. Using RHS, Scala will automatically infer the type of variable.&lt;/p&gt;
+
+&lt;h2 id=&quot;type-inference-in-java&quot;&gt;Type Inference in Java&lt;/h2&gt;
+
+&lt;p&gt;In &lt;strong&gt;Java 10&lt;/strong&gt;, java has added a new feature called Local variable type inference, which simplifies the verbosity.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;newList&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;();&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Now by using, &lt;strong&gt;var&lt;/strong&gt; keyword, developer can skip the left hand side type. Here &lt;strong&gt;var&lt;/strong&gt; is appropriate compared to &lt;strong&gt;val&lt;/strong&gt; of Scala,
+as all the variables in Java are mutable by default.&lt;/p&gt;
+
+&lt;p&gt;The same type inference can be used for built in value assignments also.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;floatValue&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;10.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stringValue&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Hello World&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;thread&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Thread&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;From the above examples, you can see that type inference can be used with various types of values and objects.&lt;/p&gt;
+
+&lt;p&gt;This type of inference is not as powerful as Scala as these are limited to a local variable with initialisation. These are not supported for things like method/function return types which is supported in Scala. Still, this greatly reduces the verbosity of Java code and improves readability.&lt;/p&gt;
+
+&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
+
+&lt;p&gt;The complete code for the above examples can be found on Github, in the below links.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/phatak-dev/latest-java/blob/master/src/main/java/com/madhu/TypeInferenceExample.java&quot;&gt;Type Inference in Java on Github&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/phatak-dev/latest-java/blob/master/src/main/scala/com/madhu/TypeInference.scala&quot;&gt;Type Inference in Scala Github&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://openjdk.org/jeps/286&quot;&gt;Local Variable Type inference JEP&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In this post, we looked at how Java compiler can now do local variable type inference which reduces the verbosity of code. It is very similar to Scala type inference.&lt;/p&gt;
+</description>
+        <pubDate>Wed, 14 Sep 2022 00:00:00 +0530</pubDate>
+        <link>http://blog.madhukaraphatak.com/latest-java-1</link>
+        <guid isPermaLink="true">http://blog.madhukaraphatak.com/latest-java-1</guid>
+      </item>
+    
+      <item>
         <title>Pandas API on Apache Spark - Part 2: Hello World</title>
         <description>&lt;p&gt;Pandas API on Apache Spark brings the familiar python Pandas API on top of distributed spark framework. This combination allows python developers to write code in their favorite pandas API with all the performance and distributed benefits of spark. This marriage of API and Platform is one of the biggest improvement landing in Apache spark in recent time. This feature will be available in spark 3.2.&lt;/p&gt;
 
@@ -693,106 +760,6 @@ Still it has not yet reached wider python community. The reason is majority of p
         <pubDate>Mon, 20 Apr 2020 00:00:00 +0530</pubDate>
         <link>http://blog.madhukaraphatak.com/spark-3-introduction-part-8</link>
         <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-3-introduction-part-8</guid>
-      </item>
-    
-      <item>
-        <title>Adaptive Query Execution in Spark 3.0 - Part 2 : Optimising Shuffle Partitions</title>
-        <description>&lt;p&gt;Spark catalyst is one of the most important layer of spark SQL which does all the query optimisation. These optimisations are expressed as list of rules which will be executed on the query plan before executing the query itself. This makes sure Spark SQL can do lot more automatic optimisation compared to hand written RDD code.&lt;/p&gt;
-
-&lt;p&gt;Even though spark catalyst does lot of heavy lifting, it’s all done before query execution. So that means once the physical plan is created and execution of the plan started, it will not do any optimisation there after. So it cannot do some of the optimisation which is based on metrics it sees when the execution is going on.&lt;/p&gt;
-
-&lt;p&gt;In 3.0, spark has introduced an additional layer of optimisation. This layer is known as adaptive query execution. This layer tries to optimise the queries depending upon the metrics that are collected as part of the execution.&lt;/p&gt;
-
-&lt;p&gt;In this series of posts, I will be discussing about different part of adaptive execution. This is the second post in the series where I will be discussing about optimising shuffle partitions. You can find all the posts in the series &lt;a href=&quot;/categories/spark-aqe&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;spark-sql-shuffle-partitions&quot;&gt;Spark SQL Shuffle Partitions&lt;/h2&gt;
-
-&lt;p&gt;In Spark sql, number of shuffle partitions are set using &lt;strong&gt;spark.sql.shuffle.partitions&lt;/strong&gt; which defaults to &lt;strong&gt;200&lt;/strong&gt;. In most of the cases, this number is too high for smaller data and too small for bigger data. Selecting right value becomes always tricky for the developer.&lt;/p&gt;
-
-&lt;p&gt;So we need an ability to coalesce the shuffle partitions by looking at the mapper output. If the mapping generates small number of partitions, we want to reduce the overall shuffle partitions so it will improve the performance.&lt;/p&gt;
-
-&lt;h2 id=&quot;shuffle-partitions-without-aqe&quot;&gt;Shuffle Partitions without AQE&lt;/h2&gt;
-
-&lt;p&gt;Before we see how to optimise the shuffle partitions, let’s see what is the problem we are trying to solve. Let’s take below example&lt;/p&gt;
-
-&lt;h3 id=&quot;read-csv-and-increase-input-partitions&quot;&gt;Read CSV and Increase Input Partitions&lt;/h3&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt; &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;
-      &lt;span class=&quot;nf&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;csv&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;header&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;true&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;inferSchema&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;true&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;src/main/resources/sales.csv&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;repartition&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;500&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;In above code, I am reading a small file and increasing the partitions to 500. This increase is to force the spark to use maximum shuffle partitions.&lt;/p&gt;
-
-&lt;h3 id=&quot;groupby-for-shuffle&quot;&gt;GroupBy for Shuffle&lt;/h3&gt;
-
-&lt;p&gt;Once we have dataframe, let’s add group by to create shuffle&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;nv&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;groupBy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;customerId&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;h3 id=&quot;observing-stages&quot;&gt;Observing Stages&lt;/h3&gt;
-
-&lt;p&gt;The below image shows the stages of the jobs.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/aqe/nonoptimisegroupbyjobs.png&quot; alt=&quot;Non optimised Shuffle Stages&quot; /&gt;.&lt;/p&gt;
-
-&lt;p&gt;As you can observe from the image, stage id 4, 200 tasks ran even the data was very less.&lt;/p&gt;
-
-&lt;h3 id=&quot;observing-dag&quot;&gt;Observing DAG&lt;/h3&gt;
-
-&lt;p&gt;The below image shows the DAG of count Job&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/aqe/nonoptimisedgroupbydag.png&quot; alt=&quot;Non optimised Job DAG&quot; /&gt;.&lt;/p&gt;
-
-&lt;p&gt;From the image, you can observe that there was lot of shuffle.&lt;/p&gt;
-
-&lt;h2 id=&quot;optimising-shuffle-partitions-in-aqe&quot;&gt;Optimising Shuffle Partitions in AQE&lt;/h2&gt;
-
-&lt;p&gt;In this section of the document we talk about how to optimise the shuffle partitions using the AQE.&lt;/p&gt;
-
-&lt;h3 id=&quot;enabling-the-configuration&quot;&gt;Enabling the configuration&lt;/h3&gt;
-
-&lt;p&gt;To use AQE we need to set &lt;strong&gt;spark.sql.adaptive.enabled&lt;/strong&gt; to true.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;nv&quot;&gt;sparkConf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;spark.sql.adaptive.enabled&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;true&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;To use the shuffle partitions optimisation we need to set &lt;strong&gt;spark.sql.adaptive.coalescePartitions.enabled&lt;/strong&gt;  to true.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;nv&quot;&gt;sparkConf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;spark.sql.adaptive.coalescePartitions.enabled&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;true&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;&lt;strong&gt;Rest of the code remains exactly same as above&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;observing-stages-1&quot;&gt;Observing Stages&lt;/h3&gt;
-
-&lt;p&gt;The below image shows the stages of the jobs.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/aqe/optimisedgroupbyjobs.png&quot; alt=&quot;Optimised Shuffle Stages&quot; /&gt;.&lt;/p&gt;
-
-&lt;p&gt;From the image you can observe that, most of the stages are skipped all together as spark figured out that most of the partitions are empty.&lt;/p&gt;
-
-&lt;h3 id=&quot;observing-dag-1&quot;&gt;Observing DAG&lt;/h3&gt;
-
-&lt;p&gt;The below image shows the DAG of count Job&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/aqe/optimisedgroupbydag.png&quot; alt=&quot;Optimised Job DAG&quot; /&gt;.&lt;/p&gt;
-
-&lt;p&gt;From the image, you can observe most of the shuffle was skipped. There is a &lt;strong&gt;CoalescedShuffleReader&lt;/strong&gt; which is combining all the shuffle partitions to 1.&lt;/p&gt;
-
-&lt;p&gt;So by just enabling few configuration we can dynamically optimise the shuffle partitions in AQE.&lt;/p&gt;
-
-&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
-
-&lt;p&gt;You can access complete code on &lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples/tree/master/src/main/scala/com/madhukaraphatak/spark/sql/adaptive/shuffle&quot;&gt;github&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-28177&quot;&gt;https://issues.apache.org/jira/browse/SPARK-28177&lt;/a&gt;.&lt;/p&gt;
-
-</description>
-        <pubDate>Thu, 16 Apr 2020 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-aqe-part-2</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-aqe-part-2</guid>
       </item>
     
   </channel>

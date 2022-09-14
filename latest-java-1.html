@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Scalable Spark Deployment using Kubernetes - Part 9 : Service Update and Rollback</title>
+    <title>Latest Java Features from a Scala Dev Perspective - Part 1: Type Inference</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="http://blog.madhukaraphatak.com/scaling-spark-with-kubernetes-part-9">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/latest-java-1">
      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,104 +45,79 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Scalable Spark Deployment using Kubernetes - Part 9 : Service Update and Rollback</h1>
-  <p class="meta">May 3, 2017</p>
+  <h1>Latest Java Features from a Scala Dev Perspective - Part 1: Type Inference</h1>
+  <p class="meta">Sep 14, 2022</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
-    <a href="/categories/spark"><span class="category">spark</span></a>
+    <a href="/categories/java"><span class="category">java</span></a>
     
-    <a href="/categories/kubernetes-series"><span class="category">kubernetes-series</span></a>
+    <a href="/categories/latest-java"><span class="category">latest-java</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>In last few blog posts on kubernetes, we have discussed about how to build and scale spark cluster. Once services are deployed, we also
-need to update services time to time. When we update a service, we need to make sure that, it don’t interrupt the working of other
-services. Kubernetes has built in support for the service update and rollbacks. This makes changing services on kubernetes
-much easier than doing them manually in other platforms.</p>
+  <p>I started my career as a Java developer back in 2011. I  developed most of my code in the 1.7 version of Java. Around 2014, I switched to full-time Scala and have not programmed in Java ever since.</p>
 
-<p>In this ninth blog of the series, I will be discussing about service update and rollback in kubernetes.
-You can access all the posts in the series <a href="/categories/kubernetes-series">here</a>.</p>
+<p>Java used to be a slow-moving language that had started lagging behind the other languages. Scala kind of filled that gap of modern language on a JVM. But in the last few years, it has changed. There is a new version of Java every 6 months and it has been getting new features at a very rapid pace. So I thought it will be interesting to go back to Java now and see how it has evolved compared to Java 7.</p>
 
-<h2 id="updating-service">Updating Service</h2>
+<p>So in this series of posts, I will be talking about new features of Java from a Scala developer’s point of view. I will be using <strong>Java 17</strong>, the latest LTS version, for these examples.</p>
 
-<p>In our discussion of deployment abstraction, I told that deployment helps us to handle life cycle of a service. Currently,
-we are running the spark version 2.1.0. Let’s say we want to change it to 1.6.3 without changing the 
-configuration. We can use deployment abstraction for achieving the same.</p>
+<p>This is the first post in the series where I will be talking about type inference improvements added to Java. You can find all the posts in the series <a href="/categories/latest-java">here</a>.</p>
 
-<p>The below are the steps to change spark version from 2.1.0 to 1.6.3 using deployment abstraction.</p>
+<h2 id="java-and-verbosity">Java and Verbosity</h2>
 
-<h3 id="1-generate-spark-image-for-163">1. Generate Spark Image for 1.6.3</h3>
+<p>One of the main complaints of any Java developer is its verbosity. This verbosity is very evident in the type declaration.</p>
 
-<p>As we did for spark 2.1.0, we first need to have an image of the spark 1.6.3. This can be easily done by changing docker file as below.</p>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="nc">List</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;</span> <span class="n">list</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ArrayList</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;();</span></code></pre></figure>
 
-<figure class="highlight"><pre><code class="language-sh" data-lang="sh"> ENV spark_ver 1.6.3</code></pre></figure>
+<p>In the above example, we are telling the type of list as String multiple times which leads to a lot of verbosity.</p>
 
-<p>Once we update the docker file, we need to build new image with below command.</p>
+<h2 id="type-inference-in-scala">Type Inference in Scala</h2>
 
-<figure class="highlight"><pre><code class="language-sh" data-lang="sh">docker build <span class="nt">-t</span> spark-1.6.3-bin-hadoop2.6 .</code></pre></figure>
+<p>Scala greatly simplifies this verbosity using type inference</p>
 
-<p>Now we have  our new spark image ready.</p>
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="nv">list</span> <span class="k">=</span> <span class="nc">List</span><span class="o">[</span><span class="kt">String</span><span class="o">]()</span>
+<span class="k">val</span> <span class="nv">value</span> <span class="k">=</span> <span class="mf">10.0</span></code></pre></figure>
 
-<h3 id="2-set-images-to-deployment">2. Set Images to Deployment</h3>
+<p>Here using val, we are telling Scala the type only once or infer from the value. Using RHS, Scala will automatically infer the type of variable.</p>
 
-<p>The below two commands sets new images to already running spark-master and spark-worker deployments</p>
+<h2 id="type-inference-in-java">Type Inference in Java</h2>
 
-<figure class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl <span class="nb">set </span>image deployment/spark-master spark-master<span class="o">=</span>spark-1.6.3-bin-hadoop2.6
+<p>In <strong>Java 10</strong>, java has added a new feature called Local variable type inference, which simplifies the verbosity.</p>
 
-kubectl <span class="nb">set </span>image deployment/spark-worker spark-worker<span class="o">=</span>spark-1.6.3-bin-hadoop2.6</code></pre></figure>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kt">var</span> <span class="n">newList</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ArrayList</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;();</span></code></pre></figure>
 
-<p>In the command, we are setting the image for <em>spark-master</em>  and <em>spark-worker</em> container inside the deployment. This helps only update needed containers
-inside deployment rather than updating all.</p>
+<p>Now by using, <strong>var</strong> keyword, developer can skip the left hand side type. Here <strong>var</strong> is appropriate compared to <strong>val</strong> of Scala,
+as all the variables in Java are mutable by default.</p>
 
-<p>This only sets new images. It has not updated the service yet. We need to use roll out command for that.</p>
+<p>The same type inference can be used for built in value assignments also.</p>
 
-<h3 id="3-rollout-the-deployment">3. Rollout the Deployment</h3>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kt">var</span> <span class="n">floatValue</span> <span class="o">=</span> <span class="mf">10.0</span><span class="o">;</span>
+<span class="kt">var</span> <span class="n">stringValue</span> <span class="o">=</span> <span class="s">"Hello World"</span><span class="o">;</span>
+<span class="kt">var</span> <span class="n">thread</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Thread</span><span class="o">();</span></code></pre></figure>
 
-<p>The below commands rolls out the changes to deployment.</p>
+<p>From the above examples, you can see that type inference can be used with various types of values and objects.</p>
 
-<figure class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl rollout status deployment/spark-master
-kubectl rollout status deployment/spark-worker</code></pre></figure>
+<p>This type of inference is not as powerful as Scala as these are limited to a local variable with initialisation. These are not supported for things like method/function return types which is supported in Scala. Still, this greatly reduces the verbosity of Java code and improves readability.</p>
 
-<p>When you roll out changes, kubernetes first brings up new pods with 1.6.3 version. Then once they are running
-the old pods will be deleted.</p>
+<h2 id="code">Code</h2>
 
-<p>This shown in the below output.</p>
+<p>The complete code for the above examples can be found on Github, in the below links.</p>
 
-<figure class="highlight"><pre><code class="language-sh" data-lang="sh">NAME                               READY     STATUS        RESTARTS   AGE
-nginx-deployment-619952658-16z1h   1/1       Running       1          11d
-spark-master-1095292607-mb0xh      1/1       Running       0          37s
-spark-worker-1610799992-4f701      0/1       Pending       0          25s
-spark-worker-671341425-xxlxn       1/1       Terminating   0          53s</code></pre></figure>
+<p><a href="https://github.com/phatak-dev/latest-java/blob/master/src/main/java/com/madhu/TypeInferenceExample.java">Type Inference in Java on Github</a></p>
 
-<p>As part of the roll out, kubernetes will update all dns entries to point to new pods.</p>
+<p><a href="https://github.com/phatak-dev/latest-java/blob/master/src/main/scala/com/madhu/TypeInference.scala">Type Inference in Scala Github</a></p>
 
-<p>This graceful switch over from older version to new version of pods makes sures that service is least interrupted when we
-update services.</p>
+<h2 id="references">References</h2>
 
-<p>You can verify the spark version using <em>spark-ui</em> or logging into one of the pods.</p>
-
-<h2 id="service-rollback">Service Rollback</h2>
-
-<p>As part of the service update, kubernetes remembers state of last two deployments. This helps us to roll back the changes
-we made it to deployment using <em>undo</em> command.</p>
-
-<p>If we want to undo our change of spark version, we can run the below commands</p>
-
-<figure class="highlight"><pre><code class="language-sh" data-lang="sh">kubectl rollout undo deployment/spark-master
-kubectl rollout undo deployment/spark-worker</code></pre></figure>
-
-<p>The above commands reverses the spark version back to 2.1.0. This ability to quickly undo the service is
-powerful. If something goes wrong, we can rollback the service to it’s previous state without much effort.</p>
+<p><a href="https://openjdk.org/jeps/286">Local Variable Type inference JEP</a>.</p>
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>Kubernetes has native support for service update and rollback. Using deployment abstraction we can easily roll out the changes to
-our services without effecting other services.</p>
-
+<p>In this post, we looked at how Java compiler can now do local variable type inference which reduces the verbosity of code. It is very similar to Scala type inference.</p>
 
 </article>
 <div class="related">
@@ -150,12 +125,7 @@ our services without effecting other services.</p>
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">14 Sep 2022</span>
-     &raquo; <a href="/latest-java-1">Latest Java Features from a Scala Dev Perspective - Part 1: Type Inference</a>    
-   </li>           
-         
+          
 
             
     
@@ -176,26 +146,21 @@ our services without effecting other services.</p>
    
    
              
+          
+
+            
     
     <li>    
-     <span class="post-date">21 Jul 2021</span>
-     &raquo; <a href="/spark-pandas-part-2">Pandas API on Apache Spark - Part 2: Hello World</a>    
+     <span class="post-date">27 Jun 2014</span>
+     &raquo; <a href="/converting-java-collections-to-scala">Converting Java collections to Scala</a>    
    </li>           
          
 
             
     
     <li>    
-     <span class="post-date">21 Jul 2021</span>
-     &raquo; <a href="/spark-pandas-part-1">Pandas API on Apache Spark - Part 1: Introduction</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">11 Nov 2020</span>
-     &raquo; <a href="/barrier-execution-mode-part-2">Barrier Execution Mode in Spark 3.0 - Part 2 : Barrier RDD</a>    
+     <span class="post-date">25 Sep 2011</span>
+     &raquo; <a href="/getting-started-with-antlr-basics">Getting Started With ANTLR:Basics</a>    
    </li>           
          
 
