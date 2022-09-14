@@ -14,7 +14,9 @@ So in this series of posts, I will be talking about new features of Java from a 
 This is the first post in the series where I will be talking about type inference improvements added to Java. You can find all the posts in the series [here](/categories/latest-java).
 
 
-**TL;DR** _You can also consume this blog as video on [YouTube](https://www.youtube.com/watch?v=n-DMIlEY9jQ)._
+_You can also consume this blog as video on YouTube_.
+
+<div class="video-container"> <iframe src="https://www.youtube.com/embed/n-DMIlEY9jQ" frameborder="0" width="560" height="315"></iframe> </div>
 
 ## Java and Verbosity
 
