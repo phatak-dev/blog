@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Introduction to Flink Streaming - Part 7 : Implementing Session Windows using Custom Trigger</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Thoughts on technology, life and everything else.">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-flink-streaming-part-7">
+     <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/app.css">
+       
+</head>
+
+
+    <body>
+
+    <header >
+  <div class="wrap">
+    <a class="site-title" href="/">Madhukar's Blog</a>  
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+           viewBox="0 0 18 15" enable-background="new 0 0 18 15" xml:space="preserve">
+          <path fill="#505050" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0
+            h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#505050" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484
+            h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#505050" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0
+            c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+      <div class="trigger">        
+          <a class="page-link" href="http://www.madhukaraphatak.com">About me</a>                  
+      </div>
+    </nav>  
+  </div>
+</header>
+
+
+    <div class="page-content">
+      <div class="wrap">
+      <div class="post">
+ <header class="post-header">
+  <h1>Introduction to Flink Streaming - Part 7 : Implementing Session Windows using Custom Trigger</h1>
+  <p class="meta">Apr 6, 2016</p>
+  <div class="catagories">
+    
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
+    <a href="/categories/flink"><span class="category">flink</span></a>
+    
+    <a href="/categories/flink-streaming"><span class="category">flink-streaming</span></a>
+    
+  </div>
+</header> 
+
+<article class="post-content">
+  <p>In our last blog we discussed about the internals of window API in flink. As we discussed in the blog, understanding internals allows us to implement custom windows in flink API. This flexibility to define our own window logic helps us to implement business rules seamlessly on the stream data.</p>
+
+<p>In this seventh post of the series, we are going to implement a custom window using trigger API. We will be implementing a window which allow us to understand user behavior across a specific session. This will be useful for applications where we want to analyze the data coming from an online portal where user logs in and perform some actions. You can find all other posts from the series <a href="/categories/flink-streaming">here</a>.</p>
+
+<p><strong>TL;DR</strong> All code is written using Flink’s scala API and you can access it on <a href="https://github.com/phatak-dev/flink-examples">github</a>.</p>
+
+<h2 id="user-session">User session</h2>
+<p>A session is often period of time that capture different interactions with an application from user. A session is set up or established at a certain point in time, and then torn down at some later point.</p>
+
+<p>As an example, in an online portal session normally starts when user logs into the application. All the purchases made in this point of time are captured in this session. Session will be torn down when user logged out or it expires when there is no activity for some time.</p>
+
+<h2 id="session-window">Session window</h2>
+
+<p>A session window, is a window which allows us to group different records from the stream for a specific session. This window will start when the session starts and evaluated when session is ended. This window also will support tracking multiple sessions at a same time.</p>
+
+<p>Session windows are often used to analyze user behavior across multiple interactions bounded by session.</p>
+
+<p>In flink, we only have built in windows for time and count based evaluation. But our session window doesn’t depend upon any of these. So we need to create a custom window which can satisfy our requirement.</p>
+
+<h2 id="modeling-user-session">Modeling user session</h2>
+<p>Once we understood about the session and session window, we need to model the session in our code. I have a simple representation of session for explaining the example. Most of the real world session information will much more complicated than it.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Session</span><span class="o">(</span><span class="n">sessionId</span><span class="k">:</span><span class="kt">String</span><span class="o">,</span> <span class="n">value</span><span class="k">:</span><span class="kt">Double</span><span class="o">,</span> <span class="n">endSignal</span><span class="k">:</span><span class="kt">Option</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span></code></pre></figure>
+
+<p>The above case class is model of our session. It has following three components</p>
+
+<ul>
+  <li>
+    <h3 id="sessionid">sessionId</h3>
+    <p>An identifier which uniquely identifies a session. There can be multiple sessions active at same time. Each of these sessions will have unique session id.</p>
+  </li>
+  <li>
+    <h3 id="value">value</h3>
+  </li>
+</ul>
+
+<p>It’s a value associated each interaction in the session. This signifies the information we want to track with in the session. In real world scenarios, it will be user interactions with the system. As an example, in a online store it may be the product user added to the cart. In our example, it’s a simple double value.</p>
+
+<ul>
+  <li>
+    <h3 id="endsignal">endSignal</h3>
+  </li>
+</ul>
+
+<p>It’s an optional value in record. This signifies end of the session from the application side. It may be risen because user has logged out or may the session expired. It depends on the application to generate these signals.</p>
+
+<p>Once we modeled the our session, we can now build a trigger which works on this model.</p>
+
+<h2 id="session-trigger">Session Trigger</h2>
+
+<p>As we discussed in earlier blog, trigger is a function which decides when a given window evaluates. In our example, we want the window to evaluate when endSignal for given session is sent. As we don’t have any built in trigger for it, we are going to define our own custom trigger.</p>
+
+<p>The below code is for the session trigger</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+
+<span class="k">class</span> <span class="nc">SessionTrigger</span><span class="o">[</span><span class="kt">W</span> <span class="k">&lt;:</span> <span class="kt">Window</span><span class="o">]</span> <span class="nc">extends</span> <span class="nc">Trigger</span><span class="o">[</span><span class="kt">Session</span>,<span class="kt">W</span><span class="o">]</span> <span class="o">{</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">onElement</span><span class="o">(</span><span class="n">element</span><span class="k">:</span> <span class="kt">Session</span><span class="o">,</span> <span class="n">timestamp</span><span class="k">:</span> <span class="kt">Long</span><span class="o">,</span> <span class="n">window</span><span class="k">:</span> <span class="kt">W</span><span class="o">,</span> <span class="n">ctx</span><span class="k">:</span> <span class="kt">TriggerContext</span><span class="o">)</span><span class="k">:</span> <span class="kt">TriggerResult</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="nf">if</span><span class="o">(</span><span class="nv">element</span><span class="o">.</span><span class="py">endSignal</span><span class="o">.</span><span class="py">isDefined</span><span class="o">)</span> <span class="nv">TriggerResult</span><span class="o">.</span><span class="py">FIRE</span>
+    <span class="k">else</span> <span class="nv">TriggerResult</span><span class="o">.</span><span class="py">CONTINUE</span>
+  <span class="o">}</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">onProcessingTime</span><span class="o">(</span><span class="n">time</span><span class="k">:</span> <span class="kt">Long</span><span class="o">,</span> <span class="n">window</span><span class="k">:</span> <span class="kt">W</span><span class="o">,</span> <span class="n">ctx</span><span class="k">:</span> <span class="kt">TriggerContext</span><span class="o">)</span><span class="k">:</span> <span class="kt">TriggerResult</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="nv">TriggerResult</span><span class="o">.</span><span class="py">CONTINUE</span>
+  <span class="o">}</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">onEventTime</span><span class="o">(</span><span class="n">time</span><span class="k">:</span> <span class="kt">Long</span><span class="o">,</span> <span class="n">window</span><span class="k">:</span> <span class="kt">W</span><span class="o">,</span> <span class="n">ctx</span><span class="k">:</span> <span class="kt">TriggerContext</span><span class="o">)</span><span class="k">:</span> <span class="kt">TriggerResult</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="nv">TriggerResult</span><span class="o">.</span><span class="py">CONTINUE</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></figure>
+
+<p>In above code, we are extending Trigger. When we are extending, we are specifying the that data will be represented using <em>Session</em> model class.</p>
+
+<p>Once we extend the trigger, we need to override the 3 methods. They are</p>
+
+<ul>
+  <li>
+    <h3 id="onelement">onElement</h3>
+  </li>
+</ul>
+
+<p>This is a callback method, which will be called whenever each record is added to the window. In our code, we check is the endSingal is present. If it’s present we return <em>TriggerResult.FIRE</em> which signifies we need to fire the trigger. Otherwise we will return <em>TriggerResult.CONTINUE</em> which signifies we need to continue adding elements to window.</p>
+
+<ul>
+  <li>
+    <h3 id="oneventtime-and-onprocessingtime">onEventTime and onProcessingTime</h3>
+  </li>
+</ul>
+
+<p>The above two methods are used when we use a window which depends on time. As our session logic doesn’t depend on time, we don’t need to worry about them.</p>
+
+<p>You can access complete code <a href="https://github.com/phatak-dev/flink-examples/blob/master/src/main/scala/com/madhukaraphatak/flink/streaming/examples/sessionwindow/SessionTrigger.scala">here</a>.</p>
+
+<p>Now we have our custom trigger ready. Now we can create a window which evaluates when a given session completes.</p>
+
+<h2 id="putting-all-together">Putting all together</h2>
+
+<p>In this section, we glue different things we did earlier. The below are the steps.</p>
+
+<h3 id="step-1--read-data-from-socket-and-convert-to-session">Step 1 : Read data from socket and convert to session</h3>
+
+<p>As the first step, we need to read from the source and model it as session object.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+
+<span class="k">val</span> <span class="nv">env</span> <span class="k">=</span> <span class="nv">StreamExecutionEnvironment</span><span class="o">.</span><span class="py">getExecutionEnvironment</span>
+
+<span class="k">val</span> <span class="nv">source</span> <span class="k">=</span> <span class="nv">env</span><span class="o">.</span><span class="py">socketTextStream</span><span class="o">(</span><span class="s">"localhost"</span><span class="o">,</span> <span class="mi">9000</span><span class="o">)</span>
+    
+<span class="k">val</span> <span class="nv">values</span> <span class="k">=</span> <span class="nv">source</span><span class="o">.</span><span class="py">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="o">{</span>
+    <span class="k">val</span> <span class="nv">columns</span> <span class="k">=</span> <span class="nv">value</span><span class="o">.</span><span class="py">split</span><span class="o">(</span><span class="s">","</span><span class="o">)</span>
+    <span class="k">val</span> <span class="nv">endSignal</span> <span class="k">=</span> <span class="nc">Try</span><span class="o">(</span><span class="nc">Some</span><span class="o">(</span><span class="nf">columns</span><span class="o">(</span><span class="mi">2</span><span class="o">))).</span><span class="py">getOrElse</span><span class="o">(</span><span class="nc">None</span><span class="o">)</span>
+    <span class="nc">Session</span><span class="o">(</span><span class="nf">columns</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="nf">columns</span><span class="o">(</span><span class="mi">1</span><span class="o">).</span><span class="py">toDouble</span><span class="o">,</span> <span class="n">endSignal</span><span class="o">)</span>
+<span class="o">})</span></code></pre></figure>
+
+<h3 id="step-2--create-keyed-stream-based-on-sessionid">Step 2 : Create keyed stream based on sessionId</h3>
+
+<p>As we discussed earlier, we want to evaluate multiple sessions at a time. So we need to created keyedstream stream based on session id.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+<span class="k">val</span> <span class="nv">keyValue</span> <span class="k">=</span> <span class="nv">values</span><span class="o">.</span><span class="py">keyBy</span><span class="o">(</span><span class="nv">_</span><span class="o">.</span><span class="py">sessionId</span><span class="o">)</span></code></pre></figure>
+
+<h3 id="step-3--create-session-window">Step 3 : Create session window</h3>
+<p>Once we have keyvalue stream, now we can define a window using our custom trigger. As we did with count window, we are going to use <em>GlobalWindow</em> as our window assigner and rather than using <em>CountTrigger</em> we are going to add our custom trigger. We use purging trigger for purging session once it’s evaluated.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+
+<span class="k">val</span> <span class="nv">sessionWindowStream</span> <span class="k">=</span> <span class="n">keyValue</span><span class="o">.</span>
+        <span class="nf">window</span><span class="o">(</span><span class="nv">GlobalWindows</span><span class="o">.</span><span class="py">create</span><span class="o">()).</span>
+        <span class="nf">trigger</span><span class="o">(</span><span class="nv">PurgingTrigger</span><span class="o">.</span><span class="py">of</span><span class="o">(</span><span class="k">new</span> <span class="nc">SessionTrigger</span><span class="o">[</span><span class="kt">GlobalWindow</span><span class="o">]()))</span>
+        </code></pre></figure>
+
+<p>The above code created <em>sessionWindowStream</em> which tracks sessions.</p>
+
+<h3 id="step-4--aggregate-and-print">Step 4 : Aggregate and Print</h3>
+
+<p>Once we have the window, we need to define an aggregate function over window. In this example, we are going to sum the value over session and print to console.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+<span class="nv">sessionWindowStream</span><span class="o">.</span><span class="py">sum</span><span class="o">(</span><span class="s">"value"</span><span class="o">).</span><span class="py">print</span><span class="o">()</span></code></pre></figure>
+
+<p>You can access complete code <a href="https://github.com/phatak-dev/flink-examples/blob/master/src/main/scala/com/madhukaraphatak/flink/streaming/examples/sessionwindow/SessionWindowExample.scala">here</a>.</p>
+
+<h2 id="running-the-example">Running the example</h2>
+<p>As we ran our earlier example, we will be entering data in the stdin of the socket. In our example, socket will be listening on port 9000.</p>
+
+<p>Enter below two lines in the stdin</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">session1,100
+session2,200</code></pre></figure>
+
+<p>In the above, we have started two sessions <em>session1</em> and <em>session2</em>. This will create two windows. As of now, no window will evaluate as session is not yet ended.</p>
+
+<p>Let’s end <em>session1</em> using below line</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">session1,200,end</code></pre></figure>
+
+<p>Now you will observe the below result in flink</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">Session(session1,300.0,None)</code></pre></figure>
+
+<p>Window for session1 is evaluated now, as it is ended.</p>
+
+<h2 id="references">References</h2>
+
+<p><a href="http://mail-archives.apache.org/mod_mbox/flink-user/201510.mbox/%3CC195B624-FB46-4D90-AE0F-B8782EB81951@apache.org%3E">http://mail-archives.apache.org/mod_mbox/flink-user/201510.mbox/%3CC195B624-FB46-4D90-AE0F-B8782EB81951@apache.org%3E</a></p>
+
+<p><a href="https://gist.github.com/aljoscha/a7c6f22548e7d24bc4ac">https://gist.github.com/aljoscha/a7c6f22548e7d24bc4ac</a></p>
+
+
+</article>
+<div class="related">
+  <h2>Related posts</h2>
+  <ul>
+    
+             
+    
+    <li>    
+     <span class="post-date">02 Nov 2020</span>
+     &raquo; <a href="/spark-3-introduction-part-10">Introduction to Spark 3.0 - Part 10 : Ignoring Data Locality in Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">22 Apr 2020</span>
+     &raquo; <a href="/spark-3-datasource-v2-part-6">Data Source V2 API in Spark 3.0 - Part 6 : MySQL Source</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">21 Apr 2020</span>
+     &raquo; <a href="/spark-3-introduction-part-9">Introduction to Spark 3.0 - Part 9 : Join Hints in Spark SQL</a>    
+   </li>           
+         
+
+   
+   
+             
+    
+    <li>    
+     <span class="post-date">05 May 2016</span>
+     &raquo; <a href="/introduction-to-flink-streaming-part-10">Introduction to Flink Streaming - Part 10 : Meetup Talk</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">28 Apr 2016</span>
+     &raquo; <a href="/introduction-to-flink-streaming-part-9">Introduction to Flink Streaming - Part 9 : Event Time in Flink</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">27 Apr 2016</span>
+     &raquo; <a href="/introduction-to-flink-streaming-part-8">Introduction to Flink Streaming - Part 8 : Understanding Time in Flink Streaming</a>    
+   </li>           
+         
+
+   
+   
+ </ul>
+
+
+ 
+<!--   
+</div> -->
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrap">   
+    <div class="footer-col-1 column">
+      <ul>
+        <li>
+          <a href="https://github.com/phatak-dev">
+            <span class="icon github">
+              <svg version="1.1" class="github-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill-rule="evenodd" clip-rule="evenodd" fill="#C2C2C2" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761
+                c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32
+                c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472
+                c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037
+                C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65
+                c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261
+                c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082
+                c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129
+                c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+              </svg>
+            </span>
+            <span class="username">phatak-dev</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://twitter.com/madhukaraphatak">
+            <span class="icon twitter">
+              <svg version="1.1" class="twitter-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill="#C2C2C2" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809
+                c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27
+                c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767
+                c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206
+                C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271
+                c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469
+                c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/>
+              </svg>
+            </span>
+            <span class="username">madhukaraphatak</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer-col-3 column">
+      <p class="text">Thoughts on technology, life and everything else.</p>
+    </div>
+
+    <div style="float:right;">
+      <a href="/feed.xml"><img src="/images/rss.png">
+    </div>
+
+
+
+  </div>
+
+</footer>
+
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52311191-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+    </body>
+</html>

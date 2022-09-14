@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Writing Apache Spark Programs in JavaScript</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Thoughts on technology, life and everything else.">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-in-javascript">
+     <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/app.css">
+       
+</head>
+
+
+    <body>
+
+    <header >
+  <div class="wrap">
+    <a class="site-title" href="/">Madhukar's Blog</a>  
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+           viewBox="0 0 18 15" enable-background="new 0 0 18 15" xml:space="preserve">
+          <path fill="#505050" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0
+            h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#505050" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484
+            h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#505050" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0
+            c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+      <div class="trigger">        
+          <a class="page-link" href="http://www.madhukaraphatak.com">About me</a>                  
+      </div>
+    </nav>  
+  </div>
+</header>
+
+
+    <div class="page-content">
+      <div class="wrap">
+      <div class="post">
+ <header class="post-header">
+  <h1>Writing Apache Spark Programs in JavaScript</h1>
+  <p class="meta">Mar 19, 2020</p>
+  <div class="catagories">
+    
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
+    <a href="/categories/spark"><span class="category">spark</span></a>
+    
+    <a href="/categories/graal-vm"><span class="category">graal-vm</span></a>
+    
+    <a href="/categories/javascript"><span class="category">javascript</span></a>
+    
+  </div>
+</header> 
+
+<article class="post-content">
+  <p>Apache Spark supports programming in multiple languages like Scala, Java, Python and R. This multi-language support has made spark widely accessible for variety of users and use cases.</p>
+
+<p>Not all the languages supported by Spark have equal API support. Scala and Java supports complete user facing and library development API’s. Python and R are more restricted for user facing API’s only. This discrepancy exist as adding support for new API in a language is lot of work. So the only essential API’s are ported to all languages.</p>
+
+<p>What if we want to add support to new language for spark? It will be a lot of work in traditional approach. But with GraalVM we can have access to complete set of spark library in completely new language with minimum effort.</p>
+
+<h2 id="graalvm">GraalVM</h2>
+
+<p>GraalVM is a polyglot VM which allows user to run multiple languages on same VM. Not only it supports multiple languages, it allows user to bring the libraries from different languages to single platform. You can read more about graalvm <a href="/graal-vm-part-1">here</a>.</p>
+
+<p>One of the fascinating part of GraalVM is ability use Java libraries from any other supported languages. JavaScript is first class citizen on GraalVM with Node.js support. That made me thinking, what if I am able to use that to run spark on Node.js. If I am able to do the same, then I essentially have a JavaScript API for Apache Spark.</p>
+
+<p>Let’s see how we go about it.</p>
+
+<h2 id="setup-for-running-nodejs-on-graalvm">Setup for Running Node.js on GraalVM</h2>
+
+<p>This section of the post we discuss how to setup the Node.js on GraalVM.</p>
+
+<h3 id="download-graalvm-binaries">Download GraalVM Binaries</h3>
+
+<p>To run Node.js programs on GraalVM, we need to download the graalvm binaries. You can download the appropriate one from below link</p>
+
+<p><a href="https://www.graalvm.org/downloads">https://www.graalvm.org/downloads/</a></p>
+
+<h3 id="start-nodejs-interpreter">Start Node.js Interpreter</h3>
+
+<p>Once you downloaded the graalvm, you can start the Node.js interpreter using below command</p>
+
+<figure class="highlight"><pre><code class="language-sh" data-lang="sh">bin/node <span class="nt">--jvm</span></code></pre></figure>
+
+<p>The <strong>–jvm</strong> option says that we want to run on JVM mode. If we don’t specify the mode, it will run in native mode which is more optimised but doesn’t have polyglot features.</p>
+
+<p>Once you run above command  you should show the below output</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">Welcome to Node.js v12.15.0.
+Type ".help" for more information.
+&gt;</code></pre></figure>
+
+<h3 id="run-sample-node-code">Run Sample Node Code</h3>
+
+<p>Once you have Node interpreter, you can run hello world code to see, are you really running a Node.js environment.</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">Hello World</span><span class="dl">"</span><span class="p">);</span></code></pre></figure>
+
+<p>It will output</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">hello world </code></pre></figure>
+
+<p>Now we are running Node.js on JVM.</p>
+
+<h2 id="setting-up-spark-for-nodejs-environment">Setting Up Spark for Node.js environment</h2>
+
+<p>Once we have setup the Node.js environment, we need to setup the Spark environment for the same. This section of the document talks about the various steps.</p>
+
+<h3 id="download-spark-binary">Download Spark Binary</h3>
+
+<p>We need to download Spark Binary from below link and setup it’s path as SPARK_HOME</p>
+
+<p><a href="https://spark.apache.org/downloads.html">https://spark.apache.org/downloads.html</a></p>
+
+<p>You can check is SPARK_HOME is set or not using below command</p>
+
+<figure class="highlight"><pre><code class="language-sh" data-lang="sh"><span class="nb">echo</span> <span class="nv">$SPARK_HOME</span></code></pre></figure>
+
+<h3 id="adding-all-the-spark-jars-to-the-classpath">Adding all the Spark JARS to the classpath</h3>
+
+<p>For accessing Spark from Node.js, we need to add all it’s jars to JVM classpath. Currently GraalVM doesn’t allow us to add a directory to it’s classpath. So we will use below shell script to generate a string which will have all the jars in spark binary.</p>
+
+<figure class="highlight"><pre><code class="language-sh" data-lang="sh"><span class="nv">CLASSPATH</span><span class="o">=</span><span class="si">$(</span>find <span class="s2">"</span><span class="nv">$SPARK_HOME</span><span class="s2">/jars/"</span> <span class="nt">-name</span> <span class="s1">'*.jar'</span> | xargs <span class="nb">echo</span> | <span class="nb">tr</span> <span class="s1">' '</span> <span class="s1">':'</span><span class="si">)</span></code></pre></figure>
+
+<p>The above command generates a string with all the jars and stores it in <strong>CLASSPATH</strong> environment variable</p>
+
+<h3 id="passing-classpath-to-nodejs">Passing Classpath to Node.js</h3>
+
+<p>Once the CLASSPATH variable is ready, we can pass the classpath to GraalVM as below</p>
+
+<figure class="highlight"><pre><code class="language-sh" data-lang="sh">bin/node  <span class="nt">--jvm</span> <span class="nt">--vm</span>.cp <span class="nv">$CLASSPATH</span> </code></pre></figure>
+
+<p>Now we have environment ready for the spark.</p>
+
+<h2 id="spark-programming-in-javascript">Spark Programming In JavaScript</h2>
+
+<p>This section of the blog will discuss about how to write spark programs in JavaScript.</p>
+
+<h3 id="loading-sparksession-class">Loading SparkSession Class</h3>
+
+<p>First step of any spark program is to create a spark session.</p>
+
+<p>But before creating spark session, we need to import the class. In GraalVM this means we need to make the class available to JavaScript. The below code does the same.</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="kd">var</span> <span class="nx">sparkSessionType</span> <span class="o">=</span> <span class="nx">Java</span><span class="p">.</span><span class="nx">type</span><span class="p">(</span><span class="dl">"</span><span class="s2">org.apache.spark.sql.SparkSession</span><span class="dl">"</span><span class="p">)</span></code></pre></figure>
+
+<p>In above code, we are using <strong>Java.type</strong> API to import a given Java class into JavaScript.</p>
+
+<h3 id="creating-sparksession">Creating SparkSession</h3>
+
+<p>Once the spark session is imported, now we can create the spark session using below code.</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="kd">var</span> <span class="nx">sparkSession</span> <span class="o">=</span> <span class="nx">sparkSessionType</span><span class="p">.</span><span class="nx">builder</span><span class="p">().</span><span class="nx">master</span><span class="p">(</span><span class="dl">"</span><span class="s2">local[*]</span><span class="dl">"</span><span class="p">).</span><span class="nx">appName</span><span class="p">(</span><span class="dl">"</span><span class="s2">example</span><span class="dl">"</span><span class="p">).</span><span class="nx">getOrCreate</span><span class="p">()</span> </code></pre></figure>
+
+<p>The above code looks almost exactly like Scala code even though it’s written in JavaScript.</p>
+
+<h3 id="loading-data">Loading Data</h3>
+
+<p>Once we have created spark session, now we can use it to load the data. Replace the path with a csv from your system.</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="kd">var</span> <span class="nx">data</span> <span class="o">=</span> <span class="nx">sparkSession</span><span class="p">.</span><span class="nx">read</span><span class="p">().</span><span class="nx">format</span><span class="p">(</span><span class="dl">"</span><span class="s2">csv</span><span class="dl">"</span><span class="p">).</span><span class="nx">option</span><span class="p">(</span><span class="dl">"</span><span class="s2">header</span><span class="dl">"</span><span class="p">,</span><span class="dl">"</span><span class="s2">true</span><span class="dl">"</span><span class="p">).</span><span class="nx">load</span><span class="p">(</span><span class="dl">"</span><span class="s2">&lt;path to your csv&gt;</span><span class="dl">"</span><span class="p">)</span></code></pre></figure>
+
+<p>Again code looks exactly like Scala. But one thing to note is, the <strong>read</strong>. In Scala, it’s a val on <strong>SparkSession</strong> class. But in JavaScript it’s treated as a function. <strong>So when we use any Java/Scala library in GraalVM all the public properties become the zero parameter methods in JavaScript</strong>.</p>
+
+<h3 id="printing-data">Printing Data</h3>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="nx">data</span><span class="p">.</span><span class="nx">show</span><span class="p">()</span></code></pre></figure>
+
+<p>Once the data is loaded, the above method is used to show sample of data.</p>
+
+<h3 id="running-the-example">Running the Example</h3>
+
+<p>Save above code in a file named <strong>server.js</strong>. Then run the below command</p>
+
+<figure class="highlight"><pre><code class="language-sh" data-lang="sh">bin/node  <span class="nt">--jvm</span> <span class="nt">--vm</span>.cp <span class="nv">$CLASSPATH</span> server.js</code></pre></figure>
+
+<p>Now you can see that spark running inside the Node.js and printing sample of your csv.</p>
+
+<p>We wrote our first spark program in JavaScript successfully.</p>
+
+<h2 id="serving-schema-over-nodejs-http-server">Serving Schema Over Node.js http server</h2>
+
+<p>Till now, we have written only spark code. Let’s mix it with Node.js code. This shows the real power of the integration. The below code prints the schema of the dataframe when user makes a get request on Node.js</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="kd">const</span> <span class="nx">http</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="dl">"</span><span class="s2">http</span><span class="dl">"</span><span class="p">);</span>
+
+<span class="nx">http</span><span class="p">.</span><span class="nx">createServer</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">request</span><span class="p">,</span> <span class="nx">response</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">response</span><span class="p">.</span><span class="nx">writeHead</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="p">{</span><span class="dl">"</span><span class="s2">Content-Type</span><span class="dl">"</span><span class="p">:</span> <span class="dl">"</span><span class="s2">text/html</span><span class="dl">"</span><span class="p">});</span>
+                <span class="nx">response</span><span class="p">.</span><span class="nx">end</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">schema</span><span class="p">().</span><span class="nx">prettyJson</span><span class="p">());</span>
+<span class="p">}).</span><span class="nx">listen</span><span class="p">(</span><span class="mi">8000</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">Graal.js server running at http://127.0.0.1:8000/</span><span class="dl">"</span><span class="p">);</span> <span class="p">});</span></code></pre></figure>
+
+<p>Adding above code to server.js and running it again, will start a web server in <strong>8000</strong> port. When you access the <strong>http://127.0.0.1:8000/</strong> you will see the schema of your dataset.</p>
+
+<p>This shows how we are mixing Node code with spark on same VM.</p>
+
+<h2 id="code">Code</h2>
+
+<p>You can access complete the code on <a href="https://github.com/phatak-dev/GraalVMExperiments/blob/master/server.js">github</a>.</p>
+
+<h2 id="references">References</h2>
+
+<p><a href="https://medium.com/graalvm/using-testcontainers-from-a-node-js-application-3aa2273bf3bb">https://medium.com/graalvm/using-testcontainers-from-a-node-js-application-3aa2273bf3bb</a></p>
+
+</article>
+<div class="related">
+  <h2>Related posts</h2>
+  <ul>
+    
+             
+    
+    <li>    
+     <span class="post-date">02 Nov 2020</span>
+     &raquo; <a href="/spark-3-introduction-part-10">Introduction to Spark 3.0 - Part 10 : Ignoring Data Locality in Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">22 Apr 2020</span>
+     &raquo; <a href="/spark-3-datasource-v2-part-6">Data Source V2 API in Spark 3.0 - Part 6 : MySQL Source</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">21 Apr 2020</span>
+     &raquo; <a href="/spark-3-introduction-part-9">Introduction to Spark 3.0 - Part 9 : Join Hints in Spark SQL</a>    
+   </li>           
+         
+
+   
+   
+             
+    
+    <li>    
+     <span class="post-date">21 Jul 2021</span>
+     &raquo; <a href="/spark-pandas-part-2">Pandas API on Apache Spark - Part 2: Hello World</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">21 Jul 2021</span>
+     &raquo; <a href="/spark-pandas-part-1">Pandas API on Apache Spark - Part 1: Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">11 Nov 2020</span>
+     &raquo; <a href="/barrier-execution-mode-part-2">Barrier Execution Mode in Spark 3.0 - Part 2 : Barrier RDD</a>    
+   </li>           
+         
+
+   
+   
+ </ul>
+
+
+ 
+<!--   
+</div> -->
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrap">   
+    <div class="footer-col-1 column">
+      <ul>
+        <li>
+          <a href="https://github.com/phatak-dev">
+            <span class="icon github">
+              <svg version="1.1" class="github-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill-rule="evenodd" clip-rule="evenodd" fill="#C2C2C2" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761
+                c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32
+                c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472
+                c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037
+                C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65
+                c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261
+                c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082
+                c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129
+                c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+              </svg>
+            </span>
+            <span class="username">phatak-dev</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://twitter.com/madhukaraphatak">
+            <span class="icon twitter">
+              <svg version="1.1" class="twitter-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill="#C2C2C2" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809
+                c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27
+                c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767
+                c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206
+                C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271
+                c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469
+                c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/>
+              </svg>
+            </span>
+            <span class="username">madhukaraphatak</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer-col-3 column">
+      <p class="text">Thoughts on technology, life and everything else.</p>
+    </div>
+
+    <div style="float:right;">
+      <a href="/feed.xml"><img src="/images/rss.png">
+    </div>
+
+
+
+  </div>
+
+</footer>
+
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52311191-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+    </body>
+</html>

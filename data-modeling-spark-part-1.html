@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Data Modeling in Apache Spark - Part 1 : Date Dimension</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Thoughts on technology, life and everything else.">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/data-modeling-spark-part-1">
+     <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/app.css">
+       
+</head>
+
+
+    <body>
+
+    <header >
+  <div class="wrap">
+    <a class="site-title" href="/">Madhukar's Blog</a>  
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+           viewBox="0 0 18 15" enable-background="new 0 0 18 15" xml:space="preserve">
+          <path fill="#505050" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0
+            h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#505050" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484
+            h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#505050" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0
+            c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+      <div class="trigger">        
+          <a class="page-link" href="http://www.madhukaraphatak.com">About me</a>                  
+      </div>
+    </nav>  
+  </div>
+</header>
+
+
+    <div class="page-content">
+      <div class="wrap">
+      <div class="post">
+ <header class="post-header">
+  <h1>Data Modeling in Apache Spark - Part 1 : Date Dimension</h1>
+  <p class="meta">Nov 27, 2019</p>
+  <div class="catagories">
+    
+    <a href="/categories/spark"><span class="category">spark</span></a>
+    
+    <a href="/categories/data-modeling"><span class="category">data-modeling</span></a>
+    
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
+  </div>
+</header> 
+
+<article class="post-content">
+  <p>Data modeling is one of the important aspect of data analysis. Having right kind of model, allows user to ask business questions easily. The data modeling techniques have been bedrock of the SQL data warehouses in past few decades.</p>
+
+<p>As Apache Spark has become new warehousing technology, we should be able to use the earlier data modeling techniques in spark also. This makes Spark data pipelines much more effective.</p>
+
+<p>In this series of posts, I will be discussing different data modeling in the context of spark. This is the first post in the series which discusses about using date dimension. You can access all the posts in the series <a href="/categories/data-modeling">here</a>.</p>
+
+<h2 id="importance-of-data-and-time-in-data-analysis">Importance of Data and Time in Data Analysis</h2>
+
+<p>Most of the data that we analyse typically captured contains Date or Timestamp. For example, it may be</p>
+
+<p>• Trading date of the Stock</p>
+
+<p>• Time of the transactions in POS systems</p>
+
+<p>Many of the analysis what we do typically is around the date or time. We typically want to slice and dice the data using the same.</p>
+
+<h2 id="date-analysis-using-built-in-spark">Date Analysis using Built In Spark</h2>
+
+<p>This section of the document talks about the how to do date analysis using builtin spark date functions.</p>
+
+<h3 id="apple-stocks-data">Apple Stocks Data</h3>
+
+<p>For this example, we will be using Apple Stocks data. The below is the sample data</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">+-------------------+----------+----------+----------+----------+---------+---------+
+|               Date|      Open|      High|       Low|     Close|   Volume| AdjClose|
++-------------------+----------+----------+----------+----------+---------+---------+
+|2013-12-31 00:00:00|554.170013|561.279976|554.000023|561.019997| 55771100|76.297771|
+|2013-12-30 00:00:00|557.460022|560.089989|552.319984|554.519981| 63407400| 75.41378|
+|-----------------------------------------------------------------------------------|</code></pre></figure>
+
+<h3 id="loading-into-spark-dataframe">Loading into Spark Dataframe</h3>
+
+<p>The below code loads data into spark dataframe.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="nv">appleStockDf</span> <span class="k">=</span> <span class="nv">sparkSession</span><span class="o">.</span><span class="py">read</span><span class="o">.</span><span class="py">format</span><span class="o">(</span><span class="s">"csv"</span><span class="o">).</span>
+      <span class="nf">option</span><span class="o">(</span><span class="s">"header"</span><span class="o">,</span><span class="s">"true"</span><span class="o">)</span>
+      <span class="o">.</span><span class="py">option</span><span class="o">(</span><span class="s">"inferSchema"</span><span class="o">,</span><span class="s">"true"</span><span class="o">)</span>
+      <span class="o">.</span><span class="py">load</span><span class="o">(</span><span class="s">"src/main/resources/applestock_2013.csv"</span><span class="o">)</span></code></pre></figure>
+
+<h3 id="date-analysis">Date Analysis</h3>
+
+<p>In this section, let’s see how we can answer date related questions.</p>
+
+<h4 id="is-there-any-records-which-belongs-to-weekend">Is there any records which belongs to weekend?</h4>
+
+<p>This analysis is typically done to make sure the quality of the data. There should not be any data for weekend as there will be no trading done on weekend.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala">  <span class="nf">assert</span><span class="o">(</span><span class="nv">sparkSession</span><span class="o">.</span><span class="py">sql</span>
+       <span class="o">(</span><span class="s">"select * from stocks where dayofweek(Date)==1 or 
+       dayofweek(Date)==7"</span><span class="o">).</span><span class="py">count</span><span class="o">()</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span></code></pre></figure>
+
+<p>In above code, <strong>1</strong> signifies <strong>Sunday</strong> and <strong>7</strong> signifies <strong>Saturday</strong>. As we can see here code is not readable unless we know how to decode these magic numbers.</p>
+
+<h4 id="show-quarterly-max-price">Show Quarterly Max Price</h4>
+
+<p>This analysis finds the maximum for a given quarter.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="nv">appleStockDf</span><span class="o">.</span><span class="py">groupBy</span><span class="o">(</span><span class="nf">year</span><span class="o">(</span><span class="n">$</span><span class="s">"Date"</span><span class="o">),</span><span class="nf">quarter</span><span class="o">(</span><span class="n">$</span><span class="s">"Date"</span><span class="o">)).</span>
+      <span class="nf">avg</span><span class="o">(</span><span class="s">"Close"</span><span class="o">).</span>
+      <span class="nf">sort</span><span class="o">(</span><span class="s">"year(Date)"</span><span class="o">,</span><span class="s">"quarter(Date)"</span><span class="o">)</span>
+      <span class="o">.</span><span class="py">show</span><span class="o">()</span></code></pre></figure>
+
+<h2 id="challenges-with-date-analysis-using-spark-date-functions">Challenges with Date Analysis using Spark Date Functions</h2>
+
+<p>Even though we can do the above analysis using spark builtin date functions, writing them is tricky. Also these one cannot be easily expressed from an external BI solutions, where typically business analyst users are the end users. So we need an easier and better way to do the above.</p>
+
+<h2 id="date-dimension">Date Dimension</h2>
+
+<p>Date dimension is a static dataset which lists all the different properties of a given date in it’s columns. This sample dataset schema looks as below</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">t
+ |-- date_key: integer (nullable = true)
+ |-- full_date: string (nullable = true)
+ |-- day_of_week: integer (nullable = true)
+ |-- day_num_in_month: integer (nullable = true)
+ |-- day_num_overall: integer (nullable = true)
+ |-- day_name: string (nullable = true)
+ |-- day_abbrev: string (nullable = true)
+ |-- weekday_flag: string (nullable = true)
+ |-- week_num_in_year: integer (nullable = true)
+ |-- week_num_overall: integer (nullable = true)
+ |-- week_begin_date: string (nullable = true)
+ |-- week_begin_date_key: integer (nullable = true)
+ |-- month: integer (nullable = true)
+ |-- month_num_overall: integer (nullable = true)
+ |-- month_name: string (nullable = true)
+ |-- month_abbrev: string (nullable = true)
+ |-- quarter: integer (nullable = true)
+ |-- year: integer (nullable = true)
+ |-- yearmo: integer (nullable = true)
+ |-- fiscal_month: integer (nullable = true)
+ |-- fiscal_quarter: integer (nullable = true)
+ |-- fiscal_year: integer (nullable = true)
+ |-- last_day_in_month_flag: string (nullable = true)
+ |-- same_day_year_ago: string (nullable = true)</code></pre></figure>
+
+<p>In above schema, some of the important columns are</p>
+
+<ul>
+  <li>full_date - Timestamp for given day</li>
+  <li>year - year in the date</li>
+  <li>quarter - quarter the given date belongs</li>
+</ul>
+
+<p>etc.</p>
+
+<p>This static dataset can be generated for multi years and kept available. A sample we are using in the example can be downloaded from below link.</p>
+
+<p><a href="https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/books/microsoft-data-warehouse-dw-toolkit/">https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/books/microsoft-data-warehouse-dw-toolkit/</a>.</p>
+
+<h2 id="date-analysis-using-date-dimension">Date Analysis using Date Dimension</h2>
+
+<p>This section of the document talks about how to do the above analysis using date dimension.</p>
+
+<h3 id="loading-the-data-to-spark-dataframe">Loading the Data to Spark Dataframe</h3>
+
+<p>We can create a dataframe for our date dataset as below</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="nv">originalDf</span> <span class="k">=</span> <span class="nv">sparkSession</span><span class="o">.</span><span class="py">read</span><span class="o">.</span><span class="py">format</span><span class="o">(</span><span class="s">"csv"</span><span class="o">).</span>
+      <span class="nf">option</span><span class="o">(</span><span class="s">"header"</span><span class="o">,</span><span class="s">"true"</span><span class="o">)</span>
+      <span class="o">.</span><span class="py">option</span><span class="o">(</span><span class="s">"inferSchema"</span><span class="o">,</span><span class="s">"true"</span><span class="o">)</span>
+      <span class="o">.</span><span class="py">load</span><span class="o">(</span><span class="n">dataPath</span><span class="o">)</span>
+
+    <span class="c1">//replace space in the column names</span>
+    <span class="k">val</span> <span class="nv">new_columns</span> <span class="k">=</span> <span class="nv">originalDf</span><span class="o">.</span><span class="py">schema</span><span class="o">.</span><span class="py">fields</span>
+      <span class="o">.</span><span class="py">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="nv">value</span><span class="o">.</span><span class="py">copy</span><span class="o">(</span><span class="n">name</span> <span class="k">=</span> <span class="nv">value</span><span class="o">.</span><span class="py">name</span><span class="o">.</span><span class="py">replaceAll</span><span class="o">(</span><span class="s">"\\s+"</span><span class="o">,</span><span class="s">"_"</span><span class="o">)))</span>
+
+    <span class="k">val</span> <span class="nv">newSchema</span> <span class="k">=</span> <span class="nc">StructType</span><span class="o">(</span><span class="n">new_columns</span><span class="o">)</span>
+    <span class="k">val</span> <span class="nv">newNameDf</span> <span class="k">=</span> <span class="nv">sparkSession</span><span class="o">.</span><span class="py">createDataFrame</span><span class="o">(</span><span class="nv">originalDf</span><span class="o">.</span><span class="py">rdd</span><span class="o">,</span> <span class="n">newSchema</span><span class="o">)</span>
+
+    <span class="k">import</span> <span class="nn">org.apache.spark.sql.functions._</span>
+    <span class="k">val</span> <span class="nv">dateDf</span> <span class="k">=</span> <span class="nv">newNameDf</span><span class="o">.</span><span class="py">withColumn</span><span class="o">(</span><span class="s">"full_date_formatted"</span><span class="o">,</span>
+      <span class="nf">to_date</span><span class="o">(</span><span class="nv">newNameDf</span><span class="o">.</span><span class="py">col</span><span class="o">(</span><span class="s">"full_date"</span><span class="o">),</span><span class="s">"dd/MM/yy"</span><span class="o">))</span></code></pre></figure>
+
+<p>In the above code, preprocessing is done to convert the <em>String</em> to spark <em>date</em> datatype.</p>
+
+<h3 id="joining-with-stocks-data">Joining with Stocks Data</h3>
+
+<p>We can combine stocks data with Date using spark joins</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="nv">joinedDF</span> <span class="k">=</span> <span class="nv">appleStockDf</span><span class="o">.</span><span class="py">join</span><span class="o">(</span><span class="n">dateDf</span><span class="o">,</span> <span class="nv">appleStockDf</span><span class="o">.</span><span class="py">col</span><span class="o">(</span><span class="s">"Date"</span><span class="o">)</span> <span class="o">===</span>
+      <span class="nv">dateDf</span><span class="o">.</span><span class="py">col</span><span class="o">(</span><span class="s">"full_date_formatted"</span><span class="o">))</span></code></pre></figure>
+
+<p>This join doesn’t increase size of the data as it’s an inner join.</p>
+
+<h3 id="analysis">Analysis</h3>
+
+<p>This section shows how the analysis can be done without using complex spark functions</p>
+
+<h4 id="is-there-any-records-which-belongs-to-weekend-1">Is there any records which belongs to weekend?</h4>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="nf">assert</span><span class="o">(</span><span class="nv">joinedDF</span><span class="o">.</span><span class="py">filter</span><span class="o">(</span><span class="s">"weekday_flag != 'y'"</span><span class="o">).</span><span class="py">count</span><span class="o">()==</span><span class="mi">0</span><span class="o">)</span></code></pre></figure>
+
+<h4 id="show-quarterly-max-price-1">Show Quarterly Max Price</h4>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="nv">joinedDF</span><span class="o">.</span><span class="py">groupBy</span><span class="o">(</span><span class="s">"year"</span><span class="o">,</span><span class="s">"quarter"</span><span class="o">).</span>
+      <span class="nf">avg</span><span class="o">(</span><span class="s">"Close"</span><span class="o">).</span>
+      <span class="nf">sort</span><span class="o">(</span><span class="s">"year"</span><span class="o">,</span><span class="s">"quarter"</span><span class="o">)</span>
+      <span class="o">.</span><span class="py">show</span><span class="o">()</span></code></pre></figure>
+
+<h2 id="advantages-of-date-dimension">Advantages of Date Dimension</h2>
+
+<p>This section discusses about the advantages of date dimension.</p>
+
+<h3 id="reuse-across-different-analysis">Reuse Across Different Analysis</h3>
+
+<p>Same dataset can be used for different data analysis. Rather writing special functions in the query or adding these columns on dataset itself, having a standard date dimension helps to standardise all date analysis.</p>
+
+<h3 id="scalable">Scalable</h3>
+<p>Users can add more properties on date dimension like regional holidays etc. This will enrich the analysis for every one. No additional querying is needed there.</p>
+
+<h3 id="user-friendly">User Friendly</h3>
+
+<p>The queries generated by using date dimension are more easier to understand.</p>
+
+<h2 id="reference">Reference</h2>
+
+<p><a href="https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/books/microsoft-data-warehouse-dw-toolkit/">https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/calendar-date-dimension/</a>.</p>
+
+<h2 id="code">Code</h2>
+
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark2.0-examples/blob/2.4/src/main/scala/com/madhukaraphatak/examples/sparktwo/datamodeling/DateHandlingExample.scala">github</a>.</p>
+
+</article>
+<div class="related">
+  <h2>Related posts</h2>
+  <ul>
+    
+             
+    
+    <li>    
+     <span class="post-date">21 Jul 2021</span>
+     &raquo; <a href="/spark-pandas-part-2">Pandas API on Apache Spark - Part 2: Hello World</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">21 Jul 2021</span>
+     &raquo; <a href="/spark-pandas-part-1">Pandas API on Apache Spark - Part 1: Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">11 Nov 2020</span>
+     &raquo; <a href="/barrier-execution-mode-part-2">Barrier Execution Mode in Spark 3.0 - Part 2 : Barrier RDD</a>    
+   </li>           
+         
+
+   
+   
+             
+    
+    <li>    
+     <span class="post-date">02 Dec 2019</span>
+     &raquo; <a href="/data-modeling-spark-part-2">Data Modeling in Apache Spark - Part 2 : Working With Multiple Dates</a>    
+   </li>           
+         
+
+            
+          
+
+   
+   
+ </ul>
+
+
+ 
+<!--   
+</div> -->
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrap">   
+    <div class="footer-col-1 column">
+      <ul>
+        <li>
+          <a href="https://github.com/phatak-dev">
+            <span class="icon github">
+              <svg version="1.1" class="github-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill-rule="evenodd" clip-rule="evenodd" fill="#C2C2C2" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761
+                c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32
+                c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472
+                c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037
+                C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65
+                c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261
+                c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082
+                c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129
+                c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+              </svg>
+            </span>
+            <span class="username">phatak-dev</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://twitter.com/madhukaraphatak">
+            <span class="icon twitter">
+              <svg version="1.1" class="twitter-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill="#C2C2C2" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809
+                c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27
+                c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767
+                c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206
+                C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271
+                c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469
+                c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/>
+              </svg>
+            </span>
+            <span class="username">madhukaraphatak</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer-col-3 column">
+      <p class="text">Thoughts on technology, life and everything else.</p>
+    </div>
+
+    <div style="float:right;">
+      <a href="/feed.xml"><img src="/images/rss.png">
+    </div>
+
+
+
+  </div>
+
+</footer>
+
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52311191-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+    </body>
+</html>

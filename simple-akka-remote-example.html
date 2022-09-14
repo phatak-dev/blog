@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>A Simple Akka Remote example</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Thoughts on technology, life and everything else.">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/simple-akka-remote-example">
+     <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/app.css">
+       
+</head>
+
+
+    <body>
+
+    <header >
+  <div class="wrap">
+    <a class="site-title" href="/">Madhukar's Blog</a>  
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+           viewBox="0 0 18 15" enable-background="new 0 0 18 15" xml:space="preserve">
+          <path fill="#505050" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0
+            h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#505050" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484
+            h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#505050" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0
+            c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+      <div class="trigger">        
+          <a class="page-link" href="http://www.madhukaraphatak.com">About me</a>                  
+      </div>
+    </nav>  
+  </div>
+</header>
+
+
+    <div class="page-content">
+      <div class="wrap">
+      <div class="post">
+ <header class="post-header">
+  <h1>A Simple Akka Remote example</h1>
+  <p class="meta">Jan 6, 2015</p>
+  <div class="catagories">
+    
+    <a href="/categories/akka"><span class="category">akka</span></a>
+    
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
+  </div>
+</header> 
+
+<article class="post-content">
+  <p>It’s hard to find a simple example that shows how to do akka remoting. Akka <a href="http://doc.akka.io/docs/akka/snapshot/scala/remoting.html">remote</a> documentation is highly cryptic. Other <a href="http://alvinalexander.com/scala/simple-akka-actors-remote-example">blogs</a> and <a href="http://stackoverflow.com/questions/14934782/akka-2-1-minimal-remote-actor-example">stackoverflow</a> answers are not much help as they makes you to create multiple projects and follow non obvious steps.</p>
+
+<p>So I was thinking there is should be an easier way to do this. It should be as simple as having two actors in a given project talking through remote interface. After digging through akka documentation I was able to create one such example. In this post, I am going to discuss about that.</p>
+
+<p>tl;dr Access complete code on <a href="https://github.com/phatak-dev/akka-remote-simple-scala">github</a>.</p>
+
+<p>The following are the steps to create a simple akka remote project.</p>
+
+<h2 id="step-1-create-a-sbt-project">Step 1: Create a sbt project</h2>
+
+<p>Create a single sbt project using IDE or any other tools. Once you created the project, add the following dependencies.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">resolvers</span> <span class="o">+=</span> <span class="s">"Typesafe Repository"</span> <span class="n">at</span> <span class="s">"http://repo.typesafe.com/typesafe/releases/"</span>
+
+<span class="n">libraryDependencies</span> <span class="o">+=</span>
+  <span class="s">"com.typesafe.akka"</span> <span class="o">%%</span> <span class="s">"akka-actor"</span> <span class="o">%</span> <span class="s">"2.3.7"</span>
+
+<span class="n">libraryDependencies</span> <span class="o">+=</span>
+  <span class="s">"com.typesafe.akka"</span> <span class="o">%%</span> <span class="s">"akka-remote"</span> <span class="o">%</span> <span class="s">"2.3.7"</span></code></pre></figure>
+
+<p>Access complete code <a href="https://github.com/phatak-dev/akka-remote-simple-scala/blob/master/build.sbt">here</a>.</p>
+
+<p>Once we have the dependencies in place, let’s start with actors.</p>
+
+<h2 id="step-2--create-remote-actor">Step 2 : Create Remote actor</h2>
+<p>Remote actor is an actor which listens on some given port. The following are the steps to create a remote actor.</p>
+
+<h3 id="step-21-define-remote-actor">Step 2.1 Define Remote Actor</h3>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> <span class="k">class</span> <span class="nc">RemoteActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">receive</span><span class="k">:</span> <span class="kt">Receive</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">msg</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=&gt;</span> <span class="o">{</span>
+      <span class="nf">println</span><span class="o">(</span><span class="s">"remote received "</span> <span class="o">+</span> <span class="n">msg</span> <span class="o">+</span> <span class="s">" from "</span> <span class="o">+</span> <span class="n">sender</span><span class="o">)</span>
+      <span class="n">sender</span> <span class="o">!</span> <span class="s">"hi"</span>
+    <span class="o">}</span>
+    <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="nf">println</span><span class="o">(</span><span class="s">"Received unknown msg "</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></figure>
+
+<p>As you can see, there is nothing special about this actor. It’s like any other actor. So the magic of remoting should be happening somewhere else.</p>
+
+<h3 id="step-22--define-a-remote-configuration">Step 2.2 : Define a remote configuration</h3>
+
+<p>Akka uses configuration to define how to instantiate actor systems. If you define actor system as remote, then all the actors running in that system will become remote actors.</p>
+
+<p>Create a file name “remote_application.conf” in resources folder. Then place following code</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> <span class="n">akka</span> <span class="o">{</span>
+  <span class="n">loglevel</span> <span class="k">=</span> <span class="s">"INFO"</span>
+  <span class="n">actor</span> <span class="o">{</span>
+    <span class="n">provider</span> <span class="k">=</span> <span class="s">"akka.remote.RemoteActorRefProvider"</span>
+  <span class="o">}</span>
+  <span class="n">remote</span> <span class="o">{</span>
+    <span class="n">enabled</span><span class="o">-</span><span class="n">transports</span> <span class="k">=</span> <span class="o">[</span><span class="err">"</span><span class="kt">akka.remote.netty.tcp</span><span class="err">"</span><span class="o">]</span>
+    <span class="nv">netty</span><span class="o">.</span><span class="py">tcp</span> <span class="o">{</span>
+      <span class="n">hostname</span> <span class="k">=</span> <span class="s">"127.0.0.1"</span>
+      <span class="n">port</span> <span class="k">=</span> <span class="mi">5150</span>
+    <span class="o">}</span>
+    <span class="n">log</span><span class="o">-</span><span class="n">sent</span><span class="o">-</span><span class="n">messages</span> <span class="k">=</span> <span class="n">on</span>
+    <span class="n">log</span><span class="o">-</span><span class="n">received</span><span class="o">-</span><span class="n">messages</span> <span class="k">=</span> <span class="n">on</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></figure>
+
+<p>In this configuration, we are specifying following things.</p>
+
+<ul>
+  <li>Actor ref provider : We are specifying the references should be remote aware.</li>
+  <li>Transports used : tcp is the transport layer protocol used</li>
+  <li>hostname : 127.0.0.1</li>
+  <li>port : 5150 is the port on which the actor system listen on</li>
+</ul>
+
+<p>other details are for logging purposes. As you can see, we want the remote actor to be listening on this specific port so that it can be discoverable for other clients.</p>
+
+<p>By convention akka looks for <em>application.conf</em> in class path for configuring actors. But as we have multiple actors which should listen on different ports, we are going to explicitly parse the configuration and pass it to the actor system.</p>
+
+<h3 id="step-23-configuring-actor-system-to-listen-on-remote">Step 2.3 Configuring Actor system to listen on remote</h3>
+
+<ul>
+  <li>Get the file path from classpath</li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala">  <span class="k">val</span> <span class="nv">configFile</span> <span class="k">=</span> <span class="nv">getClass</span><span class="o">.</span><span class="py">getClassLoader</span><span class="o">.</span>
+  <span class="nf">getResource</span><span class="o">(</span><span class="s">"remote_application.conf"</span><span class="o">).</span><span class="py">getFile</span></code></pre></figure>
+
+<ul>
+  <li>Parse the config file to create config object</li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> <span class="k">val</span> <span class="nv">config</span> <span class="k">=</span> <span class="nv">ConfigFactory</span><span class="o">.</span><span class="py">parseFile</span><span class="o">(</span><span class="k">new</span> <span class="nc">File</span><span class="o">(</span><span class="n">configFile</span><span class="o">))</span></code></pre></figure>
+
+<ul>
+  <li>Create an actor system with this config</li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="nv">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">(</span><span class="s">"RemoteSystem"</span> <span class="o">,</span> <span class="n">config</span><span class="o">)</span></code></pre></figure>
+
+<p>As you can observe, the configuration is always set in the level of actor system, not at actors level.</p>
+
+<ul>
+  <li>Create an instance of remote actor using this actor system</li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="nv">remote</span> <span class="k">=</span> <span class="nv">system</span><span class="o">.</span><span class="py">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">[</span><span class="kt">RemoteActor</span><span class="o">],</span> <span class="n">name</span><span class="o">=</span><span class="s">"remote"</span><span class="o">)</span></code></pre></figure>
+
+<p>Once you create actor, it will be available at <em>akka:tcp://RemoteSystem@127.0.0.1:5150/user/remote</em>.</p>
+
+<p>Access complete code <a href="https://github.com/phatak-dev/akka-remote-simple-scala/blob/master/src/main/scala/com/madhukaraphatak/akka/remote/RemoteActor.scala">here</a>.</p>
+
+<p>Once we are done with remote actor, let’s create local actor.</p>
+
+<h2 id="step-3--local-actor">Step 3 : Local actor</h2>
+
+<p>The following are steps to create local actor</p>
+
+<h3 id="step-31--define-local-actor">Step 3.1 : Define local actor</h3>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> <span class="k">class</span> <span class="nc">LocalActor</span> <span class="k">extends</span> <span class="nc">Actor</span><span class="o">{</span>
+  <span class="nd">@throws</span><span class="o">[</span><span class="kt">Exception</span><span class="o">](</span><span class="n">classOf</span><span class="o">[</span><span class="kt">Exception</span><span class="o">])</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">preStart</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="cm">/*
+      Connect to remote actor. The following are the different parts of actor path
+
+      akka.tcp : enabled-transports  of remote_application.conf
+
+      RemoteSystem : name of the actor system used to create remote actor
+
+      127.0.0.1:5150 : host and port
+
+      user : The actor is user defined
+
+      remote : name of the actor, passed as parameter to system.actorOf call
+
+     */</span>
+    <span class="k">val</span> <span class="nv">remoteActor</span> <span class="k">=</span> <span class="nv">context</span><span class="o">.</span><span class="py">actorSelection</span><span class="o">(</span><span class="s">"akka.tcp://RemoteSystem@127.0.0.1:5150/user/remote"</span><span class="o">)</span>
+    <span class="nf">println</span><span class="o">(</span><span class="s">"That 's remote:"</span> <span class="o">+</span> <span class="n">remoteActor</span><span class="o">)</span>
+    <span class="n">remoteActor</span> <span class="o">!</span> <span class="s">"hi"</span>
+  <span class="o">}</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">receive</span><span class="k">:</span> <span class="kt">Receive</span> <span class="o">=</span> <span class="o">{</span>
+
+    <span class="k">case</span> <span class="n">msg</span><span class="k">:</span><span class="kt">String</span> <span class="o">=&gt;</span> <span class="o">{</span>
+      <span class="nf">println</span><span class="o">(</span><span class="s">"got message from remote"</span> <span class="o">+</span> <span class="n">msg</span><span class="o">)</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></figure>
+
+<p>In the prestart, we will connect to the remote actor using <em>context.actorSelection</em> api. Comments in code explain different section of URL. Once we are able to connect, we will send messages.</p>
+
+<h3 id="step-32--configuration-file-for-local-actor">Step 3.2 : Configuration file for local actor</h3>
+<p>As with remote actor, we need to specify the configuration file. We call it “local-configuration.conf”</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala">  <span class="n">loglevel</span> <span class="k">=</span> <span class="s">"INFO"</span>
+  <span class="n">actor</span> <span class="o">{</span>
+    <span class="n">provider</span> <span class="k">=</span> <span class="s">"akka.remote.RemoteActorRefProvider"</span>
+  <span class="o">}</span>
+  <span class="n">remote</span> <span class="o">{</span>
+    <span class="n">enabled</span><span class="o">-</span><span class="n">transports</span> <span class="k">=</span> <span class="o">[</span><span class="err">"</span><span class="kt">akka.remote.netty.tcp</span><span class="err">"</span><span class="o">]</span>
+    <span class="nv">netty</span><span class="o">.</span><span class="py">tcp</span> <span class="o">{</span>
+      <span class="n">hostname</span> <span class="k">=</span> <span class="s">"127.0.0.1"</span>
+      <span class="n">port</span> <span class="k">=</span> <span class="mi">0</span>
+    <span class="o">}</span>
+    <span class="n">log</span><span class="o">-</span><span class="n">sent</span><span class="o">-</span><span class="n">messages</span> <span class="k">=</span> <span class="n">on</span>
+    <span class="n">log</span><span class="o">-</span><span class="n">received</span><span class="o">-</span><span class="n">messages</span> <span class="k">=</span> <span class="n">on</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></figure>
+
+<p>You may be wondering why local actor needs remote ref provider. The reason is, in akka actors behave like peers rather than client-server. So both local and remote actors should talk on similar transport. So the only difference between remote and local, is which machine they running. If it’s running in remote machine, then it’s a remote actor and if it’s in your machine then it’s local actor.</p>
+
+<p>The configuration is exactly same other than the port. Port <em>0</em> means any free port.</p>
+
+<p>Configuring the local actor is exactly same as remote actor.</p>
+
+<p>Access complete code <a href="https://github.com/phatak-dev/akka-remote-simple-scala/blob/master/src/main/scala/com/madhukaraphatak/akka/local/LocalActor.scala">here</a>.</p>
+
+<h2 id="step-4--building-and-running">Step 4 : Building and running</h2>
+
+<ul>
+  <li>
+    <p>Download complete code from <a href="https://github.com/phatak-dev/akka-remote-simple-scala">github</a></p>
+  </li>
+  <li>
+    <p>Run <em>sbt install</em></p>
+  </li>
+  <li>
+    <p>Run main methods of Remote and Local actors.</p>
+  </li>
+</ul>
+
+<p>Now you have an Akka remote example working without any hassles.</p>
+
+
+</article>
+<div class="related">
+  <h2>Related posts</h2>
+  <ul>
+    
+             
+          
+
+   
+   
+             
+    
+    <li>    
+     <span class="post-date">02 Nov 2020</span>
+     &raquo; <a href="/spark-3-introduction-part-10">Introduction to Spark 3.0 - Part 10 : Ignoring Data Locality in Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">22 Apr 2020</span>
+     &raquo; <a href="/spark-3-datasource-v2-part-6">Data Source V2 API in Spark 3.0 - Part 6 : MySQL Source</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">21 Apr 2020</span>
+     &raquo; <a href="/spark-3-introduction-part-9">Introduction to Spark 3.0 - Part 9 : Join Hints in Spark SQL</a>    
+   </li>           
+         
+
+   
+   
+ </ul>
+
+
+ 
+<!--   
+</div> -->
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrap">   
+    <div class="footer-col-1 column">
+      <ul>
+        <li>
+          <a href="https://github.com/phatak-dev">
+            <span class="icon github">
+              <svg version="1.1" class="github-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill-rule="evenodd" clip-rule="evenodd" fill="#C2C2C2" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761
+                c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32
+                c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472
+                c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037
+                C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65
+                c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261
+                c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082
+                c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129
+                c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+              </svg>
+            </span>
+            <span class="username">phatak-dev</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://twitter.com/madhukaraphatak">
+            <span class="icon twitter">
+              <svg version="1.1" class="twitter-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill="#C2C2C2" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809
+                c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27
+                c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767
+                c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206
+                C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271
+                c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469
+                c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/>
+              </svg>
+            </span>
+            <span class="username">madhukaraphatak</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer-col-3 column">
+      <p class="text">Thoughts on technology, life and everything else.</p>
+    </div>
+
+    <div style="float:right;">
+      <a href="/feed.xml"><img src="/images/rss.png">
+    </div>
+
+
+
+  </div>
+
+</footer>
+
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52311191-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+    </body>
+</html>

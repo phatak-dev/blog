@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Distributing third party libraries in Mesos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Thoughts on technology, life and everything else.">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/distributing-third-party-libraries-in-mesos">
+     <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/app.css">
+       
+</head>
+
+
+    <body>
+
+    <header >
+  <div class="wrap">
+    <a class="site-title" href="/">Madhukar's Blog</a>  
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+           viewBox="0 0 18 15" enable-background="new 0 0 18 15" xml:space="preserve">
+          <path fill="#505050" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0
+            h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#505050" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484
+            h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#505050" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0
+            c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+      <div class="trigger">        
+          <a class="page-link" href="http://www.madhukaraphatak.com">About me</a>                  
+      </div>
+    </nav>  
+  </div>
+</header>
+
+
+    <div class="page-content">
+      <div class="wrap">
+      <div class="post">
+ <header class="post-header">
+  <h1>Distributing third party libraries in Mesos</h1>
+  <p class="meta">Dec 15, 2014</p>
+  <div class="catagories">
+    
+    <a href="/categories/mesos"><span class="category">mesos</span></a>
+    
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
+  </div>
+</header> 
+
+<article class="post-content">
+  <p>Every distributed application needs an effective way of distributing third party libraries. Hadoop uses DistributedCache and Spark uses similar approaches. When you are building your own distributed system, you also have to build a effective mechanism to do the distribution.</p>
+
+<p>This post talks about how to implement this on mesos. This implementation is inspired by Spark implementation.</p>
+
+<p>This post extends code discussed in this <a href="/custom-mesos-executor-scala/">post</a>.So if you are new to mesos please go through that post before continuing.</p>
+
+<p>tl;dr Access the complete code on <a href="https://github.com/phatak-dev/blog/tree/master/code/MesosThirdPartyJars">github</a></p>
+
+<h3 id="third-party-libraries-in-distributed-applications">Third Party libraries in distributed Applications</h3>
+
+<p>Almost every piece of code we write today uses one or more third party library. In distributed systems third party libraries become tricky to handle.As we don’t have control over instantiation of our tasks, the underlying system should allow us to express the dependencies so that it can add those to the classpath when our task is run.</p>
+
+<p>There are many ways to handle this problem. The following are the few following options.</p>
+
+<h2 id="using-an-uber-jar">Using an uber jar</h2>
+<p>We can create a big jar which contains our code and all of it’s dependencies. Build tools like maven,ant makes this very easy to do. Though it’s an attractive solution it has its own quirks.</p>
+
+<ul>
+  <li>####Jar Size</li>
+</ul>
+
+<p>We will be updating our code faster than changing dependencies. So every time when we make a change we have to distribute a big jar rather than distributing only changed code. This effects the startup time and also eats up lot’s of network bandwidth.</p>
+
+<ul>
+  <li>
+    <h4 id="versioning">Versioning</h4>
+  </li>
+</ul>
+
+<p>If we mix user code with dependencies, upgrading third libraries become challenging. Whenever we upgrade any dependence we have to recompile all code and re distribute again. This is not feasible in big code bases.</p>
+
+<p>So it’s not wise to mix user code with libraries. We will be needing an independent way of distributing jars.</p>
+
+<h2 id="using-distributed-file-system">Using Distributed file system</h2>
+
+<p>One of the alternative to uber jar is using a distributed file system for distributing libraries. Normally any distributed applications run on distributed file system like HDFS. Though it’s a good approach for most of applications,it does comes with dependency that a distributed file system has to be available. Also the individual library jar size is small,which performs poorly in big data file systems.</p>
+
+<h2 id="localized-distribution-over-http">Localized distribution over HTTP</h2>
+
+<p>This is the approach we are going to follow in this post. We are going to host our dependencies in a web server and ask the slaves to pull the jars from server. We create this web server on demand and configure tasks to read and configure using them.</p>
+
+<p>The following steps shows how to implement this distribution on Mesos and Scala.</p>
+
+<h3 id="step-1--web-server-at-master-side">Step 1 : Web server at master side</h3>
+
+<p>We run a web server at master when we start executing task. The following code shows a http server created using jetty server.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala">  <span class="k">class</span> <span class="nc">HttpServer</span><span class="o">(</span><span class="n">resourceBase</span><span class="k">:</span> <span class="kt">File</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">var</span> <span class="n">server</span><span class="k">:</span> <span class="kt">Server</span> <span class="o">=</span> <span class="kc">null</span>
+  <span class="k">var</span> <span class="n">port</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+  <span class="k">def</span> <span class="nf">start</span><span class="o">()</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="nf">if</span> <span class="o">(</span><span class="n">server</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="nc">RuntimeException</span><span class="o">(</span><span class="s">"server already running"</span><span class="o">)</span>
+    <span class="o">}</span>
+    <span class="k">else</span> <span class="o">{</span>
+
+      <span class="k">val</span> <span class="nv">threadPool</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">QueuedThreadPool</span><span class="o">()</span>
+      <span class="nv">threadPool</span><span class="o">.</span><span class="py">setDaemon</span><span class="o">(</span><span class="kc">true</span><span class="o">)</span>
+
+      <span class="n">server</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Server</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+      <span class="nv">server</span><span class="o">.</span><span class="py">setThreadPool</span><span class="o">(</span><span class="n">threadPool</span><span class="o">)</span>
+
+      <span class="c1">//serve the files in the folder as the path is indicated</span>
+      <span class="k">val</span> <span class="nv">resourceHandler</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ResourceHandler</span>
+      <span class="nv">resourceHandler</span><span class="o">.</span><span class="py">setResourceBase</span><span class="o">(</span><span class="nv">resourceBase</span><span class="o">.</span><span class="py">getAbsolutePath</span><span class="o">)</span>
+
+      <span class="k">val</span> <span class="nv">handlerList</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">HandlerList</span>
+      <span class="nv">handlerList</span><span class="o">.</span><span class="py">setHandlers</span><span class="o">(</span><span class="nc">Array</span><span class="o">(</span><span class="n">resourceHandler</span><span class="o">,</span> <span class="k">new</span> <span class="nc">DefaultHandler</span><span class="o">))</span>
+
+      <span class="c1">//start the server with handler and capture the port</span>
+      <span class="nv">server</span><span class="o">.</span><span class="py">setHandler</span><span class="o">(</span><span class="n">handlerList</span><span class="o">)</span>
+      <span class="nv">server</span><span class="o">.</span><span class="py">start</span><span class="o">()</span>
+      <span class="n">port</span> <span class="k">=</span> <span class="nv">server</span><span class="o">.</span><span class="py">getConnectors</span><span class="o">()(</span><span class="mi">0</span><span class="o">).</span><span class="py">getLocalPort</span>
+    <span class="o">}</span>
+
+  <span class="o">}</span>   
+ </code></pre></figure>
+
+<p>We call start method to start the server, which serves files from <em>resourceBase</em> folder.</p>
+
+<p>Access complete code <a href="https://github.com/phatak-dev/blog/blob/master/code/MesosThirdPartyJars/src/main/scala/com/madhukaraphatak/mesos/jarhandling/HttpServer.scala">here</a>.</p>
+
+<h3 id="step-2--integrate-server-with-scheduler">Step 2 : Integrate server with Scheduler</h3>
+
+<p>The above server has to be started dynamically whenever we require to distribute the jars. In Mesos scheduler is responsible for spinning up the task, so we start it before the first task at scheduler side.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">override</span> <span class="k">def</span> <span class="nf">registered</span><span class="o">(</span><span class="n">driver</span><span class="k">:</span> <span class="kt">SchedulerDriver</span><span class="o">,</span> <span class="n">frameworkId</span><span class="k">:</span> <span class="kt">FrameworkID</span><span class="o">,</span> <span class="n">masterInfo</span><span class="k">:</span> <span class="kt">MasterInfo</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="c1">//create the jar server if there are any jars have to be distributed</span>
+    <span class="nf">if</span><span class="o">(</span><span class="nv">jars</span><span class="o">.</span><span class="py">size</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">)</span>  <span class="nf">createJarServer</span><span class="o">()</span>
+  <span class="o">}</span></code></pre></figure>
+
+<p>We override registered method,so that whenever scheduler comes up we start the server.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> <span class="k">def</span> <span class="nf">createJarServer</span><span class="o">()</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">val</span> <span class="nv">dirFile</span> <span class="k">=</span> <span class="nv">Utils</span><span class="o">.</span><span class="py">createTempDir</span><span class="o">()</span>
+    <span class="nf">println</span><span class="o">(</span><span class="s">"jar directory is"</span> <span class="o">+</span> <span class="nv">dirFile</span><span class="o">.</span><span class="py">getAbsolutePath</span><span class="o">)</span>
+    <span class="k">val</span> <span class="nv">fileNames</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ArrayBuffer</span><span class="o">[</span><span class="kt">String</span><span class="o">]()</span>
+    <span class="nf">for</span> <span class="o">((</span><span class="n">path</span><span class="o">,</span> <span class="n">index</span><span class="o">)</span> <span class="k">&lt;-</span> <span class="nv">jars</span><span class="o">.</span><span class="py">zipWithIndex</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">val</span> <span class="nv">file</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">File</span><span class="o">(</span><span class="n">path</span><span class="o">)</span>
+      <span class="k">val</span> <span class="nv">fileName</span> <span class="k">=</span> <span class="n">index</span> <span class="o">+</span> <span class="s">"_"</span> <span class="o">+</span> <span class="nv">file</span><span class="o">.</span><span class="py">getName</span>
+      <span class="nf">copyFile</span><span class="o">(</span><span class="n">file</span><span class="o">,</span> <span class="k">new</span> <span class="nc">File</span><span class="o">(</span><span class="n">dirFile</span><span class="o">,</span> <span class="n">fileName</span><span class="o">))</span>
+      <span class="n">fileNames</span> <span class="o">+=</span> <span class="n">fileName</span>
+    <span class="o">}</span>
+
+    <span class="n">jarServer</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">HttpServer</span><span class="o">(</span><span class="n">dirFile</span><span class="o">)</span>
+    <span class="nv">jarServer</span><span class="o">.</span><span class="py">start</span><span class="o">()</span>
+    <span class="k">val</span> <span class="nv">uri</span> <span class="k">=</span> <span class="nv">jarServer</span><span class="o">.</span><span class="py">uri</span>
+    <span class="nf">println</span><span class="o">(</span><span class="s">"jar server started at "</span> <span class="o">+</span> <span class="n">uri</span><span class="o">)</span>
+    <span class="n">jarUris</span> <span class="k">=</span> <span class="nv">fileNames</span><span class="o">.</span><span class="py">map</span><span class="o">(</span><span class="n">f</span> <span class="k">=&gt;</span> <span class="n">uri</span> <span class="o">+</span> <span class="s">"/"</span> <span class="o">+</span> <span class="n">f</span><span class="o">).</span><span class="py">mkString</span><span class="o">(</span><span class="s">","</span><span class="o">)</span>
+  <span class="o">}</span></code></pre></figure>
+
+<p><em>createServer</em> copies specified jar from it’s path to a temporary location. Also it populates <em>jarUris</em> string which contains all the jar URI’s in a comma separated manner.</p>
+
+<p>Access complete code <a href="https://github.com/phatak-dev/blog/blob/master/code/MesosThirdPartyJars/src/main/scala/com/madhukaraphatak/mesos/customjars/TaskScheduler.scala">here</a>.</p>
+
+<h3 id="step-3--pass-jaruris-to-executor">Step 3 : Pass jarUris to executor</h3>
+
+<p>We have to pass this uri’s to the executor,so that it can download the jars and add them to class path before it starts running tasks. We pass it as the command line argument to the executor script as follows.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> <span class="k">def</span> <span class="nf">getExecutorInfo</span><span class="o">(</span><span class="n">d</span><span class="k">:</span> <span class="kt">SchedulerDriver</span><span class="o">)</span><span class="k">:</span> <span class="kt">ExecutorInfo</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="k">val</span> <span class="nv">scriptPath</span> <span class="k">=</span> <span class="nv">System</span><span class="o">.</span><span class="py">getProperty</span><span class="o">(</span><span class="s">"executor_script_path"</span><span class="o">,</span>
+    <span class="s">"~/run-executor.sh"</span><span class="o">)</span>
+    <span class="nv">ExecutorInfo</span><span class="o">.</span><span class="py">newBuilder</span><span class="o">().</span>
+      <span class="nf">setCommand</span><span class="o">(</span><span class="nv">CommandInfo</span><span class="o">.</span><span class="py">newBuilder</span><span class="o">().</span><span class="py">setValue</span><span class="o">(</span><span class="s">""</span> <span class="o">+</span>
+      <span class="s">"/bin/sh "</span><span class="o">+</span><span class="n">scriptPath</span><span class="o">+</span> <span class="n">s</span><span class="s">" $jarUris"</span><span class="o">))</span>
+      <span class="o">.</span><span class="py">setExecutorId</span><span class="o">(</span><span class="nv">ExecutorID</span><span class="o">.</span><span class="py">newBuilder</span><span class="o">().</span><span class="py">setValue</span><span class="o">(</span><span class="s">"1234"</span><span class="o">))</span>
+      <span class="o">.</span><span class="py">build</span><span class="o">()</span>
+  <span class="o">}</span></code></pre></figure>
+
+<p>Access complete code <a href="https://github.com/phatak-dev/blog/blob/master/code/MesosThirdPartyJars/src/main/scala/com/madhukaraphatak/mesos/customjars/TaskScheduler.scala">here</a>.</p>
+
+<h3 id="step-4--access-jars-in-executor">Step 4 : Access jars in Executor</h3>
+
+<p>In the executor side, we download this jars from specified jar uris. The following code shows that.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> <span class="k">def</span> <span class="nf">getClassLoader</span><span class="o">()</span><span class="k">:</span> <span class="kt">ClassLoader</span> <span class="o">=</span> <span class="o">{</span>
+        <span class="k">var</span> <span class="n">loader</span> <span class="k">=</span> <span class="k">this</span><span class="o">.</span><span class="py">getClass</span><span class="o">.</span><span class="py">getClassLoader</span>
+        <span class="k">val</span> <span class="nv">localfiles</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ArrayBuffer</span><span class="o">[</span><span class="kt">String</span><span class="o">]()</span>
+
+        <span class="c1">//if jars is specified then split by comma to get all paths</span>
+        <span class="nf">if</span> <span class="o">(</span><span class="nv">args</span><span class="o">.</span><span class="py">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+          <span class="nf">for</span> <span class="o">(</span><span class="n">uri</span> <span class="k">&lt;-</span> <span class="nf">args</span><span class="o">(</span><span class="mi">0</span><span class="o">).</span><span class="py">split</span><span class="o">(</span><span class="s">","</span><span class="o">).</span><span class="py">filter</span><span class="o">(</span><span class="nv">_</span><span class="o">.</span><span class="py">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">))</span> <span class="o">{</span>
+            <span class="k">val</span> <span class="nv">url</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">URL</span><span class="o">(</span><span class="n">uri</span><span class="o">)</span>
+            <span class="k">val</span> <span class="nv">fileName</span> <span class="k">=</span> <span class="nv">url</span><span class="o">.</span><span class="py">getPath</span><span class="o">.</span><span class="py">split</span><span class="o">(</span><span class="s">"/"</span><span class="o">).</span><span class="py">last</span>
+            <span class="nf">downloadFile</span><span class="o">(</span><span class="n">url</span><span class="o">,</span> <span class="n">fileName</span><span class="o">)</span>
+            <span class="n">localfiles</span> <span class="o">+=</span> <span class="n">fileName</span>
+          <span class="o">}</span>
+
+          <span class="c1">//use the URL classloader to add it to the classpath</span>
+          <span class="nf">if</span> <span class="o">(</span><span class="nv">localfiles</span><span class="o">.</span><span class="py">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">val</span> <span class="nv">urls</span> <span class="k">=</span> <span class="nv">localfiles</span><span class="o">.</span><span class="py">map</span><span class="o">(</span><span class="n">file</span> <span class="k">=&gt;</span> <span class="k">new</span> 
+            	<span class="nc">File</span><span class="o">(</span><span class="n">file</span><span class="o">).</span><span class="py">toURI</span><span class="o">.</span><span class="py">toURL</span><span class="o">).</span><span class="py">toArray</span>
+            <span class="n">loader</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">URLClassLoader</span><span class="o">(</span><span class="n">urls</span><span class="o">,</span> <span class="n">loader</span><span class="o">)</span>
+          <span class="o">}</span>
+        <span class="o">}</span>
+        <span class="n">loader</span>
+      <span class="o">}</span></code></pre></figure>
+
+<p>Once it downloads the jars, it adds to the class path using URLClassLoader. We set this classloader on the thread which executes the task.</p>
+
+<p>Access complete code <a href="https://github.com/phatak-dev/blog/blob/master/code/MesosThirdPartyJars/src/main/scala/com/madhukaraphatak/mesos/customjars/TaskExecutor.scala">here</a>.</p>
+
+<h3 id="example--mysql-task">Example : Mysql task</h3>
+
+<p>The following is one of example which dynamically loads the mysql driver which is passed as library jar.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> <span class="k">def</span> <span class="nf">mysqlTask</span><span class="o">()</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">new</span> <span class="nc">FunctionTask</span><span class="o">[</span><span class="kt">Unit</span><span class="o">](</span>
+      <span class="o">()</span> <span class="k">=&gt;</span> <span class="o">{</span>
+        <span class="k">try</span> <span class="o">{</span>
+          <span class="k">val</span> <span class="nv">classLoader</span> <span class="k">=</span> <span class="nv">Thread</span><span class="o">.</span><span class="py">currentThread</span><span class="o">.</span><span class="py">getContextClassLoader</span>
+          <span class="nv">classLoader</span><span class="o">.</span><span class="py">loadClass</span><span class="o">(</span><span class="s">"com.mysql.jdbc.Driver"</span><span class="o">)</span>
+          <span class="nf">println</span><span class="o">(</span><span class="s">"successfully loaded"</span><span class="o">)</span>
+        <span class="o">}</span>
+        <span class="k">catch</span> <span class="o">{</span>
+          <span class="k">case</span> <span class="n">e</span><span class="k">:</span> <span class="kt">Exception</span> <span class="o">=&gt;</span> <span class="o">{</span>
+            <span class="nv">e</span><span class="o">.</span><span class="py">printStackTrace</span><span class="o">()</span>
+            <span class="k">throw</span> <span class="n">e</span>
+          <span class="o">}</span>
+        <span class="o">}</span>
+      <span class="o">})</span>
+  <span class="o">}</span></code></pre></figure>
+
+<p>Access complete code <a href="https://github.com/phatak-dev/blog/blob/master/code/MesosThirdPartyJars/src/main/scala/com/madhukaraphatak/mesos/customjars/CustomTasks.scala">here</a>.</p>
+
+<h3 id="running">Running</h3>
+
+<ul>
+  <li>Step 1 : Download code from <a href="https://github.com/phatak-dev/blog/tree/master/code/MesosThirdPartyJars">github</a></li>
+  <li>Step 2 : Build the code using maven</li>
+  <li>
+    <p>Step 3 : Update run-executor.sh file in src/main/resources to point to the right directory.</p>
+  </li>
+  <li>Step 4 : Run <em>CustomTasks</em> main method with mesos master url , path to the run-executor.sh shell script and path to the mysql jar file.</li>
+</ul>
+
+<p>More detail steps for running you can find <a href="/mesos-helloworld-scala/#running/">here</a>.</p>
+
+<h3 id="output">Output</h3>
+
+<p>The output should be available in mesos logs as specified <a href="/mesos-helloworld-scala#output">here</a>.</p>
+
+<p>If everything goes right you should be able to see “successfully loaded” message in the logs.</p>
+
+
+</article>
+<div class="related">
+  <h2>Related posts</h2>
+  <ul>
+    
+             
+    
+    <li>    
+     <span class="post-date">15 Dec 2014</span>
+     &raquo; <a href="/implementing-shuffle-in-mesos">Implementing shuffle in Mesos</a>    
+   </li>           
+         
+
+            
+          
+
+            
+    
+    <li>    
+     <span class="post-date">11 Nov 2014</span>
+     &raquo; <a href="/custom-mesos-executor-scala">Custom mesos executor in Scala</a>    
+   </li>           
+         
+
+   
+   
+             
+    
+    <li>    
+     <span class="post-date">02 Nov 2020</span>
+     &raquo; <a href="/spark-3-introduction-part-10">Introduction to Spark 3.0 - Part 10 : Ignoring Data Locality in Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">22 Apr 2020</span>
+     &raquo; <a href="/spark-3-datasource-v2-part-6">Data Source V2 API in Spark 3.0 - Part 6 : MySQL Source</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">21 Apr 2020</span>
+     &raquo; <a href="/spark-3-introduction-part-9">Introduction to Spark 3.0 - Part 9 : Join Hints in Spark SQL</a>    
+   </li>           
+         
+
+   
+   
+ </ul>
+
+
+ 
+<!--   
+</div> -->
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrap">   
+    <div class="footer-col-1 column">
+      <ul>
+        <li>
+          <a href="https://github.com/phatak-dev">
+            <span class="icon github">
+              <svg version="1.1" class="github-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill-rule="evenodd" clip-rule="evenodd" fill="#C2C2C2" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761
+                c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32
+                c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472
+                c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037
+                C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65
+                c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261
+                c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082
+                c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129
+                c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+              </svg>
+            </span>
+            <span class="username">phatak-dev</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://twitter.com/madhukaraphatak">
+            <span class="icon twitter">
+              <svg version="1.1" class="twitter-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill="#C2C2C2" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809
+                c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27
+                c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767
+                c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206
+                C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271
+                c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469
+                c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/>
+              </svg>
+            </span>
+            <span class="username">madhukaraphatak</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer-col-3 column">
+      <p class="text">Thoughts on technology, life and everything else.</p>
+    </div>
+
+    <div style="float:right;">
+      <a href="/feed.xml"><img src="/images/rss.png">
+    </div>
+
+
+
+  </div>
+
+</footer>
+
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52311191-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+    </body>
+</html>

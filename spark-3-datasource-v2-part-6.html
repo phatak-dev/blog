@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Data Source V2 API in Spark 3.0 - Part 6 : MySQL Source</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Thoughts on technology, life and everything else.">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/spark-3-datasource-v2-part-6">
+     <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/app.css">
+       
+</head>
+
+
+    <body>
+
+    <header >
+  <div class="wrap">
+    <a class="site-title" href="/">Madhukar's Blog</a>  
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+           viewBox="0 0 18 15" enable-background="new 0 0 18 15" xml:space="preserve">
+          <path fill="#505050" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0
+            h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#505050" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484
+            h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#505050" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0
+            c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+      <div class="trigger">        
+          <a class="page-link" href="http://www.madhukaraphatak.com">About me</a>                  
+      </div>
+    </nav>  
+  </div>
+</header>
+
+
+    <div class="page-content">
+      <div class="wrap">
+      <div class="post">
+ <header class="post-header">
+  <h1>Data Source V2 API in Spark 3.0 - Part 6 : MySQL Source</h1>
+  <p class="meta">Apr 22, 2020</p>
+  <div class="catagories">
+    
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
+    <a href="/categories/spark"><span class="category">spark</span></a>
+    
+    <a href="/categories/spark-three"><span class="category">spark-three</span></a>
+    
+    <a href="/categories/datasource-v2-spark-three"><span class="category">datasource-v2-spark-three</span></a>
+    
+  </div>
+</header> 
+
+<article class="post-content">
+  <p>Spark 3.0 is a major release of Apache Spark framework. It’s been in preview from last December and going to have  a stable release very soon. As part of major release, Spark has a habit of shaking up API’s to bring it to latest standards. There will be breaking changes also in these API’s. One of such API is Data source V2 API.</p>
+
+<p>Data Source V2 API, a new data source API for spark, was introduced in spark 2.3. Then it’s been updated in spark 2.4. I have written detailed posts on same <a href="/categories/datasource-v2-series">here</a>.</p>
+
+<p>This API is going to be completely changed in Spark 3.0. Spark rarely change an API this frequently in between releases. But as data source are heart of the framework, they are improved constantly. Also in spark 2.4, these API’s were marked <strong>evolving</strong>. This means they are meant to be changed in future.</p>
+
+<p>The usage of the data sources have not changed in 3.0. So if you are a user of the third party data sources you don’t need to worry. These changes are geared mainly towards the developer of these sources. Also all the sources written V1 API going to work even in 3.0. So if your source is not updated, no need to panic. It’s going to work without latest optimisations.</p>
+
+<p>These new changes in V2 API brings more control to data source developer and better integration with spark optimiser. Moving to this API makes third party sources more performant. So in these series of posts I will be discussing the new Data source V2 API in 3.0.</p>
+
+<p>This is sixth post in the series where we discuss about implementing data source which can write to MySQL.You can read all the post in the series <a href="/categories/datasource-v2-spark-three">here</a>.</p>
+
+<h2 id="defaultsource-implementation">DefaultSource Implementation</h2>
+
+<p>As any source, default source will be entry point for our MySQL source. The below code implements <strong>TableProvider</strong>.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">DefaultSource</span> <span class="k">extends</span> <span class="nc">TableProvider</span><span class="o">{</span>
+    <span class="k">override</span> <span class="k">def</span> <span class="nf">inferSchema</span><span class="o">(</span><span class="n">caseInsensitiveStringMap</span><span class="k">:</span> 
+                             <span class="kt">CaseInsensitiveStringMap</span><span class="o">)</span><span class="k">:</span> <span class="kt">StructType</span> <span class="o">=</span>
+    <span class="nf">getTable</span><span class="o">(</span><span class="kc">null</span><span class="o">,</span><span class="nv">Array</span><span class="o">.</span><span class="py">empty</span><span class="o">[</span><span class="kt">Transform</span><span class="o">],</span>
+               <span class="nv">caseInsensitiveStringMap</span><span class="o">.</span><span class="py">asCaseSensitiveMap</span><span class="o">()).</span><span class="py">schema</span><span class="o">()</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">getTable</span><span class="o">(</span><span class="n">structType</span><span class="k">:</span> <span class="kt">StructType</span><span class="o">,</span> 
+      <span class="n">transforms</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">Transform</span><span class="o">],</span> <span class="n">map</span><span class="k">:</span> <span class="kt">util.Map</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">])</span><span class="k">:</span> <span class="kt">Table</span> <span class="o">={</span>
+      <span class="k">new</span> <span class="nc">MysqlTable</span>
+    <span class="o">}</span></code></pre></figure>
+
+<h2 id="mysqltable">MysqlTable</h2>
+
+<p>MysqlTable extends <strong>SupportsWrite</strong> to indicate it supports writing in below code.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">MysqlTable</span> <span class="k">extends</span> <span class="nc">SupportsWrite</span><span class="o">{</span>
+
+  <span class="k">private</span> <span class="k">val</span> <span class="nv">tableSchema</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">StructType</span><span class="o">().</span><span class="py">add</span><span class="o">(</span><span class="s">"user"</span><span class="o">,</span> <span class="nc">StringType</span><span class="o">)</span>
+
+
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">name</span><span class="o">()</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="k">this</span><span class="o">.</span><span class="py">getClass</span><span class="o">.</span><span class="py">toString</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">schema</span><span class="o">()</span><span class="k">:</span> <span class="kt">StructType</span> <span class="o">=</span> <span class="n">tableSchema</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">capabilities</span><span class="o">()</span><span class="k">:</span> <span class="kt">util.Set</span><span class="o">[</span><span class="kt">TableCapability</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Set</span><span class="o">(</span><span class="nv">TableCapability</span><span class="o">.</span><span class="py">BATCH_WRITE</span><span class="o">,</span>
+    <span class="nv">TableCapability</span><span class="o">.</span><span class="py">TRUNCATE</span><span class="o">).</span><span class="py">asJava</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">newWriteBuilder</span><span class="o">(</span><span class="n">logicalWriteInfo</span><span class="k">:</span> <span class="kt">LogicalWriteInfo</span><span class="o">)</span><span class="k">:</span> <span class="kt">WriteBuilder</span> 
+           <span class="k">=</span> <span class="k">new</span> <span class="nc">MysqlWriterBuilder</span>
+<span class="o">}</span></code></pre></figure>
+
+<p>Here we are hard coding the table schema. Also we are exposing the write capabilities as <strong>BATCH_WRITE</strong> and <strong>TRUNCATE</strong>.</p>
+
+<h2 id="mysqlwriterbuilder">MysqlWriterBuilder</h2>
+
+<p>MysqlWriterBuilder builds a batch writer for our source.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">MysqlWriterBuilder</span> <span class="k">extends</span> <span class="nc">WriteBuilder</span><span class="o">{</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">buildForBatch</span><span class="o">()</span><span class="k">:</span> <span class="kt">BatchWrite</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">MysqlBatchWriter</span><span class="o">()</span>
+<span class="o">}</span></code></pre></figure>
+
+<h2 id="mysqlbatchwriter">MysqlBatchWriter</h2>
+
+<p>MysqlBatchWriter creates writer factories for our source.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">MysqlBatchWriter</span> <span class="k">extends</span> <span class="nc">BatchWrite</span><span class="o">{</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">createBatchWriterFactory</span><span class="o">(</span><span class="n">physicalWriteInfo</span><span class="k">:</span> <span class="kt">PhysicalWriteInfo</span><span class="o">)</span><span class="k">:</span> <span class="kt">DataWriterFactory</span> <span class="o">=</span> <span class="k">new</span>
+  <span class="nc">MysqlDataWriterFactory</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">commit</span><span class="o">(</span><span class="n">writerCommitMessages</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">WriterCommitMessage</span><span class="o">])</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{}</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">abort</span><span class="o">(</span><span class="n">writerCommitMessages</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">WriterCommitMessage</span><span class="o">])</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{}</span>
+<span class="o">}</span></code></pre></figure>
+
+<h2 id="mysqldatawriterfactory">MysqlDataWriterFactory</h2>
+
+<p>MysqlDataWriterFactory generates writers for the source. Here we don’t need to specify the list as the number of partitions is already determined by the input data.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">MysqlDataWriterFactory</span> <span class="k">extends</span> <span class="nc">DataWriterFactory</span> <span class="o">{</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">createWriter</span><span class="o">(</span><span class="n">partitionId</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">taskId</span><span class="k">:</span><span class="kt">Long</span><span class="o">)</span><span class="k">:</span> <span class="kt">DataWriter</span><span class="o">[</span><span class="kt">InternalRow</span><span class="o">]</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">MysqlWriter</span><span class="o">()</span>
+<span class="o">}</span></code></pre></figure>
+
+<p>##MysqlWriter</p>
+
+<p>MysqlWriter is the one which actually writes the data to MySQL using JDBC API.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">class</span> <span class="nc">MysqlWriter</span> <span class="k">extends</span> <span class="nc">DataWriter</span><span class="o">[</span><span class="kt">InternalRow</span><span class="o">]</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="nv">url</span> <span class="k">=</span> <span class="s">"jdbc:mysql://localhost/test"</span>
+  <span class="k">val</span> <span class="nv">user</span> <span class="k">=</span> <span class="s">"root"</span>
+  <span class="k">val</span> <span class="nv">password</span> <span class="k">=</span> <span class="s">"abc123"</span>
+  <span class="k">val</span> <span class="nv">table</span> <span class="o">=</span><span class="s">"userwrite"</span>
+
+  <span class="k">val</span> <span class="nv">connection</span> <span class="k">=</span> <span class="nv">DriverManager</span><span class="o">.</span><span class="py">getConnection</span><span class="o">(</span><span class="n">url</span><span class="o">,</span><span class="n">user</span><span class="o">,</span><span class="n">password</span><span class="o">)</span>
+  <span class="k">val</span> <span class="nv">statement</span> <span class="k">=</span> <span class="s">"insert into userwrite (user) values (?)"</span>
+  <span class="k">val</span> <span class="nv">preparedStatement</span> <span class="k">=</span> <span class="nv">connection</span><span class="o">.</span><span class="py">prepareStatement</span><span class="o">(</span><span class="n">statement</span><span class="o">)</span>
+
+
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">write</span><span class="o">(</span><span class="n">record</span><span class="k">:</span> <span class="kt">InternalRow</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="k">val</span> <span class="nv">value</span> <span class="k">=</span> <span class="nv">record</span><span class="o">.</span><span class="py">getString</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+    <span class="nv">preparedStatement</span><span class="o">.</span><span class="py">setString</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span><span class="n">value</span><span class="o">)</span>
+    <span class="nv">preparedStatement</span><span class="o">.</span><span class="py">executeUpdate</span><span class="o">()</span>
+  <span class="o">}</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">commit</span><span class="o">()</span><span class="k">:</span> <span class="kt">WriterCommitMessage</span> <span class="o">=</span> <span class="nc">WriteSucceeded</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">abort</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{}</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">close</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{}</span>
+<span class="o">}</span></code></pre></figure>
+
+<p>In this code, credentials are hard coded. Update them according to your source.</p>
+
+<h2 id="using-the-mysql-source">Using the Mysql Source</h2>
+
+<p>The below code shows how to use the source from the user code.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="nv">simpleMysqlDf</span><span class="o">.</span><span class="py">write</span>
+      <span class="o">.</span><span class="py">format</span><span class="o">(</span>
+        <span class="s">"com.madhukaraphatak.spark.sources.datasourcev2.simplemysqlwriter"</span><span class="o">)</span>
+      <span class="o">.</span><span class="py">mode</span><span class="o">(</span><span class="nv">SaveMode</span><span class="o">.</span><span class="py">Append</span><span class="o">)</span>
+      <span class="o">.</span><span class="py">save</span><span class="o">()</span></code></pre></figure>
+
+<h2 id="code">Code</h2>
+
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/sources/datasourcev2/SimpleMysqlWriterDataSource.scala">github</a>.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Datasource V2 API brings new functionalities to spark data sources. In this post we saw how to build a source which can write to relational databases.</p>
+
+</article>
+<div class="related">
+  <h2>Related posts</h2>
+  <ul>
+    
+             
+    
+    <li>    
+     <span class="post-date">02 Nov 2020</span>
+     &raquo; <a href="/spark-3-introduction-part-10">Introduction to Spark 3.0 - Part 10 : Ignoring Data Locality in Spark</a>    
+   </li>           
+         
+
+            
+          
+
+            
+    
+    <li>    
+     <span class="post-date">21 Apr 2020</span>
+     &raquo; <a href="/spark-3-introduction-part-9">Introduction to Spark 3.0 - Part 9 : Join Hints in Spark SQL</a>    
+   </li>           
+         
+
+   
+   
+             
+    
+    <li>    
+     <span class="post-date">21 Jul 2021</span>
+     &raquo; <a href="/spark-pandas-part-2">Pandas API on Apache Spark - Part 2: Hello World</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">21 Jul 2021</span>
+     &raquo; <a href="/spark-pandas-part-1">Pandas API on Apache Spark - Part 1: Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">11 Nov 2020</span>
+     &raquo; <a href="/barrier-execution-mode-part-2">Barrier Execution Mode in Spark 3.0 - Part 2 : Barrier RDD</a>    
+   </li>           
+         
+
+   
+   
+ </ul>
+
+
+ 
+<!--   
+</div> -->
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrap">   
+    <div class="footer-col-1 column">
+      <ul>
+        <li>
+          <a href="https://github.com/phatak-dev">
+            <span class="icon github">
+              <svg version="1.1" class="github-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill-rule="evenodd" clip-rule="evenodd" fill="#C2C2C2" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761
+                c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32
+                c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472
+                c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037
+                C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65
+                c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261
+                c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082
+                c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129
+                c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+              </svg>
+            </span>
+            <span class="username">phatak-dev</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://twitter.com/madhukaraphatak">
+            <span class="icon twitter">
+              <svg version="1.1" class="twitter-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill="#C2C2C2" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809
+                c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27
+                c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767
+                c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206
+                C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271
+                c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469
+                c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/>
+              </svg>
+            </span>
+            <span class="username">madhukaraphatak</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer-col-3 column">
+      <p class="text">Thoughts on technology, life and everything else.</p>
+    </div>
+
+    <div style="float:right;">
+      <a href="/feed.xml"><img src="/images/rss.png">
+    </div>
+
+
+
+  </div>
+
+</footer>
+
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52311191-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+    </body>
+</html>

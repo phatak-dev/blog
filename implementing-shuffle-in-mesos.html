@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Implementing shuffle in Mesos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Thoughts on technology, life and everything else.">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/implementing-shuffle-in-mesos">
+     <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/app.css">
+       
+</head>
+
+
+    <body>
+
+    <header >
+  <div class="wrap">
+    <a class="site-title" href="/">Madhukar's Blog</a>  
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+           viewBox="0 0 18 15" enable-background="new 0 0 18 15" xml:space="preserve">
+          <path fill="#505050" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0
+            h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#505050" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484
+            h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#505050" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0
+            c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+      <div class="trigger">        
+          <a class="page-link" href="http://www.madhukaraphatak.com">About me</a>                  
+      </div>
+    </nav>  
+  </div>
+</header>
+
+
+    <div class="page-content">
+      <div class="wrap">
+      <div class="post">
+ <header class="post-header">
+  <h1>Implementing shuffle in Mesos</h1>
+  <p class="meta">Dec 15, 2014</p>
+  <div class="catagories">
+    
+    <a href="/categories/mesos"><span class="category">mesos</span></a>
+    
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
+  </div>
+</header> 
+
+<article class="post-content">
+  <p>Many times in a distributed systems, need of shuffle arises. Map/Reduce implementations like Hadoop,Spark heavily depend upon effective shuffling to do the distributed processing. So whenever we build a new distributed system from scratch, it will be nice to have the ability to do shuffle.</p>
+
+<p>This post talks how to implement shuffle on mesos.</p>
+
+<p>This post extends the custom scala executor discussed here <a href="/custom-mesos-executor-scala/">post</a>. If you are new to mesos please go through that post before continuing.</p>
+
+<p>tl;dr Access the complete code on <a href="https://github.com/phatak-dev/blog/tree/master/code/MesosShuffle">github</a>.</p>
+
+<h2 id="what-is-shuffle">What is shuffle?</h2>
+<p>Shuffle is an operation where result produced at one machine is moved to another machine over the network, in order to combine the results. The operations like reduceByKey, join in Hadoop or Spark uses shuffling.</p>
+
+<h2 id="implementing-shuffle-in-mesos">Implementing Shuffle in Mesos</h2>
+
+<p>The following steps are one of the ways to implement shuffle in mesos.This shuffle supports implementing operations like reduce,reduceByKey,groupByKey etc. The following implementation is inspired by the spark implementation.</p>
+
+<h2 id="shuffle-interface">Shuffle interface</h2>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+ <span class="k">trait</span> <span class="nc">Shuffle</span><span class="o">[</span><span class="kt">K</span>,<span class="kt">V</span>,<span class="kt">C</span><span class="o">]{</span>
+  <span class="k">def</span> <span class="nf">compute</span><span class="o">(</span><span class="n">list</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">List</span><span class="o">[(</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">)]],</span>
+  <span class="n">createCombiner</span><span class="k">:</span> <span class="kt">V</span> <span class="o">=&gt;</span> <span class="n">C</span><span class="o">,</span>
+  <span class="n">mergeValue</span><span class="k">:</span> <span class="o">(</span><span class="kt">C</span><span class="o">,</span> <span class="kt">V</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">C</span><span class="o">,</span>
+  <span class="n">mergeCombiners</span><span class="k">:</span> <span class="o">(</span><span class="kt">C</span><span class="o">,</span> <span class="kt">C</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">C</span><span class="o">,</span>
+  <span class="n">numberOfOutputSplit</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span>
+  <span class="n">scheduler</span><span class="k">:</span> <span class="kt">TaskScheduler</span><span class="o">)</span><span class="k">:</span><span class="kt">List</span><span class="o">[(</span><span class="kt">K</span>,<span class="kt">C</span><span class="o">)]</span>
+<span class="o">}</span></code></pre></figure>
+
+<p>The trait has three types</p>
+
+<ul>
+  <li>
+    <p>K - key type</p>
+  </li>
+  <li>
+    <p>V - value type</p>
+  </li>
+  <li>
+    <p>C - combined value type (Final result type)</p>
+  </li>
+</ul>
+
+<p>compute is an abstract method which takes the following functions</p>
+
+<ul>
+  <li>
+    <p>createCombiner - As name suggests, its a function creates combiner for each partition. It will start with initial value provided by v parameter.</p>
+  </li>
+  <li>
+    <p>mergeValue - for every value in partition, mergeValue will be used to update the combine</p>
+  </li>
+  <li>
+    <p>mergeCombiners - its a reduce side job of merging two different combiners</p>
+  </li>
+</ul>
+
+<p>numberOfOutputSplit allows us to control number of reduce tasks and final parameter scheduler allow us as to access the context.</p>
+
+<h2 id="local-file-based-shuffle-implementation">Local file based shuffle implementation</h2>
+
+<p>The following code explains the implementation of shuffle using local file system and http server.</p>
+
+<h3 id="step-1--implement-shuffle-trait">Step 1 : Implement Shuffle trait</h3>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+
+  <span class="k">class</span> <span class="nc">LocalShuffle</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span>, <span class="kt">C</span><span class="o">]</span> <span class="nc">extends</span> <span class="nc">Shuffle</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span>, <span class="kt">C</span><span class="o">]</span> <span class="k">with</span> <span class="nc">Serializable</span> <span class="o">{</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="nf">compute</span><span class="o">(</span><span class="n">rows</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">List</span><span class="o">[(</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">)]],</span> <span class="n">createCombiner</span><span class="k">:</span> <span class="o">(</span><span class="kt">V</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="n">C</span><span class="o">,</span> <span class="n">mergeValue</span><span class="k">:</span> <span class="o">(</span><span class="kt">C</span><span class="o">,</span> <span class="kt">V</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">C</span><span class="o">,</span> <span class="n">mergeCombiners</span><span class="k">:</span> <span class="o">(</span><span class="kt">C</span><span class="o">,</span> <span class="kt">C</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">C</span><span class="o">,</span> <span class="n">numberOfOutputSplit</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">scheduler</span><span class="k">:</span> <span class="kt">TaskScheduler</span><span class="o">)</span><span class="k">:</span>
+  <span class="kt">List</span><span class="o">[(</span><span class="kt">K</span>, <span class="kt">C</span><span class="o">)]</span> <span class="k">=</span> <span class="o">{</span></code></pre></figure>
+
+<p>The rows variable simulating a in memory collection with multiple rows. I am using an in memory collection to keep things simple. You can replace it with RDD or a hadoop file data.</p>
+
+<h3 id="step-2--number-each-split">Step 2 : Number each split</h3>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+<span class="k">val</span> <span class="nv">numberedList</span> <span class="k">=</span> <span class="nv">rows</span><span class="o">.</span><span class="py">zipWithIndex</span></code></pre></figure>
+
+<p>we number each split with index so that we can use it to identify it when we shuffle.</p>
+
+<h3 id="step-3-create-local-combiner-tasks">Step 3: Create local combiner tasks</h3>
+<p>For each split, we create a forEachTask</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+ <span class="k">val</span> <span class="nv">tasks</span> <span class="k">=</span> <span class="nv">numberedList</span><span class="o">.</span><span class="py">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="nf">forEachTask</span><span class="o">(</span><span class="n">value</span><span class="o">))</span></code></pre></figure>
+
+<p>Implementation of <em>forEach</em> task.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+ <span class="k">def</span> <span class="nf">forEachTask</span><span class="o">(</span><span class="n">pair</span><span class="k">:</span> <span class="o">(</span><span class="kt">List</span><span class="o">[(</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">)],</span> <span class="nc">Int</span><span class="o">))</span> <span class="k">=</span> <span class="o">{</span>
+   <span class="k">new</span> <span class="nc">FunctionTask</span><span class="o">[(</span><span class="kt">Int</span>, <span class="kt">String</span><span class="o">)](()</span> <span class="k">=&gt;</span> <span class="o">{</span></code></pre></figure>
+
+<p>forEachTask returns a function task which does following.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+  
+<span class="k">val</span> <span class="nv">tempDir</span> <span class="k">=</span> <span class="nv">Utils</span><span class="o">.</span><span class="py">createTempDir</span><span class="o">(</span><span class="s">"/tmp/shuffleLocal"</span><span class="o">).</span><span class="py">getAbsoluteFile</span>
+<span class="nf">println</span><span class="o">(</span><span class="n">s</span><span class="s">"using tempDir $tempDir"</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="nv">index</span> <span class="k">=</span> <span class="nv">pair</span><span class="o">.</span><span class="py">_2</span>
+<span class="k">val</span> <span class="nv">iterator</span> <span class="k">=</span> <span class="nv">pair</span><span class="o">.</span><span class="py">_1</span></code></pre></figure>
+
+<p>We create a temporary directory for each split, where we are going to write the output files for that split.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+
+<span class="k">val</span> <span class="nv">buckets</span> <span class="k">=</span> <span class="nv">Array</span><span class="o">.</span><span class="py">tabulate</span><span class="o">(</span><span class="n">numberOfOutputSplit</span><span class="o">)(</span><span class="k">_</span> <span class="k">=&gt;</span> <span class="k">new</span> <span class="nc">HashMap</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">C</span><span class="o">])</span>
+<span class="nf">for</span> <span class="o">((</span><span class="n">k</span><span class="o">,</span> <span class="n">v</span><span class="o">)</span> <span class="k">&lt;-</span> <span class="n">iterator</span><span class="o">)</span> <span class="o">{</span>
+<span class="k">var</span> <span class="n">bucketId</span> <span class="k">=</span> <span class="nv">k</span><span class="o">.</span><span class="py">hashCode</span><span class="o">()</span> <span class="o">%</span> <span class="n">numberOfOutputSplit</span>
+<span class="nf">if</span> <span class="o">(</span><span class="n">bucketId</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+  <span class="n">bucketId</span> <span class="o">+=</span> <span class="n">numberOfOutputSplit</span>
+<span class="o">}</span>          
+<span class="k">val</span> <span class="nv">bucket</span> <span class="k">=</span> <span class="nf">buckets</span><span class="o">(</span><span class="n">bucketId</span><span class="o">)</span></code></pre></figure>
+
+<p>We create buckets(partitions) using hashParitioner.The for each value, we determine which bucket it belongs to using <em>hashCode</em> method. We handle negative hash code case too.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+
+<span class="nf">bucket</span><span class="o">(</span><span class="n">k</span><span class="o">)</span> <span class="k">=</span> <span class="nv">bucket</span><span class="o">.</span><span class="py">get</span><span class="o">(</span><span class="n">k</span><span class="o">)</span> <span class="k">match</span> <span class="o">{</span>
+   <span class="k">case</span> <span class="nc">Some</span><span class="o">(</span><span class="n">c</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nf">mergeValue</span><span class="o">(</span><span class="n">c</span><span class="o">,</span> <span class="n">v</span><span class="o">)</span>
+   <span class="k">case</span> <span class="nc">None</span> <span class="k">=&gt;</span> <span class="nf">createCombiner</span><span class="o">(</span><span class="n">v</span><span class="o">)</span>
+<span class="o">}</span></code></pre></figure>
+
+<p>Once we have the bucket, then we use createCombiner or mergeValue to run combining for that pair.</p>
+
+<h3 id="step-4--writing-results-to-local-disk">Step 4 : Writing results to local disk</h3>
+
+<p>Once we have results for a given split, we are going to write them to the disk.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+
+<span class="k">val</span> <span class="nv">paths</span> <span class="k">=</span> <span class="o">(</span><span class="mi">0</span> <span class="n">until</span> <span class="n">numberOfOutputSplit</span><span class="o">).</span><span class="py">map</span> <span class="o">{</span>
+          <span class="n">i</span> <span class="k">=&gt;</span>
+            <span class="k">val</span> <span class="nv">path</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">File</span><span class="o">(</span><span class="n">tempDir</span><span class="o">,</span> <span class="s">"%d-%d"</span><span class="o">.</span><span class="py">format</span><span class="o">(</span><span class="n">index</span><span class="o">,</span> <span class="n">i</span><span class="o">))</span>
+            <span class="k">val</span> <span class="nv">out</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ObjectOutputStream</span><span class="o">(</span><span class="k">new</span> <span class="nc">FileOutputStream</span><span class="o">(</span><span class="n">path</span><span class="o">))</span>
+            <span class="nf">buckets</span><span class="o">(</span><span class="n">i</span><span class="o">).</span><span class="py">foreach</span><span class="o">(</span><span class="n">pair</span> <span class="k">=&gt;</span> <span class="nv">out</span><span class="o">.</span><span class="py">writeObject</span><span class="o">(</span><span class="n">pair</span><span class="o">))</span>
+            <span class="nv">out</span><span class="o">.</span><span class="py">close</span><span class="o">()</span>
+            <span class="nv">path</span><span class="o">.</span><span class="py">getName</span>
+<span class="o">}</span></code></pre></figure>
+
+<h3 id="step-5--serve-the-local-files-using-a-http-server">Step 5 : Serve the local files using a HTTP server</h3>
+
+<p>Once we write the files to disk, we start a http server which serves these output files to reduce tasks.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+
+<span class="k">val</span> <span class="nv">httpServer</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">HttpServer</span><span class="o">(</span><span class="n">tempDir</span><span class="o">)</span>
+<span class="nv">httpServer</span><span class="o">.</span><span class="py">start</span><span class="o">()</span>
+<span class="o">(</span><span class="n">index</span><span class="o">,</span> <span class="nv">httpServer</span><span class="o">.</span><span class="py">uri</span><span class="o">)</span></code></pre></figure>
+
+<h3 id="step-6-run-foreach-tasks">Step 6: Run forEach tasks</h3>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+  
+<span class="k">val</span> <span class="nv">mapping</span> <span class="k">=</span> <span class="nv">scheduler</span><span class="o">.</span><span class="py">runTasks</span><span class="o">(</span><span class="n">tasks</span><span class="k">:</span> <span class="k">_</span><span class="kt">*</span><span class="o">).</span><span class="py">map</span><span class="o">(</span><span class="nv">_</span><span class="o">.</span><span class="py">get</span><span class="o">)</span></code></pre></figure>
+
+<h3 id="step-7--map-the-splits-to-uri">Step 7 : Map the splits to uri</h3>
+
+<p>After map side combiners are completed, we are going to create a hashmap which going to contain uri’s of http servers and the different splits they contain.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+
+ <span class="k">val</span> <span class="nv">splitsByUri</span> <span class="k">=</span> <span class="k">new</span> <span class="nv">mutable</span><span class="o">.</span><span class="py">HashMap</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">mutable.ArrayBuffer</span><span class="o">[</span><span class="kt">Int</span><span class="o">]]()</span>
+
+ <span class="nf">for</span> <span class="o">((</span><span class="n">index</span><span class="o">,</span> <span class="n">uri</span><span class="o">)</span> <span class="k">&lt;-</span> <span class="n">mapping</span><span class="o">)</span> <span class="o">{</span>
+      <span class="nv">splitsByUri</span><span class="o">.</span><span class="py">getOrElseUpdate</span><span class="o">(</span><span class="n">uri</span><span class="o">,</span> <span class="nc">ArrayBuffer</span><span class="o">[</span><span class="kt">Int</span><span class="o">]())</span> <span class="o">+=</span> <span class="n">index</span>
+ <span class="o">}</span></code></pre></figure>
+
+<h3 id="step-8--generate-reduce-task-for-output-split">Step 8 : Generate reduce task for output split</h3>
+<p>We are going to create reduce tasks as specified by <em>numberOfOutputSplit</em>.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+
+<span class="k">val</span> <span class="nv">reduceTasks</span> <span class="k">=</span> <span class="o">(</span><span class="mi">0</span> <span class="n">until</span> <span class="n">numberOfOutputSplit</span><span class="o">).</span><span class="py">map</span><span class="o">(</span><span class="n">index</span> <span class="k">=&gt;</span> <span class="nf">reduceTask</span><span class="o">(</span><span class="n">index</span><span class="o">,</span><span class="n">splitsByUri</span><span class="o">)).</span><span class="py">toList</span></code></pre></figure>
+
+<h3 id="step-9-implementation-of-reduce-task">Step 9: Implementation of reduce task</h3>
+<p>The following is the implementation of reduce.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+  <span class="k">def</span> <span class="nf">reduceTask</span><span class="o">(</span><span class="n">index</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">splitsByUri</span><span class="k">:</span> <span class="kt">mutable.HashMap</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">ArrayBuffer</span><span class="o">[</span><span class="kt">Int</span><span class="o">]])</span> <span class="k">=</span> <span class="o">{</span>
+      <span class="k">new</span> <span class="nc">FunctionTask</span><span class="o">[</span><span class="kt">HashMap</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">C</span><span class="o">]](()</span> <span class="k">=&gt;</span> <span class="o">{</span>
+        <span class="k">val</span> <span class="nv">combiners</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">HashMap</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">C</span><span class="o">]</span>
+        <span class="nf">for</span> <span class="o">((</span><span class="n">uri</span><span class="o">,</span> <span class="n">splits</span><span class="o">)</span> <span class="k">&lt;-</span> <span class="nv">Utils</span><span class="o">.</span><span class="py">shuffle</span><span class="o">(</span><span class="n">splitsByUri</span><span class="o">))</span> <span class="o">{</span>
+          <span class="nf">for</span> <span class="o">(</span><span class="n">split</span> <span class="k">&lt;-</span> <span class="n">splits</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">val</span> <span class="nv">url</span> <span class="k">=</span> <span class="s">"%s/%d-%d"</span><span class="o">.</span><span class="py">format</span><span class="o">(</span><span class="n">uri</span><span class="o">,</span><span class="n">split</span><span class="o">,</span><span class="n">index</span><span class="o">)</span>
+            <span class="k">val</span> <span class="nv">inputStream</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ObjectInputStream</span><span class="o">(</span><span class="k">new</span> <span class="nc">URL</span><span class="o">(</span><span class="n">url</span><span class="o">).</span><span class="py">openStream</span><span class="o">())</span>
+            <span class="k">try</span> <span class="o">{</span>
+              <span class="nf">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>
+                <span class="nf">val</span> <span class="o">(</span><span class="n">k</span><span class="o">,</span> <span class="n">c</span><span class="o">)</span> <span class="k">=</span> <span class="nv">inputStream</span><span class="o">.</span><span class="py">readObject</span><span class="o">().</span><span class="py">asInstanceOf</span><span class="o">[(</span><span class="kt">K</span>, <span class="kt">C</span><span class="o">)]</span>
+                <span class="nf">combiners</span><span class="o">(</span><span class="n">k</span><span class="o">)</span> <span class="k">=</span> <span class="nv">combiners</span><span class="o">.</span><span class="py">get</span><span class="o">(</span><span class="n">k</span><span class="o">)</span> <span class="k">match</span> <span class="o">{</span>
+                  <span class="k">case</span> <span class="nc">Some</span><span class="o">(</span><span class="n">oldC</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nf">mergeCombiners</span><span class="o">(</span><span class="n">oldC</span><span class="o">,</span> <span class="n">c</span><span class="o">)</span>
+                  <span class="k">case</span> <span class="nc">None</span> <span class="k">=&gt;</span> <span class="n">c</span>
+                <span class="o">}</span>
+              <span class="o">}</span>
+            <span class="o">}</span> <span class="k">catch</span> <span class="o">{</span>
+              <span class="k">case</span> <span class="n">e</span><span class="k">:</span> <span class="kt">EOFException</span> <span class="o">=&gt;</span> <span class="o">{}</span>
+            <span class="o">}</span>
+          <span class="o">}}</span>
+          <span class="n">combiners</span>
+        <span class="o">})</span>
+    <span class="o">}</span></code></pre></figure>
+
+<p>reduce task just downloads the uri’s specific to the bucket and runs <em>mergeCombiners</em> to get the final reduce value for that bucket.</p>
+
+<h3 id="step-10--run-the-reduce-tasks-and-return-result">Step 10 : Run the reduce tasks and return result</h3>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+ <span class="k">val</span> <span class="nv">reducedValues</span> <span class="k">=</span> <span class="nv">scheduler</span><span class="o">.</span><span class="py">runTasks</span><span class="o">(</span><span class="n">reduceTasks</span><span class="k">:_</span><span class="kt">*</span><span class="o">)</span>
+ <span class="nv">reducedValues</span><span class="o">.</span><span class="py">map</span><span class="o">(</span><span class="nv">_</span><span class="o">.</span><span class="py">get</span><span class="o">).</span><span class="py">flatten</span><span class="o">.</span><span class="py">toList</span></code></pre></figure>
+
+<p>runs the above created reduce tasks and returns the result as a list.</p>
+
+<h2 id="using-the-shuffle-to-implement-hadoop-word-count">Using the shuffle to implement hadoop word count</h2>
+
+<p>The following code uses our shuffle to implement word count. Here we do the mapping inline , only implement combiner and reducer functionality.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"> 
+  <span class="k">val</span> <span class="nv">paragraph</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="s">"hello how are you how are you i am fine let's go till end how are you"</span><span class="o">,</span><span class="s">"hello how are you u asked me"</span><span class="o">)</span>
+
+    
+<span class="k">val</span> <span class="nv">twoSplits</span> <span class="k">=</span> <span class="nv">paragraph</span><span class="o">.</span><span class="py">flatMap</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="nv">value</span><span class="o">.</span><span class="py">split</span><span class="o">(</span><span class="s">" "</span><span class="o">)).</span><span class="py">map</span><span class="o">(</span><span class="n">value</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">value</span><span class="o">,</span> <span class="mi">1</span><span class="o">)).</span><span class="py">splitAt</span><span class="o">(</span><span class="mi">10</span><span class="o">)</span>
+<span class="k">val</span> <span class="nv">finalList</span> <span class="k">=</span> <span class="nc">List</span><span class="o">[</span><span class="kt">List</span><span class="o">[(</span><span class="kt">String</span>, <span class="kt">Int</span><span class="o">)]](</span><span class="nv">twoSplits</span><span class="o">.</span><span class="py">_1</span><span class="o">,</span> <span class="nv">twoSplits</span><span class="o">.</span><span class="py">_2</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="nv">createCombiner</span> <span class="k">=</span> <span class="o">(</span><span class="n">value</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">value</span>
+<span class="k">val</span> <span class="nv">mergeValue</span> <span class="k">=</span> <span class="o">(</span><span class="n">combiner</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">value</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">combiner</span> <span class="o">+</span> <span class="n">value</span>
+<span class="k">val</span> <span class="nv">mergeCombiner</span> <span class="k">=</span> <span class="o">(</span><span class="n">c1</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">c2</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">c1</span> <span class="o">+</span> <span class="n">c2</span>
+
+<span class="k">val</span> <span class="nv">result</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">LocalShuffle</span><span class="o">().</span><span class="py">compute</span><span class="o">(</span><span class="n">finalList</span><span class="o">,</span><span class="n">createCombiner</span><span class="o">,</span>
+<span class="n">mergeValue</span><span class="o">,</span><span class="n">mergeCombiner</span><span class="o">,</span><span class="mi">2</span><span class="o">,</span><span class="n">scheduler</span><span class="o">)</span>
+<span class="nf">println</span><span class="o">(</span><span class="s">"result is"</span> <span class="o">+</span><span class="n">result</span><span class="o">)</span></code></pre></figure>
+
+<h2 id="building--and-running">Building  and Running</h2>
+
+<p>Download source code from <a href="https://github.com/phatak-dev/blog/tree/master/code/MesosShuffle">github</a>.</p>
+
+<p>Refer to <a href="/distributing-third-party-libraries-in-mesos/#running">this</a> post for building and running instructions.</p>
+
+
+</article>
+<div class="related">
+  <h2>Related posts</h2>
+  <ul>
+    
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">15 Dec 2014</span>
+     &raquo; <a href="/distributing-third-party-libraries-in-mesos">Distributing third party libraries in Mesos</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">11 Nov 2014</span>
+     &raquo; <a href="/custom-mesos-executor-scala">Custom mesos executor in Scala</a>    
+   </li>           
+         
+
+   
+   
+             
+    
+    <li>    
+     <span class="post-date">02 Nov 2020</span>
+     &raquo; <a href="/spark-3-introduction-part-10">Introduction to Spark 3.0 - Part 10 : Ignoring Data Locality in Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">22 Apr 2020</span>
+     &raquo; <a href="/spark-3-datasource-v2-part-6">Data Source V2 API in Spark 3.0 - Part 6 : MySQL Source</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">21 Apr 2020</span>
+     &raquo; <a href="/spark-3-introduction-part-9">Introduction to Spark 3.0 - Part 9 : Join Hints in Spark SQL</a>    
+   </li>           
+         
+
+   
+   
+ </ul>
+
+
+ 
+<!--   
+</div> -->
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrap">   
+    <div class="footer-col-1 column">
+      <ul>
+        <li>
+          <a href="https://github.com/phatak-dev">
+            <span class="icon github">
+              <svg version="1.1" class="github-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill-rule="evenodd" clip-rule="evenodd" fill="#C2C2C2" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761
+                c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32
+                c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472
+                c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037
+                C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65
+                c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261
+                c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082
+                c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129
+                c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+              </svg>
+            </span>
+            <span class="username">phatak-dev</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://twitter.com/madhukaraphatak">
+            <span class="icon twitter">
+              <svg version="1.1" class="twitter-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill="#C2C2C2" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809
+                c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27
+                c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767
+                c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206
+                C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271
+                c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469
+                c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/>
+              </svg>
+            </span>
+            <span class="username">madhukaraphatak</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer-col-3 column">
+      <p class="text">Thoughts on technology, life and everything else.</p>
+    </div>
+
+    <div style="float:right;">
+      <a href="/feed.xml"><img src="/images/rss.png">
+    </div>
+
+
+
+  </div>
+
+</footer>
+
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52311191-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+    </body>
+</html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Migrating to Spark 2.0 - Part 7 : SubQueries</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Thoughts on technology, life and everything else.">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/migrating-to-spark-two-part-7">
+     <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/app.css">
+       
+</head>
+
+
+    <body>
+
+    <header >
+  <div class="wrap">
+    <a class="site-title" href="/">Madhukar's Blog</a>  
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+           viewBox="0 0 18 15" enable-background="new 0 0 18 15" xml:space="preserve">
+          <path fill="#505050" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0
+            h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#505050" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484
+            h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#505050" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0
+            c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+      <div class="trigger">        
+          <a class="page-link" href="http://www.madhukaraphatak.com">About me</a>                  
+      </div>
+    </nav>  
+  </div>
+</header>
+
+
+    <div class="page-content">
+      <div class="wrap">
+      <div class="post">
+ <header class="post-header">
+  <h1>Migrating to Spark 2.0 - Part 7 : SubQueries</h1>
+  <p class="meta">Jun 14, 2017</p>
+  <div class="catagories">
+    
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
+    <a href="/categories/spark"><span class="category">spark</span></a>
+    
+    <a href="/categories/spark-two-migration-series"><span class="category">spark-two-migration-series</span></a>
+    
+  </div>
+</header> 
+
+<article class="post-content">
+  <p>Spark 2.0 brings a significant changes to abstractions and API’s of spark platform. With performance boost, this version has made some of non backward compatible changes to the framework. To keep up to date with the latest updates, one need to migrate their spark 1.x code base to 2.x. In last few weeks, I was involved in migrating one of fairly large code base and found it quite involving process. In this series of posts, I will be documenting my experience of migration so it may help all the ones out there who are planning to do the same.</p>
+
+<p>This is the seventh post in this series.In this post we will discuss about subquery support in spark sql. You can access all the posts <a href="/categories/spark-two-migration-series">here</a>.</p>
+
+<p>TL;DR You can access all the code on <a href="https://github.com/phatak-dev/spark-two-migration">github</a>.</p>
+
+<h2 id="spark-sql-in-spark-20">Spark SQL in Spark 2.0</h2>
+
+<p>Spark SQL has been greatly improved in 2.0 to run all <a href="https://databricks.com/blog/2016/07/26/introducing-apache-spark-2-0.html">99 queries of TPC-DS</a>, a standard benchmark suit for popular sql implementations. To support this benchmark and to provide a complete OLAP sql engine, spark has added many features to it’s sql query language which were missing earlier. This makes spark sql more powerful than before.</p>
+
+<p>One of the big feature they added was support for subqueries. Subquery is query inside the another query. It’s a powerful feature of SQL which makes writing multi level aggregation much easier and more performant.</p>
+
+<p>In below sections, we will discuss how you can port your earlier complex 1.x sql queries into simpler and performant subqueries.</p>
+
+<h2 id="scalar-subqueries">Scalar SubQueries</h2>
+
+<p>There are different types of sub queries. One of those are scalar subqueries. They are called scalar as they return single result for query. There are two types
+of scalar queries</p>
+
+<ul>
+  <li>Uncorrelated  Scalar SubQueries</li>
+  <li>Correlated  Scalar SubQueries</li>
+</ul>
+
+<h2 id="uncorrelated-scalar-subqueries">Uncorrelated Scalar SubQueries</h2>
+
+<p>Let’s take an example. Let’s say we have loaded <em>sales</em> data which we have used in earlier blogs. Now we want to figure out, how each item is doing
+compared to max sold item. For Ex: If our max value is 600, we want to compare how far is each of our sales to that figure. This kind of information
+is very valuable to understand the distribution of our sales.</p>
+
+<p>So what we essential want to do is to add max amount to each row of the dataframe.</p>
+
+<h3 id="query-in-spark-1x">Query in Spark 1.x</h3>
+
+<p>In spark 1.x, there was no way to express this in one query. So we need to do as a two step. In first step we calculate the max <em>amountPaid</em> and then 
+in second step we add that to each row as a literal. The code looks like below</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="nv">max_amount</span> <span class="k">=</span> <span class="nv">sqlContext</span><span class="o">.</span><span class="py">sql</span><span class="o">(</span><span class="s">"select max(amountPaid) as max_amount from sales"</span><span class="o">).</span><span class="py">first</span><span class="o">.</span><span class="py">getDouble</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+<span class="k">val</span> <span class="nv">dfWithMaxAmount</span> <span class="k">=</span> <span class="nv">sqlContext</span><span class="o">.</span><span class="py">sql</span><span class="o">(</span><span class="n">s</span><span class="s">"select *, ($max_amount) as max_amount from sales"</span><span class="o">)</span></code></pre></figure>
+
+<p>Even though it works, it’s not elegant. If we want to add more aggregations, this doesn’t scale well.</p>
+
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/SubQueries.scala">github</a>.</p>
+
+<h3 id="query-in-2x">Query in 2.x</h3>
+
+<p>With uncorrelated scalar sub query support, the above code can be rewritten as below in 2.x</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="nv">dfWithMaxAmount</span> <span class="k">=</span> <span class="nv">sparkSession</span><span class="o">.</span><span class="py">sql</span><span class="o">(</span><span class="s">"select *, (select max(amountPaid) from sales) max_amount from sales"</span><span class="o">)</span></code></pre></figure>
+
+<p>In this query, we write query inside query which calculates max value and adds to the dataframe. This code is much easier to write
+and maintain. The subquery is called uncorrelated because it returns same value for each row in the dataset.</p>
+
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/SubQueries.scala">github</a>.</p>
+
+<h3 id="correlated-sub-queries">Correlated Sub Queries</h3>
+
+<p>Let’s say we want to write same logic but per item. It becomes much more complicated in spark 1.x, because it’s no more single value for dataset. We need to calculate
+max for each group of items and append it to the group. So let’s see how sub queries help here.</p>
+
+<h3 id="query-in-1x">Query in 1.x</h3>
+
+<p>The logic for this problem involves a left join with group by operation. It can be written as below</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="nv">dfWithMaxPerItem</span> <span class="k">=</span> <span class="nv">sqlContext</span><span class="o">.</span><span class="py">sql</span><span class="o">(</span><span class="s">"""select A.itemId, B.max_amount  
+from sales A left outer join ( select itemId, max(amountPaid) max_amount
+from sales B group by itemId) B where A.itemId = B.itemId"""</span><span class="o">)</span>
+ </code></pre></figure>
+
+<p>Again it’s complicated and less maintainable.</p>
+
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-one/src/main/scala/com/madhukaraphatak/spark/migration/sparkone/SubQueries.scala">github</a>.</p>
+
+<h3 id="query-in-2x-1">Query in 2.x</h3>
+<p>Now we can rewrite the above code without any joins in subquery as below</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="nv">dfWithMaxPerItem</span> <span class="k">=</span> <span class="nv">sparkSession</span><span class="o">.</span><span class="py">sql</span><span class="o">(</span><span class="s">"select A.itemId, 
+(select max(amountPaid) from sales where itemId=A.itemId) max_amount from sales A"</span><span class="o">)</span></code></pre></figure>
+
+<p>This looks much cleaner than above. Internally spark converts above code into a left outer join. But as a user, we don’t need to worry about it.</p>
+
+<p>The query is called correlated because it depends on outer query for doing the where condition evaluation of inner query.</p>
+
+<p>You can access complete code on <a href="https://github.com/phatak-dev/spark-two-migration/blob/master/spark-two/src/main/scala/com/madhukaraphatak/spark/migration/sparktwo/SubQueries.scala">github</a>.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Spark SQL is improved quite a lot in spark 2.0. We can rewrite many complicated spark 1.x queries using simple sql constructs like subqueries. This makes code 
+more readable and maintainable.</p>
+
+<h2 id="references">References</h2>
+
+<ul>
+  <li><a href="https://databricks.com/blog/2016/06/17/sql-subqueries-in-apache-spark-2-0.html">SQL Subqueries in Apache Spark 2.0</a></li>
+</ul>
+
+</article>
+<div class="related">
+  <h2>Related posts</h2>
+  <ul>
+    
+             
+    
+    <li>    
+     <span class="post-date">02 Nov 2020</span>
+     &raquo; <a href="/spark-3-introduction-part-10">Introduction to Spark 3.0 - Part 10 : Ignoring Data Locality in Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">22 Apr 2020</span>
+     &raquo; <a href="/spark-3-datasource-v2-part-6">Data Source V2 API in Spark 3.0 - Part 6 : MySQL Source</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">21 Apr 2020</span>
+     &raquo; <a href="/spark-3-introduction-part-9">Introduction to Spark 3.0 - Part 9 : Join Hints in Spark SQL</a>    
+   </li>           
+         
+
+   
+   
+             
+    
+    <li>    
+     <span class="post-date">21 Jul 2021</span>
+     &raquo; <a href="/spark-pandas-part-2">Pandas API on Apache Spark - Part 2: Hello World</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">21 Jul 2021</span>
+     &raquo; <a href="/spark-pandas-part-1">Pandas API on Apache Spark - Part 1: Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">11 Nov 2020</span>
+     &raquo; <a href="/barrier-execution-mode-part-2">Barrier Execution Mode in Spark 3.0 - Part 2 : Barrier RDD</a>    
+   </li>           
+         
+
+   
+   
+ </ul>
+
+
+ 
+<!--   
+</div> -->
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrap">   
+    <div class="footer-col-1 column">
+      <ul>
+        <li>
+          <a href="https://github.com/phatak-dev">
+            <span class="icon github">
+              <svg version="1.1" class="github-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill-rule="evenodd" clip-rule="evenodd" fill="#C2C2C2" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761
+                c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32
+                c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472
+                c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037
+                C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65
+                c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261
+                c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082
+                c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129
+                c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+              </svg>
+            </span>
+            <span class="username">phatak-dev</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://twitter.com/madhukaraphatak">
+            <span class="icon twitter">
+              <svg version="1.1" class="twitter-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill="#C2C2C2" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809
+                c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27
+                c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767
+                c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206
+                C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271
+                c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469
+                c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/>
+              </svg>
+            </span>
+            <span class="username">madhukaraphatak</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer-col-3 column">
+      <p class="text">Thoughts on technology, life and everything else.</p>
+    </div>
+
+    <div style="float:right;">
+      <a href="/feed.xml"><img src="/images/rss.png">
+    </div>
+
+
+
+  </div>
+
+</footer>
+
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52311191-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+    </body>
+</html>

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Introduction to Spark 2.0 - Part 4 : Introduction to Catalog API</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Thoughts on technology, life and everything else.">
+    <link rel="canonical" href="http://blog.madhukaraphatak.com/introduction-to-spark-two-part-4">
+     <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/app.css">
+       
+</head>
+
+
+    <body>
+
+    <header >
+  <div class="wrap">
+    <a class="site-title" href="/">Madhukar's Blog</a>  
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+           viewBox="0 0 18 15" enable-background="new 0 0 18 15" xml:space="preserve">
+          <path fill="#505050" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0
+            h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#505050" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484
+            h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#505050" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0
+            c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+      <div class="trigger">        
+          <a class="page-link" href="http://www.madhukaraphatak.com">About me</a>                  
+      </div>
+    </nav>  
+  </div>
+</header>
+
+
+    <div class="page-content">
+      <div class="wrap">
+      <div class="post">
+ <header class="post-header">
+  <h1>Introduction to Spark 2.0 - Part 4 : Introduction to Catalog API</h1>
+  <p class="meta">May 17, 2016</p>
+  <div class="catagories">
+    
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
+    <a href="/categories/spark"><span class="category">spark</span></a>
+    
+    <a href="/categories/spark-two"><span class="category">spark-two</span></a>
+    
+  </div>
+</header> 
+
+<article class="post-content">
+  <p>Spark 2.0 is the next major release of Apache Spark. This release brings major changes to abstractions, API’s and libraries of the platform. This release sets the tone for next year’s direction of the framework. So understanding these few features is critical to understand for the ones who want to make use all the advances in this new release. So in this series of blog posts, I will be discussing about different improvements landing in Spark 2.0.</p>
+
+<p>This is the fourth blog in series, where I will be discussing about catalog API. You can access all the posts in the series <a href="/categories/spark-two/">here</a>.</p>
+
+<p>TL;DR All code examples are available on <a href="https://github.com/phatak-dev/spark2.0-examples">github</a>.</p>
+
+<h2 id="catalog-api">Catalog API</h2>
+
+<p>DataSet with  Dataframe API supports structured data analysis in spark. One of the important aspects of structured data analysis is managing metadata. It may be temporary metadata like temp table, registered udfs on SQL context or permanent metadata like Hive meta store or HCatalog.</p>
+
+<p>In earlier versions of spark, there was no standard API to access this metadata. Users used to use queries like <em>show tables</em> and others to query this metadata. These queries often needed raw string manipulation and used to differ depending upon the underneath meta store.</p>
+
+<p>But it’s changing in Spark 2.0.In Spark 2.0, spark has added a standard API called catalog for accessing metadata in spark SQL. This works both for spark sql and hive metadata.</p>
+
+<p>In this post I will be discussing about how to work with catalog API.</p>
+
+<h2 id="accessing-catalog">Accessing Catalog</h2>
+
+<p>Catalog is available on spark session. The following code shows how to access catalog.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="nv">catalog</span> <span class="k">=</span> <span class="nv">sparkSession</span><span class="o">.</span><span class="py">catalog</span></code></pre></figure>
+
+<h2 id="querying-the-databases">Querying the databases</h2>
+
+<p>Once we have access to catalog, we can use it to query the databases. All the API’s on catalog returns a dataset.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="nv">catalog</span><span class="o">.</span><span class="py">listDatabases</span><span class="o">().</span><span class="py">select</span><span class="o">(</span><span class="s">"name"</span><span class="o">).</span><span class="py">show</span><span class="o">()</span></code></pre></figure>
+
+<p>On catalog, <em>listDatabases</em> gives all the databases.By default, you will have only one database called <em>default</em>.In case of hive, it also access databases from the metastore. As the listDatabases returns a dataset, we can use all the operation available on dataset to query the metadata.</p>
+
+<h2 id="registering-dataframe-with-createtempview">Registering Dataframe with createTempView</h2>
+
+<p>In earlier versions of spark, we used to register a dataframe using <em>registerTempTable</em>. But in spark 2.0, this API is deprecated. The <em>registerTempleTable</em> API was one of the source of confusion as users used think it materializes the dataframe and saves as a temporary table which was not the case. So this API is replaced with <em>createTempView</em>.</p>
+
+<p><em>createTempView</em> can be used as follows.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="nv">df</span><span class="o">.</span><span class="py">createTempView</span><span class="o">(</span><span class="s">"sales"</span><span class="o">)</span></code></pre></figure>
+
+<p>Once we have registered a view, we can query it using listTables.</p>
+
+<h2 id="querying-the-tables">Querying the tables</h2>
+
+<p>As we can query databases, we can query tables. It lists all the temporary table registered in case of spark sql. In hive case, it lists all the tables in the underneath metadata store.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="nv">catalog</span><span class="o">.</span><span class="py">listTables</span><span class="o">().</span><span class="py">select</span><span class="o">(</span><span class="s">"name"</span><span class="o">).</span><span class="py">show</span><span class="o">()</span></code></pre></figure>
+
+<h2 id="checking-is-table-cached-or-not">Checking is table cached or not</h2>
+
+<p>Catalog not only is used for querying. It can be used to check state of individual tables. Given a table, we can check is it cache or not. It’s useful in scenarios to make sure we cache the tables which are accessed frequently.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="nv">catalog</span><span class="o">.</span><span class="py">isCached</span><span class="o">(</span><span class="s">"sales"</span><span class="o">)</span></code></pre></figure>
+
+<p>You will get false as by default no table will be cache. Now we cache the table and query again.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="nv">df</span><span class="o">.</span><span class="py">cache</span><span class="o">()</span>
+<span class="nv">catalog</span><span class="o">.</span><span class="py">isCached</span><span class="o">(</span><span class="s">"sales"</span><span class="o">)</span></code></pre></figure>
+
+<p>Now it will print true.</p>
+
+<h2 id="drop-view">Drop view</h2>
+
+<p>We can use catalog to drop views. In spark sql case, it will deregister the view. In case of hive, it will drops from the metadata store.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="nv">catalog</span><span class="o">.</span><span class="py">dropTempView</span><span class="o">(</span><span class="s">"sales"</span><span class="o">)</span></code></pre></figure>
+
+<h2 id="query-registered-functions">Query registered functions</h2>
+
+<p>Catalog API not only allow us to interact with tables, it also allows us to interact with udf’s. The below code shows how to query all functions registered on spark session. They also include all built in functions.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="nv">catalog</span><span class="o">.</span><span class="py">listFunctions</span><span class="o">().</span>
+<span class="nf">select</span><span class="o">(</span><span class="s">"name"</span><span class="o">,</span><span class="s">"description"</span><span class="o">,</span><span class="s">"className"</span><span class="o">,</span><span class="s">"isTemporary"</span><span class="o">).</span><span class="py">show</span><span class="o">(</span><span class="mi">100</span><span class="o">)</span></code></pre></figure>
+
+<p>You can access complete code <a href="https://github.com/phatak-dev/spark2.0-examples/blob/master/src/main/scala/com/madhukaraphatak/examples/sparktwo/CatalogExample.scala">here</a>.</p>
+
+<p>Catalog is new API in spark 2.0 which allows us to interact with metadata of spark sql. This is a much better interface to metadata compared to earlier versions of spark.</p>
+
+<p>##References</p>
+
+<p>Jira for catalog API <a href="https://issues.apache.org/jira/browse/SPARK-13477">https://issues.apache.org/jira/browse/SPARK-13477</a>.</p>
+
+
+</article>
+<div class="related">
+  <h2>Related posts</h2>
+  <ul>
+    
+             
+    
+    <li>    
+     <span class="post-date">02 Nov 2020</span>
+     &raquo; <a href="/spark-3-introduction-part-10">Introduction to Spark 3.0 - Part 10 : Ignoring Data Locality in Spark</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">22 Apr 2020</span>
+     &raquo; <a href="/spark-3-datasource-v2-part-6">Data Source V2 API in Spark 3.0 - Part 6 : MySQL Source</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">21 Apr 2020</span>
+     &raquo; <a href="/spark-3-introduction-part-9">Introduction to Spark 3.0 - Part 9 : Join Hints in Spark SQL</a>    
+   </li>           
+         
+
+   
+   
+             
+    
+    <li>    
+     <span class="post-date">21 Jul 2021</span>
+     &raquo; <a href="/spark-pandas-part-2">Pandas API on Apache Spark - Part 2: Hello World</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">21 Jul 2021</span>
+     &raquo; <a href="/spark-pandas-part-1">Pandas API on Apache Spark - Part 1: Introduction</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">11 Nov 2020</span>
+     &raquo; <a href="/barrier-execution-mode-part-2">Barrier Execution Mode in Spark 3.0 - Part 2 : Barrier RDD</a>    
+   </li>           
+         
+
+   
+   
+ </ul>
+
+
+ 
+<!--   
+</div> -->
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrap">   
+    <div class="footer-col-1 column">
+      <ul>
+        <li>
+          <a href="https://github.com/phatak-dev">
+            <span class="icon github">
+              <svg version="1.1" class="github-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill-rule="evenodd" clip-rule="evenodd" fill="#C2C2C2" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761
+                c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32
+                c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472
+                c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037
+                C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65
+                c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261
+                c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082
+                c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129
+                c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+              </svg>
+            </span>
+            <span class="username">phatak-dev</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://twitter.com/madhukaraphatak">
+            <span class="icon twitter">
+              <svg version="1.1" class="twitter-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill="#C2C2C2" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809
+                c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27
+                c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767
+                c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206
+                C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271
+                c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469
+                c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/>
+              </svg>
+            </span>
+            <span class="username">madhukaraphatak</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer-col-3 column">
+      <p class="text">Thoughts on technology, life and everything else.</p>
+    </div>
+
+    <div style="float:right;">
+      <a href="/feed.xml"><img src="/images/rss.png">
+    </div>
+
+
+
+  </div>
+
+</footer>
+
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52311191-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+    </body>
+</html>
