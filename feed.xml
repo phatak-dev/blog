@@ -114,7 +114,9 @@ function as the input.&lt;/p&gt;
 
 &lt;p&gt;This is the first post in the series where I will be talking about type inference improvements added to Java. You can find all the posts in the series &lt;a href=&quot;/categories/latest-java&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
-&lt;p&gt;&lt;strong&gt;TL;DR&lt;/strong&gt; &lt;em&gt;You can also consume this blog as video on &lt;a href=&quot;https://www.youtube.com/watch?v=n-DMIlEY9jQ&quot;&gt;YouTube&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;You can also consume this blog as video on YouTube&lt;/em&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/n-DMIlEY9jQ&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
 
 &lt;h2 id=&quot;java-and-verbosity&quot;&gt;Java and Verbosity&lt;/h2&gt;
 
