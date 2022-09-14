@@ -13,6 +13,9 @@ So in this series of posts, I will be talking about new features of Java from a 
 
 This is the first post in the series where I will be talking about type inference improvements added to Java. You can find all the posts in the series [here](/categories/latest-java).
 
+
+**TL;DR** _You can also consume this blog as video on [YouTube](https://www.youtube.com/watch?v=n-DMIlEY9jQ)._
+
 ## Java and Verbosity
 
 One of the main complaints of any Java developer is its verbosity. This verbosity is very evident in the type declaration.
