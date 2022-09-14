@@ -3,7 +3,7 @@
   <channel>
     <title>Madhukar&apos;s Blog</title>
     <description>Thoughts on technology, life and everything else.</description>
-    <link>http://blog.madhukaraphatak.com/</link>
+    <link>https://blog.madhukaraphatak.com/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
@@ -100,8 +100,8 @@ function as the input.&lt;/p&gt;
 &lt;p&gt;In this post, we looked at Java lambda expressions which simplifies the function creation in Java.&lt;/p&gt;
 </description>
         <pubDate>Wed, 14 Sep 2022 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/latest-java-2</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/latest-java-2</guid>
+        <link>https://blog.madhukaraphatak.com/latest-java-2</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/latest-java-2</guid>
       </item>
     
       <item>
@@ -167,8 +167,8 @@ as all the variables in Java are mutable by default.&lt;/p&gt;
 &lt;p&gt;In this post, we looked at how Java compiler can now do local variable type inference which reduces the verbosity of code. It is very similar to Scala type inference.&lt;/p&gt;
 </description>
         <pubDate>Wed, 14 Sep 2022 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/latest-java-1</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/latest-java-1</guid>
+        <link>https://blog.madhukaraphatak.com/latest-java-1</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/latest-java-1</guid>
       </item>
     
       <item>
@@ -226,8 +226,8 @@ as all the variables in Java are mutable by default.&lt;/p&gt;
 &lt;p&gt;In this post, we looked at how to write a simple example pandas code using Pandas API on Apache Spark.&lt;/p&gt;
 </description>
         <pubDate>Wed, 21 Jul 2021 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-pandas-part-2</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-pandas-part-2</guid>
+        <link>https://blog.madhukaraphatak.com/spark-pandas-part-2</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/spark-pandas-part-2</guid>
       </item>
     
       <item>
@@ -270,8 +270,8 @@ Still it has not yet reached wider python community. The reason is majority of p
 &lt;/ul&gt;
 </description>
         <pubDate>Wed, 21 Jul 2021 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-pandas-part-1</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-pandas-part-1</guid>
+        <link>https://blog.madhukaraphatak.com/spark-pandas-part-1</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/spark-pandas-part-1</guid>
       </item>
     
       <item>
@@ -342,8 +342,8 @@ Still it has not yet reached wider python community. The reason is majority of p
 &lt;p&gt;RDDBarrier is a new RDD added to the spark API to support the barrier execution mode. Using this RDD we can implement all different capabilities of this mode.&lt;/p&gt;
 </description>
         <pubDate>Wed, 11 Nov 2020 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/barrier-execution-mode-part-2</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/barrier-execution-mode-part-2</guid>
+        <link>https://blog.madhukaraphatak.com/barrier-execution-mode-part-2</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/barrier-execution-mode-part-2</guid>
       </item>
     
       <item>
@@ -423,8 +423,8 @@ Still it has not yet reached wider python community. The reason is majority of p
 &lt;p&gt;Barrier execution mode brings a new execution mode to spark in last 10 years. This bring new kind of capabilities to the platform.&lt;/p&gt;
 </description>
         <pubDate>Wed, 11 Nov 2020 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/barrier-execution-mode-part-1</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/barrier-execution-mode-part-1</guid>
+        <link>https://blog.madhukaraphatak.com/barrier-execution-mode-part-1</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/barrier-execution-mode-part-1</guid>
       </item>
     
       <item>
@@ -539,8 +539,8 @@ Still it has not yet reached wider python community. The reason is majority of p
 &lt;p&gt;Spark 3.0 natively support running deep learning frameworks on it’s cluster. This native integration helps to use advanced deep learning algorithms on big data environments.&lt;/p&gt;
 </description>
         <pubDate>Wed, 04 Nov 2020 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/tensorflow-on-spark-3.0</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/tensorflow-on-spark-3.0</guid>
+        <link>https://blog.madhukaraphatak.com/tensorflow-on-spark-3.0</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/tensorflow-on-spark-3.0</guid>
       </item>
     
       <item>
@@ -577,8 +577,8 @@ Still it has not yet reached wider python community. The reason is majority of p
 &lt;p&gt;Data Locality Ignore configuration helps developer improve the spark data reading when the source is remote to the spark cluster.&lt;/p&gt;
 </description>
         <pubDate>Mon, 02 Nov 2020 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-3-introduction-part-10</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-3-introduction-part-10</guid>
+        <link>https://blog.madhukaraphatak.com/spark-3-introduction-part-10</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/spark-3-introduction-part-10</guid>
       </item>
     
       <item>
@@ -710,8 +710,8 @@ Still it has not yet reached wider python community. The reason is majority of p
 &lt;p&gt;Datasource V2 API brings new functionalities to spark data sources. In this post we saw how to build a source which can write to relational databases.&lt;/p&gt;
 </description>
         <pubDate>Wed, 22 Apr 2020 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-3-datasource-v2-part-6</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-3-datasource-v2-part-6</guid>
+        <link>https://blog.madhukaraphatak.com/spark-3-datasource-v2-part-6</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/spark-3-datasource-v2-part-6</guid>
       </item>
     
       <item>
@@ -806,8 +806,8 @@ Still it has not yet reached wider python community. The reason is majority of p
 &lt;p&gt;Join hints are powerful way for developer to optimise their joins. Spark 3.0 brings all the possible joins to spark SQL hint framework.&lt;/p&gt;
 </description>
         <pubDate>Tue, 21 Apr 2020 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/spark-3-introduction-part-9</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/spark-3-introduction-part-9</guid>
+        <link>https://blog.madhukaraphatak.com/spark-3-introduction-part-9</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/spark-3-introduction-part-9</guid>
       </item>
     
   </channel>

@@ -3,8 +3,8 @@
   <channel>
   	<title>Madhukar&apos;s Blog - r</title>
 		<description>Posts categorized as 'mesos'</description>
-		<link>http://blog.madhukaraphatak.com</link>
-		<atom:link href="http://blog.madhukaraphatak.com/feed.mesos.xml" rel="self" type="application/rss+xml" />
+		<link>https://blog.madhukaraphatak.com</link>
+		<atom:link href="https://blog.madhukaraphatak.com/feed.mesos.xml" rel="self" type="application/rss+xml" />
     
       <item>
         <title>Implementing shuffle in Mesos</title>
@@ -245,8 +245,8 @@
 
 </description>
         <pubDate>Mon, 15 Dec 2014 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/implementing-shuffle-in-mesos</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/implementing-shuffle-in-mesos</guid>
+        <link>https://blog.madhukaraphatak.com/implementing-shuffle-in-mesos</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/implementing-shuffle-in-mesos</guid>
       </item>
     
       <item>
@@ -458,8 +458,8 @@
 
 </description>
         <pubDate>Mon, 15 Dec 2014 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/distributing-third-party-libraries-in-mesos</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/distributing-third-party-libraries-in-mesos</guid>
+        <link>https://blog.madhukaraphatak.com/distributing-third-party-libraries-in-mesos</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/distributing-third-party-libraries-in-mesos</guid>
       </item>
     
       <item>
@@ -611,8 +611,8 @@ java &lt;span class=&quot;nt&quot;&gt;-cp&lt;/span&gt; &amp;lt;project-path&amp;
 
 </description>
         <pubDate>Tue, 11 Nov 2014 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/custom-mesos-executor-scala</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/custom-mesos-executor-scala</guid>
+        <link>https://blog.madhukaraphatak.com/custom-mesos-executor-scala</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/custom-mesos-executor-scala</guid>
       </item>
     
       <item>
@@ -678,8 +678,8 @@ java &lt;span class=&quot;nt&quot;&gt;-cp&lt;/span&gt; &amp;lt;project-path&amp;
 
 </description>
         <pubDate>Tue, 04 Nov 2014 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/granular-resource-management-mesos</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/granular-resource-management-mesos</guid>
+        <link>https://blog.madhukaraphatak.com/granular-resource-management-mesos</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/granular-resource-management-mesos</guid>
       </item>
     
       <item>
@@ -880,8 +880,8 @@ to &lt;a href=&quot;http://localhost:5050&quot;&gt;localhost:5050&lt;/a&gt;&lt;/
 
 </description>
         <pubDate>Sun, 26 Oct 2014 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/mesos-helloworld-scala</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/mesos-helloworld-scala</guid>
+        <link>https://blog.madhukaraphatak.com/mesos-helloworld-scala</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/mesos-helloworld-scala</guid>
       </item>
     
       <item>
@@ -953,8 +953,8 @@ API’s.&lt;/p&gt;
 
 </description>
         <pubDate>Fri, 24 Oct 2014 00:00:00 +0530</pubDate>
-        <link>http://blog.madhukaraphatak.com/mesos-single-node-setup-ubuntu</link>
-        <guid isPermaLink="true">http://blog.madhukaraphatak.com/mesos-single-node-setup-ubuntu</guid>
+        <link>https://blog.madhukaraphatak.com/mesos-single-node-setup-ubuntu</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/mesos-single-node-setup-ubuntu</guid>
       </item>
     
 	</channel>
