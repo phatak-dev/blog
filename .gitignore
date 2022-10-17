@@ -9,3 +9,4 @@ project/target
 *.swp
 *.swo
 *.jekyll-cache
+*.jekyll-metadata
