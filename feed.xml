@@ -7,6 +7,119 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Email Spam Detection using Pre-Trained BERT Model : Part 2 - Model Fine Tuning</title>
+        <description>&lt;p&gt;Recently I have been looking into Transformer based machine learning models for natural language tasks. The field of NLP has changed tremendously in the last few years and I have been fascinated by the new architectures and tools that come out at the same time. Transformer models are one such architecture.&lt;/p&gt;
+
+&lt;p&gt;As the frameworks and tools to build transformer models keep evolving, the documentation often becomes stale and blog posts are often confusing. So for any one topic, you may find multiple approaches which can confuse beginners.&lt;/p&gt;
+
+&lt;p&gt;So as I am learning these models, I am planning to document the steps to do a few of the essential tasks in the simplest way possible. This should help any beginner like me to pick up transformer models.&lt;/p&gt;
+
+&lt;p&gt;In this two-part series, I will be discussing how to train a simple model for email spam classification using a pre-trained transformer BERT model. This is the second post in the series where I will be discussing fine-tuning the model for spam detection. You can read all the posts in the series &lt;a href=&quot;/categories/bert-email-spam&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;data-preparation-and-tokenization&quot;&gt;Data Preparation and Tokenization&lt;/h2&gt;
+
+&lt;p&gt;Please make sure you have gone through the first part of the series where we discussed about how to prepare our data using bert tokenization. You can find the same in the below link.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;/bert-email-spam-1&quot;&gt;Email Spam Detection using Pre-Trained BERT Model: Part 1 - Introduction and Tokenization&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;model-fine-tuning&quot;&gt;Model Fine Tuning&lt;/h2&gt;
+
+&lt;p&gt;Once the tokenization is done, we are now ready to fine-tune the model.&lt;/p&gt;
+
+&lt;p&gt;A pre-trained model comes with a body and head. In most of the use cases, we only retrain the head part of the model. So that’s why we call it fine-tuning rather than retraining. You can read more about the head and body of a transformer model at the below link.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://huggingface.co/course/chapter1/4&quot;&gt;https://huggingface.co/course/chapter1/4&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;1download-model&quot;&gt;1.Download Model&lt;/h2&gt;
+
+&lt;p&gt;As we did with the tokenizer, we will download the model using hugging face library.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;transformers&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AutoModelForSequenceClassification&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AutoModelForSequenceClassification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;from_pretrained&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&apos;bert-base-uncased&apos;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;num_labels&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The above downloads a dummy sequence classification model head which needs to be tuned with data.&lt;/p&gt;
+
+&lt;h2 id=&quot;2-training-arguments&quot;&gt;2. Training Arguments&lt;/h2&gt;
+
+&lt;p&gt;Training arguments are where you set various options for given model training. For simplicity, we are going to use default ones.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;transformers&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TrainingArguments&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Trainer&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;training_args&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TrainingArguments&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;output_dir&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;test_trainer&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;3-evaluation-metrics&quot;&gt;3. Evaluation Metrics&lt;/h2&gt;
+
+&lt;p&gt;For our training, we are going to use accuracy as an evaluation metric. The below code sets up a method to calculate the same from the model.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;evaluate&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;metric&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;evaluate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;accuracy&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;compute_metrics&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;eval_pred&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;logits&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;labels&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;eval_pred&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;predictions&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argmax&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;logits&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;axis&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;metric&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;compute&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;predictions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;predictions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;references&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;labels&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;In the above code, &lt;strong&gt;np.argmax&lt;/strong&gt; line converts logits returned from model prediction to labels so that, they can be compared with actual labels.&lt;/p&gt;
+
+&lt;h2 id=&quot;4-trainer&quot;&gt;4. Trainer&lt;/h2&gt;
+
+&lt;p&gt;Let’s create trainer with below code.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;trainer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Trainer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;training_args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;train_dataset&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tokenized_datasets_train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;eval_dataset&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tokenized_datasets_eval&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;compute_metrics&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;compute_metrics&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+ &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+ &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Trainer API of hugging face handles all the batching and looping needed for fine-tuning the model.&lt;/p&gt;
+
+&lt;h2 id=&quot;5-run-the-train&quot;&gt;5. Run the Train&lt;/h2&gt;
+
+&lt;p&gt;Once trainer object is created, we can run the train the model using &lt;strong&gt;train&lt;/strong&gt; method call.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;trainer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;find-accuracy-on-testing-dataset&quot;&gt;Find Accuracy on Testing Dataset&lt;/h2&gt;
+
+&lt;p&gt;Once the model is trained, we can find how well our model is doing using accuracy on test dataset.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;predictions_output&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;trainer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;predict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tokenizer_datasets_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;In above code, we are using &lt;strong&gt;trainer.predict&lt;/strong&gt; method to predict on our test dataset.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;accuracy_score&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compute_metrics&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;predictions_output&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;predictions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tokenizer_datasets_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&apos;label&apos;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]))&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;accuracy_score&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Then we find the accuracy score using same function we defined at the time of train. The output will be&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&apos;accuracy&apos;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.97&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;As you can see we are getting 97% accuracy which is really good.&lt;/p&gt;
+
+&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
+
+&lt;p&gt;Complete code for the post is in below google colab notebook.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://colab.research.google.com/drive/1d3-22HNkuLCqP1ctemMaMw1ETaWL48ET?usp=sharing&quot;&gt;https://colab.research.google.com/drive/1d3-22HNkuLCqP1ctemMaMw1ETaWL48ET?usp=sharing&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;You can also access python notebook on github.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/phatak-dev/transformer-models/blob/main/Spam_Detection_using_BERT_Model.ipynb&quot;&gt;https://github.com/phatak-dev/transformer-models/blob/main/Spam_Detection_using_BERT_Model.ipynb&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In this post, we saw how to fine-tune a pre-trained model using hugging face API. These two posts give you end to end flow of fine-tuning a transformer model.&lt;/p&gt;
+</description>
+        <pubDate>Thu, 16 Feb 2023 00:00:00 +0530</pubDate>
+        <link>https://blog.madhukaraphatak.com/bert-email-spam-2</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/bert-email-spam-2</guid>
+      </item>
+    
+      <item>
         <title>Email Spam Detection using Pre-Trained BERT Model : Part 1 - Introduction and Tokenization</title>
         <description>&lt;p&gt;Recently I have been looking into Transformer based machine learning models for natural language tasks. The field of NLP has changed tremendously in last few years and I have been fascinated by the new architectures and tools that they are come out in same time. Transformer models is one of such architecture.&lt;/p&gt;
 
@@ -787,87 +900,6 @@ Still it has not yet reached wider python community. The reason is majority of p
         <pubDate>Wed, 11 Nov 2020 00:00:00 +0530</pubDate>
         <link>https://blog.madhukaraphatak.com/barrier-execution-mode-part-2</link>
         <guid isPermaLink="true">https://blog.madhukaraphatak.com/barrier-execution-mode-part-2</guid>
-      </item>
-    
-      <item>
-        <title>Barrier Execution Mode in Spark 3.0 - Part 1 : Introduction</title>
-        <description>&lt;p&gt;Barrier execution mode is a new execution mode added to spark in 3.0 version. This marks a significant change to platform which had only supported Map/Reduce based execution till now. This will allow spark to diversify the kind of workloads it can support on it’s platform.&lt;/p&gt;
-
-&lt;p&gt;In this series posts we will discuss about this execution mode in detail.This is the first post in the series. In this post we will discuss about what is barrier execution mode and why it is needed. You can access all the posts in this series &lt;a href=&quot;/categories/barrier-execution&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;execution-mode&quot;&gt;Execution Mode&lt;/h2&gt;
-
-&lt;p&gt;An execution mode in spark is way of executing the jobs in platform. The mode will dictate how jobs are divided into multiple parallel tasks and how they are scheduled. The execution mode defines what kind of processing can be handled in platform.&lt;/p&gt;
-
-&lt;p&gt;Map/Reduce been a popular execution mode in majority of big data frameworks including spark. This execution mode is flexible enough to handle wide variety workloads like ETL, SQL and ML etc.&lt;/p&gt;
-
-&lt;h2 id=&quot;mapreduce-execution-mode&quot;&gt;Map/Reduce Execution Mode&lt;/h2&gt;
-
-&lt;p&gt;In this section of the post we will look into the Map/Reduce from a execution point of view. Understanding this will help us how its different from the barrier execution mode.&lt;/p&gt;
-
-&lt;p&gt;In Map/ Reduce&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;A job is collection of stages. Each stage can be Map or Reduce. Between these stages there will usually be shuffling.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Each stage is collection of tasks. These tasks are independent of each other. This approach is called &lt;strong&gt;shared nothing&lt;/strong&gt;. This allows system to scale as more resources are available.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;As the tasks are independent of each other, when one of the tasks is failed only that task is retried.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Number of tasks in Map task is determined by amount of data and number of tasks in reduce phase is determined by developer&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The above points summarises the Map/Reduce approach in very high level. Even though there are  many implementation details, this information is enough for our discussion.&lt;/p&gt;
-
-&lt;h2 id=&quot;need-for-new-execution-mode&quot;&gt;Need for New Execution Mode&lt;/h2&gt;
-
-&lt;p&gt;Map/Reduce execution mode has served well for many years for different workloads. Why we need different execution mode now?&lt;/p&gt;
-
-&lt;p&gt;One of the reasons is to support deep learning frameworks on spark. Deep learning frameworks don’t lend themselves to Map/Reduce model. They work well with other kind of execution model called MPI ( Message Passing Interface). For example, Horovod, an open source framework to do deep learning on scale by Uber, uses the MPI to implement the distributed deep learning for variety of DL frameworks. You can learn more &lt;a href=&quot;https://github.com/horovod/horovod#documentation&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;In order to support the deep learning natively, spark need to support an execution model that is different than Map/Reduce. The new execution Model is modeled after MPI&lt;/p&gt;
-
-&lt;h2 id=&quot;barrier-execution-mode&quot;&gt;Barrier Execution Mode&lt;/h2&gt;
-
-&lt;p&gt;The below are how the barrier execution model, which is inspired from MPI, different from the Map/Reduce execution model.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;A job is collection of stages. Between these stages there will usually shuffling. This remains same as Map/Reduce model&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Each stage is collection of tasks. These tasks are all started together and they are dependent. This is one of major departure compared to Map/Reduce. In MPI model the tasks can communicate to each other and dependent. So they need to be started together.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;As the tasks are dependent of each other, when one of the tasks are failed all tasks are retried. Again this is different from Map/Reduce model.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Number of tasks is always decided by developer. This is because even though data may be small the computation may be much more complicated and may need more resource than typical processing. Also there should be enough resources to run all tasks together.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;From above points you can see how barrier execution mode is much different than standard Map/Reduce mode.&lt;/p&gt;
-
-&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://www.mcs.anl.gov/~itf/dbpp/text/node95.html&quot;&gt;https://www.mcs.anl.gov/~itf/dbpp/text/node95.html&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://eng.uber.com/horovod/&quot;&gt;https://eng.uber.com/horovod/&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-24374&quot;&gt;https://issues.apache.org/jira/browse/SPARK-24374&lt;/a&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;Barrier execution mode brings a new execution mode to spark in last 10 years. This bring new kind of capabilities to the platform.&lt;/p&gt;
-</description>
-        <pubDate>Wed, 11 Nov 2020 00:00:00 +0530</pubDate>
-        <link>https://blog.madhukaraphatak.com/barrier-execution-mode-part-1</link>
-        <guid isPermaLink="true">https://blog.madhukaraphatak.com/barrier-execution-mode-part-1</guid>
       </item>
     
   </channel>
