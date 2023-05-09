@@ -7,6 +7,71 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Understanding Spark Connect API- Part 1: Shortcomings of Spark Driver Architecture</title>
+        <description>&lt;p&gt;In the 3.4 version, Apache Spark has released a new client/server-based API called Spark Connect. This API will help in improving how we develop and deploy Spark applications.&lt;/p&gt;
+
+&lt;p&gt;In this series of blogs, we are going to explore various functionalities exposed by spark connect API. This is the first post in the series where we discuss the shortcoming of current spark driver architecture. You can read all the posts in the series &lt;a href=&quot;/categories/spark-connect&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;spark-driver-architecture&quot;&gt;Spark Driver Architecture&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://spark.apache.org/docs/latest/img/cluster-overview.png&quot; alt=&quot;JVM Integration&quot; /&gt;.&lt;/p&gt;
+
+&lt;p&gt;The above diagram shows the architecture of a spark program.&lt;/p&gt;
+
+&lt;p&gt;To use spark, the user needs to add spark library dependency to their application and run a JVM which will act as the client for the application. This client JVM, known as a driver,  holds the spark context, and the spark context intern communicates with other parts of the cluster to actually run the code. The same architecture is used for other language support like Pyspark.&lt;/p&gt;
+
+&lt;p&gt;This approach works for batch-based programs which can run with spark-submit but come with many shortcomings for other kinds of applications. We will discuss these shortcomings in below section.&lt;/p&gt;
+
+&lt;h2 id=&quot;shortcomings-of-spark-driver-architecture&quot;&gt;Shortcomings of Spark Driver Architecture&lt;/h2&gt;
+
+&lt;h3 id=&quot;interactive-spark-applications&quot;&gt;Interactive Spark Applications&lt;/h3&gt;
+
+&lt;p&gt;If a user wants to run a spark application in an interactive system like a notebook or IDE they need a long-running spark session/context to which this system connects and executes code.&lt;/p&gt;
+
+&lt;p&gt;Current spark driver architecture makes building spark applications from systems like Notebook, and IDE very trick as the machine on which these systems run needs to have full-fledged spark installed and has to have enough resources to run the spark driver applications. This becomes an impediment in many applications as stopping the client system will suddenly stop the spark execution also.&lt;/p&gt;
+
+&lt;h3 id=&quot;community-rest-api-solutions&quot;&gt;Community REST API Solutions&lt;/h3&gt;
+
+&lt;p&gt;To address the above issue, there are many community based solutions like &lt;a href=&quot;https://livy.apache.org/&quot;&gt;Apache Livy&lt;/a&gt; or &lt;a href=&quot;https://github.com/spark-jobserver/spark-jobserver&quot;&gt;Spark Job Server&lt;/a&gt; which tries to provide the REST based interface for the Spark. But there few shortcomings in these solutions.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Frameworks like spark-jobserver extends the spark source code, so they always lag behind the official spark release&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;The API’s exposed by these services are specific to the libraries so there is no inter portability&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;As this is not part of official spark, these will be not available in managed spark runtime like Databricks.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;conflict-between-spark-libraries-and-user-libraries&quot;&gt;Conflict Between Spark Libraries and User Libraries&lt;/h3&gt;
+
+&lt;p&gt;As spark driver needs to have full spark as its dependency, any libraries used in spark will have conflict with the user-added libraries. As an example, if there is a scala library used by the client app and some other version of the library used by spark it often leads to conflict with spark. This is one of the reasons to remove Akka from the spark dependency.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-5293&quot;&gt;https://issues.apache.org/jira/browse/SPARK-5293&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;stability&quot;&gt;Stability&lt;/h3&gt;
+
+&lt;p&gt;As the client-server needs to run the driver application for interactive applications, if the driver crashes then the whole application will crash. So if you are running the spark application behind an HTTP server, the crash of the spark application can crash the HTTP server also which is not desired.&lt;/p&gt;
+
+&lt;p&gt;So because of the above shortcomings, we need a fully different way to develop spark applications for non-batch scenarios that will not have the above limitations.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://docs.google.com/document/d/1Mnl6jmGszixLW4KcJU5j9IgpG9-UabS0dcM6PM2XGDc/edit#heading=h.wmsrrfealhrj&quot;&gt;Spark Connect SPIP Doc&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In this post, we talked short coming of the current spark driver based application development. In the next post in series, we will discuss how spark connect API is going to address some of these issues.&lt;/p&gt;
+</description>
+        <pubDate>Tue, 09 May 2023 00:00:00 +0530</pubDate>
+        <link>https://blog.madhukaraphatak.com/understanding-spark-connect-1</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/understanding-spark-connect-1</guid>
+      </item>
+    
+      <item>
         <title>Email Spam Detection using Pre-Trained BERT Model : Part 2 - Model Fine Tuning</title>
         <description>&lt;p&gt;Recently I have been looking into Transformer based machine learning models for natural language tasks. The field of NLP has changed tremendously in the last few years and I have been fascinated by the new architectures and tools that come out at the same time. Transformer models are one such architecture.&lt;/p&gt;
 
@@ -828,78 +893,6 @@ Still it has not yet reached wider python community. The reason is majority of p
         <pubDate>Wed, 21 Jul 2021 00:00:00 +0530</pubDate>
         <link>https://blog.madhukaraphatak.com/spark-pandas-part-1</link>
         <guid isPermaLink="true">https://blog.madhukaraphatak.com/spark-pandas-part-1</guid>
-      </item>
-    
-      <item>
-        <title>Barrier Execution Mode in Spark 3.0 - Part 2 : Barrier RDD</title>
-        <description>&lt;p&gt;Barrier execution mode is a new execution mode added to spark in 3.0 version. This marks a significant change to platform which had only supported Map/Reduce based execution till now. This will allow spark to diversify the kind of workloads it can support on it’s platform.&lt;/p&gt;
-
-&lt;p&gt;In this series posts we will discuss about this execution mode in detail.This is the second post in the series. In this post we will discuss the basic API for barrier execution mode. You can access all the posts in this series &lt;a href=&quot;/categories/barrier-execution&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;rddbarrier&quot;&gt;RDDBarrier&lt;/h2&gt;
-
-&lt;p&gt;Spark 3.0 has introduced a new type of RDD called &lt;strong&gt;RDDBarrier[T]&lt;/strong&gt; which signifies the RDD needs to be handled using the barrier execution mode. This RDD exposes new capabilities that are not available in normal RDD.&lt;/p&gt;
-
-&lt;h2 id=&quot;creating-a-rddbarrier-rdd&quot;&gt;Creating a RDDBarrier Rdd&lt;/h2&gt;
-
-&lt;p&gt;The below code shows how to convert a normal RDD to barrier RDD&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;repartition&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;barrierRdd&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;barrier&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;In above code, we create a dataframe with 4 partitions. Then we are using &lt;strong&gt;barrier()&lt;/strong&gt; method to convert the normal RDD to barrier RDD.&lt;/p&gt;
-
-&lt;h2 id=&quot;mappartitions-method&quot;&gt;mapPartitions method&lt;/h2&gt;
-
-&lt;p&gt;Once barrier rdd, it exposes a &lt;strong&gt;mapPartitions&lt;/strong&gt; function to run custom code for each of the partition. In this simple example, we will not do much.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;count&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;barrierRdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;mapPartitions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-
-&lt;span class=&quot;nf&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;count is &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;&lt;strong&gt;mapPartitions&lt;/strong&gt; function return a normal RDD on which we can call methods like count.&lt;/p&gt;
-
-&lt;h2 id=&quot;executing-code-with-single-thread&quot;&gt;Executing code with Single Thread&lt;/h2&gt;
-
-&lt;p&gt;Let’s run the above code with below spark session&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;sparkSession&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;SparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;
-          &lt;span class=&quot;nf&quot;&gt;master&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;local&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-          &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;appName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;example&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-          &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;getOrCreate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;In above code, we are running the program in which master which has single thread. When you run the code, you will see below warnings&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;20/11/09 16:57:40 WARN DAGScheduler: Barrier stage in job 0 requires 4 slots, but only 1 are available. Will retry up to 40 more times
-20/11/09 16:57:55 WARN DAGScheduler: Barrier stage in job 0 requires 4 slots, but only 1 are available. Will retry up to 39 more times&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The above code is not executing. The reasons for this is as we discussed in last post, all the tasks in barrier execution mode start together. In our example, we have four partitions which need four threads but we have just one. If this was normal Map/Reduce execution, it would have ran one after another. But in barrier execution mode it doesn’t work like that.&lt;/p&gt;
-
-&lt;h2 id=&quot;executing-code-with-multiple-threads&quot;&gt;Executing code with Multiple Threads&lt;/h2&gt;
-
-&lt;p&gt;We can fix above code using below spark session&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;sparkSession&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;SparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;
-          &lt;span class=&quot;nf&quot;&gt;master&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;local[4]&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-          &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;appName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;example&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-          &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;getOrCreate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Now we have four threads. When you execute the code now it works fine.&lt;/p&gt;
-
-&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/barrier/BarrierExceptionExample.scala&quot;&gt;Execution with Single Thread&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://github.com/phatak-dev/spark-3.0-examples/blob/master/src/main/scala/com/madhukaraphatak/spark/barrier/BarrierRddExample.scala&quot;&gt;Execution with Multiple Threads&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;RDDBarrier is a new RDD added to the spark API to support the barrier execution mode. Using this RDD we can implement all different capabilities of this mode.&lt;/p&gt;
-</description>
-        <pubDate>Wed, 11 Nov 2020 00:00:00 +0530</pubDate>
-        <link>https://blog.madhukaraphatak.com/barrier-execution-mode-part-2</link>
-        <guid isPermaLink="true">https://blog.madhukaraphatak.com/barrier-execution-mode-part-2</guid>
       </item>
     
   </channel>
