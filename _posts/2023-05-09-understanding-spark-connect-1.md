@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Understanding Spark Connect API- Part 1: Shortcomings of Spark Driver Architecture"
+title: "Understanding Spark Connect API - Part 1: Shortcomings of Spark Driver Architecture"
 date : 2023-05-09
 categories: scala python spark spark-connect
 ---

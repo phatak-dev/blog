@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Understanding Spark Connect API- Part 2: Architecture Introduction"
+title: "Understanding Spark Connect API - Part 2: Architecture Introduction"
 date : 2023-05-05
 categories: scala python spark spark-connect
 ---

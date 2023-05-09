@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Understanding Spark Connect API- Part 3: Scala Hello World"
+title: "Understanding Spark Connect API - Part 3: Scala Hello World"
 date : 2023-05-05
 categories: scala python spark spark-connect
 ---
