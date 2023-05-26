@@ -7,6 +7,64 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Understanding Spark Connect API - Part 2: Introduction to Architecture</title>
+        <description>&lt;p&gt;In the 3.4 version, Apache Spark has released a new client/server-based API called Spark Connect. This API will help in improving how we develop and deploy Spark applications.&lt;/p&gt;
+
+&lt;p&gt;In this series of blogs, we are going to explore various functionalities exposed by spark connect API. This is the second post in the series where we discuss the architecture of spark connect. You can read all the posts in the series &lt;a href=&quot;/categories/spark-connect&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;architecture&quot;&gt;Architecture&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://spark.apache.org/docs/latest/img/spark-connect-api.png&quot; alt=&quot;Spark Connect Architecture&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The above diagram shows the architecture of the spark-connect. It has below main components.&lt;/p&gt;
+
+&lt;h3 id=&quot;1spark-connect-api&quot;&gt;1.Spark Connect API&lt;/h3&gt;
+
+&lt;p&gt;Spark-Connect API is a gRPC based API that runs as a server to connect spark client applications with the spark driver and cluster. As you can 
+observe from the diagram spark driver is no more part of the client application. Now it’s on the server side of spark-connect API.&lt;/p&gt;
+
+&lt;h3 id=&quot;2thin-client-side-api&quot;&gt;2.Thin Client Side API&lt;/h3&gt;
+
+&lt;p&gt;As the spark driver is no more part of the client, how do we write the spark applications?. For this, spark now ships a separate client library which wraps the spark-connect API with a nice DataFrame based API. This makes sure that spark client applications do not need full installation and dependency of the spark. We will explore more about this API in our future posts.&lt;/p&gt;
+
+&lt;h3 id=&quot;3dataframe-as-the-intermediate-protocol&quot;&gt;3.DataFrame as the Intermediate Protocol&lt;/h3&gt;
+
+&lt;p&gt;One of the challenges of providing a new API is it forces all the client applications to be rewritten in this new API. But spark connect API smartly solves this issue by exposing the same DataFrame/ Dataset API as in standard spark code and internally converting those API calls to the gRPC calls. This tremendously helps the application developers as they don’t need to learn yet another new API and reuse all their existing code.&lt;/p&gt;
+
+&lt;p&gt;The below diagram how the spark code is converted to gRPC calls.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://spark.apache.org/docs/latest/img/spark-connect-communication.png&quot; alt=&quot;Spark Connect DF Resolution&quot; /&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;benefits-of-spark-connect&quot;&gt;Benefits of Spark-Connect&lt;/h2&gt;
+
+&lt;p&gt;This section of the post talks about the different benefits of spark-connect API.&lt;/p&gt;
+
+&lt;h3 id=&quot;1-lightweight-client&quot;&gt;1. Lightweight Client&lt;/h3&gt;
+
+&lt;p&gt;In the last post, we discussed that in spark driver based architecture the client needs to run a full-fledged spark driver for an interactive application. But with thin client API, the actual heavy lifting is done by the spark server rather than the spark client. So the resource requirements for the client application will be very low.&lt;/p&gt;
+
+&lt;h3 id=&quot;2standard-integration-for-notebook-systems&quot;&gt;2.Standard Integration for Notebook Systems&lt;/h3&gt;
+
+&lt;p&gt;As spark-connect is now part of the standard spark, all notebook systems can standardize on this API to provide interactive integration with spark.&lt;/p&gt;
+
+&lt;h3 id=&quot;3-smoother-transition-with-dataframe-based-api&quot;&gt;3. Smoother Transition with DataFrame based API&lt;/h3&gt;
+
+&lt;p&gt;As the spark-connect use DataFrame API as it’s user-facing API, transitioning to spark-connect is quite easy. As most of the spark developers are already familiar with DataFrame API there is almost no learning curve.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://spark.apache.org/docs/latest/spark-connect-overview.html&quot;&gt;https://spark.apache.org/docs/latest/spark-connect-overview.html&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In this post, we talked about the architecture of the spark-connect and how it avoids some of the shortcomings of the spark driver architecture.&lt;/p&gt;
+</description>
+        <pubDate>Fri, 26 May 2023 00:00:00 +0530</pubDate>
+        <link>https://blog.madhukaraphatak.com/understanding-spark-connect-2</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/understanding-spark-connect-2</guid>
+      </item>
+    
+      <item>
         <title>Understanding Spark Connect API - Part 1: Shortcomings of Spark Driver Architecture</title>
         <description>&lt;p&gt;In the 3.4 version, Apache Spark has released a new client/server-based API called Spark Connect. This API will help in improving how we develop and deploy Spark applications.&lt;/p&gt;
 
@@ -849,50 +907,6 @@ as all the variables in Java are mutable by default.&lt;/p&gt;
         <pubDate>Wed, 21 Jul 2021 00:00:00 +0530</pubDate>
         <link>https://blog.madhukaraphatak.com/spark-pandas-part-2</link>
         <guid isPermaLink="true">https://blog.madhukaraphatak.com/spark-pandas-part-2</guid>
-      </item>
-    
-      <item>
-        <title>Pandas API on Apache Spark - Part 1: Introduction</title>
-        <description>&lt;p&gt;Apache Spark has revolutionised the data science field with it’s support for big data. With it support for multiple languages like Scala, Python it has made big data analysis available to wide variety of developers.&lt;/p&gt;
-
-&lt;p&gt;Python is the leading language preferred by the data science community. Even with in Spark community, python API has seen tremendous upsurge in last few years. According to databricks, company behind the Apache Spark, 60% of the commands written on their notebook is python compared to 23% of them in Scala.&lt;/p&gt;
-
-&lt;p&gt;Spark has excellent support for python with Pyspark project. Pyspark allows developers to access all different parts of spark like SQL,ML etc using python language.&lt;br /&gt;
-Still it has not yet reached wider python community. The reason is majority of python data developers prefer Pandas API.&lt;/p&gt;
-
-&lt;h2 id=&quot;pyspark-vs-pandas&quot;&gt;PySpark vs Pandas&lt;/h2&gt;
-
-&lt;p&gt;Pandas is the de facto library for python data science community to manipulate data in python. Also pandas integrates seamlessly with other python libraries like plotly, scikit learn. So most developers are very comfortable with it’s API.&lt;/p&gt;
-
-&lt;p&gt;Whereas Pyspark is completely different API which is modeled after Spark dataframe DSL. Even though it can work on large data in distributed manner and has almost similar functionalities like pandas, there is steep learning to understand these API’s. Also pyspark doesn’t play well with other python data libraries. So adoption of pyspark in wider data science community is significantly less.&lt;/p&gt;
-
-&lt;h2 id=&quot;koalas&quot;&gt;Koalas&lt;/h2&gt;
-
-&lt;p&gt;To address this gap databricks released a library called &lt;a href=&quot;https://koalas.readthedocs.io/en/latest/&quot;&gt;Koalas&lt;/a&gt;. It is a spark library which brought the pandas API on top spark dataframe.&lt;/p&gt;
-
-&lt;p&gt;Koalas allows python developers to write pandas API code on top spark dataframe which gives best of both worlds. Now developers can write code in pandas API and get all the performance benefits of spark.&lt;/p&gt;
-
-&lt;p&gt;Koalas has been quite successful with python community. Now this support going to become even better with Spark 3.2&lt;/p&gt;
-
-&lt;h2 id=&quot;pandas-api-on-pyspark&quot;&gt;Pandas API on Pyspark&lt;/h2&gt;
-
-&lt;p&gt;From spark 3.2, pandas API will be added to mainline spark project. No more need of third party library. So pandas API going to be yet another API with Dataframe DSL and SQL API to manipulate data in spark.&lt;/p&gt;
-
-&lt;p&gt;This support suddenly opens up wide variety of use cases for python developers and is one of the very powerful API introduction in Apache spark project.&lt;/p&gt;
-
-&lt;p&gt;In next series of blogs, I will be discussing about this API and use cases for the same. You can read all the posts &lt;a href=&quot;/categories/spark-pandas&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SPARK-34849&quot;&gt;https://issues.apache.org/jira/browse/SPARK-34849&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://docs.google.com/document/d/1tk24aq6FV5Wu2bX_Ym606doLFnrZsh4FdUd52FqojZU/edit&quot;&gt;Koalas Design Doc&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://www.youtube.com/watch?v=8P-lWuMm2UQ&quot;&gt;Spark Summit Talk&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-        <pubDate>Wed, 21 Jul 2021 00:00:00 +0530</pubDate>
-        <link>https://blog.madhukaraphatak.com/spark-pandas-part-1</link>
-        <guid isPermaLink="true">https://blog.madhukaraphatak.com/spark-pandas-part-1</guid>
       </item>
     
   </channel>

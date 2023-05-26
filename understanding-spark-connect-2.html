@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Dynamic Shuffle Partitions in Spark SQL</title>
+    <title>Understanding Spark Connect API - Part 2: Introduction to Architecture</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="https://blog.madhukaraphatak.com/dynamic-spark-shuffle-partitions">
+    <link rel="canonical" href="https://blog.madhukaraphatak.com/understanding-spark-connect-2">
      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,66 +45,72 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Dynamic Shuffle Partitions in Spark SQL</h1>
-  <p class="meta">Nov 26, 2019</p>
+  <h1>Understanding Spark Connect API - Part 2: Introduction to Architecture</h1>
+  <p class="meta">May 26, 2023</p>
   <div class="catagories">
+    
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
+    <a href="/categories/python"><span class="category">python</span></a>
     
     <a href="/categories/spark"><span class="category">spark</span></a>
     
-    <a href="/categories/scala"><span class="category">scala</span></a>
+    <a href="/categories/spark-connect"><span class="category">spark-connect</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>In Apache Spark, shuffle is one of costliest operation. Effective parallelising of this operation gives good performing for spark jobs.</p>
+  <p>In the 3.4 version, Apache Spark has released a new client/server-based API called Spark Connect. This API will help in improving how we develop and deploy Spark applications.</p>
 
-<h2 id="shuffle-partitions-in-spark-sql">Shuffle Partitions in Spark SQL</h2>
+<p>In this series of blogs, we are going to explore various functionalities exposed by spark connect API. This is the second post in the series where we discuss the architecture of spark connect. You can read all the posts in the series <a href="/categories/spark-connect">here</a>.</p>
 
-<p>Shuffle partitions are the partitions in spark dataframe, which is created using a grouped or join operation. Number of partitions in this dataframe is different than the original dataframe partitions.</p>
+<h2 id="architecture">Architecture</h2>
 
-<p>For example, the below code</p>
+<p><img src="https://spark.apache.org/docs/latest/img/spark-connect-api.png" alt="Spark Connect Architecture" /></p>
 
-<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="nv">df</span> <span class="k">=</span> <span class="nv">sparkSession</span><span class="o">.</span><span class="py">read</span><span class="o">.</span><span class="py">csv</span><span class="o">(</span><span class="s">"src/main/resources/sales.csv"</span><span class="o">)</span>
-<span class="nf">println</span><span class="o">(</span><span class="nv">df</span><span class="o">.</span><span class="py">rdd</span><span class="o">.</span><span class="py">partitions</span><span class="o">.</span><span class="py">length</span><span class="o">)</span></code></pre></figure>
+<p>The above diagram shows the architecture of the spark-connect. It has below main components.</p>
 
-<p>will print <strong>2</strong> for small sales file. This indicates there are two partitions in the dataframe.</p>
+<h3 id="1spark-connect-api">1.Spark Connect API</h3>
 
-<p>Now when we run the groupby operation on the same, the number of partitions will change</p>
+<p>Spark-Connect API is a gRPC based API that runs as a server to connect spark client applications with the spark driver and cluster. As you can 
+observe from the diagram spark driver is no more part of the client application. Now it’s on the server side of spark-connect API.</p>
 
-<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="nf">println</span><span class="o">(</span><span class="nv">df</span><span class="o">.</span><span class="py">groupBy</span><span class="o">(</span><span class="s">"_c0"</span><span class="o">).</span><span class="py">count</span><span class="o">().</span><span class="py">rdd</span><span class="o">.</span><span class="py">partitions</span><span class="o">.</span><span class="py">length</span><span class="o">)</span></code></pre></figure>
+<h3 id="2thin-client-side-api">2.Thin Client Side API</h3>
 
-<p>The above code prints <strong>200</strong>. The <em>2</em> partition increased to <strong>200</strong>.</p>
+<p>As the spark driver is no more part of the client, how do we write the spark applications?. For this, spark now ships a separate client library which wraps the spark-connect API with a nice DataFrame based API. This makes sure that spark client applications do not need full installation and dependency of the spark. We will explore more about this API in our future posts.</p>
 
-<p>This is because the parameter <strong>spark.sql.shuffle.partitions</strong> which controls number of shuffle partitions is set to <strong>200</strong> by default.</p>
+<h3 id="3dataframe-as-the-intermediate-protocol">3.DataFrame as the Intermediate Protocol</h3>
 
-<h2 id="challenges-with-default-shuffle-partitions">Challenges with Default Shuffle Partitions</h2>
+<p>One of the challenges of providing a new API is it forces all the client applications to be rewritten in this new API. But spark connect API smartly solves this issue by exposing the same DataFrame/ Dataset API as in standard spark code and internally converting those API calls to the gRPC calls. This tremendously helps the application developers as they don’t need to learn yet another new API and reuse all their existing code.</p>
 
-<p>The number of shuffle partitions in spark is static. It doesn’t change with different data size. This will lead into below issues</p>
+<p>The below diagram how the spark code is converted to gRPC calls.</p>
 
-<ul>
-  <li>
-    <p>For smaller data, 200 is a overkill which often leads to slower processing because of scheduling overheads.</p>
-  </li>
-  <li>
-    <p>For large data, 200 is small and doesn’t effectively use the all resources in the cluster.</p>
-  </li>
-</ul>
+<p><img src="https://spark.apache.org/docs/latest/img/spark-connect-communication.png" alt="Spark Connect DF Resolution" />.</p>
 
-<p>To over come the issues mentioned above, we need to control shuffle partitions dynamically.</p>
+<h2 id="benefits-of-spark-connect">Benefits of Spark-Connect</h2>
 
-<h2 id="dynamically-setting-the-shuffle-partitions">Dynamically Setting the Shuffle Partitions</h2>
+<p>This section of the post talks about the different benefits of spark-connect API.</p>
 
-<p>Spark allows changing the configuration of spark sql using <em>conf</em> method on the <em>sparkSession</em>. Using this method, we can set wide variety of configurations dynamically.</p>
+<h3 id="1-lightweight-client">1. Lightweight Client</h3>
 
-<p>So if we need to reduce the number of shuffle partitions for a given dataset, we can do that by below code</p>
+<p>In the last post, we discussed that in spark driver based architecture the client needs to run a full-fledged spark driver for an interactive application. But with thin client API, the actual heavy lifting is done by the spark server rather than the spark client. So the resource requirements for the client application will be very low.</p>
 
-<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="nv">sparkSession</span><span class="o">.</span><span class="py">conf</span><span class="o">.</span><span class="py">set</span><span class="o">(</span><span class="s">"spark.sql.shuffle.partitions"</span><span class="o">,</span><span class="mi">100</span><span class="o">)</span>
-<span class="nf">println</span><span class="o">(</span><span class="nv">df</span><span class="o">.</span><span class="py">groupBy</span><span class="o">(</span><span class="s">"_c0"</span><span class="o">).</span><span class="py">count</span><span class="o">().</span><span class="py">rdd</span><span class="o">.</span><span class="py">partitions</span><span class="o">.</span><span class="py">length</span><span class="o">)</span></code></pre></figure>
+<h3 id="2standard-integration-for-notebook-systems">2.Standard Integration for Notebook Systems</h3>
 
-<p>The above code will print <strong>100</strong>. This shows how to set the number partitions dynamically.</p>
+<p>As spark-connect is now part of the standard spark, all notebook systems can standardize on this API to provide interactive integration with spark.</p>
 
-<p>The exact logic for coming up with number of shuffle partitions depends on actual analysis. You can typically set it to be 1.5 or 2 times of the initial partitions.</p>
+<h3 id="3-smoother-transition-with-dataframe-based-api">3. Smoother Transition with DataFrame based API</h3>
+
+<p>As the spark-connect use DataFrame API as it’s user-facing API, transitioning to spark-connect is quite easy. As most of the spark developers are already familiar with DataFrame API there is almost no learning curve.</p>
+
+<h2 id="references">References</h2>
+
+<p><a href="https://spark.apache.org/docs/latest/spark-connect-overview.html">https://spark.apache.org/docs/latest/spark-connect-overview.html</a>.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this post, we talked about the architecture of the spark-connect and how it avoids some of the shortcomings of the spark driver architecture.</p>
 
 </article>
 <div class="related">
@@ -112,38 +118,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">26 May 2023</span>
-     &raquo; <a href="/understanding-spark-connect-2">Understanding Spark Connect API - Part 2: Introduction to Architecture</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">09 May 2023</span>
-     &raquo; <a href="/understanding-spark-connect-1">Understanding Spark Connect API - Part 1: Shortcomings of Spark Driver Architecture</a>    
-   </li>           
-         
-
-            
-    
-    <li>    
-     <span class="post-date">21 Jul 2021</span>
-     &raquo; <a href="/spark-pandas-part-2">Pandas API on Apache Spark - Part 2: Hello World</a>    
-   </li>           
-         
-
-   
-   
-             
-    
-    <li>    
-     <span class="post-date">26 May 2023</span>
-     &raquo; <a href="/understanding-spark-connect-2">Understanding Spark Connect API - Part 2: Introduction to Architecture</a>    
-   </li>           
-         
+          
 
             
     
@@ -158,6 +133,27 @@
     <li>    
      <span class="post-date">22 Jan 2023</span>
      &raquo; <a href="/latest-java-5">Latest Java Features from a Scala Dev Perspective - Part 5: Java Streams</a>    
+   </li>           
+         
+
+   
+   
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">09 May 2023</span>
+     &raquo; <a href="/understanding-spark-connect-1">Understanding Spark Connect API - Part 1: Shortcomings of Spark Driver Architecture</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">16 Feb 2023</span>
+     &raquo; <a href="/bert-email-spam-2">Email Spam Detection using Pre-Trained BERT Model : Part 2 - Model Fine Tuning</a>    
    </li>           
          
 
