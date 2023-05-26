@@ -1,13 +1,13 @@
 ---
 layout: post
-title: "Understanding Spark Connect API- Part 3: Scala Hello World"
+title: "Understanding Spark Connect API- Part 4: Pyspark Example"
 date : 2023-05-05
 categories: scala python spark spark-connect
 ---
 
 In the 3.4 version, Apache Spark has released a new client/server-based API called Spark Connect. This API will help in improving how we develop and deploy Spark applications.
 
-In this series of blogs, we are going to explore various functionalities exposed by spark connect API. This is the third post in the series where we write a simple scala code against spark-connect API. You can read all the posts in the series [here](/categories/spark-connect).
+In this series of blogs, we are going to explore various functionalities exposed by spark connect API. This is the fourth post in the series where we will discuss pyspark integration. You can read all the posts in the series [here](/categories/spark-connect).
 
 ## Spark Connect API Server
 
@@ -21,7 +21,7 @@ Once the spark connect server is started, it will running in localhost and you s
 
 If we observe the rightmost part of UI, we can observe name as **Spark Connect server application UI** which confirms its a spark application running for spark connect.
 
-## Adding Dependencies to Project
+## Pyspark from Shell
 
 For using spark connect API, we need to add the below dependencies in our sbt.
 
@@ -81,10 +81,6 @@ Once you execute the code, you will see the below output on spark UI.
 ![Spark UI after hello world execution](/images/spark_connect/spark_ui_after_helloworld.png).
 
 From the output its clear the code is running on gRPC API of spark-connect.
-
-## Code
-
-[Code on Github](https://github.com/phatak-dev/spark-connect-examples/blob/master/src/main/scala/com/madhukara/sparkconnect/HelloWorld.scala).
 
 ## Conclusion
 
