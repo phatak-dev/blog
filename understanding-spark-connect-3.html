@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Spark Plugin Framework in 3.0 - Part 1: Introduction</title>
+    <title>Understanding Spark Connect API- Part 3: Scala API Example</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="https://blog.madhukaraphatak.com/spark-plugin-part-1">
+    <link rel="canonical" href="https://blog.madhukaraphatak.com/understanding-spark-connect-3">
      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,55 +45,95 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Spark Plugin Framework in 3.0 - Part 1: Introduction</h1>
-  <p class="meta">Apr 7, 2020</p>
+  <h1>Understanding Spark Connect API- Part 3: Scala API Example</h1>
+  <p class="meta">May 30, 2023</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
     
+    <a href="/categories/python"><span class="category">python</span></a>
+    
     <a href="/categories/spark"><span class="category">spark</span></a>
     
-    <a href="/categories/spark-three"><span class="category">spark-three</span></a>
-    
-    <a href="/categories/spark-plugin"><span class="category">spark-plugin</span></a>
+    <a href="/categories/spark-connect"><span class="category">spark-connect</span></a>
     
   </div>
 </header> 
 
 <article class="post-content">
-  <p>Spark 3.0 brings a new plugin framework to spark. This plugin framework allows users to plugin custom code at the driver and workers. This will allow for advanced monitoring and custom metrics tracking. This set of API’s are going to help tune spark better than before.</p>
+  <p>In the 3.4 version, Apache Spark has released a new client/server-based API called Spark Connect. This API will help in improving how we develop and deploy Spark applications.</p>
 
-<p>In this series of posts I will be discussing about the different aspects of plugin framework. This is the first post in the series, where we will understand the motivation behind the framework. You can read all the posts in the series <a href="/categories/spark-plugin">here</a>.</p>
+<p>In this series of blogs, we are going to explore various functionalities exposed by spark-connect API. This is the third post in the series where we write a simple scala spark code with spark-connect API. You can read all the posts in the series <a href="/categories/spark-connect">here</a>.</p>
 
-<h2 id="spark-plugin-framework-in-30">Spark Plugin Framework in 3.0</h2>
+<h2 id="spark-connect-api-server">Spark Connect API Server</h2>
 
-<p>Spark plugin framework is a new set of API’s which allows users to run the custom code in the driver and executor side. This allows user to control the initialisation of driver and executor JVM’s for different use cases.</p>
+<p>Before you can run a program against spark-connect, you need to start spark-connect server which intern starts a spark driver. You can follow the steps below link for the same.</p>
 
-<h2 id="uses-of-plugin-framework">Uses of Plugin Framework</h2>
+<p><a href="https://spark.apache.org/docs/latest/spark-connect-overview.html#download-and-start-spark-server-with-spark-connect">https://spark.apache.org/docs/latest/spark-connect-overview.html#download-and-start-spark-server-with-spark-connect</a>.</p>
 
-<p>This section of the post talks about what are the different use cases for plugin framework.</p>
+<p>Once the spark connect server is started, it will be running in localhost and you should be able to see a spark UI at <a href="http://localhost:4040/">http://localhost:4040/</a>.</p>
 
-<h3 id="support-for-custom-metrics">Support for Custom Metrics</h3>
+<p><img src="/images/spark_connect/spark_connect_spark_ui.png" alt="Spark UI running Spark Connect" />.</p>
 
-<p>Spark exposes wide variety of metrics like memory consumption, GC overhead etc which are very useful for the application tuning. But let’s say user want to add their own metrics and track it using spark metrics framework?. Currently it’s not possible because the code needs to run inside the executor/driver JVM to calculate the metrics.Also even if user calculates it using application code, those will not integrate with standard spark metrics. But with spark plugin it’s possible to write code which collects the application specific metrics and integrate with spark metrics system.</p>
+<p>If we observe the rightmost part of UI, we can observe the name as <strong>Spark Connect server application UI</strong> which confirms it’s a spark application running for spark connect.</p>
 
-<h3 id="ability-to-push-dynamic-events-to-driver-and-executor">Ability to Push Dynamic Events to Driver and Executor</h3>
+<h2 id="adding-dependencies-to-project">Adding Dependencies to Project</h2>
 
-<p>Spark plugin framework allows user to run arbitrary listeners on driver or executor side. This allows for a communication to spark JVM’s from the external application. As these plugins have access to spark context, this will allow for dynamic control of the execution from outside which is very powerful.</p>
+<p>We need to add the below dependencies in our sbt for using spark-connect API.</p>
 
-<h3 id="ability-to-communicate-between-driver-and-executor">Ability to Communicate Between Driver and Executor</h3>
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.apache.spark"</span><span class="o">%</span>  <span class="s">"spark-connect-client-jvm_2.12"</span><span class="o">%</span><span class="s">"3.4.0"</span>
+<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.apache.spark"</span><span class="o">%</span>  <span class="s">"spark-catalyst_2.12"</span><span class="o">%</span><span class="s">"3.4.0"</span></code></pre></figure>
 
-<p>Spark plugin framework exposes a RPC communication option between driver and executor plugins. This communication can be used to send any user defined messages between executors and driver.</p>
+<p>In above dependencies,</p>
 
-<p>The above are the some of the use cases for the spark plugin framework. These will become clear when we discuss the same with examples.</p>
+<ol>
+  <li>
+    <p><strong>spark-connect-client-jvm</strong> is the spark-connect API for Scala and Java.</p>
+  </li>
+  <li>
+    <p><strong>spark-catalyst</strong> is the catalyst API of spark dataframe. As the spark-connect manipulates the logical plans, we require this dependency.</p>
+  </li>
+</ol>
 
-<h2 id="references">References</h2>
+<p>As you can observe from the dependencies, it is minimal and doesn’t include complete spark dependency.</p>
 
-<p><a href="https://issues.apache.org/jira/browse/SPARK-29397">https://issues.apache.org/jira/browse/SPARK-29397</a>.</p>
+<h2 id="writing-scala-spark-example-using-the-spark-connect-api">Writing Scala Spark Example using the Spark Connect API</h2>
+
+<p>The below are the steps to write a simple scala spark example using spark-connect API.</p>
+
+<h3 id="1-create-spark-session-using-spark-client-api">1. Create Spark Session using Spark Client API</h3>
+
+<p>As the first step, we create a spark session.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">import</span> <span class="nn">org.apache.spark.sql.SparkSession</span>
+<span class="k">val</span> <span class="nv">sparkSession</span> <span class="k">=</span> <span class="nv">SparkSession</span><span class="o">.</span><span class="py">builder</span><span class="o">().</span><span class="py">remote</span><span class="o">(</span><span class="s">"sc://localhost"</span><span class="o">).</span><span class="py">build</span><span class="o">()</span></code></pre></figure>
+
+<p>The above spark session API comes from spark-connect library, which has a special method called <strong>remote</strong> which signifies we are running our code against the spark-connect rather than a standard spark driver.</p>
+
+<h3 id="2-create-dataframe">2. Create DataFrame</h3>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="nv">df</span> <span class="k">=</span> <span class="nv">sparkSession</span><span class="o">.</span><span class="py">range</span><span class="o">(</span><span class="mi">500</span><span class="o">)</span>
+<span class="nf">print</span><span class="o">(</span><span class="nv">df</span><span class="o">.</span><span class="py">count</span><span class="o">())</span></code></pre></figure>
+
+<p>Once we created the session, we can create a df using the standard spark API <strong>range</strong> method. From there all the API’s of dataframe are available.</p>
+
+<p>Even though this look like normal df, we are actually interacting with spark-connect df rather than standard spark-sql df. You can find the docs for the same in <a href="https://github.com/apache/spark/blob/master/connector/connect/client/jvm/src/main/scala/org/apache/spark/sql/Dataset.scala">github spark-connect Dataset code</a>.</p>
+
+<h3 id="3-executing-the-code">3. Executing the Code</h3>
+
+<p>Once you execute the code, you will see the below output on spark UI.</p>
+
+<p><img src="/images/spark_connect/spark_ui_after_helloworld.png" alt="Spark UI after hello world execution" />.</p>
+
+<p>From the output its clear the code is running on gRPC API of spark-connect.</p>
+
+<h2 id="code">Code</h2>
+
+<p><a href="https://github.com/phatak-dev/spark-connect-examples/blob/master/src/main/scala/com/madhukara/sparkconnect/HelloWorld.scala">Complete Code on Github</a>.</p>
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>Spark plugin framework brings a powerful customization to spark ecosystem. Users can use this framework to add custom metric listeners and build a dynamic dispacth event system for their spark jobs.</p>
+<p>In this post, we saw how to write and run a simple spark scala code against the new spark-connect API.</p>
 
 </article>
 <div class="related">
@@ -101,12 +141,7 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">30 May 2023</span>
-     &raquo; <a href="/understanding-spark-connect-3">Understanding Spark Connect API- Part 3: Scala API Example</a>    
-   </li>           
-         
+          
 
             
     
@@ -127,12 +162,7 @@
    
    
              
-    
-    <li>    
-     <span class="post-date">30 May 2023</span>
-     &raquo; <a href="/understanding-spark-connect-3">Understanding Spark Connect API- Part 3: Scala API Example</a>    
-   </li>           
-         
+          
 
             
     

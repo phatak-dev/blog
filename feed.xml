@@ -7,6 +7,87 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Understanding Spark Connect API- Part 3: Scala API Example</title>
+        <description>&lt;p&gt;In the 3.4 version, Apache Spark has released a new client/server-based API called Spark Connect. This API will help in improving how we develop and deploy Spark applications.&lt;/p&gt;
+
+&lt;p&gt;In this series of blogs, we are going to explore various functionalities exposed by spark-connect API. This is the third post in the series where we write a simple scala spark code with spark-connect API. You can read all the posts in the series &lt;a href=&quot;/categories/spark-connect&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;spark-connect-api-server&quot;&gt;Spark Connect API Server&lt;/h2&gt;
+
+&lt;p&gt;Before you can run a program against spark-connect, you need to start spark-connect server which intern starts a spark driver. You can follow the steps below link for the same.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://spark.apache.org/docs/latest/spark-connect-overview.html#download-and-start-spark-server-with-spark-connect&quot;&gt;https://spark.apache.org/docs/latest/spark-connect-overview.html#download-and-start-spark-server-with-spark-connect&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Once the spark connect server is started, it will be running in localhost and you should be able to see a spark UI at &lt;a href=&quot;http://localhost:4040/&quot;&gt;http://localhost:4040/&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/spark_connect/spark_connect_spark_ui.png&quot; alt=&quot;Spark UI running Spark Connect&quot; /&gt;.&lt;/p&gt;
+
+&lt;p&gt;If we observe the rightmost part of UI, we can observe the name as &lt;strong&gt;Spark Connect server application UI&lt;/strong&gt; which confirms it’s a spark application running for spark connect.&lt;/p&gt;
+
+&lt;h2 id=&quot;adding-dependencies-to-project&quot;&gt;Adding Dependencies to Project&lt;/h2&gt;
+
+&lt;p&gt;We need to add the below dependencies in our sbt for using spark-connect API.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;n&quot;&gt;libraryDependencies&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;org.apache.spark&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;  &lt;span class=&quot;s&quot;&gt;&quot;spark-connect-client-jvm_2.12&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;3.4.0&quot;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;libraryDependencies&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;org.apache.spark&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;  &lt;span class=&quot;s&quot;&gt;&quot;spark-catalyst_2.12&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;3.4.0&quot;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;In above dependencies,&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;spark-connect-client-jvm&lt;/strong&gt; is the spark-connect API for Scala and Java.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;spark-catalyst&lt;/strong&gt; is the catalyst API of spark dataframe. As the spark-connect manipulates the logical plans, we require this dependency.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;As you can observe from the dependencies, it is minimal and doesn’t include complete spark dependency.&lt;/p&gt;
+
+&lt;h2 id=&quot;writing-scala-spark-example-using-the-spark-connect-api&quot;&gt;Writing Scala Spark Example using the Spark Connect API&lt;/h2&gt;
+
+&lt;p&gt;The below are the steps to write a simple scala spark example using spark-connect API.&lt;/p&gt;
+
+&lt;h3 id=&quot;1-create-spark-session-using-spark-client-api&quot;&gt;1. Create Spark Session using Spark Client API&lt;/h3&gt;
+
+&lt;p&gt;As the first step, we create a spark session.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.apache.spark.sql.SparkSession&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;sparkSession&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;SparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;remote&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;sc://localhost&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The above spark session API comes from spark-connect library, which has a special method called &lt;strong&gt;remote&lt;/strong&gt; which signifies we are running our code against the spark-connect rather than a standard spark driver.&lt;/p&gt;
+
+&lt;h3 id=&quot;2-create-dataframe&quot;&gt;2. Create DataFrame&lt;/h3&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;sparkSession&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;500&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;nf&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Once we created the session, we can create a df using the standard spark API &lt;strong&gt;range&lt;/strong&gt; method. From there all the API’s of dataframe are available.&lt;/p&gt;
+
+&lt;p&gt;Even though this look like normal df, we are actually interacting with spark-connect df rather than standard spark-sql df. You can find the docs for the same in &lt;a href=&quot;https://github.com/apache/spark/blob/master/connector/connect/client/jvm/src/main/scala/org/apache/spark/sql/Dataset.scala&quot;&gt;github spark-connect Dataset code&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;3-executing-the-code&quot;&gt;3. Executing the Code&lt;/h3&gt;
+
+&lt;p&gt;Once you execute the code, you will see the below output on spark UI.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/spark_connect/spark_ui_after_helloworld.png&quot; alt=&quot;Spark UI after hello world execution&quot; /&gt;.&lt;/p&gt;
+
+&lt;p&gt;From the output its clear the code is running on gRPC API of spark-connect.&lt;/p&gt;
+
+&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/phatak-dev/spark-connect-examples/blob/master/src/main/scala/com/madhukara/sparkconnect/HelloWorld.scala&quot;&gt;Complete Code on Github&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In this post, we saw how to write and run a simple spark scala code against the new spark-connect API.&lt;/p&gt;
+</description>
+        <pubDate>Tue, 30 May 2023 00:00:00 +0530</pubDate>
+        <link>https://blog.madhukaraphatak.com/understanding-spark-connect-3</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/understanding-spark-connect-3</guid>
+      </item>
+    
+      <item>
         <title>Understanding Spark Connect API - Part 2: Introduction to Architecture</title>
         <description>&lt;p&gt;In the 3.4 version, Apache Spark has released a new client/server-based API called Spark Connect. This API will help in improving how we develop and deploy Spark applications.&lt;/p&gt;
 
@@ -848,65 +929,6 @@ as all the variables in Java are mutable by default.&lt;/p&gt;
         <pubDate>Wed, 14 Sep 2022 00:00:00 +0530</pubDate>
         <link>https://blog.madhukaraphatak.com/latest-java-1</link>
         <guid isPermaLink="true">https://blog.madhukaraphatak.com/latest-java-1</guid>
-      </item>
-    
-      <item>
-        <title>Pandas API on Apache Spark - Part 2: Hello World</title>
-        <description>&lt;p&gt;Pandas API on Apache Spark brings the familiar python Pandas API on top of distributed spark framework. This combination allows python developers to write code in their favorite pandas API with all the performance and distributed benefits of spark. This marriage of API and Platform is one of the biggest improvement landing in Apache spark in recent time. This feature will be available in spark 3.2.&lt;/p&gt;
-
-&lt;p&gt;In these series posts we will be discussing different aspects of this integration. This is second post in the series where we will write our first hello world example. You can access other posts in the series &lt;a href=&quot;/categories/spark-pandas&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;setup&quot;&gt;Setup&lt;/h2&gt;
-
-&lt;p&gt;Running pandas API on spark needs Spark 3.2. At the time of this blog is written, spark 3.2 is still in the development. So to run these examples you need to build the spark tar from code. Once 3.2 is released in stable version you can use it as any other pyspark program.&lt;/p&gt;
-
-&lt;p&gt;You can find more details how to build code from source in below link.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://spark.apache.org/docs/latest/building-spark.html&quot;&gt;https://spark.apache.org/docs/latest/building-spark.html&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Also you need to install the below libraries in your venv of python&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;mf&quot;&gt;1.&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Pandas&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.23&lt;/span&gt;
-&lt;span class=&quot;mf&quot;&gt;2.&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PyArrow&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1.0&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;h2 id=&quot;hello-world&quot;&gt;Hello World&lt;/h2&gt;
-
-&lt;p&gt;As our programming tradition, we always start with hello world example. This example can be run from pyspark console or Jupyter notebook.&lt;/p&gt;
-
-&lt;p&gt;The below are the steps&lt;/p&gt;
-
-&lt;h3 id=&quot;import-pandas&quot;&gt;Import Pandas&lt;/h3&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pyspark.pandas&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ps&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;As first step, we import pandas from pyspark project.&lt;/p&gt;
-
-&lt;h3 id=&quot;create-pandas-dataframe-on-spark&quot;&gt;Create Pandas Dataframe on Spark&lt;/h3&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DataFrame&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;columns&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;a&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;In above code, we create pandas dataframe using some array. As you can observe the API is exactly same python Pandas.&lt;/p&gt;
-
-&lt;p&gt;To make sure its using spark on pandas rather than normal pandas we can check it on spark UI.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/pandasonspark/pandasplan&quot; alt=&quot;/images/pandasonspark/pandasplan&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;From above image, we can observe the above dataframe creation ran a SQL query on spark.&lt;/p&gt;
-
-&lt;h2 id=&quot;print-data&quot;&gt;Print Data&lt;/h2&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;As with normal pandas, above code prints the dataframe data.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;In this post, we looked at how to write a simple example pandas code using Pandas API on Apache Spark.&lt;/p&gt;
-</description>
-        <pubDate>Wed, 21 Jul 2021 00:00:00 +0530</pubDate>
-        <link>https://blog.madhukaraphatak.com/spark-pandas-part-2</link>
-        <guid isPermaLink="true">https://blog.madhukaraphatak.com/spark-pandas-part-2</guid>
       </item>
     
   </channel>
