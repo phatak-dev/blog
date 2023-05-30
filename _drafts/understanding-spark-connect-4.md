@@ -23,64 +23,45 @@ If we observe the rightmost part of UI, we can observe name as **Spark Connect s
 
 ## Pyspark from Shell
 
-For using spark connect API, we need to add the below dependencies in our sbt.
 
-{% highlight scala %}
+{%highlight bash %}
 
-libraryDependencies += "org.apache.spark"%  "spark-connect-client-jvm_2.12"%"3.4.0"
-libraryDependencies += "org.apache.spark"%  "spark-catalyst_2.12"%"3.4.0"
+bin/pyspark --remote sc://localhost
+
+{%endhighlight%}
+
+We start the python shell by providing the remote as parameter for spark session. We seen this parameter in the earlier scala example also.
+
+
+## Spark Connect Spark Session
+
+{% highlight python %}
+spark
+{% endhighlight %}
+
+outputs
+
+{%highlight text%}
+
+<pyspark.sql.connect.session.SparkSession object at 0x10a067ac0>
+
+{% endhighlight %}
+
+From above output, it is confirmed that we are running spark connect based spark session.
+
+
+## Data Frame Code
+
+The below is a simple pyspark code.
+
+{% highlight python %}
+
+df = spark.range(100)
+df.count()
 
 {% endhighlight %}
 
 
-In above dependencies, 
-
- 1. **spark-connect-client-jvm** is the spark-connect API for Scala and Java. 
-
- 2. **spark-catalyst** is the catalyst API of spark dataframe. As the spark-connect manipulates the logical plans, we require this dependency.
-
-
-## Writing Simple Spark Example using the Spark Connect API
-
-The below are the steps to write a simple scala spark example using spark-connect API.
-
-
-### 1. Create Spark Session using Spark Client API
-
-As the first step we create a spark session.
-
-{% highlight scala %}
-
-import org.apache.spark.sql.SparkSession
-val sparkSession = SparkSession.builder().remote("sc://localhost").build()
-
-{% endhighlight %}
-
-The above spark session API comes from spark-connect library, which has a special method called **remote** which signifies we are running our code against the spark connect rather than standard JVM based client.
-
-### 2. Create DataFrame
-
-{% highlight scala %}
-
-val df = sparkSession.range(500)
-print(df.count())
-
-{%endhighlight %}
-
-Once we created the session, we can create a df using standard spark API **range** method. From there all the API's of dataframe are available.
-
-Even though this look like normal df, we are actually interacting with spark connect df rather than standard spark sql df. You can find the docs for the same in below documentation
-
-[https://github.com/apache/spark/blob/master/connector/connect/client/jvm/src/main/scala/org/apache/spark/sql/Dataset.scala](https://github.com/apache/spark/blob/master/connector/connect/client/jvm/src/main/scala/org/apache/spark/sql/Dataset.scala).
-
-
-### 3. Executing the Code
-
-Once you execute the code, you will see the below output on spark UI.
-
-![Spark UI after hello world execution](/images/spark_connect/spark_ui_after_helloworld.png).
-
-From the output its clear the code is running on gRPC API of spark-connect.
 
 ## Conclusion
 
