@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Understanding Spark Connect API- Part 3: Scala API Example"
+title: "Understanding Spark Connect API - Part 3: Scala API Example"
 date : 2023-05-30
 categories: scala python spark spark-connect
 ---
