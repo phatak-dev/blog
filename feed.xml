@@ -7,7 +7,7 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
-        <title>Understanding Spark Connect API- Part 3: Scala API Example</title>
+        <title>Understanding Spark Connect API - Part 3: Scala API Example</title>
         <description>&lt;p&gt;In the 3.4 version, Apache Spark has released a new client/server-based API called Spark Connect. This API will help in improving how we develop and deploy Spark applications.&lt;/p&gt;
 
 &lt;p&gt;In this series of blogs, we are going to explore various functionalities exposed by spark-connect API. This is the third post in the series where we write a simple scala spark code with spark-connect API. You can read all the posts in the series &lt;a href=&quot;/categories/spark-connect&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
