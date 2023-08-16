@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Understanding Spark Connect API - Part 4: PySpark Example"
-date : 2023-05-30
+date : 2023-08-16
 categories: scala python spark spark-connect
 ---
 
@@ -30,12 +30,12 @@ bin/pyspark --remote sc://localhost
 
 {%endhighlight%}
 
-We can start the python shell by providing the remote as parameter for spark session. We seen this parameter in the earlier [scala example](/understanding-spark-connect-3#1-create-spark-session-using-spark-client-api).
+We can start the python shell by providing the remote as a parameter for spark session. We have seen this parameter in the earlier [scala example](/understanding-spark-connect-3#1-create-spark-session-using-spark-client-api).
 
 
 ## Spark Connect Spark Session
 
-Once we started the pyspark shell, we can check are we running against spark-connect API by inspecting **spark** variable which points to spark session.
+Once we started the pyspark shell, we can check if we are running against spark-connect API by inspecting the **spark** variable that points to spark session.
 
 {% highlight python %}
 spark
@@ -49,7 +49,7 @@ outputs
 
 {% endhighlight %}
 
-From above output, it is confirmed that we are running spark connect based spark session.
+From the above output, it is confirmed that we are running spark-connect based spark session.
 
 ## Data Frame Code
 
