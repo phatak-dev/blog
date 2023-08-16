@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Understanding Spark Connect API - Part 3: Scala API Example</title>
+    <title>Understanding Spark Connect API - Part 4: PySpark Example</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Thoughts on technology, life and everything else.">
-    <link rel="canonical" href="https://blog.madhukaraphatak.com/understanding-spark-connect-3">
+    <link rel="canonical" href="https://blog.madhukaraphatak.com/understanding-spark-connect-4">
      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/main.css">
@@ -45,8 +45,8 @@
       <div class="wrap">
       <div class="post">
  <header class="post-header">
-  <h1>Understanding Spark Connect API - Part 3: Scala API Example</h1>
-  <p class="meta">May 30, 2023</p>
+  <h1>Understanding Spark Connect API - Part 4: PySpark Example</h1>
+  <p class="meta">Aug 16, 2023</p>
   <div class="catagories">
     
     <a href="/categories/scala"><span class="category">scala</span></a>
@@ -63,11 +63,11 @@
 <article class="post-content">
   <p>In the 3.4 version, Apache Spark has released a new client/server-based API called Spark Connect. This API will help in improving how we develop and deploy Spark applications.</p>
 
-<p>In this series of blogs, we are going to explore various functionalities exposed by spark-connect API. This is the third post in the series where we write a simple scala spark code with spark-connect API. You can read all the posts in the series <a href="/categories/spark-connect">here</a>.</p>
+<p>In this series of blogs, we are going to explore various functionalities exposed by spark-connect API. This is the fourth post in the series where we will discuss PySpark integration. You can read all the posts in the series <a href="/categories/spark-connect">here</a>.</p>
 
 <h2 id="spark-connect-api-server">Spark Connect API Server</h2>
 
-<p>Before you can run a program against spark-connect, you need to start spark-connect server which intern starts a spark driver. You can follow the steps below link for the same.</p>
+<p>Before you can run a program against spark connect, you need to start spark connect server which intern starts a spark driver. You can follow the steps below link for the same.</p>
 
 <p><a href="https://spark.apache.org/docs/latest/spark-connect-overview.html#download-and-start-spark-server-with-spark-connect">https://spark.apache.org/docs/latest/spark-connect-overview.html#download-and-start-spark-server-with-spark-connect</a>.</p>
 
@@ -75,65 +75,40 @@
 
 <p><img src="/images/spark_connect/spark_connect_spark_ui.png" alt="Spark UI running Spark Connect" />.</p>
 
-<p>If we observe the rightmost part of UI, we can observe the name as <strong>Spark Connect server application UI</strong> which confirms it’s a spark application running for spark connect.</p>
+<p>If we observe the rightmost part of UI, we can observe name as <strong>Spark Connect server application UI</strong> which confirms its a spark application running for spark connect.</p>
 
-<h2 id="adding-dependencies-to-project">Adding Dependencies to Project</h2>
+<h2 id="pyspark-from-shell">PySpark from Shell</h2>
 
-<p>We need to add the below dependencies in our sbt for using spark-connect API.</p>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">bin/pyspark <span class="nt">--remote</span> sc://localhost</code></pre></figure>
 
-<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.apache.spark"</span><span class="o">%</span>  <span class="s">"spark-connect-client-jvm_2.12"</span><span class="o">%</span><span class="s">"3.4.0"</span>
-<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"org.apache.spark"</span><span class="o">%</span>  <span class="s">"spark-catalyst_2.12"</span><span class="o">%</span><span class="s">"3.4.0"</span></code></pre></figure>
+<p>We can start the python shell by providing the remote as a parameter for spark session. We have seen this parameter in the earlier <a href="/understanding-spark-connect-3#1-create-spark-session-using-spark-client-api">scala example</a>.</p>
 
-<p>In above dependencies,</p>
+<h2 id="spark-connect-spark-session">Spark Connect Spark Session</h2>
 
-<ol>
-  <li>
-    <p><strong>spark-connect-client-jvm</strong> is the spark-connect API for Scala and Java.</p>
-  </li>
-  <li>
-    <p><strong>spark-catalyst</strong> is the catalyst API of spark dataframe. As the spark-connect manipulates the logical plans, we require this dependency.</p>
-  </li>
-</ol>
+<p>Once we started the pyspark shell, we can check if we are running against spark-connect API by inspecting the <strong>spark</strong> variable that points to spark session.</p>
 
-<p>As you can observe from the dependencies, it is minimal and doesn’t include complete spark dependency.</p>
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">spark</span></code></pre></figure>
 
-<h2 id="writing-scala-spark-example-using-the-spark-connect-api">Writing Scala Spark Example using the Spark Connect API</h2>
+<p>outputs</p>
 
-<p>The below are the steps to write a simple scala spark example using spark-connect API.</p>
+<figure class="highlight"><pre><code class="language-text" data-lang="text">&lt;pyspark.sql.connect.session.SparkSession object at 0x10a067ac0&gt;</code></pre></figure>
 
-<h3 id="1-create-spark-session-using-spark-client-api">1. Create Spark Session using Spark Client API</h3>
+<p>From the above output, it is confirmed that we are running spark-connect based spark session.</p>
 
-<p>As the first step, we create a spark session.</p>
+<h2 id="data-frame-code">Data Frame Code</h2>
 
-<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">import</span> <span class="nn">org.apache.spark.sql.SparkSession</span>
-<span class="k">val</span> <span class="nv">sparkSession</span> <span class="k">=</span> <span class="nv">SparkSession</span><span class="o">.</span><span class="py">builder</span><span class="o">().</span><span class="py">remote</span><span class="o">(</span><span class="s">"sc://localhost"</span><span class="o">).</span><span class="py">build</span><span class="o">()</span></code></pre></figure>
+<p>The below is a simple PySpark code.</p>
 
-<p>The above spark session API comes from spark-connect library, which has a special method called <strong>remote</strong> which signifies we are running our code against the spark-connect rather than a standard spark driver.</p>
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="p">.</span><span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">df</span><span class="p">.</span><span class="n">count</span><span class="p">()</span></code></pre></figure>
 
-<h3 id="2-create-dataframe">2. Create DataFrame</h3>
+<p>As with <a href="/understanding-spark-connect-3#3-executing-the-code">scala example</a>, we can observe that in sparkUI gRpc calls will show up when we run this example.</p>
 
-<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="nv">df</span> <span class="k">=</span> <span class="nv">sparkSession</span><span class="o">.</span><span class="py">range</span><span class="o">(</span><span class="mi">500</span><span class="o">)</span>
-<span class="nf">print</span><span class="o">(</span><span class="nv">df</span><span class="o">.</span><span class="py">count</span><span class="o">())</span></code></pre></figure>
-
-<p>Once we created the session, we can create a df using the standard spark API <strong>range</strong> method. From there all the API’s of dataframe are available.</p>
-
-<p>Even though this look like normal df, we are actually interacting with spark-connect df rather than standard spark-sql df. You can find the docs for the same in <a href="https://github.com/apache/spark/blob/master/connector/connect/client/jvm/src/main/scala/org/apache/spark/sql/Dataset.scala">github spark-connect Dataset code</a>.</p>
-
-<h3 id="3-executing-the-code">3. Executing the Code</h3>
-
-<p>Once you execute the code, you will see the below output on spark UI.</p>
-
-<p><img src="/images/spark_connect/spark_ui_after_helloworld.png" alt="Spark UI after hello world execution" />.</p>
-
-<p>From the output its clear the code is running on gRPC API of spark-connect.</p>
-
-<h2 id="code">Code</h2>
-
-<p><a href="https://github.com/phatak-dev/spark-connect-examples/blob/master/src/main/scala/com/madhukara/sparkconnect/HelloWorld.scala">Complete Code on Github</a>.</p>
+<p><img src="/images/spark_connect/spark_ui_after_helloworld.png" alt="Spark UI after code execution" /></p>
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>In this post, we saw how to write and run a simple spark scala code against the new spark-connect API.</p>
+<p>In this post, we saw how to write and run a simple PySpark code against the new spark-connect API.</p>
 
 </article>
 <div class="related">
@@ -141,15 +116,15 @@
   <ul>
     
              
-    
-    <li>    
-     <span class="post-date">16 Aug 2023</span>
-     &raquo; <a href="/understanding-spark-connect-4">Understanding Spark Connect API - Part 4: PySpark Example</a>    
-   </li>           
-         
+          
 
             
-          
+    
+    <li>    
+     <span class="post-date">30 May 2023</span>
+     &raquo; <a href="/understanding-spark-connect-3">Understanding Spark Connect API - Part 3: Scala API Example</a>    
+   </li>           
+         
 
             
     
@@ -162,15 +137,15 @@
    
    
              
-    
-    <li>    
-     <span class="post-date">16 Aug 2023</span>
-     &raquo; <a href="/understanding-spark-connect-4">Understanding Spark Connect API - Part 4: PySpark Example</a>    
-   </li>           
-         
+          
 
             
-          
+    
+    <li>    
+     <span class="post-date">30 May 2023</span>
+     &raquo; <a href="/understanding-spark-connect-3">Understanding Spark Connect API - Part 3: Scala API Example</a>    
+   </li>           
+         
 
             
     

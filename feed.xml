@@ -7,6 +7,62 @@
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Understanding Spark Connect API - Part 4: PySpark Example</title>
+        <description>&lt;p&gt;In the 3.4 version, Apache Spark has released a new client/server-based API called Spark Connect. This API will help in improving how we develop and deploy Spark applications.&lt;/p&gt;
+
+&lt;p&gt;In this series of blogs, we are going to explore various functionalities exposed by spark-connect API. This is the fourth post in the series where we will discuss PySpark integration. You can read all the posts in the series &lt;a href=&quot;/categories/spark-connect&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;spark-connect-api-server&quot;&gt;Spark Connect API Server&lt;/h2&gt;
+
+&lt;p&gt;Before you can run a program against spark connect, you need to start spark connect server which intern starts a spark driver. You can follow the steps below link for the same.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://spark.apache.org/docs/latest/spark-connect-overview.html#download-and-start-spark-server-with-spark-connect&quot;&gt;https://spark.apache.org/docs/latest/spark-connect-overview.html#download-and-start-spark-server-with-spark-connect&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Once the spark connect server is started, it will be running in localhost and you should be able to see a spark UI at &lt;a href=&quot;http://localhost:4040/&quot;&gt;http://localhost:4040/&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/spark_connect/spark_connect_spark_ui.png&quot; alt=&quot;Spark UI running Spark Connect&quot; /&gt;.&lt;/p&gt;
+
+&lt;p&gt;If we observe the rightmost part of UI, we can observe name as &lt;strong&gt;Spark Connect server application UI&lt;/strong&gt; which confirms its a spark application running for spark connect.&lt;/p&gt;
+
+&lt;h2 id=&quot;pyspark-from-shell&quot;&gt;PySpark from Shell&lt;/h2&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;bin/pyspark &lt;span class=&quot;nt&quot;&gt;--remote&lt;/span&gt; sc://localhost&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;We can start the python shell by providing the remote as a parameter for spark session. We have seen this parameter in the earlier &lt;a href=&quot;/understanding-spark-connect-3#1-create-spark-session-using-spark-client-api&quot;&gt;scala example&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;spark-connect-spark-session&quot;&gt;Spark Connect Spark Session&lt;/h2&gt;
+
+&lt;p&gt;Once we started the pyspark shell, we can check if we are running against spark-connect API by inspecting the &lt;strong&gt;spark&lt;/strong&gt; variable that points to spark session.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;spark&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;outputs&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;&amp;lt;pyspark.sql.connect.session.SparkSession object at 0x10a067ac0&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;From the above output, it is confirmed that we are running spark-connect based spark session.&lt;/p&gt;
+
+&lt;h2 id=&quot;data-frame-code&quot;&gt;Data Frame Code&lt;/h2&gt;
+
+&lt;p&gt;The below is a simple PySpark code.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;spark&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;As with &lt;a href=&quot;/understanding-spark-connect-3#3-executing-the-code&quot;&gt;scala example&lt;/a&gt;, we can observe that in sparkUI gRpc calls will show up when we run this example.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/spark_connect/spark_ui_after_helloworld.png&quot; alt=&quot;Spark UI after code execution&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In this post, we saw how to write and run a simple PySpark code against the new spark-connect API.&lt;/p&gt;
+</description>
+        <pubDate>Wed, 16 Aug 2023 00:00:00 +0530</pubDate>
+        <link>https://blog.madhukaraphatak.com/understanding-spark-connect-4</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.com/understanding-spark-connect-4</guid>
+      </item>
+    
+      <item>
         <title>Understanding Spark Connect API - Part 3: Scala API Example</title>
         <description>&lt;p&gt;In the 3.4 version, Apache Spark has released a new client/server-based API called Spark Connect. This API will help in improving how we develop and deploy Spark applications.&lt;/p&gt;
 
@@ -858,77 +914,6 @@ function as the input.&lt;/p&gt;
         <pubDate>Wed, 14 Sep 2022 00:00:00 +0530</pubDate>
         <link>https://blog.madhukaraphatak.com/latest-java-2</link>
         <guid isPermaLink="true">https://blog.madhukaraphatak.com/latest-java-2</guid>
-      </item>
-    
-      <item>
-        <title>Latest Java Features from a Scala Dev Perspective - Part 1: Type Inference</title>
-        <description>&lt;p&gt;I started my career as a Java developer back in 2011. I  developed most of my code in the 1.7 version of Java. Around 2014, I switched to full-time Scala and have not programmed in Java ever since.&lt;/p&gt;
-
-&lt;p&gt;Java used to be a slow-moving language that had started lagging behind the other languages. Scala kind of filled that gap of modern language on a JVM. But in the last few years, it has changed. There is a new version of Java every 6 months and it has been getting new features at a very rapid pace. So I thought it will be interesting to go back to Java now and see how it has evolved compared to Java 7.&lt;/p&gt;
-
-&lt;p&gt;So in this series of posts, I will be talking about new features of Java from a Scala developer’s point of view. I will be using &lt;strong&gt;Java 17&lt;/strong&gt;, the latest LTS version, for these examples.&lt;/p&gt;
-
-&lt;p&gt;This is the first post in the series where I will be talking about type inference improvements added to Java. You can find all the posts in the series &lt;a href=&quot;/categories/latest-java&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;You can also consume this blog as video on YouTube&lt;/em&gt;.&lt;/p&gt;
-
-&lt;div class=&quot;video-container&quot;&gt; &lt;iframe src=&quot;https://www.youtube.com/embed/n-DMIlEY9jQ&quot; frameborder=&quot;0&quot; width=&quot;560&quot; height=&quot;315&quot;&gt;&lt;/iframe&gt; &lt;/div&gt;
-
-&lt;h2 id=&quot;java-and-verbosity&quot;&gt;Java and Verbosity&lt;/h2&gt;
-
-&lt;p&gt;One of the main complaints of any Java developer is its verbosity. This verbosity is very evident in the type declaration.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;list&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;();&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;In the above example, we are telling the type of list as String multiple times which leads to a lot of verbosity.&lt;/p&gt;
-
-&lt;h2 id=&quot;type-inference-in-scala&quot;&gt;Type Inference in Scala&lt;/h2&gt;
-
-&lt;p&gt;Scala greatly simplifies this verbosity using type inference&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-scala&quot; data-lang=&quot;scala&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;list&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]()&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;10.0&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Here using val, we are telling Scala the type only once or infer from the value. Using RHS, Scala will automatically infer the type of variable.&lt;/p&gt;
-
-&lt;h2 id=&quot;type-inference-in-java&quot;&gt;Type Inference in Java&lt;/h2&gt;
-
-&lt;p&gt;In &lt;strong&gt;Java 10&lt;/strong&gt;, java has added a new feature called Local variable type inference, which simplifies the verbosity.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;newList&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ArrayList&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;();&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Now by using, &lt;strong&gt;var&lt;/strong&gt; keyword, developer can skip the left hand side type. Here &lt;strong&gt;var&lt;/strong&gt; is appropriate compared to &lt;strong&gt;val&lt;/strong&gt; of Scala,
-as all the variables in Java are mutable by default.&lt;/p&gt;
-
-&lt;p&gt;The same type inference can be used for built in value assignments also.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;floatValue&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;10.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stringValue&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Hello World&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;thread&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Thread&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;From the above examples, you can see that type inference can be used with various types of values and objects.&lt;/p&gt;
-
-&lt;p&gt;This type of inference is not as powerful as Scala as these are limited to a local variable with initialisation. These are not supported for things like method/function return types which is supported in Scala. Still, this greatly reduces the verbosity of Java code and improves readability.&lt;/p&gt;
-
-&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
-
-&lt;p&gt;The complete code for the above examples can be found on Github, in the below links.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://github.com/phatak-dev/latest-java/blob/master/src/main/java/com/madhu/TypeInferenceExample.java&quot;&gt;Type Inference in Java on Github&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://github.com/phatak-dev/latest-java/blob/master/src/main/scala/com/madhu/TypeInference.scala&quot;&gt;Type Inference in Scala Github&lt;/a&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://openjdk.org/jeps/286&quot;&gt;Local Variable Type inference JEP&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;In this post, we looked at how Java compiler can now do local variable type inference which reduces the verbosity of code. It is very similar to Scala type inference.&lt;/p&gt;
-</description>
-        <pubDate>Wed, 14 Sep 2022 00:00:00 +0530</pubDate>
-        <link>https://blog.madhukaraphatak.com/latest-java-1</link>
-        <guid isPermaLink="true">https://blog.madhukaraphatak.com/latest-java-1</guid>
       </item>
     
   </channel>
