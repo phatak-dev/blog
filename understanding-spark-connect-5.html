@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Understanding Spark Connect API - Part 5: Dataframe Sharing Across Spark Sessions</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Thoughts on technology, life and everything else.">
+    <link rel="canonical" href="https://blog.madhukaraphatak.com/understanding-spark-connect-5">
+     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/app.css">
+       
+</head>
+
+
+    <body>
+
+    <header >
+  <div class="wrap">
+    <a class="site-title" href="/">Madhukar's Blog</a>  
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+           viewBox="0 0 18 15" enable-background="new 0 0 18 15" xml:space="preserve">
+          <path fill="#505050" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0
+            h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#505050" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484
+            h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#505050" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0
+            c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+      <div class="trigger">        
+          <a class="page-link" href="http://www.madhukaraphatak.com">About me</a>                  
+      </div>
+    </nav>  
+  </div>
+</header>
+
+
+    <div class="page-content">
+      <div class="wrap">
+      <div class="post">
+ <header class="post-header">
+  <h1>Understanding Spark Connect API - Part 5: Dataframe Sharing Across Spark Sessions</h1>
+  <p class="meta">Aug 18, 2023</p>
+  <div class="catagories">
+    
+    <a href="/categories/scala"><span class="category">scala</span></a>
+    
+    <a href="/categories/python"><span class="category">python</span></a>
+    
+    <a href="/categories/spark"><span class="category">spark</span></a>
+    
+    <a href="/categories/spark-connect"><span class="category">spark-connect</span></a>
+    
+  </div>
+</header> 
+
+<article class="post-content">
+  <p>In the 3.4 version, Apache Spark has released a new client/server-based API called Spark Connect. This API will help in improving how we develop and deploy Spark applications.</p>
+
+<p>In this series of blogs, we are going to explore various functionalities exposed by spark-connect API. This is the fifth post in the series where we will discuss about sharing dataframe between different spark sessions. You can read all the posts in the series <a href="/categories/spark-connect">here</a>.</p>
+
+<h2 id="sharing-dataframe-across-spark-sessions">Sharing DataFrame across Spark Sessions</h2>
+
+<p>Currently in spark, there is no way to serialize the dataframe and access them in other spark session. This feature is typically useful where we want to rerun the same set of operations on data and we can encode those operations as a logical plan of a dataframe. Currently, we need to use python scripts or other code to encode the same. But with spark-connect API, this is going to change.</p>
+
+<h2 id="dataframe-plan-and-protocol-buffer">Dataframe Plan and Protocol Buffer</h2>
+
+<p>In spark-connect, the client uses non resolved dataframe plan as the intermediate format for exchanging  information between the server. Having the dataframe plan as the intermediate format makes it very easy for spark to keep the API of dataframe as it is and just change the implementation.</p>
+
+<p>Internally spark uses the protocol buffer for serializing these plans. So we can use this feature to serialize and deserialize the dataframe in the spark and share them across spark sessions.</p>
+
+<h2 id="serialising-the-spark-plan">Serialising the Spark Plan</h2>
+
+<p>The below are the steps to create a dataframe and serializing it to a file.</p>
+
+<p>###1. DataFrame Creation</p>
+
+<p>The below spark code creates a simple dataframe and runs filter on it.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="nv">data</span> <span class="k">=</span> <span class="nc">List</span> <span class="o">(</span>
+  <span class="nc">Employee</span><span class="o">(</span><span class="s">"madhav"</span><span class="o">,</span><span class="mi">26</span><span class="o">,</span><span class="mi">60000</span><span class="o">),</span>
+  <span class="nc">Employee</span><span class="o">(</span><span class="s">"Raju"</span><span class="o">,</span><span class="mi">30</span><span class="o">,</span> <span class="mi">80000</span><span class="o">)</span>
+<span class="o">)</span>
+
+<span class="k">val</span> <span class="nv">sourceDf</span> <span class="k">=</span> <span class="nv">sparkSession</span><span class="o">.</span><span class="py">createDataset</span><span class="o">(</span><span class="n">data</span><span class="o">)</span>
+<span class="k">val</span> <span class="nv">filteredDf</span> <span class="k">=</span> <span class="nv">sourceDf</span><span class="o">.</span><span class="py">filter</span><span class="o">(</span><span class="s">"salary &gt; 60000"</span><span class="o">)</span></code></pre></figure>
+
+<p>###2. Access the Plan Object</p>
+
+<p>We can access the plan of the dataframe using below code.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="nv">plan</span> <span class="k">=</span> <span class="nv">filteredDf</span><span class="o">.</span><span class="py">plan</span></code></pre></figure>
+
+<p>On a spark-connect dataframe, there is a field name <strong>plan</strong> which gives access to the plan object.</p>
+
+<p>###3. Print Plan</p>
+
+<p>Once we created the dataframe, we can print it’s plan using below code</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="nf">println</span><span class="o">(</span><span class="n">plan</span><span class="o">)</span></code></pre></figure>
+
+<p>The output will be as below</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">root</span> <span class="o">{</span>
+  <span class="n">common</span> <span class="o">{</span>
+    <span class="n">plan_id</span><span class="k">:</span> <span class="err">2</span>
+  <span class="o">}</span>
+  <span class="n">filter</span> <span class="o">{</span>
+    <span class="n">input</span> <span class="o">{</span>
+      <span class="n">common</span> <span class="o">{</span>
+        <span class="n">plan_id</span><span class="k">:</span> <span class="err">1</span>
+      <span class="o">}</span>
+      <span class="n">local_relation</span> <span class="o">{</span>
+        <span class="n">data</span><span class="k">:</span> <span class="err">"</span><span class="kt">\</span><span class="err">377</span><span class="kt">\</span><span class="err">377</span><span class="kt">\</span><span class="err">377</span><span class="kt">\</span><span class="err">377</span> <span class="k">#</span> <span class="kt">truncated</span> <span class="kt">for</span> <span class="kt">output</span> <span class="kt">here</span><span class="err">"</span> 
+        <span class="kt">schema:</span> <span class="err">"</span><span class="o">{</span><span class="kt">\</span><span class="err">"</span><span class="k">type</span><span class="kt">\</span><span class="err">"</span><span class="kt">:\</span><span class="err">"</span><span class="kt">struct\</span><span class="err">"</span><span class="o">,</span><span class="kt">\</span><span class="err">"</span><span class="kt">fields\</span><span class="err">"</span><span class="kt">:</span>
+        <span class="err">[</span><span class="o">{</span><span class="kt">\</span><span class="err">"</span><span class="kt">name\</span><span class="err">"</span><span class="kt">:\</span><span class="err">"</span><span class="kt">name\</span><span class="err">"</span><span class="o">,</span><span class="kt">\</span><span class="err">"</span><span class="k">type</span><span class="kt">\</span><span class="err">"</span><span class="kt">:\</span><span class="err">"</span><span class="kt">string\</span><span class="err">"</span><span class="o">,\</span><span class="s">"nullable\":true,\"metadata\":{}},
+        {\"name\":\"age\",\"type\":\"integer\",\"nullable\":false,\"metadata\":{}},
+        {\"name\":\"salary\",\"type\":\"double\",\"nullable\":false,\"metadata\":{}}]}"</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+    <span class="n">condition</span> <span class="o">{</span>
+      <span class="n">expression_string</span> <span class="o">{</span>
+        <span class="n">expression</span><span class="k">:</span> <span class="err">"</span><span class="kt">salary</span> <span class="kt">&gt;</span> <span class="err">60000"</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></figure>
+
+<p>The above is the string representation of protocol buffer plan. As you can it encodes, schema, data and operations on dataframe.</p>
+
+<p>###4. Serialize Plan</p>
+
+<p>The below code serializes the plan to a file.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="nv">file</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">File</span><span class="o">(</span><span class="s">"filterdef.ser"</span><span class="o">)</span>
+<span class="k">val</span> <span class="nv">fileOutputStream</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">FileOutputStream</span><span class="o">(</span><span class="n">file</span><span class="o">)</span>
+<span class="nv">plan</span><span class="o">.</span><span class="py">writeTo</span><span class="o">(</span><span class="n">fileOutputStream</span><span class="o">)</span>
+<span class="nv">fileOutputStream</span><span class="o">.</span><span class="py">close</span><span class="o">()</span></code></pre></figure>
+
+<p>The above is a standard Java/Scala code to serialize the object.</p>
+
+<h2 id="deserialization-and-dataframe-recreation">Deserialization and Dataframe Recreation</h2>
+
+<p>Once we serialized the dataframe, now we can deserialize and recreate the dataframe. The below are steps for the same</p>
+
+<h2 id="internal-api">Internal API</h2>
+
+<p>This portion of code, uses an internal API which is not yet exposed as public API. So make sure this code resides in <strong>org.apache.spark.sql</strong> package. Otherwise you will be not able run the code.</p>
+
+<h3 id="1-deserialize-the-plan-object">1. Deserialize the Plan Object</h3>
+
+<p>The below code deserializes the file to the plan.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="nv">serializedFile</span> <span class="k">=</span> <span class="s">"filterdef.ser"</span>
+<span class="k">val</span> <span class="nv">inputStream</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">FileInputStream</span><span class="o">(</span><span class="n">serializedFile</span><span class="o">)</span>
+<span class="k">val</span> <span class="nv">parsedPlan</span> <span class="k">=</span> <span class="nv">Plan</span><span class="o">.</span><span class="py">parseFrom</span><span class="o">(</span><span class="n">inputStream</span><span class="o">)</span></code></pre></figure>
+<p>.</p>
+
+<h3 id="2-create-dataframe-the-plan">2. Create Dataframe the Plan</h3>
+
+<p>Once we have the plan, we can create the Dataframe from the same. <strong>This is an internal API</strong>.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="nv">dataset</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Dataset</span><span class="o">(</span><span class="n">sparkSession</span><span class="o">,</span> <span class="n">parsedPlan</span><span class="o">,</span> <span class="nc">UnboundRowEncoder</span><span class="o">)</span>
+<span class="nf">println</span><span class="o">(</span><span class="nv">dataset</span><span class="o">.</span><span class="py">explain</span><span class="o">(</span><span class="kc">true</span><span class="o">))</span></code></pre></figure>
+
+<p>The above code uses new internal <strong>Dataset</strong> constructor which creates a dataset/dataframe using the parsed plan. The last parameter in the constructor is to define the type of the dataset. If we pass <strong>UnboundRowEncoder</strong> it will return a <strong>Dataset[Row]</strong>.</p>
+
+<h3 id="3-print-data">3. Print Data</h3>
+
+<p>Once we have recreated the dataframe, we can verify the same by outputting the data.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="nf">println</span><span class="o">(</span><span class="nv">dataset</span><span class="o">.</span><span class="py">show</span><span class="o">())</span></code></pre></figure>
+
+<p>The above code outputs</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">+----+---+-------+
+|name|age| salary|
++----+---+-------+
+|Raju| 30|80000.0|
++----+---+-------+</code></pre></figure>
+
+<p>As you can see, we are able to successfully read and recreate dataframe in new spark session.</p>
+
+<h2 id="code">Code</h2>
+
+<p>You can access code for <a href="https://github.com/phatak-dev/spark-connect-examples/blob/master/src/main/scala/com/madhukara/sparkconnect/PlanSerializer.scala">serialize</a> and <a href="https://github.com/phatak-dev/spark-connect-examples/blob/master/src/main/scala/org/apache/spark/sql/PlanDeserializer.scala">deserialize</a> on github.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this post, we saw how to use spark-connect plan serialization to share the dataframe between different spark sessions.</p>
+
+</article>
+<div class="related">
+  <h2>Related posts</h2>
+  <ul>
+    
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">16 Aug 2023</span>
+     &raquo; <a href="/understanding-spark-connect-4">Understanding Spark Connect API - Part 4: PySpark Example</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">30 May 2023</span>
+     &raquo; <a href="/understanding-spark-connect-3">Understanding Spark Connect API - Part 3: Scala API Example</a>    
+   </li>           
+         
+
+   
+   
+             
+          
+
+            
+    
+    <li>    
+     <span class="post-date">16 Aug 2023</span>
+     &raquo; <a href="/understanding-spark-connect-4">Understanding Spark Connect API - Part 4: PySpark Example</a>    
+   </li>           
+         
+
+            
+    
+    <li>    
+     <span class="post-date">30 May 2023</span>
+     &raquo; <a href="/understanding-spark-connect-3">Understanding Spark Connect API - Part 3: Scala API Example</a>    
+   </li>           
+         
+
+   
+   
+ </ul>
+
+
+ 
+<!--   
+</div> -->
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrap">   
+    <div class="footer-col-1 column">
+      <ul>
+        <li>
+          <a href="https://github.com/phatak-dev">
+            <span class="icon github">
+              <svg version="1.1" class="github-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill-rule="evenodd" clip-rule="evenodd" fill="#C2C2C2" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761
+                c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32
+                c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472
+                c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037
+                C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65
+                c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261
+                c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082
+                c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129
+                c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+              </svg>
+            </span>
+            <span class="username">phatak-dev</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://twitter.com/madhukaraphatak">
+            <span class="icon twitter">
+              <svg version="1.1" class="twitter-icon-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+                <path fill="#C2C2C2" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809
+                c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27
+                c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767
+                c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206
+                C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271
+                c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469
+                c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/>
+              </svg>
+            </span>
+            <span class="username">madhukaraphatak</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer-col-3 column">
+      <p class="text">Thoughts on technology, life and everything else.</p>
+    </div>
+
+    <div style="float:right;">
+      <a href="/feed.xml"><img src="/images/rss.png">
+    </div>
+
+
+
+  </div>
+
+</footer>
+
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52311191-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+    </body>
+</html>
