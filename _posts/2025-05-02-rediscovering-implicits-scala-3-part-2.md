@@ -56,7 +56,7 @@ In the above code, we define an extension directly on `Circle` using the `extens
 
 ## Code
 
-You can find complete code over [github](https://raw.githubusercontent.com/phatak-dev/scala-3-examples/refs/heads/master/src/main/scala/ExtensionMethods.scala).
+You can find complete code over [github](https://github.com/phatak-dev/scala-3-examples/blob/master/src/main/scala/ExtensionMethods.scala).
 
 ## References
 
