@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Rediscovering Implicits in Scala 3 - Part 3: Summoning Implicits"
-date : 2025-03-02
+date : 2025-05-19
 categories: scala scala3 rediscover-implicits-scala3
 ---
 Implicits are one of the most advanced features of Scala. This feature makes many of the meta programming possible in language. 
@@ -14,7 +14,7 @@ In this series of blogs, I will be exploring these new features as if I am redis
 
 ## Passing Implicit Parameter to a Method in Scala 2.x
 
-In Scala 2.x, whenever we want to use an implicit value inside a method, we need to define an additional parameter list marked as `implicit`. This parameter list allows the compiler to automatically pass the correct value from the context when the method is called. However, this also means every method that needs an implicit has to explicitly declare it in its signature, which can sometimes add verbosity.
+In Scala 2.x, whenever we want to use an implicit value inside a method, we need to define an additional parameter marked as `implicit`. This parameter allows the compiler to automatically pass the correct value from the context when the method is called. However, this also means every method that needs an implicit has to explicitly declare it in its signature, which can sometimes add verbosity.
 
 The below code shows an example where we pass an implicit ordering for comparing two integers.
 
@@ -63,15 +63,13 @@ In the above code, we no longer have to declare an extra implicit parameter in t
 
 ## Code
 
-You can find complete code over [github](https://raw.githubusercontent.com/phatak-dev/scala-3-examples/refs/heads/master/src/main/scala/SummonExample.scala).
+You can find complete code over [github](https://github.com/phatak-dev/scala-3-examples/blob/master/src/main/scala/SummonExample.scala).
 
 ## References
 
 [https://docs.scala-lang.org/scala3/reference/contextual/using-clauses.html#summoning-instances-1](https://docs.scala-lang.org/scala3/reference/contextual/using-clauses.html#summoning-instances-1)
 
-## Summary
 
 ## Summary
 
 In this post, we explored how Scala 2.x required explicit implicit parameters in method signatures and how Scala 3.x introduced the `summon` keyword to simplify this process. By using `summon`, we can now fetch context parameters directly inside the method body, leading to much cleaner and more readable code.
-
