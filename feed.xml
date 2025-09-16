@@ -3,7 +3,7 @@
   <channel>
     <title>Madhukar&apos;s Blog</title>
     <description>Thoughts on technology, life and everything else.</description>
-    <link>https://blog.madhukaraphatak.com/</link>
+    <link>https://blog.madhukaraphatak.in/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
@@ -73,8 +73,8 @@
 &lt;p&gt;In this post, we explored how Scala 2.x required explicit implicit parameters in method signatures and how Scala 3.x introduced the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;summon&lt;/code&gt; keyword to simplify this process. By using &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;summon&lt;/code&gt;, we can now fetch context parameters directly inside the method body, leading to much cleaner and more readable code.&lt;/p&gt;
 </description>
         <pubDate>Mon, 19 May 2025 00:00:00 +0530</pubDate>
-        <link>https://blog.madhukaraphatak.com/rediscovering-implicits-scala-3-part-3</link>
-        <guid isPermaLink="true">https://blog.madhukaraphatak.com/rediscovering-implicits-scala-3-part-3</guid>
+        <link>https://blog.madhukaraphatak.in/rediscovering-implicits-scala-3-part-3</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.in/rediscovering-implicits-scala-3-part-3</guid>
       </item>
     
       <item>
@@ -136,8 +136,8 @@ This helps in enriching libraries and creating more fluent APIs without needing 
 &lt;p&gt;In this post, we explored how extension methods were used in Scala 2.x using implicit conversions and how Scala 3 introduced a much cleaner and more expressive syntax for the same. By making extension methods a first-class citizen, Scala 3 greatly simplifies the way we can enrich existing types.&lt;/p&gt;
 </description>
         <pubDate>Fri, 02 May 2025 00:00:00 +0530</pubDate>
-        <link>https://blog.madhukaraphatak.com/rediscovering-implicits-scala-3-part-2</link>
-        <guid isPermaLink="true">https://blog.madhukaraphatak.com/rediscovering-implicits-scala-3-part-2</guid>
+        <link>https://blog.madhukaraphatak.in/rediscovering-implicits-scala-3-part-2</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.in/rediscovering-implicits-scala-3-part-2</guid>
       </item>
     
       <item>
@@ -204,8 +204,8 @@ This helps in enriching libraries and creating more fluent APIs without needing 
 &lt;p&gt;&lt;a href=&quot;https://docs.scala-lang.org/scala3/reference/contextual/givens.html&quot;&gt;https://docs.scala-lang.org/scala3/reference/contextual/givens.html&lt;/a&gt;.&lt;/p&gt;
 </description>
         <pubDate>Fri, 17 Jan 2025 00:00:00 +0530</pubDate>
-        <link>https://blog.madhukaraphatak.com/rediscovering-implicits-scala-3-part-1</link>
-        <guid isPermaLink="true">https://blog.madhukaraphatak.com/rediscovering-implicits-scala-3-part-1</guid>
+        <link>https://blog.madhukaraphatak.in/rediscovering-implicits-scala-3-part-1</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.in/rediscovering-implicits-scala-3-part-1</guid>
       </item>
     
       <item>
@@ -295,8 +295,8 @@ This helps in enriching libraries and creating more fluent APIs without needing 
 &lt;p&gt;&lt;a href=&quot;https://langchain-ai.github.io/langgraph/tutorials/&quot;&gt;https://langchain-ai.github.io/langgraph/tutorials/&lt;/a&gt;&lt;/p&gt;
 </description>
         <pubDate>Mon, 13 Jan 2025 00:00:00 +0530</pubDate>
-        <link>https://blog.madhukaraphatak.com/exploring-langgraph-part-1</link>
-        <guid isPermaLink="true">https://blog.madhukaraphatak.com/exploring-langgraph-part-1</guid>
+        <link>https://blog.madhukaraphatak.in/exploring-langgraph-part-1</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.in/exploring-langgraph-part-1</guid>
       </item>
     
       <item>
@@ -436,8 +436,8 @@ This helps in enriching libraries and creating more fluent APIs without needing 
 &lt;p&gt;In this post, we saw how to use spark-connect plan serialization to share the dataframe between different spark sessions.&lt;/p&gt;
 </description>
         <pubDate>Fri, 18 Aug 2023 00:00:00 +0530</pubDate>
-        <link>https://blog.madhukaraphatak.com/understanding-spark-connect-5</link>
-        <guid isPermaLink="true">https://blog.madhukaraphatak.com/understanding-spark-connect-5</guid>
+        <link>https://blog.madhukaraphatak.in/understanding-spark-connect-5</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.in/understanding-spark-connect-5</guid>
       </item>
     
       <item>
@@ -492,8 +492,8 @@ This helps in enriching libraries and creating more fluent APIs without needing 
 &lt;p&gt;In this post, we saw how to write and run a simple PySpark code against the new spark-connect API.&lt;/p&gt;
 </description>
         <pubDate>Wed, 16 Aug 2023 00:00:00 +0530</pubDate>
-        <link>https://blog.madhukaraphatak.com/understanding-spark-connect-4</link>
-        <guid isPermaLink="true">https://blog.madhukaraphatak.com/understanding-spark-connect-4</guid>
+        <link>https://blog.madhukaraphatak.in/understanding-spark-connect-4</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.in/understanding-spark-connect-4</guid>
       </item>
     
       <item>
@@ -573,8 +573,8 @@ This helps in enriching libraries and creating more fluent APIs without needing 
 &lt;p&gt;In this post, we saw how to write and run a simple spark scala code against the new spark-connect API.&lt;/p&gt;
 </description>
         <pubDate>Tue, 30 May 2023 00:00:00 +0530</pubDate>
-        <link>https://blog.madhukaraphatak.com/understanding-spark-connect-3</link>
-        <guid isPermaLink="true">https://blog.madhukaraphatak.com/understanding-spark-connect-3</guid>
+        <link>https://blog.madhukaraphatak.in/understanding-spark-connect-3</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.in/understanding-spark-connect-3</guid>
       </item>
     
       <item>
@@ -631,8 +631,8 @@ observe from the diagram spark driver is no more part of the client application.
 &lt;p&gt;In this post, we talked about the architecture of the spark-connect and how it avoids some of the shortcomings of the spark driver architecture.&lt;/p&gt;
 </description>
         <pubDate>Fri, 26 May 2023 00:00:00 +0530</pubDate>
-        <link>https://blog.madhukaraphatak.com/understanding-spark-connect-2</link>
-        <guid isPermaLink="true">https://blog.madhukaraphatak.com/understanding-spark-connect-2</guid>
+        <link>https://blog.madhukaraphatak.in/understanding-spark-connect-2</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.in/understanding-spark-connect-2</guid>
       </item>
     
       <item>
@@ -696,8 +696,8 @@ observe from the diagram spark driver is no more part of the client application.
 &lt;p&gt;In this post, we talked short coming of the current spark driver based application development. In the next post in series, we will discuss how spark connect API is going to address some of these issues.&lt;/p&gt;
 </description>
         <pubDate>Tue, 09 May 2023 00:00:00 +0530</pubDate>
-        <link>https://blog.madhukaraphatak.com/understanding-spark-connect-1</link>
-        <guid isPermaLink="true">https://blog.madhukaraphatak.com/understanding-spark-connect-1</guid>
+        <link>https://blog.madhukaraphatak.in/understanding-spark-connect-1</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.in/understanding-spark-connect-1</guid>
       </item>
     
       <item>
@@ -809,8 +809,8 @@ observe from the diagram spark driver is no more part of the client application.
 &lt;p&gt;In this post, we saw how to fine-tune a pre-trained model using hugging face API. These two posts give you end to end flow of fine-tuning a transformer model.&lt;/p&gt;
 </description>
         <pubDate>Thu, 16 Feb 2023 00:00:00 +0530</pubDate>
-        <link>https://blog.madhukaraphatak.com/bert-email-spam-2</link>
-        <guid isPermaLink="true">https://blog.madhukaraphatak.com/bert-email-spam-2</guid>
+        <link>https://blog.madhukaraphatak.in/bert-email-spam-2</link>
+        <guid isPermaLink="true">https://blog.madhukaraphatak.in/bert-email-spam-2</guid>
       </item>
     
   </channel>
